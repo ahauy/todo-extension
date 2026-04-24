@@ -268,6 +268,23 @@ Xem `docs/MONITORING.md` để:
 
 ---
 
+## 🧠 Memory & Learning
+
+Template bao gồm auto-save/load context + continuous learning:
+
+### Memory Hooks
+- Auto-save context sau mỗi session → `memory/YYYY-MM-DD.md`
+- Auto-load context khi mở project lại
+- Xem `docs/MEMORY_HOOKS.md` để setup
+
+### Continuous Learning
+- Auto-extract patterns + lessons → `.learnings/YYYY-MM-DD-[topic].md`
+- Promote patterns vào AGENTS.md / TOOLS.md khi validated
+- Tránh lỗi cũ lần sau
+- Xem `docs/CONTINUOUS_LEARNING.md` để setup
+
+---
+
 ## 📜 License
 
 MIT

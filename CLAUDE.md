@@ -75,6 +75,8 @@ Sau khi spec approved:
 - **Scope control** — không sửa file ngoài danh sách cho phép trong task
 - **Error handling** — mọi async function phải handle error
 - **Brainstorm trước khi thêm feature** — đọc `skills/brainstorming/SKILL.md`
+- **Memory hooks** — auto-save/load context, xem `docs/MEMORY_HOOKS.md`
+- **Continuous learning** — extract patterns, xem `docs/CONTINUOUS_LEARNING.md`
 
 ## Current Phase
 Phase 0 — Brainstorming (chưa bắt đầu)
