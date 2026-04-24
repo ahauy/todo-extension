@@ -1,16 +1,18 @@
 # 🚀 Opencode Project Template
 
-> Template chuẩn để khởi động project mới với Opencode.  
-> Tích hợp Brainstorming → Design → Plan → Code → Test workflow.
+> Production-ready template để khởi động project mới với Opencode.  
+> Tích hợp Brainstorming → Design → Plan → Code → Test → Monitor workflow.
 
 ---
 
 ## ✨ Tại Sao Dùng Template Này?
 
 - **Brainstorm trước, code sau** — design doc được approve trước khi viết dòng code đầu tiên
-- **Không mất context** — Opencode luôn biết đang làm gì, đang ở phase nào
+- **Không mất context** — auto-save/load context qua sessions
 - **Không code lung tung** — plan rõ ràng, task nhỏ, test ngay
-- **Reusable brainstorming skill** — thêm feature mới cũng có workflow chuẩn
+- **Auto-learn từ mistakes** — continuous learning system
+- **Understand codebase** — Graphify knowledge graph
+- **Production-ready** — monitoring, error tracking, metrics
 
 ---
 
@@ -19,6 +21,7 @@
 - [Opencode](https://opencode.ai) đã cài
 - `git` đã cài
 - `bash` (macOS / Linux / WSL)
+- `python 3.10+` (cho Graphify)
 
 ---
 
@@ -89,19 +92,29 @@ my-project/
 ├── CLAUDE.md                      ← 🔑 Source of truth cho Opencode
 │
 ├── docs/
-│   ├── BRIEF.md                   ← Brain dump ban đầu (do script tạo)
-│   ├── specs/                     ← Design docs (do Opencode viết sau brainstorm)
+│   ├── BRIEF.md                   ← Brain dump ban đầu
+│   ├── MONITORING.md              ← Sentry + Prometheus + Grafana setup
+│   ├── MEMORY_HOOKS.md            ← Auto-save/load context
+│   ├── CONTINUOUS_LEARNING.md     ← Auto-extract patterns
+│   ├── GRAPHIFY.md                ← Knowledge graph builder
+│   ├── specs/                     ← Design docs (output của brainstorming)
 │   │   └── YYYY-MM-DD-[topic]-design.md
-│   ├── phases/
-│   │   ├── phase-0.md             ← Brainstorming instructions
-│   │   ├── phase-1.md             ← Foundation
-│   │   ├── phase-2.md             ← Core Features
-│   │   ├── phase-3.md             ← UI + Polish
-│   │   └── phase-4.md             ← Testing + Deploy
+│   └── phases/
+│       ├── phase-0.md             ← Brainstorming instructions
+│       ├── phase-1.md             ← Foundation
+│       ├── phase-2.md             ← Core Features
+│       ├── phase-3.md             ← UI + Polish
+│       └── phase-4.md             ← Testing + Deploy
 │
 ├── skills/
 │   └── brainstorming/
 │       └── SKILL.md               ← Reusable brainstorming workflow
+│
+├── memory/                        ← Auto-save context từ sessions
+│   └── .gitkeep
+│
+├── .learnings/                    ← Auto-extract patterns + lessons
+│   └── .gitkeep
 │
 ├── tasks/
 │   ├── todo.md                    ← Task hiện tại + up next
@@ -120,7 +133,9 @@ my-project/
 ├── .github/
 │   └── workflows/ci.yml           ← CI pipeline
 │
-├── .env.example
+├── docker-compose.monitoring.yml  ← Prometheus + Grafana
+├── prometheus.yml                 ← Prometheus config
+├── .env.example                   ← Env vars template
 └── .gitignore
 ```
 
@@ -156,6 +171,7 @@ opencode .
 │  └───────────────────────────────────────────┘    │
 │                                                    │
 │  Cuối mỗi phase: Integration test                  │
+│  Review memory/ + .learnings/ để tránh lỗi cũ     │
 └─────────────────────────────────────────────────────┘
         ↓
 ┌─── PHASE 4: RELEASE ───────────────────────────────┐
@@ -166,75 +182,55 @@ opencode .
 
 ---
 
-## 🧠 Brainstorming Skill (Dùng Lại Khi Thêm Feature)
+## 🧠 Memory & Learning
 
-Khi project đang chạy và muốn thêm feature mới, paste vào Opencode:
+### Memory Hooks
+Auto-save/load context qua sessions:
+- Session end: save → `memory/YYYY-MM-DD.md`
+- Session start: load từ `memory/`
+- Xem `docs/MEMORY_HOOKS.md` để setup
 
-```
-Đọc skills/brainstorming/SKILL.md và bắt đầu brainstorm feature sau:
-[Mô tả feature muốn thêm]
-```
-
-Skill sẽ tự động:
-1. Explore context hiện tại
-2. Hỏi từng câu để clarify
-3. Propose 2-3 approaches
-4. Viết design doc mới vào `docs/specs/`
-5. Tạo tasks cho feature đó
-
----
-
-## 🧪 Testing Strategy
-
-| Loại | Khi nào viết | Tool |
-|------|-------------|------|
-| **Unit** | Ngay sau mỗi task | Vitest |
-| **Integration** | Cuối mỗi phase | Vitest + Supertest |
-| **E2E** | Trước release | Playwright |
+### Continuous Learning
+Auto-extract patterns + lessons:
+- Extract → `.learnings/YYYY-MM-DD-[topic].md`
+- Promote → AGENTS.md / TOOLS.md khi validated
+- Tránh lỗi cũ lần sau
+- Xem `docs/CONTINUOUS_LEARNING.md` để setup
 
 ---
 
-## 📌 Rules Vàng
+## 📊 Knowledge Graph (Graphify)
 
-| Rule | Lý do |
-|------|-------|
-| Brainstorm trước khi code | Tránh build sai thứ |
-| Design doc phải được approve | Hard gate, không skip |
-| `CLAUDE.md` là source of truth | Opencode đọc đầu tiên |
-| 1 prompt = 1 task | Context nhỏ → output tốt |
-| Test viết ngay, không để cuối | Tránh bug chồng bug |
-| Commit sau mỗi task | Rollback dễ |
+Auto-generate knowledge graph từ codebase:
 
----
+```bash
+# Install
+pip install graphifyy
 
-## 📝 Prompt Templates
+# Generate graph
+graphify ./src
 
-### Bắt đầu task mới
-```
-Đọc CLAUDE.md → docs/phases/phase-N.md → tasks/todo.md
-
-Implement task "In Progress".
-Chỉ sửa files được liệt kê trong task.
-
-Sau khi xong:
-1. Viết unit test
-2. Chạy test, fix nếu fail
-3. Commit: feat/fix/test: [mô tả ngắn]
-4. Move task sang done.md
-5. Báo kết quả ngắn gọn
+# Output
+graphify-out/
+  ├── graph.html              # Interactive visualization
+  ├── GRAPH_REPORT.md         # Core nodes + surprises
+  ├── graph.json              # Queryable graph (for Opencode)
+  └── cache/
 ```
 
-### Thêm feature mới
-```
-Đọc skills/brainstorming/SKILL.md và brainstorm feature sau:
-[Mô tả feature]
-```
+**Usage:**
+- Review `GRAPH_REPORT.md` sau major changes
+- Open `graph.html` để explore architecture
+- Opencode reads `graph.json` để hiểu structure
+- Run trước release để catch architecture drift
+
+Xem `docs/GRAPHIFY.md` để full guide.
 
 ---
 
 ## 📊 Monitoring
 
-Template bao gồm production-ready monitoring stack:
+Production-ready monitoring stack:
 
 ### Tools
 - **Sentry** — Error tracking + source maps
@@ -268,57 +264,86 @@ Xem `docs/MONITORING.md` để:
 
 ---
 
-## 🧠 Memory & Learning
+## 🧠 Brainstorming Skill (Thêm Feature Mới)
 
-Template bao gồm auto-save/load context + continuous learning:
+Khi project đang chạy và muốn thêm feature mới:
 
-### Memory Hooks
-- Auto-save context sau mỗi session → `memory/YYYY-MM-DD.md`
-- Auto-load context khi mở project lại
-- Xem `docs/MEMORY_HOOKS.md` để setup
+```
+"Đọc skills/brainstorming/SKILL.md và brainstorm feature sau:
+[Mô tả feature muốn thêm]"
+```
 
-### Continuous Learning
-- Auto-extract patterns + lessons → `.learnings/YYYY-MM-DD-[topic].md`
-- Promote patterns vào AGENTS.md / TOOLS.md khi validated
-- Tránh lỗi cũ lần sau
-- Xem `docs/CONTINUOUS_LEARNING.md` để setup
+Skill sẽ tự động:
+1. Explore context hiện tại
+2. Hỏi từng câu để clarify
+3. Propose 2-3 approaches
+4. Viết design doc mới vào `docs/specs/`
+5. Tạo tasks cho feature đó
 
 ---
 
-## 📄 Knowledge Graph
+## 🧪 Testing Strategy
 
-Template bao gồm Graphify để auto-generate knowledge graph:
+| Loại | Khi nào viết | Tool |
+|------|-------------|------|
+| **Unit** | Ngay sau mỗi task | Vitest |
+| **Integration** | Cuối mỗi phase | Vitest + Supertest |
+| **E2E** | Trước release | Playwright |
 
-### What is Graphify?
-- Multi-modal knowledge graph builder
-- Parse code + docs + diagrams
-- Identify god nodes (core components)
-- Find surprising dependencies
-- Interactive visualization + queryable JSON
+---
 
-### Quick Start
-```bash
-# Install
-pip install graphifyy
+## 📌 Rules Vàng
 
-# Generate graph
-graphify ./src
+| Rule | Lý do |
+|------|-------|
+| Brainstorm trước khi code | Tránh build sai thứ |
+| Design doc phải được approve | Hard gate, không skip |
+| `CLAUDE.md` là source of truth | Opencode đọc đầu tiên |
+| 1 prompt = 1 task | Context nhỏ → output tốt |
+| Test viết ngay, không để cuối | Tránh bug chồng bug |
+| Commit sau mỗi task | Rollback dễ |
+| Review memory/ + learnings/ | Tránh lỗi cũ |
 
-# Output
-graphify-out/
-  ├─ graph.html              # Interactive visualization
-  ├─ GRAPH_REPORT.md         # Core nodes + surprises
-  ├─ graph.json              # Queryable graph (for Opencode)
-  └─ cache/                  # Incremental cache
+---
+
+## 📝 Prompt Templates
+
+### Bắt đầu task mới
+```
+Đọc CLAUDE.md → docs/phases/phase-N.md → tasks/todo.md
+
+Implement task "In Progress".
+Chỉ sửa files được liệt kê trong task.
+
+Sau khi xong:
+1. Viết unit test
+2. Chạy test, fix nếu fail
+3. Commit: feat/fix/test: [mô tả ngắn]
+4. Move task sang done.md
+5. Báo kết quả ngắn gọn
 ```
 
-### Usage
-- Review `GRAPH_REPORT.md` after major changes
-- Open `graph.html` to explore architecture
-- Opencode reads `graph.json` to understand structure
-- Run before release to catch architecture drift
+### Thêm feature mới
+```
+Đọc skills/brainstorming/SKILL.md và brainstorm feature sau:
+[Mô tả feature]
+```
 
-Xem `docs/GRAPHIFY.md` để full guide.
+### Generate knowledge graph
+```bash
+graphify ./src
+# Review graphify-out/GRAPH_REPORT.md
+```
+
+---
+
+## 🔗 Resources
+
+- **Brainstorming Skill:** `skills/brainstorming/SKILL.md`
+- **Memory Hooks:** `docs/MEMORY_HOOKS.md`
+- **Continuous Learning:** `docs/CONTINUOUS_LEARNING.md`
+- **Graphify:** `docs/GRAPHIFY.md`
+- **Monitoring:** `docs/MONITORING.md`
 
 ---
 
