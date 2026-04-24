@@ -285,6 +285,43 @@ Template bao gồm auto-save/load context + continuous learning:
 
 ---
 
+## 📄 Knowledge Graph
+
+Template bao gồm Graphify để auto-generate knowledge graph:
+
+### What is Graphify?
+- Multi-modal knowledge graph builder
+- Parse code + docs + diagrams
+- Identify god nodes (core components)
+- Find surprising dependencies
+- Interactive visualization + queryable JSON
+
+### Quick Start
+```bash
+# Install
+pip install graphifyy
+
+# Generate graph
+graphify ./src
+
+# Output
+graphify-out/
+  ├─ graph.html              # Interactive visualization
+  ├─ GRAPH_REPORT.md         # Core nodes + surprises
+  ├─ graph.json              # Queryable graph (for Opencode)
+  └─ cache/                  # Incremental cache
+```
+
+### Usage
+- Review `GRAPH_REPORT.md` after major changes
+- Open `graph.html` to explore architecture
+- Opencode reads `graph.json` to understand structure
+- Run before release to catch architecture drift
+
+Xem `docs/GRAPHIFY.md` để full guide.
+
+---
+
 ## 📜 License
 
 MIT

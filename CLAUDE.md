@@ -1,7 +1,7 @@
 # Project: [PROJECT_NAME]
 
 > 🔑 File này là source of truth. Opencode đọc file này đầu tiên mỗi session.
-> 📋 Xem `.project-context.json` để hiểu structure + conventions nhanh.
+> 📊 Xem `graphify-out/graph.json` để hiểu structure + dependencies (auto-generated).
 
 ---
 
