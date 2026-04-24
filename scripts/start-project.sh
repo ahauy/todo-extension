@@ -60,9 +60,34 @@ echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${BOLD}  📋 Mở Opencode, paste prompt sau vào:${RESET}"
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
-cat docs/phases/phase-0.md | grep -A 200 "## Prompt Cho Opencode" | grep -A 200 '```' | tail -n +2 | head -n -1
+PHASE0_PROMPT=$(cat docs/phases/phase-0.md | grep -A 200 "## Prompt Cho Opencode" | grep -A 200 '```' | tail -n +2 | head -n -1)
+
+echo "$PHASE0_PROMPT"
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+echo ""
+
+# ── Auto copy to clipboard ────────────────────────────────────
+COPIED=false
+if command -v pbcopy &>/dev/null; then
+  echo "$PHASE0_PROMPT" | pbcopy
+  COPIED=true
+elif command -v xclip &>/dev/null; then
+  echo "$PHASE0_PROMPT" | xclip -selection clipboard
+  COPIED=true
+elif command -v xdotool &>/dev/null; then
+  echo "$PHASE0_PROMPT" | xdotool type --clearmodifiers --file -
+  COPIED=true
+fi
+
+if [ "$COPIED" = true ]; then
+  echo -e "${GREEN}✅ Prompt đã được copy vào clipboard!${RESET}"
+  echo -e "${YELLOW}   → Mở Opencode và paste (Ctrl+V / Cmd+V) là xong.${RESET}"
+else
+  echo -e "${YELLOW}⚠️  Không tìm thấy clipboard tool (pbcopy/xclip).${RESET}"
+  echo -e "${YELLOW}   → Copy thủ công đoạn prompt phía trên.${RESET}"
+fi
+
 echo ""
 echo -e "${YELLOW}📁 Project folder: $(pwd)${RESET}"
 echo -e "${YELLOW}📄 Chi tiết Phase 0: docs/phases/phase-0.md${RESET}"
