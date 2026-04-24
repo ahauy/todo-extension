@@ -81,9 +81,9 @@ Sau khi spec approved:
 ## Model Strategy
 
 **Default Model:** Sonnet 4-6 (mọi task)  
-**Brainstorming:** GPT-5.4 (Phase 0 planning)  
+**Brainstorming:** GPT-5.5 (Phase 0 planning)  
 **Complex Tasks:** Opus 4-6 (refactor, architecture)  
-**Fallback:** GPT-5.4 (nếu Sonnet fail)
+**Fallback:** GPT-5.5 (nếu Sonnet fail)
 
 ### Khi Nào Dùng Từng Model?
 
@@ -94,7 +94,7 @@ Sau khi spec approved:
 - Documentation
 - Regular development
 
-**GPT-5.4** (brainstorming + fallback)
+**GPT-5.5** (brainstorming + fallback)
 - Phase 0: Brainstorming + planning
 - Clarify requirements
 - Propose approaches
@@ -115,7 +115,7 @@ Sau khi spec approved:
 /status
 
 # Chuyển sang GPT (brainstorming)
-/model openai-codex/gpt-5.4
+/model openai-codex/gpt-5.5
 
 # Chuyển sang Opus (complex)
 /model aihub-claude/claude-opus-4-6

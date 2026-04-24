@@ -303,7 +303,7 @@ Skill sẽ tự động:
 | Test viết ngay, không để cuối | Tránh bug chồng bug |
 | Commit sau mỗi task | Rollback dễ |
 | Review memory/ + learnings/ | Tránh lỗi cũ |
-| **Phase 0: Dùng GPT-5.4** | Brainstorming tốt hơn |
+| **Phase 0: Dùng GPT-5.5** | Brainstorming tốt hơn |
 | **Dev: Dùng Sonnet (default)** | Rẻ + đủ tốt |
 | **Complex: Dùng Opus** | Refactor lớn, architecture |
 

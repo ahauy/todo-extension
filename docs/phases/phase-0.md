@@ -55,7 +55,7 @@ Xóa FIRST TIME SETUP block
 - Đề xuất **2-3 approaches** trước khi chốt design
 - Confirm **từng section** của design trước khi đi tiếp
 - **KHÔNG code** cho đến khi spec được approve
-- **Dùng GPT-5.4** cho Phase 0 (brainstorming tốt hơn)
+- **Dùng GPT-5.5** cho Phase 0 (brainstorming tốt hơn)
 
 ### Model cho Phase 0
 
