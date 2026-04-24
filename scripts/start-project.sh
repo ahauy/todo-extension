@@ -3,6 +3,7 @@
 # ============================================================
 # start-project.sh — Kick off a new project from this template
 # Usage: ./scripts/start-project.sh
+# Supports: Linux, macOS
 # ============================================================
 
 set -e
@@ -37,10 +38,20 @@ echo -e "  ${YELLOW}(Nhấn Enter 2 lần để xong)${RESET}"
 echo ""
 
 BRIEF=""
+EMPTY_LINES=0
 while IFS= read -r line; do
-  [[ -z "$line" && -z "$(echo "$BRIEF" | tail -1)" ]] && break
+  if [ -z "$line" ]; then
+    EMPTY_LINES=$((EMPTY_LINES + 1))
+    if [ $EMPTY_LINES -ge 2 ]; then
+      break
+    fi
+  else
+    EMPTY_LINES=0
+  fi
   BRIEF="$BRIEF$line"$'\n'
 done
+
+BRIEF=$(echo "$BRIEF" | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}')
 
 if [ -z "$(echo "$BRIEF" | tr -d '[:space:]')" ]; then
   BRIEF="(Chưa có mô tả — Opencode sẽ hỏi thêm trong Phase 0)"
@@ -53,15 +64,31 @@ echo -e "${CYAN}Step 3/4: Đang setup files...${RESET}"
 TODAY=$(date +%Y-%m-%d)
 
 # Replace [PROJECT_NAME] trong tất cả markdown
-find . -name "*.md" -not -path "./.git/*" | while read file; do
-  sed -i "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" "$file"
-  sed -i "s/\[DATE\]/$TODAY/g" "$file"
+find . -name "*.md" -not -path "./.git/*" -type f | while read file; do
+  if [ -f "$file" ]; then
+    sed -i.bak "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" "$file"
+    sed -i.bak "s/\[DATE\]/$TODAY/g" "$file"
+    rm -f "$file.bak"
+  fi
 done
 
 # Ghi brain dump vào docs/BRIEF.md
-BRIEF_ESCAPED=$(echo "$BRIEF" | sed 's/[&/\]/\\&/g')
-sed -i "s/\[BRIEF_CONTENT\]/$BRIEF_ESCAPED/" docs/BRIEF.md 2>/dev/null || \
-  printf '%s' "$BRIEF" >> docs/BRIEF.md
+if [ -f "docs/BRIEF.md" ]; then
+  # Xóa placeholder cũ
+  sed -i.bak '/\[BRIEF_CONTENT\]/d' docs/BRIEF.md
+  rm -f docs/BRIEF.md.bak
+  # Thêm brief vào cuối file
+  echo "" >> docs/BRIEF.md
+  echo "$BRIEF" >> docs/BRIEF.md
+else
+  # Tạo file mới nếu không tồn tại
+  mkdir -p docs
+  cat > docs/BRIEF.md << EOF
+# Brain Dump — $PROJECT_NAME
+
+$BRIEF
+EOF
+fi
 
 echo -e "  ${GREEN}✅ Files updated${RESET}"
 echo -e "  ${GREEN}✅ Brain dump đã ghi vào docs/BRIEF.md${RESET}"
