@@ -232,6 +232,42 @@ Sau khi xong:
 
 ---
 
+## 📊 Monitoring
+
+Template bao gồm production-ready monitoring stack:
+
+### Tools
+- **Sentry** — Error tracking + source maps
+- **Prometheus** — Metrics collection
+- **Grafana** — Metrics visualization
+
+### Quick Start
+
+**1. Setup Sentry**
+```bash
+# Tạo account: https://sentry.io
+# Lấy DSN → .env
+SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+```
+
+**2. Start Prometheus + Grafana**
+```bash
+docker-compose -f docker-compose.monitoring.yml up -d
+
+# Access
+# Prometheus: http://localhost:9090
+# Grafana: http://localhost:3000 (admin/admin)
+```
+
+**3. Full Guide**
+Xem `docs/MONITORING.md` để:
+- Init Sentry trong Node.js + React
+- Setup Prometheus metrics
+- Create Grafana dashboards
+- Deploy production
+
+---
+
 ## 📜 License
 
 MIT
