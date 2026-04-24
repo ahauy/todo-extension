@@ -1,0 +1,70 @@
+{
+  "project": "[PROJECT_NAME]",
+  "description": "[PROJECT_DESCRIPTION]",
+  "stack": {
+    "frontend": "[e.g. React 18 + TypeScript]",
+    "backend": "[e.g. Node.js + Express]",
+    "database": "[e.g. PostgreSQL + Prisma]",
+    "testing": "Vitest + Playwright",
+    "deployment": "[e.g. Vercel / Railway]"
+  },
+  "folders": {
+    "src": "Source code",
+    "src/app": "Routes / pages",
+    "src/components": "Reusable UI components",
+    "src/lib": "Shared utilities, helpers",
+    "src/db": "Database schema, migrations",
+    "src/types": "Shared TypeScript types",
+    "tests": "Test files",
+    "tests/unit": "Unit tests (viết cùng lúc với code)",
+    "tests/integration": "Integration tests (cuối mỗi phase)",
+    "tests/e2e": "E2E tests (trước release)",
+    "docs": "Documentation",
+    "docs/specs": "Design docs (output của brainstorming)",
+    "docs/phases": "Phase breakdown (phase-0 đến phase-4)",
+    "skills": "Reusable skills",
+    "skills/brainstorming": "Brainstorm workflow",
+    "scripts": "Utility scripts",
+    ".github/workflows": "CI/CD pipelines"
+  },
+  "key_files": {
+    "CLAUDE.md": "Project context + rules (Opencode đọc đầu tiên)",
+    "docs/BRIEF.md": "Brain dump ban đầu",
+    "docs/MONITORING.md": "Monitoring setup guide",
+    "tasks/todo.md": "Current tasks + up next",
+    "tasks/done.md": "Log tasks đã xong",
+    "docs/phases/phase-0.md": "Brainstorming instructions",
+    "docs/phases/phase-1.md": "Foundation phase",
+    "docs/phases/phase-2.md": "Core features phase",
+    "docs/phases/phase-3.md": "UI + Polish phase",
+    "docs/phases/phase-4.md": "Testing + Deploy phase",
+    "docker-compose.monitoring.yml": "Prometheus + Grafana setup",
+    "prometheus.yml": "Prometheus config",
+    ".env.example": "Environment variables template"
+  },
+  "conventions": {
+    "commit_format": "feat/fix/test/chore: [mô tả ngắn]",
+    "test_location": "Cạnh source file (file.ts + file.test.ts)",
+    "branch_naming": "fix/issue-N hoặc feature/[name]",
+    "typescript": "strict mode, không dùng any",
+    "error_handling": "Mọi async function phải handle error"
+  },
+  "workflow": {
+    "phase_0": "Brainstorming → Design → Spec → Approve",
+    "phase_1_3": "Task loop: Code → Test → Commit → Update todo.md",
+    "phase_4": "E2E test → Deploy staging → Deploy production",
+    "add_feature": "Đọc skills/brainstorming/SKILL.md → brainstorm → spec → tasks"
+  },
+  "monitoring": {
+    "error_tracking": "Sentry (https://sentry.io)",
+    "metrics": "Prometheus (http://localhost:9090)",
+    "visualization": "Grafana (http://localhost:3000)",
+    "setup_guide": "docs/MONITORING.md"
+  },
+  "tools": {
+    "brainstorming": "skills/brainstorming/SKILL.md",
+    "testing": "Vitest + Playwright",
+    "ci_cd": ".github/workflows/ci.yml",
+    "docker": "docker-compose.monitoring.yml"
+  }
+}
