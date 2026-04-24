@@ -20,7 +20,7 @@
 
 - [Opencode](https://opencode.ai) đã cài
 - `git` đã cài
-- `bash` (macOS / Linux / WSL)
+- `bash` (macOS / Linux / WSL) HOẶC `cmd`/`PowerShell` (Windows)
 - `python 3.10+` (cho Graphify)
 
 ---
@@ -36,8 +36,19 @@ cd my-project
 
 ### Bước 2: Chạy script khởi tạo
 
+**Linux / macOS:**
 ```bash
 ./scripts/start-project.sh
+```
+
+**Windows (CMD):**
+```cmd
+scripts\start-project.bat
+```
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\start-project.ps1
 ```
 
 Script hỏi 2 thứ:
