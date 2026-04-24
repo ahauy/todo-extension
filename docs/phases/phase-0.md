@@ -55,6 +55,19 @@ Xóa FIRST TIME SETUP block
 - Đề xuất **2-3 approaches** trước khi chốt design
 - Confirm **từng section** của design trước khi đi tiếp
 - **KHÔNG code** cho đến khi spec được approve
+- **Dùng GPT-5.4** cho Phase 0 (brainstorming tốt hơn)
+
+### Model cho Phase 0
+
+Trước khi bắt đầu Phase 0, chuyển sang GPT:
+```bash
+/model openai-codex/gpt-5.4
+```
+
+Sau khi Phase 0 xong, quay lại Sonnet:
+```bash
+/model aihub-claude/claude-sonnet-4-6
+```
 
 ---
 

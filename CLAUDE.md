@@ -78,6 +78,59 @@ Sau khi spec approved:
 - **Memory hooks** — auto-save/load context, xem `docs/MEMORY_HOOKS.md`
 - **Continuous learning** — extract patterns, xem `docs/CONTINUOUS_LEARNING.md`
 
+## Model Strategy
+
+**Default Model:** Sonnet 4-6 (mọi task)  
+**Brainstorming:** GPT-5.4 (Phase 0 planning)  
+**Complex Tasks:** Opus 4-6 (refactor, architecture)  
+**Fallback:** GPT-5.4 (nếu Sonnet fail)
+
+### Khi Nào Dùng Từng Model?
+
+**Sonnet 4-6** (default)
+- Feature implementation
+- Bug fix
+- Test writing
+- Documentation
+- Regular development
+
+**GPT-5.4** (brainstorming + fallback)
+- Phase 0: Brainstorming + planning
+- Clarify requirements
+- Propose approaches
+- Design review
+- Fallback nếu Sonnet fail
+
+**Opus 4-6** (complex tasks)
+- Refactor lớn (> 5 files)
+- Architecture changes
+- Complex algorithm
+- Performance optimization
+- Deep reasoning needed
+
+### Cách Chuyển Model
+
+```bash
+# Check model hiện tại
+/status
+
+# Chuyển sang GPT (brainstorming)
+/model openai-codex/gpt-5.4
+
+# Chuyển sang Opus (complex)
+/model aihub-claude/claude-opus-4-6
+
+# Quay lại Sonnet (default)
+/model aihub-claude/claude-sonnet-4-6
+```
+
+### Tips
+- Luôn check `/status` trước task
+- Dùng Sonnet mặc định (rẻ + đủ tốt)
+- Chuyển GPT cho brainstorming Phase 0
+- Chuyển Opus khi cần reasoning sâu
+- Quay lại Sonnet sau khi xong
+
 ## Current Phase
 Phase 0 — Brainstorming (chưa bắt đầu)
 
