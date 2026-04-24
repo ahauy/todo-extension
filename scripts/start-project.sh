@@ -19,78 +19,74 @@ echo -e "${BOLD}║     🚀 Opencode Project Starter          ║${RESET}"
 echo -e "${BOLD}╚══════════════════════════════════════════╝${RESET}"
 echo ""
 
-# ── Step 1: Project name ─────────────────────────────────────
+# ── Step 1: Project name ──────────────────────────────────────
 echo -e "${CYAN}Step 1/4: Project name${RESET}"
-read -p "  Tên project (dùng cho folder + repo): " PROJECT_NAME
+read -p "  Tên project: " PROJECT_NAME
 
 if [ -z "$PROJECT_NAME" ]; then
   echo "❌ Tên project không được để trống."
   exit 1
 fi
 
-# ── Step 2: Replace placeholders ─────────────────────────────
+# ── Step 2: Brain dump ───────────────────────────────────────
 echo ""
-echo -e "${CYAN}Step 2/4: Đang setup files...${RESET}"
+echo -e "${CYAN}Step 2/4: Brain dump ý tưởng${RESET}"
+echo -e "  ${YELLOW}Mô tả ngắn gọn về project (không cần chuẩn, cứ dump thôi):${RESET}"
+echo -e "  ${YELLOW}Ví dụ: App làm gì, user là ai, tính năng chính, stack muốn dùng...${RESET}"
+echo -e "  ${YELLOW}(Nhấn Enter 2 lần để xong)${RESET}"
+echo ""
 
-# Replace [PROJECT_NAME] in all markdown files
-find . -name "*.md" -not -path "./.git/*" | while read file; do
-  sed -i "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" "$file"
+BRIEF=""
+while IFS= read -r line; do
+  [[ -z "$line" && -z "$(echo "$BRIEF" | tail -1)" ]] && break
+  BRIEF="$BRIEF$line"$'\n'
 done
 
-# Update CLAUDE.md with today's date
+if [ -z "$(echo "$BRIEF" | tr -d '[:space:]')" ]; then
+  BRIEF="(Chưa có mô tả — Opencode sẽ hỏi thêm trong Phase 0)"
+fi
+
+# ── Step 3: Replace placeholders ────────────────────────────
+echo ""
+echo -e "${CYAN}Step 3/4: Đang setup files...${RESET}"
+
 TODAY=$(date +%Y-%m-%d)
-sed -i "s/\[DATE\]/$TODAY/g" docs/PRD.md docs/ARCHITECTURE.md 2>/dev/null || true
+
+# Replace [PROJECT_NAME] trong tất cả markdown
+find . -name "*.md" -not -path "./.git/*" | while read file; do
+  sed -i "s/\[PROJECT_NAME\]/$PROJECT_NAME/g" "$file"
+  sed -i "s/\[DATE\]/$TODAY/g" "$file"
+done
+
+# Ghi brain dump vào docs/BRIEF.md
+BRIEF_ESCAPED=$(echo "$BRIEF" | sed 's/[&/\]/\\&/g')
+sed -i "s/\[BRIEF_CONTENT\]/$BRIEF_ESCAPED/" docs/BRIEF.md 2>/dev/null || \
+  printf '%s' "$BRIEF" >> docs/BRIEF.md
 
 echo -e "  ${GREEN}✅ Files updated${RESET}"
+echo -e "  ${GREEN}✅ Brain dump đã ghi vào docs/BRIEF.md${RESET}"
 
-# ── Step 3: Git reinit (fresh history) ───────────────────────
+# ── Step 4: Git reinit ───────────────────────────────────────
 echo ""
-echo -e "${CYAN}Step 3/4: Reset git history...${RESET}"
+echo -e "${CYAN}Step 4/4: Reset git history...${RESET}"
 rm -rf .git
 git init -b main > /dev/null 2>&1
 git add .
 git commit -m "feat: init $PROJECT_NAME project" -q
 echo -e "  ${GREEN}✅ Fresh git repo initialized${RESET}"
 
-# ── Step 4: Print Phase 0 prompt ─────────────────────────────
-echo ""
-echo -e "${CYAN}Step 4/4: Sẵn sàng!${RESET}"
+# ── Done ─────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}  📋 Mở Opencode, paste prompt sau vào:${RESET}"
+echo -e "${BOLD}  ✅ Project sẵn sàng!${RESET}"
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
-PHASE0_PROMPT=$(cat docs/phases/phase-0.md | grep -A 200 "## Prompt Cho Opencode" | grep -A 200 '```' | tail -n +2 | head -n -1)
-
-echo "$PHASE0_PROMPT"
+echo -e "  📁 ${YELLOW}$(pwd)${RESET}"
 echo ""
-echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
-
-# ── Auto copy to clipboard ────────────────────────────────────
-COPIED=false
-if command -v pbcopy &>/dev/null; then
-  echo "$PHASE0_PROMPT" | pbcopy
-  COPIED=true
-elif command -v xclip &>/dev/null; then
-  echo "$PHASE0_PROMPT" | xclip -selection clipboard
-  COPIED=true
-elif command -v xdotool &>/dev/null; then
-  echo "$PHASE0_PROMPT" | xdotool type --clearmodifiers --file -
-  COPIED=true
-fi
-
-if [ "$COPIED" = true ]; then
-  echo -e "${GREEN}✅ Prompt đã được copy vào clipboard!${RESET}"
-  echo -e "${YELLOW}   → Mở Opencode và paste (Ctrl+V / Cmd+V) là xong.${RESET}"
-else
-  echo -e "${YELLOW}⚠️  Không tìm thấy clipboard tool (pbcopy/xclip).${RESET}"
-  echo -e "${YELLOW}   → Copy thủ công đoạn prompt phía trên.${RESET}"
-fi
-
-echo ""
-echo -e "${YELLOW}📁 Project folder: $(pwd)${RESET}"
-echo -e "${YELLOW}📄 Chi tiết Phase 0: docs/phases/phase-0.md${RESET}"
+echo -e "  Bước tiếp theo:"
+echo -e "  ${CYAN}1. Mở folder này trong Opencode${RESET}"
+echo -e "  ${CYAN}2. Opencode đọc CLAUDE.md → tự bắt đầu Phase 0${RESET}"
+echo -e "  ${CYAN}3. Trả lời câu hỏi của Opencode là xong 🎯${RESET}"
 echo ""
 echo -e "${GREEN}${BOLD}Happy building! 🎉${RESET}"
 echo ""

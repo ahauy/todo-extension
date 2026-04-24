@@ -13,13 +13,11 @@
 
 Làm theo thứ tự, từng bước xong hỏi user confirm trước khi làm bước tiếp:
 
-**Bước 1 — Clarify Requirements**
-Hỏi user tối đa 5 câu để hiểu rõ:
-- App làm gì, giải quyết vấn đề gì?
-- User là ai?
-- Tech stack muốn dùng? (nếu chưa biết thì đề xuất)
-- Có constraint gì không? (deadline, existing system)
-- Feature nào là must-have, nice-to-have?
+**Bước 1 — Đọc Brief + Clarify Requirements**
+Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu của user.
+Dựa vào brief đó, hỏi tối đa 5 câu để làm rõ những gì còn thiếu:
+- Những gì đã rõ trong brief → KHÔNG hỏi lại
+- Chỉ hỏi những gì còn mơ hồ hoặc chưa đề cập
 
 Hỏi xong đợi trả lời, KHÔNG tự bịa.
 
