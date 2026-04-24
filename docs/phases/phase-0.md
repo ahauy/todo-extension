@@ -1,77 +1,62 @@
-# Phase 0: Planning
+# Phase 0: Brainstorming + Planning
 
-> **Goal:** Clarify requirements, design architecture, chia phases trước khi code  
-> **Output:** PRD + Architecture + Phase breakdown + CLAUDE.md + tasks/todo.md  
+> **Goal:** Design rõ ràng, spec được approve, phases + tasks sẵn sàng trước khi code  
+> **Output:** design doc trong `docs/specs/` + phases + tasks/todo.md  
 > **Status:** ⬜ Todo
 
 ---
 
 ## Definition of Done
-- [ ] PRD.md đầy đủ, anh đã review và approve
-- [ ] ARCHITECTURE.md có folder structure + data models + API design
-- [ ] docs/phases/ có breakdown rõ cho từng phase
-- [ ] CLAUDE.md updated với stack + conventions thực tế
-- [ ] tasks/todo.md có đủ tasks Phase 1
-- [ ] Không có dòng nào còn là placeholder `[...]`
+- [ ] `docs/BRIEF.md` đã được đọc
+- [ ] Design doc đã viết vào `docs/specs/YYYY-MM-DD-design.md`
+- [ ] Spec đã tự review (no placeholder, no contradiction)
+- [ ] User đã approve spec
+- [ ] `docs/phases/phase-1.md` đến `phase-4.md` đã điền đầy đủ
+- [ ] `CLAUDE.md` đã update Stack + Folder Structure
+- [ ] `tasks/todo.md` đã có tasks Phase 1
+- [ ] Block "FIRST TIME SETUP" đã xóa khỏi `CLAUDE.md`
+- [ ] Commit tất cả changes
 
 ---
 
-## Prompt Cho Opencode (Copy & Paste)
+## Flow
 
 ```
-Chúng ta đang bắt đầu một project mới. Nhiệm vụ của mày là giúp tao lên plan hoàn chỉnh trước khi code.
-
-Làm theo thứ tự sau:
-
-### Bước 1: Clarify Requirements
-Hỏi tao tối đa 5 câu để hiểu rõ:
-- App làm gì, giải quyết vấn đề gì?
-- User là ai?
-- Tech stack muốn dùng? (nếu chưa biết tao sẽ để mày đề xuất)
-- Có constraint gì không? (deadline, budget, existing system)
-- Feature nào là must-have, nice-to-have?
-
-Hỏi xong đợi tao trả lời, KHÔNG tự bịa.
-
-### Bước 2: Viết PRD
-Sau khi tao trả lời xong, viết vào docs/PRD.md theo format có sẵn.
-Không được để placeholder [...]  — điền hết dựa trên những gì tao chia sẻ.
-
-### Bước 3: Propose Architecture
-Dựa vào PRD, viết docs/ARCHITECTURE.md gồm:
-- System overview diagram (text-based)
-- Tech stack + lý do chọn
-- Data models (TypeScript types)
-- API design (nếu có)
-- Folder structure cụ thể
-
-### Bước 4: Chia Phases
-Chia thành 4 phases, mỗi phase tối đa 1 tuần:
-- Phase 1: Foundation (setup, infra, DB)
-- Phase 2: Core Features
-- Phase 3: UI + Polish
-- Phase 4: Testing + Deploy
-
-Viết vào docs/phases/phase-1.md đến phase-4.md.
-Mỗi file phải có: Goal, Definition of Done, Tasks table.
-
-### Bước 5: Update CLAUDE.md
-Điền đầy đủ vào CLAUDE.md dựa trên stack + architecture đã chốt.
-Không để placeholder.
-
-### Bước 6: Tạo tasks/todo.md cho Phase 1
-Liệt kê tasks Phase 1 theo format có sẵn, đủ chi tiết để implement ngay.
-
----
-
-QUAN TRỌNG:
-- Từng bước xong thì hỏi tao confirm trước khi làm bước tiếp
-- Không code gì cả trong Phase 0
-- Không skip bước nào
+Đọc docs/BRIEF.md
+      ↓
+Clarify từng câu một
+(chỉ hỏi những gì còn mơ hồ)
+      ↓
+Propose 2-3 approaches + trade-offs
+      ↓
+Present design từng section
+→ confirm sau mỗi section
+      ↓
+Viết docs/specs/YYYY-MM-DD-design.md
+→ commit ngay
+      ↓
+Tự review spec
+(placeholder? contradiction? scope? ambiguity?)
+      ↓
+User review + approve
+      ↓
+Chia phases → docs/phases/phase-1..4.md
+Update CLAUDE.md
+Tạo tasks/todo.md Phase 1
+Xóa FIRST TIME SETUP block
 ```
 
 ---
 
-## Notes
-- Phase 0 thường mất 30-60 phút với Opencode
-- Nếu scope thay đổi sau Phase 0 → update lại PRD + phases trước khi code
+## Brainstorming Rules (QUAN TRỌNG)
+
+- Hỏi **từng câu một** — không hỏi nhiều cùng lúc
+- Ưu tiên **multiple choice** khi có thể
+- Đề xuất **2-3 approaches** trước khi chốt design
+- Confirm **từng section** của design trước khi đi tiếp
+- **KHÔNG code** cho đến khi spec được approve
+
+---
+
+## Skill Reference
+Chi tiết: `skills/brainstorming/SKILL.md`

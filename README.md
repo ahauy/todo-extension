@@ -1,16 +1,16 @@
 # 🚀 Opencode Project Template
 
 > Template chuẩn để khởi động project mới với Opencode.  
-> Có sẵn: planning workflow, project structure, context files, CI pipeline.
+> Tích hợp Brainstorming → Design → Plan → Code → Test workflow.
 
 ---
 
 ## ✨ Tại Sao Dùng Template Này?
 
-- **Không mất thời gian setup** — structure đã chuẩn, chạy 1 lệnh là xong
+- **Brainstorm trước, code sau** — design doc được approve trước khi viết dòng code đầu tiên
 - **Không mất context** — Opencode luôn biết đang làm gì, đang ở phase nào
-- **Không code lung tung** — plan trước, code sau, test ngay
-- **Không lo mất tiến độ** — todo.md track task rõ ràng từng bước
+- **Không code lung tung** — plan rõ ràng, task nhỏ, test ngay
+- **Reusable brainstorming skill** — thêm feature mới cũng có workflow chuẩn
 
 ---
 
@@ -37,23 +37,21 @@ cd my-project
 ./scripts/start-project.sh
 ```
 
-Script sẽ hỏi 2 thứ:
+Script hỏi 2 thứ:
 
 ```
 Step 1/4: Project name
   Tên project: my-awesome-app
 
 Step 2/4: Brain dump ý tưởng
-  Mô tả ngắn gọn về project:
-  > App quản lý đơn hàng trứng, user là chủ trại,
-  > cần theo dõi đơn hàng từ Zalo, stack dùng Next.js + Postgres
-  > (Enter 2 lần để xong)
+  App làm gì, user là ai, stack muốn dùng...
+  (Enter 2 lần để xong)
 ```
 
-Sau đó script tự:
-- Replace tên project vào toàn bộ files
-- Ghi brain dump vào `docs/BRIEF.md`
-- Reset git history (fresh repo cho project mới)
+Sau đó tự:
+- Replace tên vào toàn bộ files
+- Ghi brain dump → `docs/BRIEF.md`
+- Reset git history (fresh repo)
 
 ### Bước 3: Mở Opencode
 
@@ -61,16 +59,25 @@ Sau đó script tự:
 opencode .
 ```
 
-Opencode tự đọc `CLAUDE.md` → phát hiện project chưa plan → bắt đầu **Phase 0** tự động:
-- Đọc `docs/BRIEF.md` làm context
-- Hỏi những gì còn thiếu (tối đa 5 câu)
-- Viết `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/phases/`
-- Tạo `tasks/todo.md` cho Phase 1
-- Xóa block setup khỏi `CLAUDE.md`
+Opencode tự đọc `CLAUDE.md` → kích hoạt **Phase 0: Brainstorming**:
 
-### Bước 4: Trả lời câu hỏi của Opencode
-
-Opencode hỏi → anh trả lời → confirm từng bước → **bắt đầu code Phase 1** 🎯
+```
+Đọc docs/BRIEF.md
+      ↓
+Hỏi từng câu một để clarify
+      ↓
+Propose 2-3 approaches + trade-offs
+      ↓
+Present design từng section → confirm
+      ↓
+Viết docs/specs/YYYY-MM-DD-design.md → commit
+      ↓
+Tự review spec
+      ↓
+Anh review + approve
+      ↓
+Chia phases + tạo tasks → bắt đầu code 🚀
+```
 
 ---
 
@@ -79,68 +86,101 @@ Opencode hỏi → anh trả lời → confirm từng bước → **bắt đầu
 ```
 my-project/
 │
-├── CLAUDE.md                  ← 🔑 Source of truth cho Opencode
+├── CLAUDE.md                      ← 🔑 Source of truth cho Opencode
 │
 ├── docs/
-│   ├── BRIEF.md               ← Brain dump ban đầu (do script tạo)
-│   ├── PRD.md                 ← Product requirements (do Opencode viết)
-│   ├── ARCHITECTURE.md        ← Technical design (do Opencode viết)
-│   └── phases/
-│       ├── phase-0.md         ← Planning instructions
-│       ├── phase-1.md         ← Foundation
-│       ├── phase-2.md         ← Core Features
-│       ├── phase-3.md         ← UI + Polish
-│       └── phase-4.md         ← Testing + Deploy
+│   ├── BRIEF.md                   ← Brain dump ban đầu (do script tạo)
+│   ├── specs/                     ← Design docs (do Opencode viết sau brainstorm)
+│   │   └── YYYY-MM-DD-[topic]-design.md
+│   ├── phases/
+│   │   ├── phase-0.md             ← Brainstorming instructions
+│   │   ├── phase-1.md             ← Foundation
+│   │   ├── phase-2.md             ← Core Features
+│   │   ├── phase-3.md             ← UI + Polish
+│   │   └── phase-4.md             ← Testing + Deploy
+│
+├── skills/
+│   └── brainstorming/
+│       └── SKILL.md               ← Reusable brainstorming workflow
 │
 ├── tasks/
-│   ├── todo.md                ← Task hiện tại + up next
-│   └── done.md                ← Log tasks đã xong
+│   ├── todo.md                    ← Task hiện tại + up next
+│   └── done.md                    ← Log tasks đã xong
 │
-├── src/                       ← Source code
+├── src/                           ← Source code
 │
 ├── tests/
-│   ├── unit/                  ← Viết cùng lúc với code
-│   ├── integration/           ← Viết cuối mỗi phase
-│   └── e2e/                   ← Viết trước release
+│   ├── unit/                      ← Viết cùng lúc với code
+│   ├── integration/               ← Viết cuối mỗi phase
+│   └── e2e/                       ← Viết trước release
 │
 ├── scripts/
-│   └── start-project.sh       ← Script khởi tạo project
+│   └── start-project.sh           ← Script khởi tạo project
 │
 ├── .github/
-│   └── workflows/ci.yml       ← CI pipeline
+│   └── workflows/ci.yml           ← CI pipeline
 │
-├── .env.example               ← Env vars template
+├── .env.example
 └── .gitignore
 ```
 
 ---
 
-## 🔄 Dev Process
+## 🔄 Full Dev Process
 
 ```
-Brain dump ý tưởng
-      ↓
-Opencode Phase 0: Planning
-  → Clarify requirements
-  → Viết PRD + Architecture
-  → Chia phases + tasks
-      ↓
-Anh review + confirm
-      ↓
-┌─── Task Loop ───────────────┐
-│ Pick task từ todo.md        │
-│ → Code task                 │
-│ → Viết unit test            │
-│ → Chạy test (pass mới tiếp) │
-│ → Commit + update todo.md   │
-└─────────────────────────────┘
-      ↓ (hết phase)
-Integration test toàn phase
-      ↓
-Sang phase tiếp
-      ↓ (hết phase 4)
-E2E test → Deploy 🚀
+./scripts/start-project.sh
+  → Nhập tên + brain dump
+  → docs/BRIEF.md tạo xong
+        ↓
+opencode .
+        ↓
+┌─── PHASE 0: BRAINSTORMING ─────────────────────────┐
+│  Đọc BRIEF → clarify từng câu một                  │
+│  Propose 2-3 approaches                            │
+│  Present design → confirm từng section             │
+│  Viết docs/specs/YYYY-MM-DD-design.md             │
+│  Tự review → user approve                         │
+│  Chia phases + tạo tasks/todo.md                  │
+└─────────────────────────────────────────────────────┘
+        ↓
+┌─── PHASE 1-3: DEVELOPMENT ─────────────────────────┐
+│                                                    │
+│  ┌── TASK LOOP ──────────────────────────────┐    │
+│  │ Pick task từ todo.md                      │    │
+│  │ → Code task (1 prompt = 1 task)           │    │
+│  │ → Viết unit test ngay                    │    │
+│  │ → Chạy test → fix nếu fail               │    │
+│  │ → Commit + update todo.md                │    │
+│  │ → Lặp lại                                │    │
+│  └───────────────────────────────────────────┘    │
+│                                                    │
+│  Cuối mỗi phase: Integration test                  │
+└─────────────────────────────────────────────────────┘
+        ↓
+┌─── PHASE 4: RELEASE ───────────────────────────────┐
+│  E2E test → fix → deploy staging                  │
+│  Anh review staging → deploy production 🚀        │
+└─────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🧠 Brainstorming Skill (Dùng Lại Khi Thêm Feature)
+
+Khi project đang chạy và muốn thêm feature mới, paste vào Opencode:
+
+```
+Đọc skills/brainstorming/SKILL.md và bắt đầu brainstorm feature sau:
+[Mô tả feature muốn thêm]
+```
+
+Skill sẽ tự động:
+1. Explore context hiện tại
+2. Hỏi từng câu để clarify
+3. Propose 2-3 approaches
+4. Viết design doc mới vào `docs/specs/`
+5. Tạo tasks cho feature đó
 
 ---
 
@@ -154,20 +194,22 @@ E2E test → Deploy 🚀
 
 ---
 
-## 📌 Rules Vàng Khi Làm Việc Với Opencode
+## 📌 Rules Vàng
 
 | Rule | Lý do |
 |------|-------|
-| `CLAUDE.md` là source of truth | Opencode đọc file này mỗi session |
-| 1 prompt = 1 task | Context nhỏ → output tốt hơn |
+| Brainstorm trước khi code | Tránh build sai thứ |
+| Design doc phải được approve | Hard gate, không skip |
+| `CLAUDE.md` là source of truth | Opencode đọc đầu tiên |
+| 1 prompt = 1 task | Context nhỏ → output tốt |
 | Test viết ngay, không để cuối | Tránh bug chồng bug |
-| Không sang task mới khi test chưa pass | Giữ codebase sạch |
-| Commit sau mỗi task | Rollback dễ khi cần |
+| Commit sau mỗi task | Rollback dễ |
 
 ---
 
-## 📝 Prompt Mỗi Task
+## 📝 Prompt Templates
 
+### Bắt đầu task mới
 ```
 Đọc CLAUDE.md → docs/phases/phase-N.md → tasks/todo.md
 
@@ -179,7 +221,13 @@ Sau khi xong:
 2. Chạy test, fix nếu fail
 3. Commit: feat/fix/test: [mô tả ngắn]
 4. Move task sang done.md
-5. Báo kết quả + tóm tắt ngắn
+5. Báo kết quả ngắn gọn
+```
+
+### Thêm feature mới
+```
+Đọc skills/brainstorming/SKILL.md và brainstorm feature sau:
+[Mô tả feature]
 ```
 
 ---

@@ -6,36 +6,56 @@
 
 ## 🚀 FIRST TIME SETUP — ĐỌC CÁI NÀY TRƯỚC
 
-> Nếu `docs/PRD.md` vẫn còn placeholder `[...]` → project chưa được plan.
-> **Chạy Phase 0 ngay bên dưới trước khi làm bất cứ thứ gì.**
+> Nếu `docs/specs/` chưa có design doc nào → project chưa được plan.
+> **Chạy Phase 0: Brainstorming trước khi làm bất cứ thứ gì.**
 
-### ▶ Phase 0: Planning (chạy ngay nếu chưa plan)
+### ▶ Phase 0: Brainstorming (bắt buộc trước khi code)
 
-Làm theo thứ tự, từng bước xong hỏi user confirm trước khi làm bước tiếp:
+<HARD-GATE>
+KHÔNG viết code, KHÔNG scaffold project, KHÔNG implement bất cứ thứ gì cho đến khi design được user approve và có file spec trong docs/specs/.
+</HARD-GATE>
 
-**Bước 1 — Đọc Brief + Clarify Requirements**
-Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu của user.
-Dựa vào brief đó, hỏi tối đa 5 câu để làm rõ những gì còn thiếu:
-- Những gì đã rõ trong brief → KHÔNG hỏi lại
-- Chỉ hỏi những gì còn mơ hồ hoặc chưa đề cập
+Làm theo thứ tự, từng bước xong confirm user trước khi tiếp:
 
-Hỏi xong đợi trả lời, KHÔNG tự bịa.
+**Bước 1 — Đọc Brief**
+Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu.
+Chỉ hỏi những gì còn thiếu hoặc mơ hồ, không hỏi lại những gì đã rõ.
 
-**Bước 2 — Viết PRD**
-Viết vào `docs/PRD.md`, không để placeholder `[...]`.
+**Bước 2 — Clarify (từng câu một)**
+Hỏi từng câu một (KHÔNG hỏi nhiều cùng lúc).
+Tập trung vào: purpose, constraints, success criteria, must-have vs nice-to-have.
+Ưu tiên câu hỏi multiple choice khi có thể.
 
-**Bước 3 — Propose Architecture**
-Viết vào `docs/ARCHITECTURE.md` gồm: system diagram, tech stack + lý do, data models, API design, folder structure.
+**Bước 3 — Propose 2-3 Approaches**
+Đề xuất 2-3 hướng tiếp cận khác nhau với trade-offs rõ ràng.
+Lead với recommendation của mày và giải thích lý do.
 
-**Bước 4 — Chia Phases**
-Chia 4 phases (mỗi phase ≤ 1 tuần), viết vào `docs/phases/phase-1.md` → `phase-4.md`.
-Mỗi file có: Goal, Definition of Done, Tasks table.
+**Bước 4 — Present Design (từng section)**
+Sau mỗi section, hỏi user confirm trước khi đi tiếp.
+Các section: Architecture → Components → Data Flow → Error Handling → Testing Strategy
 
-**Bước 5 — Update CLAUDE.md**
-Điền đầy đủ phần Stack, Folder Structure, Coding Rules bên dưới. Xóa block "FIRST TIME SETUP" này sau khi xong.
+**Bước 5 — Viết Design Doc**
+Lưu vào `docs/specs/YYYY-MM-DD-[topic]-design.md`.
+Commit ngay sau khi viết xong.
 
-**Bước 6 — Tạo tasks/todo.md**
-Liệt kê tasks Phase 1 theo format có sẵn, đủ chi tiết để implement ngay.
+**Bước 6 — Tự Review Spec**
+Kiểm tra:
+- Placeholder còn sót không? (TBD, TODO, [...])
+- Có mâu thuẫn giữa các section không?
+- Scope có quá lớn không? (nếu có → chia sub-projects)
+- Có requirement nào mơ hồ không?
+Fix inline, không cần hỏi lại.
+
+**Bước 7 — User Review**
+Hỏi user review file spec trước khi tiếp tục.
+Chờ approve, nếu có changes thì update + re-review.
+
+**Bước 8 — Lên Phases + Tasks**
+Sau khi spec approved:
+- Chia thành 4 phases, viết vào `docs/phases/`
+- Update `CLAUDE.md` phần Stack, Folder Structure bên dưới
+- Tạo `tasks/todo.md` cho Phase 1
+- Xóa block "FIRST TIME SETUP" này
 
 ⚠️ KHÔNG code gì trong Phase 0. KHÔNG skip bước nào.
 
@@ -53,9 +73,13 @@ Liệt kê tasks Phase 1 theo format có sẵn, đủ chi tiết để implement
 - **1 commit = 1 task** — commit message: `feat/fix/test/chore: [mô tả ngắn]`
 - **Scope control** — không sửa file ngoài danh sách cho phép trong task
 - **Error handling** — mọi async function phải handle error
+- **Brainstorm trước khi thêm feature** — đọc `skills/brainstorming/SKILL.md`
 
 ## Current Phase
-Phase 0 — Planning (chưa bắt đầu)
+Phase 0 — Brainstorming (chưa bắt đầu)
 
 ## Current Task
 Xem `tasks/todo.md`
+
+## Skills Available
+- `skills/brainstorming/SKILL.md` — dùng khi thêm feature mới hoặc thay đổi lớn
