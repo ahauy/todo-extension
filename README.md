@@ -22,6 +22,8 @@
 - `git` đã cài
 - `bash` (macOS / Linux / WSL) HOẶC `cmd`/`PowerShell` (Windows)
 - `python 3.10+` (cho Graphify)
+- `npm` (cho Chrome DevTools MCP)
+- Chrome browser (cho E2E testing)
 
 ---
 
