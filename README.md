@@ -95,6 +95,47 @@ Chia phases + tạo tasks → bắt đầu code 🚀
 
 ---
 
+## 🎮 Browser Automation & E2E Testing
+
+Template bao gồm Chrome DevTools MCP cho browser automation:
+
+### What is Chrome DevTools MCP?
+- MCP server điều khiển live Chrome browser
+- Automate browser actions (click, type, navigate)
+- Take screenshots & record videos
+- Inspect network requests
+- Analyze performance traces
+
+### Quick Start
+```bash
+# Install MCP server
+npm install -g chrome-devtools-mcp
+
+# Configure Opencode
+# Edit ~/.config/opencode/opencode.json
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}
+
+# Restart Opencode
+opencode .
+```
+
+### Usage
+- Phase 4: E2E testing trước release
+- Test user flows (sign up, login, create, edit, delete)
+- Check performance + network
+- Screenshot results
+
+Xem `docs/CHROME_DEVTOOLS_MCP.md` để full guide.
+
+---
+
 ## 🗂️ Cấu Trúc Project
 
 ```
