@@ -139,3 +139,17 @@ Xem `tasks/todo.md`
 
 ## Skills Available
 - `skills/brainstorming/SKILL.md` — dùng khi thêm feature mới hoặc thay đổi lớn
+- `skills/frontend-agent/SKILL.md` — Senior Frontend Developer patterns (React/Vue/Angular, UI, performance)
+- `skills/typescript/SKILL.md` — TypeScript strict mode, type narrowing, inference patterns
+- `skills/tailwind-v4-shadcn/SKILL.md` — Tailwind CSS v4 + shadcn/ui setup, dark mode, 8 common errors
+
+## Boilerplate (Stack-Conditional)
+
+> Chỉ dùng khi stack là **React hoặc Next.js**. Bỏ qua nếu project là Node.js API thuần, Python, CLI, v.v.
+
+Nếu Phase 0 xác định stack là React/Next.js:
+1. Đọc `skills/boilerplate/react-nextjs/BOILERPLATE.md`
+2. Follow setup commands và config files trong đó
+3. Các skill `frontend-agent`, `typescript`, `tailwind-v4-shadcn` sẽ tự động áp dụng
+
+Nếu stack khác → bỏ qua folder `skills/boilerplate/` hoàn toàn.
