@@ -318,6 +318,65 @@ Xem `docs/MONITORING.md` để:
 
 ---
 
+## 🛠️ Skills Library
+
+Template đi kèm **16 skills** được tổ chức theo category. Mỗi skill là một `SKILL.md` với hướng dẫn chi tiết, code examples, common mistakes, và checklist.
+
+### 📋 Phase 0 — Planning
+| Skill | Mô tả |
+|-------|-------|
+| `brainstorming` | Workflow từ brief → clarify → design doc → approve → code. **HARD-GATE: không code trước khi spec được approve.** |
+
+### 🎨 Frontend Development
+| Skill | Mô tả |
+|-------|-------|
+| `frontend-agent` | Senior frontend developer agent — React/Vue, UI implementation, performance |
+| `typescript` | Type-safe TypeScript với strict mode, narrowing, discriminated unions |
+| `tailwind-v4-shadcn` | Tailwind CSS v4 + shadcn/ui — 8 lỗi phổ biến được document, 4-step architecture |
+| `state-management-data-fetching` | Zustand (app state) + TanStack Query (server state), integration patterns |
+| `testing-vitest-jest` | Unit/integration/component tests với Vitest + React Testing Library, coverage ≥80% |
+| `performance-optimization` | Core Web Vitals (LCP/FID/CLS), code splitting, lazy loading, bundle analysis |
+| `accessibility-a11y` | WCAG 2.1, semantic HTML, ARIA, keyboard navigation, screen reader testing |
+| `error-handling` | Try/catch patterns, React Error Boundaries, error logging, user-facing messages |
+| `git-workflow` | Conventional commits, branch naming, PR process, merge strategies |
+
+### 🔌 API & Integration
+| Skill | Mô tả |
+|-------|-------|
+| `api-design` | REST principles, request/response format, error codes, versioning, pagination |
+| `security-best-practices` | OWASP Top 10, auth, CORS/CSRF, secrets management, XSS/injection prevention |
+
+### ⚙️ Backend (Node.js)
+| Skill | Mô tả |
+|-------|-------|
+| `nodejs-express-patterns` | Express routing, middleware, controllers, services, async patterns |
+| `database-orm-patterns` | Prisma/TypeORM/Sequelize — schema design, migrations, relations, transactions |
+| `testing-backend-jest` | Unit/integration/API tests với Jest + Supertest, mocking, fixtures, coverage ≥80% |
+
+### 🏗️ Setup
+| Skill | Mô tả |
+|-------|-------|
+| `boilerplate/react-nextjs` | React 19 + Next.js 15 + TypeScript + Tailwind v4 + Zustand + TanStack Query |
+
+### Cách dùng Skills
+
+**Invoke một skill:**
+```
+Đọc skills/[skill-name]/SKILL.md và áp dụng cho task sau:
+[Mô tả task]
+```
+
+**Ví dụ:**
+```
+Đọc skills/testing-vitest-jest/SKILL.md và viết tests cho UserProfile component
+```
+
+```
+Đọc skills/git-workflow/SKILL.md và review commit messages của PR này
+```
+
+---
+
 ## 🧠 Brainstorming Skill (Thêm Feature Mới)
 
 Khi project đang chạy và muốn thêm feature mới:
