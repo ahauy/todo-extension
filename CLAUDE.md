@@ -138,10 +138,37 @@ Phase 0 — Brainstorming (chưa bắt đầu)
 Xem `tasks/todo.md`
 
 ## Skills Available
-- `skills/brainstorming/SKILL.md` — dùng khi thêm feature mới hoặc thay đổi lớn
-- `skills/frontend-agent/SKILL.md` — Senior Frontend Developer patterns (React/Vue/Angular, UI, performance)
-- `skills/typescript/SKILL.md` — TypeScript strict mode, type narrowing, inference patterns
-- `skills/tailwind-v4-shadcn/SKILL.md` — Tailwind CSS v4 + shadcn/ui setup, dark mode, 8 common errors
+
+> **Scope rules để tránh conflict:**
+> - `error-handling` → dùng cho **frontend** (React Error Boundaries, user-facing messages)
+> - `nodejs-express-patterns` → có error handling riêng cho **backend** (Express middleware)
+> - `security-best-practices` → deep dive auth/CORS/XSS; `api-design` chỉ mention auth ở mức HTTP status codes
+> - `testing-vitest-jest` → **frontend** (Vitest + React Testing Library)
+> - `testing-backend-jest` → **backend** (Jest + Supertest)
+> - `frontend-agent` → overview/agent; các skill chuyên sâu (state, perf, a11y) là chi tiết hơn
+
+### Phase 0 — Planning
+- `skills/brainstorming/SKILL.md` — **Bắt buộc** trước mọi feature mới hoặc thay đổi lớn
+
+### Frontend
+- `skills/frontend-agent/SKILL.md` — Senior Frontend Developer agent, UI patterns, architecture
+- `skills/typescript/SKILL.md` — TypeScript strict mode, type narrowing, inference
+- `skills/tailwind-v4-shadcn/SKILL.md` — Tailwind CSS v4 + shadcn/ui, 8 common errors
+- `skills/state-management-data-fetching/SKILL.md` — Zustand + TanStack Query, integration patterns
+- `skills/testing-vitest-jest/SKILL.md` — Unit/component tests (Vitest + React Testing Library)
+- `skills/performance-optimization/SKILL.md` — Core Web Vitals, code splitting, bundle analysis
+- `skills/accessibility-a11y/SKILL.md` — WCAG 2.1, ARIA, keyboard navigation
+- `skills/error-handling/SKILL.md` — React Error Boundaries, try/catch, user-facing messages
+- `skills/git-workflow/SKILL.md` — Conventional commits, branch naming, PR process
+
+### API & Integration
+- `skills/api-design/SKILL.md` — REST principles, request/response format, versioning, pagination
+- `skills/security-best-practices/SKILL.md` — OWASP Top 10, auth, CORS/CSRF, XSS prevention
+
+### Backend (Node.js)
+- `skills/nodejs-express-patterns/SKILL.md` — Express routing, middleware, controllers, services
+- `skills/database-orm-patterns/SKILL.md` — Prisma/TypeORM, schema design, migrations, transactions
+- `skills/testing-backend-jest/SKILL.md` — Unit/API tests (Jest + Supertest), mocking, fixtures
 
 ## Boilerplate (Stack-Conditional)
 

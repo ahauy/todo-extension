@@ -8,6 +8,8 @@ origin: codex-project-template
 
 Comprehensive guide for building secure web applications and protecting against common vulnerabilities.
 
+> **Scope:** Deep-dive security patterns (auth implementation, CORS config, XSS prevention, secrets management). For HTTP-level API auth patterns (Bearer tokens, status codes, rate limit headers), see `skills/api-design/SKILL.md`.
+
 ## When to Use
 
 Invoke this skill:

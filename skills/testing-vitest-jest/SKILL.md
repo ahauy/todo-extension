@@ -6,7 +6,9 @@ origin: codex-project-template
 
 # Testing Skill (Vitest + React Testing Library)
 
-Comprehensive guide for writing tests in React projects using **Vitest** and **React Testing Library**.
+Comprehensive guide for writing tests in **React frontend** projects using **Vitest** and **React Testing Library**.
+
+> **Scope:** Frontend only. For backend API/service testing with Jest + Supertest, see `skills/testing-backend-jest/SKILL.md`.
 
 ## When to Use
 

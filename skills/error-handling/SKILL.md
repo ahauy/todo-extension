@@ -6,7 +6,9 @@ origin: codex-project-template
 
 # Error Handling Skill
 
-Comprehensive guide for handling errors gracefully in React applications.
+Comprehensive guide for handling errors gracefully in **React frontend** applications.
+
+> **Scope:** Frontend (React) only. For backend error handling in Express/Node.js, see `skills/nodejs-express-patterns/SKILL.md` — it covers Express error middleware, custom error classes, and async handler patterns.
 
 ## When to Use
 
