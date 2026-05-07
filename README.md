@@ -60,11 +60,24 @@ Step 1/4: Project name
   Tên project: my-awesome-app
 
 Step 2/4: Brain dump ý tưởng
-  App làm gì, user là ai, stack muốn dùng...
-  (Enter 2 lần để xong)
+  Bạn muốn nhập từ file không? (y/n) [default: n]: 
 ```
 
-Sau đó tự:
+**Option 1: Nhập từ file** (cho ý tưởng dài)
+```
+Bạn muốn nhập từ file không? (y/n) [default: n]: y
+Đường dẫn file: /path/to/brain-dump.txt
+```
+→ Script sẽ đọc file và ghi vào `docs/BRIEF.md`
+
+**Option 2: Gõ trực tiếp** (cách cũ)
+```
+Bạn muốn nhập từ file không? (y/n) [default: n]: n
+(Nhấn Enter 2 lần để xong)
+```
+→ Gõ brain dump trực tiếp
+
+Sau đó script tự:
 - Replace tên vào toàn bộ files
 - Ghi brain dump → `docs/BRIEF.md`
 - Reset git history (fresh repo)
