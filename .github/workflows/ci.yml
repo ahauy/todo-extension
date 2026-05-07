@@ -1,13 +1,14 @@
 name: CI
 
 on:
+  pull_request:
+    branches: [main, develop]
   push:
     branches: [main, develop]
-  pull_request:
-    branches: [main]
 
 jobs:
-  test:
+  quality:
+    if: ${{ hashFiles('package.json') != '' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -16,20 +17,44 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-      - name: Type check
-        run: npm run typecheck
+      - name: Run quality checks
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Run unit tests
-        run: npm run test:unit
+          run_script() {
+            local script="$1"
+            if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['$1'] ? 0 : 1)"; then
+              if [ -f pnpm-lock.yaml ]; then pnpm "$script"; else npm run "$script"; fi
+            else
+              echo "skip:$script"
+            fi
+          }
 
-      - name: Run integration tests
-        run: npm run test:integration
-
-      - name: Build
-        run: npm run build
+          run_script lint
+          run_script typecheck
+          if node -e "const p=require('./package.json'); process.exit(p.scripts && (p.scripts['test:unit'] || p.scripts['test']) ? 0 : 1)"; then
+            if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['test:unit'] ? 0 : 1)"; then
+              if [ -f pnpm-lock.yaml ]; then pnpm test:unit; else npm run test:unit; fi
+            else
+              if [ -f pnpm-lock.yaml ]; then pnpm test -- --runInBand; else npm test -- --runInBand; fi
+            fi
+          fi
+          run_script test:integration
+          run_script build

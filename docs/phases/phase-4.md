@@ -10,9 +10,11 @@
 - [ ] E2E test cover toàn bộ user flows chính
 - [ ] Test coverage > 85% overall
 - [ ] Zero critical bugs
+- [ ] Preview build artifact thành công
+- [ ] Production build artifact thành công
+- [ ] Monitoring setup
 - [ ] Deploy staging thành công
 - [ ] Deploy production thành công
-- [ ] Monitoring setup
 
 ## Tasks
 
@@ -22,8 +24,10 @@
 | 4.2 | Performance audit + fix | ⬜ Todo | - |
 | 4.3 | Security review | ⬜ Todo | - |
 | 4.4 | Setup monitoring / error tracking | ⬜ Todo | - |
-| 4.5 | Deploy staging | ⬜ Todo | - |
-| 4.6 | Deploy production | ⬜ Todo | - |
+| 4.5 | CI quality gate pass | ⬜ Todo | - |
+| 4.6 | Preview build artifact thành công | ⬜ Todo | - |
+| 4.7 | Deploy staging | ⬜ Todo | - |
+| 4.8 | Deploy production | ⬜ Todo | - |
 
 ## Dependencies
 - Phase 3 phải hoàn thành ✅

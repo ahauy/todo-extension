@@ -1,0 +1,50 @@
+name: Preview Build
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  preview-build:
+    if: ${{ hashFiles('package.json') != '' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build preview artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then pnpm build; else npm run build; fi
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-preview-build
+          path: |
+            .next
+            dist
+            build
+            out
+          if-no-files-found: ignore

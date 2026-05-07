@@ -236,6 +236,24 @@ opencode .
 
 ---
 
+## 🚦 Web CI/CD Flow
+
+Template này có 3 lớp verify:
+
+1. **Local dev** — `dev` server + browser automation / manual UI check
+2. **GitHub Actions CI** — lint, typecheck, tests, build
+3. **Build handoff** — preview artifact và production artifact qua GitHub Actions
+
+Files chính:
+- `.github/workflows/ci.yml`
+- `.github/workflows/preview-build.yml`
+- `.github/workflows/production-build.yml`
+- `docs/CI_CD_WEB.md`
+
+> Template này giữ deploy ở mức provider-agnostic. Khi project chốt Vercel/Netlify/Cloudflare/VPS thì mới gắn bước deploy thật.
+
+---
+
 ## 🧠 Memory & Learning
 
 ### Memory Hooks
@@ -460,6 +478,7 @@ graphify ./src
 - **Continuous Learning:** `docs/CONTINUOUS_LEARNING.md`
 - **Graphify:** `docs/GRAPHIFY.md`
 - **Monitoring:** `docs/MONITORING.md`
+- **Web CI/CD:** `docs/CI_CD_WEB.md`
 
 ---
 

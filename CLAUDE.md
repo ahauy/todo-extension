@@ -170,6 +170,13 @@ Xem `tasks/todo.md`
 - `skills/database-orm-patterns/SKILL.md` — Prisma/TypeORM, schema design, migrations, transactions
 - `skills/testing-backend-jest/SKILL.md` — Unit/API tests (Jest + Supertest), mocking, fixtures
 
+## CI/CD Guidance
+
+- PR/push phải qua quality gate: lint, typecheck, tests, build
+- `develop` dùng cho preview build / review artifact
+- production build nên manual hoặc approval-gated
+- Chỉ thêm deploy provider-specific sau khi hosting được chốt rõ
+
 ## Boilerplate (Stack-Conditional)
 
 > Chỉ dùng khi stack là **React hoặc Next.js**. Bỏ qua nếu project là Node.js API thuần, Python, CLI, v.v.

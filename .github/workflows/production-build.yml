@@ -1,0 +1,66 @@
+name: Production Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployTarget:
+        description: Optional deploy target label (vercel/netlify/cloudflare/custom)
+        required: true
+        default: custom
+        type: choice
+        options:
+          - custom
+          - vercel
+          - netlify
+          - cloudflare
+
+jobs:
+  production-build:
+    if: ${{ hashFiles('package.json') != '' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build production artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f pnpm-lock.yaml ]; then pnpm build; else npm run build; fi
+
+      - name: Upload production artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-production-build
+          path: |
+            .next
+            dist
+            build
+            out
+          if-no-files-found: ignore
+
+      - name: Deployment handoff note
+        shell: bash
+        run: |
+          echo "Deploy target: ${{ github.event.inputs.deployTarget }}"
+          echo "Add provider-specific deploy command here once project hosting is fixed."
