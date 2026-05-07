@@ -240,17 +240,53 @@ opencode .
 
 Template này có 3 lớp verify:
 
-1. **Local dev** — `dev` server + browser automation / manual UI check
-2. **GitHub Actions CI** — lint, typecheck, tests, build
-3. **Build handoff** — preview artifact và production artifact qua GitHub Actions
+### 1. Local Development
+```bash
+npm run dev
+# hoặc pnpm dev
+```
+- Hot reload + debug UI trực tiếp
+- Chạy browser automation / manual test
+- Nơi để catch lỗi nhanh nhất
 
-Files chính:
-- `.github/workflows/ci.yml`
-- `.github/workflows/preview-build.yml`
-- `.github/workflows/production-build.yml`
-- `docs/CI_CD_WEB.md`
+### 2. GitHub Actions Quality Gate
+Trigger: PR hoặc push vào `main` / `develop`
 
-> Template này giữ deploy ở mức provider-agnostic. Khi project chốt Vercel/Netlify/Cloudflare/VPS thì mới gắn bước deploy thật.
+Workflow: `.github/workflows/ci.yml`
+
+Checks:
+- ✅ Lint
+- ✅ TypeScript typecheck
+- ✅ Unit tests
+- ✅ Integration tests
+- ✅ Build sanity check
+
+**Nếu fail:** PR không merge được, phải fix local rồi push lại.
+
+### 3. Preview Build
+Trigger: push vào `develop` hoặc manual `workflow_dispatch`
+
+Workflow: `.github/workflows/preview-build.yml`
+
+Output:
+- Build artifact upload lên GitHub Actions
+- Download để review/test
+- Dùng trước khi merge vào `main`
+
+### 4. Production Build
+Trigger: manual `workflow_dispatch` (chỉ từ `main`)
+
+Workflow: `.github/workflows/production-build.yml`
+
+Output:
+- Production artifact upload
+- Có `environment: production` để gắn approval nếu cần
+- Sẵn sàng cho deploy provider thật
+
+### 📚 Full Guide
+Xem `docs/CI_CD_WEB.md` để chi tiết flow, troubleshooting, và cách setup secrets.
+
+> **Provider-agnostic:** Template này chưa hard-code Vercel/Netlify/Cloudflare. Khi project chốt hosting, thêm bước deploy provider-specific vào workflow.
 
 ---
 
