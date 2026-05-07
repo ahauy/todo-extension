@@ -34,24 +34,36 @@ echo ""
 echo -e "${CYAN}Step 2/4: Brain dump ý tưởng${RESET}"
 echo -e "  ${YELLOW}Mô tả ngắn gọn về project (không cần chuẩn, cứ dump thôi):${RESET}"
 echo -e "  ${YELLOW}Ví dụ: App làm gì, user là ai, tính năng chính, stack muốn dùng...${RESET}"
-echo -e "  ${YELLOW}(Nhấn Enter 2 lần để xong)${RESET}"
 echo ""
 
-BRIEF=""
-EMPTY_LINES=0
-while IFS= read -r line; do
-  if [ -z "$line" ]; then
-    EMPTY_LINES=$((EMPTY_LINES + 1))
-    if [ $EMPTY_LINES -ge 2 ]; then
-      break
-    fi
-  else
-    EMPTY_LINES=0
-  fi
-  BRIEF="$BRIEF$line"$'\n'
-done
+read -p "  Bạn muốn nhập từ file không? (y/n) [default: n]: " USE_FILE
+USE_FILE=${USE_FILE:-n}
 
-BRIEF=$(echo "$BRIEF" | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}')
+if [[ "$USE_FILE" =~ ^[Yy]$ ]]; then
+  read -p "  Đường dẫn file: " FILE_PATH
+  if [ ! -f "$FILE_PATH" ]; then
+    echo "❌ File không tồn tại: $FILE_PATH"
+    exit 1
+  fi
+  BRIEF=$(cat "$FILE_PATH")
+else
+  echo -e "  ${YELLOW}(Nhấn Enter 2 lần để xong)${RESET}"
+  echo ""
+  BRIEF=""
+  EMPTY_LINES=0
+  while IFS= read -r line; do
+    if [ -z "$line" ]; then
+      EMPTY_LINES=$((EMPTY_LINES + 1))
+      if [ $EMPTY_LINES -ge 2 ]; then
+        break
+      fi
+    else
+      EMPTY_LINES=0
+    fi
+    BRIEF="$BRIEF$line"$'\n'
+  done
+  BRIEF=$(echo "$BRIEF" | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}')
+fi
 
 if [ -z "$(echo "$BRIEF" | tr -d '[:space:]')" ]; then
   BRIEF="(Chưa có mô tả — Opencode sẽ hỏi thêm trong Phase 0)"

@@ -27,17 +27,33 @@ echo.
 echo [Step 2/4] Brain dump ý tưởng
 echo   Mô tả ngắn gọn về project (không cần chuẩn, cứ dump thôi):
 echo   Ví dụ: App làm gì, user là ai, tính năng chính, stack muốn dùng...
-echo   (Nhấn Ctrl+Z rồi Enter để xong)
 echo.
 
-setlocal enabledelayedexpansion
-set "BRIEF="
-:read_brief
-set /p "LINE="
-if not "!LINE!"=="" (
-  set "BRIEF=!BRIEF!!LINE!
+set /p USE_FILE="  Bạn muốn nhập từ file không? (y/n) [default: n]: "
+if "!USE_FILE!"=="" set USE_FILE=n
+
+if /i "!USE_FILE!"=="y" (
+  set /p FILE_PATH="  Đường dẫn file: "
+  if not exist "!FILE_PATH!" (
+    echo ❌ File không tồn tại: !FILE_PATH!
+    exit /b 1
+  )
+  for /f "delims=" %%A in ('type "!FILE_PATH!"') do (
+    set "BRIEF=!BRIEF!%%A
 "
-  goto read_brief
+  )
+) else (
+  echo   (Nhấn Ctrl+Z rồi Enter để xong)
+  echo.
+  setlocal enabledelayedexpansion
+  set "BRIEF="
+  :read_brief
+  set /p "LINE="
+  if not "!LINE!"=="" (
+    set "BRIEF=!BRIEF!!LINE!
+"
+    goto read_brief
+  )
 )
 
 if "!BRIEF!"=="" (
