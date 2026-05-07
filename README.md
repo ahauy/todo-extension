@@ -1,18 +1,19 @@
 # 🚀 Opencode Project Template
 
 > Production-ready template để khởi động project mới với Opencode.  
-> Tích hợp Brainstorming → Design → Plan → Code → Test → Monitor workflow.
+> Tích hợp Brainstorming → Design → Scope Breakdown → Code → Test → Monitor workflow.
 
 ---
 
 ## ✨ Tại Sao Dùng Template Này?
 
 - **Brainstorm trước, code sau** — design doc được approve trước khi viết dòng code đầu tiên
+- **Scope breakdown tối ưu** — 3 cách chia scope (Feature-Based, Epic-Based, Dependency-Driven)
 - **Không mất context** — auto-save/load context qua sessions
 - **Không code lung tung** — plan rõ ràng, task nhỏ, test ngay
 - **Auto-learn từ mistakes** — continuous learning system
 - **Understand codebase** — Graphify knowledge graph
-- **Production-ready** — monitoring, error tracking, metrics
+- **Production-ready** — monitoring, error tracking, metrics, CI/CD
 
 ---
 
@@ -21,8 +22,7 @@
 - [Opencode](https://opencode.ai) đã cài
 - `git` đã cài
 - `bash` (macOS / Linux / WSL) HOẶC `cmd`/`PowerShell` (Windows)
-- `python 3.10+` (cho Graphify)
-- `npm` (cho Chrome DevTools MCP)
+- `npm` hoặc `pnpm`
 - Chrome browser (cho E2E testing)
 
 ---
@@ -68,14 +68,12 @@ Step 2/4: Brain dump ý tưởng
 Bạn muốn nhập từ file không? (y/n) [default: n]: y
 Đường dẫn file: /path/to/brain-dump.txt
 ```
-→ Script sẽ đọc file và ghi vào `docs/BRIEF.md`
 
 **Option 2: Gõ trực tiếp** (cách cũ)
 ```
 Bạn muốn nhập từ file không? (y/n) [default: n]: n
 (Nhấn Enter 2 lần để xong)
 ```
-→ Gõ brain dump trực tiếp
 
 Sau đó script tự:
 - Replace tên vào toàn bộ files
@@ -88,66 +86,7 @@ Sau đó script tự:
 opencode .
 ```
 
-Opencode tự đọc `CLAUDE.md` → kích hoạt **Phase 0: Brainstorming**:
-
-```
-Đọc docs/BRIEF.md
-      ↓
-Hỏi từng câu một để clarify
-      ↓
-Propose 2-3 approaches + trade-offs
-      ↓
-Present design từng section → confirm
-      ↓
-Viết docs/specs/YYYY-MM-DD-design.md → commit
-      ↓
-Tự review spec
-      ↓
-Anh review + approve
-      ↓
-Chia phases + tạo tasks → bắt đầu code 🚀
-```
-
----
-
-## 🎮 Browser Automation & E2E Testing
-
-Template bao gồm Chrome DevTools MCP cho browser automation:
-
-### What is Chrome DevTools MCP?
-- MCP server điều khiển live Chrome browser
-- Automate browser actions (click, type, navigate)
-- Take screenshots & record videos
-- Inspect network requests
-- Analyze performance traces
-
-### Quick Start
-```bash
-# Install MCP server
-npm install -g chrome-devtools-mcp
-
-# Configure Opencode
-# Edit ~/.config/opencode/opencode.json
-{
-  "mcpServers": {
-    "chrome-devtools": {
-      "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest"]
-    }
-  }
-}
-
-# Restart Opencode
-opencode .
-```
-
-### Usage
-- Phase 4: E2E testing trước release
-- Test user flows (sign up, login, create, edit, delete)
-- Check performance + network
-- Screenshot results
-
-Xem `docs/CHROME_DEVTOOLS_MCP.md` để full guide.
+Opencode tự đọc `CLAUDE.md` → kích hoạt **Brainstorming Phase**.
 
 ---
 
@@ -160,18 +99,16 @@ my-project/
 │
 ├── docs/
 │   ├── BRIEF.md                   ← Brain dump ban đầu
-│   ├── MONITORING.md              ← Sentry + Prometheus + Grafana setup
+│   ├── SCOPE_BREAKDOWN.md         ← 3 cách chia scope
+│   ├── MONITORING.md              ← Sentry + Prometheus + Grafana
 │   ├── MEMORY_HOOKS.md            ← Auto-save/load context
 │   ├── CONTINUOUS_LEARNING.md     ← Auto-extract patterns
 │   ├── GRAPHIFY.md                ← Knowledge graph builder
+│   ├── CI_CD_WEB.md               ← Web CI/CD flow
 │   ├── specs/                     ← Design docs (output của brainstorming)
 │   │   └── YYYY-MM-DD-[topic]-design.md
 │   └── phases/
-│       ├── phase-0.md             ← Brainstorming instructions
-│       ├── phase-1.md             ← Foundation
-│       ├── phase-2.md             ← Core Features
-│       ├── phase-3.md             ← UI + Polish
-│       └── phase-4.md             ← Testing + Deploy
+│       └── phase-0.md             ← Brainstorming instructions
 │
 ├── skills/
 │   └── brainstorming/
@@ -185,26 +122,40 @@ my-project/
 │
 ├── tasks/
 │   ├── todo.md                    ← Task hiện tại + up next
-│   └── done.md                    ← Log tasks đã xong
+│   ├── done.md                    ← Log tasks đã xong
+│   ├── layer-0-todo.md            ← Layer 0 tasks (nếu dùng Dependency-Driven)
+│   ├── layer-1-todo.md            ← Layer 1 tasks
+│   ├── layer-2-todo.md            ← Layer 2 tasks
+│   └── layer-3-todo.md            ← Layer 3 tasks (hoặc thêm layer nếu cần)
 │
 ├── src/                           ← Source code
 │
 ├── tests/
 │   ├── unit/                      ← Viết cùng lúc với code
-│   ├── integration/               ← Viết cuối mỗi phase
+│   ├── integration/               ← Viết cuối mỗi layer
 │   └── e2e/                       ← Viết trước release
 │
 ├── scripts/
-│   └── start-project.sh           ← Script khởi tạo project
+│   ├── start-project.sh           ← Script khởi tạo project
+│   ├── start-project.bat          ← Windows CMD version
+│   └── start-project.ps1          ← Windows PowerShell version
 │
 ├── .github/
-│   └── workflows/ci.yml           ← CI pipeline
+│   └── workflows/
+│       ├── ci.yml                 ← Quality gate (lint, typecheck, test, build)
+│       ├── preview-build.yml      ← Preview artifact
+│       └── production-build.yml   ← Production artifact
 │
 ├── docker-compose.monitoring.yml  ← Prometheus + Grafana
 ├── prometheus.yml                 ← Prometheus config
 ├── .env.example                   ← Env vars template
 └── .gitignore
 ```
+
+**Lưu ý:** Folder structure linh hoạt tùy cách chia scope:
+- **Feature-Based:** dùng `tasks/todo.md` chung
+- **Epic-Based:** dùng `tasks/epic-1-todo.md`, `tasks/epic-2-todo.md`, etc.
+- **Dependency-Driven:** dùng `tasks/layer-0-todo.md`, `tasks/layer-1-todo.md`, etc.
 
 ---
 
@@ -217,52 +168,52 @@ my-project/
         ↓
 opencode .
         ↓
-┌─── PHASE 0: BRAINSTORMING ─────────────────────────┐
-│  Đọc BRIEF → clarify từng câu một                  │
-│  Propose 2-3 approaches                            │
-│  Present design → confirm từng section             │
-│  Viết docs/specs/YYYY-MM-DD-design.md             │
-│  Tự review → user approve                         │
-│  Phân tích dependency + chia scope                 │
-└─────────────────────────────────────────────────────┘
+┌─── PHASE 0: BRAINSTORMING ────────────────────────┐
+│  Đọc BRIEF → clarify từng câu một                 │
+│  Propose 2-3 approaches + trade-offs              │
+│  Present design → confirm từng section            │
+│  Viết docs/specs/YYYY-MM-DD-design.md            │
+│  Tự review → user approve                        │
+│  Phân tích dependency + chia scope                │
+└───────────────────────────────────────────────────┘
         ↓
-┌─── SCOPE BREAKDOWN ────────────────────────────────┐
-│  Chọn cách chia scope:                             │
-│  - Feature-Based (scope nhỏ)                       │
-│  - Epic-Based (scope lớn, cứng nhắc)              │
-│  - Dependency-Driven ⭐ (scope lớn, flexible)     │
-│                                                    │
-│  Xem docs/SCOPE_BREAKDOWN.md để chọn              │
-└─────────────────────────────────────────────────────┘
+┌─── SCOPE BREAKDOWN ───────────────────────────────┐
+│  Chọn cách chia scope:                            │
+│  - Feature-Based (scope nhỏ)                      │
+│  - Epic-Based (scope lớn, cứng nhắc)             │
+│  - Dependency-Driven ⭐ (scope lớn, flexible)    │
+│                                                   │
+│  Xem docs/SCOPE_BREAKDOWN.md để chọn             │
+└───────────────────────────────────────────────────┘
         ↓
-┌─── LAYER 0: FOUNDATION ────────────────────────────┐
-│  (No dependency)                                   │
-│  ┌── TASK LOOP ──────────────────────────────┐    │
-│  │ Pick task từ layer-0-todo.md              │    │
-│  │ → Code task (1 prompt = 1 task)           │    │
-│  │ → Viết unit test ngay                    │    │
-│  │ → Chạy test → fix nếu fail               │    │
-│  │ → Commit + update todo.md                │    │
-│  │ → Lặp lại                                │    │
-│  └───────────────────────────────────────────┘    │
-│  Cuối layer: Integration test                      │
-└─────────────────────────────────────────────────────┘
+┌─── LAYER 0: FOUNDATION ───────────────────────────┐
+│  (No dependency)                                  │
+│  ┌── TASK LOOP ──────────────────────────────┐   │
+│  │ Pick task từ layer-0-todo.md              │   │
+│  │ → Code task (1 prompt = 1 task)           │   │
+│  │ → Viết unit test ngay                    │   │
+│  │ → Chạy test → fix nếu fail               │   │
+│  │ → Commit + update todo.md                │   │
+│  │ → Lặp lại                                │   │
+│  └───────────────────────────────────────────┘   │
+│  Cuối layer: Integration test                     │
+└───────────────────────────────────────────────────┘
         ↓ (Layer 0 xong → Layer 1 start)
 ┌─── LAYER 1: CORE FEATURES ────────────────────────┐
-│  (Depends on Layer 0)                              │
-│  Tương tự Layer 0                                  │
-└─────────────────────────────────────────────────────┘
+│  (Depends on Layer 0)                             │
+│  Tương tự Layer 0                                 │
+└───────────────────────────────────────────────────┘
         ↓
 ┌─── LAYER 2: SECONDARY ────────────────────────────┐
-│  (Depends on Layer 1)                              │
-│  Tương tự Layer 0                                  │
-└─────────────────────────────────────────────────────┘
+│  (Depends on Layer 1)                             │
+│  Tương tự Layer 0                                 │
+└───────────────────────────────────────────────────┘
         ↓
 ┌─── LAYER 3: POLISH + RELEASE ─────────────────────┐
-│  (Depends on Layer 2)                              │
-│  E2E test → fix → deploy staging                  │
-│  Anh review staging → deploy production 🚀        │
-└─────────────────────────────────────────────────────┘
+│  (Depends on Layer 2)                             │
+│  E2E test → fix → deploy staging                 │
+│  User review staging → deploy production 🚀      │
+└───────────────────────────────────────────────────┘
 ```
 
 **Lợi ích Dependency-Driven:**
@@ -273,6 +224,36 @@ opencode .
 
 ---
 
+## 📊 Scope Breakdown
+
+Khi scope lớn, template hỗ trợ 3 cách chia scope:
+
+### 1. Feature-Based
+- Chia theo feature/user story
+- Ưu: Dễ hiểu, dễ demo
+- Nhược: Khó parallelize, có thể bị block
+- Dùng khi: Scope nhỏ (< 10 features), features độc lập
+
+### 2. Epic-Based
+- Chia theo Epic → Stories, theo phase
+- Ưu: Rõ ràng, dễ track progress
+- Nhược: Cứng nhắc, khó adjust
+- Dùng khi: Scope lớn (> 15 features), timeline cố định
+
+### 3. Dependency-Driven ⭐ (Recommended)
+- Chia theo dependency layer (Layer 0 → 1 → 2 → 3 → ...)
+- Layer 0: Foundation (no dependency)
+- Layer N: Depends on Layer 0 → N-1
+- Ưu: Không block, dễ parallelize, flexible, tối ưu timeline
+- Nhược: Cần phân tích dependency kỹ
+- Dùng khi: Scope lớn, cần parallelize, nhiều agent/team
+
+**QUAN TRỌNG:** Layer count flexible — có thể chia 4, 5, 6+ layers tùy scope, miễn là không vi phạm quy tắc dependency.
+
+Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
+
+---
+
 ## 🚦 Web CI/CD Flow
 
 Template này có 3 lớp verify:
@@ -280,7 +261,6 @@ Template này có 3 lớp verify:
 ### 1. Local Development
 ```bash
 npm run dev
-# hoặc pnpm dev
 ```
 - Hot reload + debug UI trực tiếp
 - Chạy browser automation / manual test
@@ -320,24 +300,9 @@ Output:
 - Có `environment: production` để gắn approval nếu cần
 - Sẵn sàng cho deploy provider thật
 
-### 📚 Full Guide
-Xem `docs/CI_CD_WEB.md` để chi tiết flow, troubleshooting, và cách setup secrets.
+**Provider-agnostic:** Template này chưa hard-code Vercel/Netlify/Cloudflare. Khi project chốt hosting, thêm bước deploy provider-specific vào workflow.
 
-> **Provider-agnostic:** Template này chưa hard-code Vercel/Netlify/Cloudflare. Khi project chốt hosting, thêm bước deploy provider-specific vào workflow.
-
----
-
-## 📊 Scope Breakdown (Yêu cầu lớn)
-
-Khi scope lớn, template hỗ trợ 3 cách chia scope:
-
-1. **Feature-Based** — Chia theo feature (dễ hiểu, nhưng khó parallelize)
-2. **Epic-Based** — Chia theo phase (rõ ràng, nhưng cứng nhắc)
-3. **Dependency-Driven** ⭐ — Chia theo dependency layer (tối ưu timeline, dễ parallelize)
-
-Xem `docs/SCOPE_BREAKDOWN.md` để chọn cách phù hợp.
-
-**Lưu ý:** Template ví dụ dùng 4 layers (0-3), nhưng hoàn toàn flexible — agent/team có thể tự chia thêm layer nếu cần (Layer 4, 5, 6...), miễn là không vi phạm quy tắc: **Layer N chỉ depend on Layer 0 → N-1**.
+Xem `docs/CI_CD_WEB.md` để full guide.
 
 ---
 
@@ -364,7 +329,7 @@ Auto-generate knowledge graph từ codebase:
 
 ```bash
 # Install
-pip install graphifyy
+pip install graphify
 
 # Generate graph
 graphify ./src
@@ -423,89 +388,12 @@ Xem `docs/MONITORING.md` để:
 
 ---
 
-## 🛠️ Skills Library
-
-Template đi kèm **16 skills** được tổ chức theo category. Mỗi skill là một `SKILL.md` với hướng dẫn chi tiết, code examples, common mistakes, và checklist.
-
-### 📋 Phase 0 — Planning
-| Skill | Mô tả |
-|-------|-------|
-| `brainstorming` | Workflow từ brief → clarify → design doc → approve → code. **HARD-GATE: không code trước khi spec được approve.** |
-
-### 🎨 Frontend Development
-| Skill | Mô tả |
-|-------|-------|
-| `frontend-agent` | Senior frontend developer agent — React/Vue, UI implementation, performance |
-| `typescript` | Type-safe TypeScript với strict mode, narrowing, discriminated unions |
-| `tailwind-v4-shadcn` | Tailwind CSS v4 + shadcn/ui — 8 lỗi phổ biến được document, 4-step architecture |
-| `state-management-data-fetching` | Zustand (app state) + TanStack Query (server state), integration patterns |
-| `testing-vitest-jest` | Unit/integration/component tests với Vitest + React Testing Library, coverage ≥80% |
-| `performance-optimization` | Core Web Vitals (LCP/FID/CLS), code splitting, lazy loading, bundle analysis |
-| `accessibility-a11y` | WCAG 2.1, semantic HTML, ARIA, keyboard navigation, screen reader testing |
-| `error-handling` | Try/catch patterns, React Error Boundaries, error logging, user-facing messages |
-| `git-workflow` | Conventional commits, branch naming, PR process, merge strategies |
-
-### 🔌 API & Integration
-| Skill | Mô tả |
-|-------|-------|
-| `api-design` | REST principles, request/response format, error codes, versioning, pagination |
-| `security-best-practices` | OWASP Top 10, auth, CORS/CSRF, secrets management, XSS/injection prevention |
-
-### ⚙️ Backend (Node.js)
-| Skill | Mô tả |
-|-------|-------|
-| `nodejs-express-patterns` | Express routing, middleware, controllers, services, async patterns |
-| `database-orm-patterns` | Prisma/TypeORM/Sequelize — schema design, migrations, relations, transactions |
-| `testing-backend-jest` | Unit/integration/API tests với Jest + Supertest, mocking, fixtures, coverage ≥80% |
-
-### 🏗️ Setup
-| Skill | Mô tả |
-|-------|-------|
-| `boilerplate/react-nextjs` | React 19 + Next.js 15 + TypeScript + Tailwind v4 + Zustand + TanStack Query |
-
-### Cách dùng Skills
-
-**Invoke một skill:**
-```
-Đọc skills/[skill-name]/SKILL.md và áp dụng cho task sau:
-[Mô tả task]
-```
-
-**Ví dụ:**
-```
-Đọc skills/testing-vitest-jest/SKILL.md và viết tests cho UserProfile component
-```
-
-```
-Đọc skills/git-workflow/SKILL.md và review commit messages của PR này
-```
-
----
-
-## 🧠 Brainstorming Skill (Thêm Feature Mới)
-
-Khi project đang chạy và muốn thêm feature mới:
-
-```
-"Đọc skills/brainstorming/SKILL.md và brainstorm feature sau:
-[Mô tả feature muốn thêm]"
-```
-
-Skill sẽ tự động:
-1. Explore context hiện tại
-2. Hỏi từng câu để clarify
-3. Propose 2-3 approaches
-4. Viết design doc mới vào `docs/specs/`
-5. Tạo tasks cho feature đó
-
----
-
 ## 🧪 Testing Strategy
 
 | Loại | Khi nào viết | Tool |
 |------|-------------|------|
 | **Unit** | Ngay sau mỗi task | Vitest |
-| **Integration** | Cuối mỗi phase | Vitest + Supertest |
+| **Integration** | Cuối mỗi layer | Vitest + Supertest |
 | **E2E** | Trước release | Playwright |
 
 ---
@@ -521,9 +409,6 @@ Skill sẽ tự động:
 | Test viết ngay, không để cuối | Tránh bug chồng bug |
 | Commit sau mỗi task | Rollback dễ |
 | Review memory/ + learnings/ | Tránh lỗi cũ |
-| **Phase 0: Dùng GPT-5.5** | Brainstorming tốt hơn |
-| **Dev: Dùng Sonnet (default)** | Rẻ + đủ tốt |
-| **Complex: Dùng Opus** | Refactor lớn, architecture |
 
 ---
 
@@ -531,7 +416,7 @@ Skill sẽ tự động:
 
 ### Bắt đầu task mới
 ```
-Đọc CLAUDE.md → docs/phases/phase-N.md → tasks/todo.md
+Đọc CLAUDE.md → docs/phases/phase-0.md → tasks/todo.md
 
 Implement task "In Progress".
 Chỉ sửa files được liệt kê trong task.
@@ -560,6 +445,7 @@ graphify ./src
 
 ## 🔗 Resources
 
+- **Scope Breakdown:** `docs/SCOPE_BREAKDOWN.md`
 - **Brainstorming Skill:** `skills/brainstorming/SKILL.md`
 - **Memory Hooks:** `docs/MEMORY_HOOKS.md`
 - **Continuous Learning:** `docs/CONTINUOUS_LEARNING.md`
