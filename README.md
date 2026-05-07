@@ -303,6 +303,18 @@ Xem `docs/CI_CD_WEB.md` để chi tiết flow, troubleshooting, và cách setup 
 
 ---
 
+## 📊 Scope Breakdown (Yêu cầu lớn)
+
+Khi scope lớn, template hỗ trợ 3 cách chia scope:
+
+1. **Feature-Based** — Chia theo feature (dễ hiểu, nhưng khó parallelize)
+2. **Epic-Based** — Chia theo phase (rõ ràng, nhưng cứng nhắc)
+3. **Dependency-Driven** ⭐ — Chia theo dependency layer (tối ưu timeline, dễ parallelize)
+
+Xem `docs/SCOPE_BREAKDOWN.md` để chọn cách phù hợp.
+
+---
+
 ## 🧠 Memory & Learning
 
 ### Memory Hooks
