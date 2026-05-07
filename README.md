@@ -223,29 +223,53 @@ opencode .
 │  Present design → confirm từng section             │
 │  Viết docs/specs/YYYY-MM-DD-design.md             │
 │  Tự review → user approve                         │
-│  Chia phases + tạo tasks/todo.md                  │
+│  Phân tích dependency + chia scope                 │
 └─────────────────────────────────────────────────────┘
         ↓
-┌─── PHASE 1-3: DEVELOPMENT ─────────────────────────┐
+┌─── SCOPE BREAKDOWN ────────────────────────────────┐
+│  Chọn cách chia scope:                             │
+│  - Feature-Based (scope nhỏ)                       │
+│  - Epic-Based (scope lớn, cứng nhắc)              │
+│  - Dependency-Driven ⭐ (scope lớn, flexible)     │
 │                                                    │
+│  Xem docs/SCOPE_BREAKDOWN.md để chọn              │
+└─────────────────────────────────────────────────────┘
+        ↓
+┌─── LAYER 0: FOUNDATION ────────────────────────────┐
+│  (No dependency)                                   │
 │  ┌── TASK LOOP ──────────────────────────────┐    │
-│  │ Pick task từ todo.md                      │    │
+│  │ Pick task từ layer-0-todo.md              │    │
 │  │ → Code task (1 prompt = 1 task)           │    │
 │  │ → Viết unit test ngay                    │    │
 │  │ → Chạy test → fix nếu fail               │    │
 │  │ → Commit + update todo.md                │    │
 │  │ → Lặp lại                                │    │
 │  └───────────────────────────────────────────┘    │
-│                                                    │
-│  Cuối mỗi phase: Integration test                  │
-│  Review memory/ + .learnings/ để tránh lỗi cũ     │
+│  Cuối layer: Integration test                      │
+└─────────────────────────────────────────────────────┘
+        ↓ (Layer 0 xong → Layer 1 start)
+┌─── LAYER 1: CORE FEATURES ────────────────────────┐
+│  (Depends on Layer 0)                              │
+│  Tương tự Layer 0                                  │
 └─────────────────────────────────────────────────────┘
         ↓
-┌─── PHASE 4: RELEASE ───────────────────────────────┐
+┌─── LAYER 2: SECONDARY ────────────────────────────┐
+│  (Depends on Layer 1)                              │
+│  Tương tự Layer 0                                  │
+└─────────────────────────────────────────────────────┘
+        ↓
+┌─── LAYER 3: POLISH + RELEASE ─────────────────────┐
+│  (Depends on Layer 2)                              │
 │  E2E test → fix → deploy staging                  │
 │  Anh review staging → deploy production 🚀        │
 └─────────────────────────────────────────────────────┘
 ```
+
+**Lợi ích Dependency-Driven:**
+- ✅ Agent không bị block (Layer 0 xong → Layer 1 start)
+- ✅ Dễ parallelize (nhiều agent làm layer khác nhau)
+- ✅ Flexible (có thể adjust layer nếu cần)
+- ✅ Tối ưu timeline
 
 ---
 
