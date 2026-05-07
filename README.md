@@ -337,6 +337,8 @@ Khi scope lớn, template hỗ trợ 3 cách chia scope:
 
 Xem `docs/SCOPE_BREAKDOWN.md` để chọn cách phù hợp.
 
+**Lưu ý:** Template ví dụ dùng 4 layers (0-3), nhưng hoàn toàn flexible — agent/team có thể tự chia thêm layer nếu cần (Layer 4, 5, 6...), miễn là không vi phạm quy tắc: **Layer N chỉ depend on Layer 0 → N-1**.
+
 ---
 
 ## 🧠 Memory & Learning

@@ -196,8 +196,50 @@ tasks/
 ├── layer-0-todo.md
 ├── layer-1-todo.md
 ├── layer-2-todo.md
-└── layer-3-todo.md
+├── layer-3-todo.md
+└── ... (thêm layer nếu cần)
 ```
+
+---
+
+## Flexible Layer Count
+
+Template ví dụ dùng **4 layers (0-3)**, nhưng hoàn toàn **flexible**:
+
+### Scope nhỏ (< 5 features)
+```
+Layer 0: Foundation
+Layer 1: Features + Polish
+```
+
+### Scope trung bình (5-10 features)
+```
+Layer 0: Foundation
+Layer 1: Core features
+Layer 2: Polish + Release
+```
+
+### Scope lớn (10-20 features)
+```
+Layer 0: Foundation
+Layer 1: Core features
+Layer 2: Secondary features
+Layer 3: Polish + Release
+```
+
+### Scope rất lớn (> 20 features)
+```
+Layer 0: Foundation
+Layer 1: Core features (A-F)
+Layer 2: Core features (G-L)
+Layer 3: Secondary features
+Layer 4: Advanced features
+Layer 5: Polish + Release
+```
+
+**Quy tắc duy nhất:** Layer N chỉ depend on Layer 0 → N-1
+
+Agent/team tự chia thêm layer nếu cần, miễn là không vi phạm quy tắc dependency.
 
 ---
 
