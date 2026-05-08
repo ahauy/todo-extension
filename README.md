@@ -1,7 +1,13 @@
 # 🚀 Opencode Project Template
 
-> Production-ready template để khởi động project mới với Opencode.  
+> Production-ready template để khởi động **Web project** mới với **[Opencode](https://opencode.ai)**.  
 > Tích hợp Brainstorming → Design → Scope Breakdown → Code → Test → Monitor workflow.
+
+![AI Tool](https://img.shields.io/badge/AI-Opencode-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJMMiA3bDEwIDUgMTAtNS0xMC01ek0yIDE3bDEwIDUgMTAtNS0xMC01LTEwIDV6TTIgMTJsMTAgNSAxMC01LTEwLTUtMTAgNXoiLz48L3N2Zz4=) ![Platform](https://img.shields.io/badge/Platform-Web-green) ![Language](https://img.shields.io/badge/Stack-Node.js%20%7C%20React%20%7C%20TypeScript-blue)
+
+### 🤖 Dành cho Opencode
+Template này được tối ưu cho **Opencode** — AI coding assistant chạy trong terminal.  
+Cấu trúc `CLAUDE.md`, `skills/`, `docs/` được thiết kế để Opencode đọc và làm việc hiệu quả nhất.
 
 ---
 
