@@ -53,7 +53,7 @@ scripts\start-project.bat
 .\scripts\start-project.ps1
 ```
 
-Script hỏi 2 thứ:
+Script hỏi 5 bước:
 
 ```
 Step 1/4: Project name
@@ -79,6 +79,28 @@ Sau đó script tự:
 - Replace tên vào toàn bộ files
 - Ghi brain dump → `docs/BRIEF.md`
 - Reset git history (fresh repo)
+
+**Step 5: Tạo GitHub repo (tùy chọn)**
+```
+Step 5/5: GitHub repo
+  Tạo repo trên GitHub không? (y/n) [default: n]: y
+  Đang tạo repo...
+  ✅ Repo created: https://github.com/ocanhdt12-gif/my-awesome-app
+```
+
+Nếu chọn **yes**:
+- Script tự động tạo repo public trên GitHub
+- Tên repo: `my-awesome-app` (lowercase, spaces → hyphens)
+- Description: Lấy từ brain dump
+- Tự động push code lên
+
+Nếu chọn **no**:
+- Bỏ qua tạo GitHub repo
+- Bạn có thể push thủ công sau:
+  ```bash
+  git remote add origin git@github.com:ocanhdt12-gif/my-awesome-app.git
+  git push -u origin main
+  ```
 
 ### Bước 3: Mở Opencode
 

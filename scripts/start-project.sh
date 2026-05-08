@@ -114,6 +114,39 @@ git add .
 git commit -m "feat: init $PROJECT_NAME project" -q
 echo -e "  ${GREEN}✅ Fresh git repo initialized${RESET}"
 
+# ── Step 5: Create GitHub repo (optional) ────────────────────
+echo ""
+echo -e "${CYAN}Step 5/5: GitHub repo${RESET}"
+read -p "  Tạo repo trên GitHub không? (y/n) [default: n]: " CREATE_GITHUB
+CREATE_GITHUB=${CREATE_GITHUB:-n}
+
+if [[ "$CREATE_GITHUB" =~ ^[Yy]$ ]]; then
+  echo -e "  ${YELLOW}Đang tạo repo...${RESET}"
+  
+  # Sanitize project name for GitHub (lowercase, replace spaces with hyphens)
+  GITHUB_REPO=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g')
+  
+  # Create repo on GitHub
+  if gh repo create "ocanhdt12-gif/$GITHUB_REPO" \
+    --public \
+    --description "$BRIEF" \
+    --source=. \
+    --remote=origin \
+    --push > /dev/null 2>&1; then
+    echo -e "  ${GREEN}✅ Repo created: https://github.com/ocanhdt12-gif/$GITHUB_REPO${RESET}"
+  else
+    echo -e "  ${YELLOW}⚠️  Không thể tạo repo trên GitHub (có thể repo đã tồn tại)${RESET}"
+    echo -e "  ${YELLOW}Bạn có thể push thủ công sau:${RESET}"
+    echo -e "  ${YELLOW}  git remote add origin git@github.com:ocanhdt12-gif/$GITHUB_REPO.git${RESET}"
+    echo -e "  ${YELLOW}  git push -u origin main${RESET}"
+  fi
+else
+  echo -e "  ${YELLOW}Bỏ qua tạo GitHub repo${RESET}"
+  echo -e "  ${YELLOW}Bạn có thể push thủ công sau:${RESET}"
+  echo -e "  ${YELLOW}  git remote add origin git@github.com:ocanhdt12-gif/<repo-name>.git${RESET}"
+  echo -e "  ${YELLOW}  git push -u origin main${RESET}"
+fi
+
 # ── Done ─────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
