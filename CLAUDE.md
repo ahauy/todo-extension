@@ -53,11 +53,14 @@ Fix inline, không cần hỏi lại.
 Hỏi user review file spec trước khi tiếp tục.
 Chờ approve, nếu có changes thì update + re-review.
 
-**Bước 8 — Lên Phases + Tasks**
+**Bước 8 — Lên Layers + Tasks**
 Sau khi spec approved:
-- Chia thành 4 phases, viết vào `docs/phases/`
-- Update `CLAUDE.md` phần Stack, Folder Structure bên dưới
-- Tạo `tasks/todo.md` cho Phase 1
+- Phân tích dependency → chia thành layers (Layer 0, 1, 2, ...)
+- Layer 0 (Foundation): không phụ thuộc vào layer khác
+- Layer N: phụ thuộc vào Layer 0 → N-1
+- Tạo `tasks/layer-0-todo.md` (Foundation tasks)
+- Tạo `tasks/layer-1-todo.md`, `layer-2-todo.md`, ... khi cần
+- Update `CLAUDE.md`/`CODEX.md` phần Stack, Folder Structure bên dưới
 - Xóa block "FIRST TIME SETUP" này
 
 ⚠️ KHÔNG code gì trong Phase 0. KHÔNG skip bước nào.
@@ -68,7 +71,22 @@ Sau khi spec approved:
 [Điền sau Phase 0]
 
 ## Folder Structure
-[Điền sau Phase 0]
+
+```
+tasks/
+├── layer-0-todo.md      ← Foundation tasks (no dependency)
+├── layer-1-todo.md      ← Depends on Layer 0 (tạo khi cần)
+├── layer-2-todo.md      ← Depends on Layer 1 (tạo khi cần)
+├── layer-N-todo.md      ← Tạo tùy scope breakdown
+└── done.md              ← Completed tasks log
+```
+
+**Quy tắc:**
+- Số layer phụ thuộc vào scope breakdown + dependency analysis
+- Mỗi layer chứa nhiều task độc lập (không phải chỉ 1 task)
+- Các task trong cùng layer có thể làm song parallel
+- Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
+
 
 ## Coding Rules
 - **TypeScript strict** — không dùng `any`
@@ -133,8 +151,8 @@ Sau khi spec approved:
 - Chuyển Opus khi cần reasoning sâu
 - Quay lại Sonnet sau khi xong
 
-## Current Phase
-Phase 0 — Brainstorming (chưa bắt đầu)
+## Current Layer
+Layer 0 — Foundation (chưa bắt đầu)
 
 ## Current Task
 Xem `tasks/todo.md`
