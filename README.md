@@ -263,24 +263,28 @@ Template này dùng **Dependency-Driven approach** làm mặc định:
 
 - **Layer 0 (Foundation):** Chứa nhiều task độc lập (database, API base, auth, UI components, etc.)
 - **Layer 1, 2, 3+:** Chứa nhiều task phụ thuộc vào layer trước
-- Các task trong cùng layer có thể làm **song song**
+- Các task trong cùng layer có thể làm **song parallel**
 - Chỉ khi layer N xong → mới bắt đầu layer N+1
 
 **Cấu trúc task:**
 ```
 tasks/
-├── layer-0-todo.md      ← Foundation tasks (no dependency)
-├── layer-1-todo.md      ← Depends on Layer 0
-├── layer-2-todo.md      ← Depends on Layer 1
-├── layer-3-todo.md      ← Depends on Layer 2
-└── done.md              ← Completed tasks
+├── layer-0-todo.md      ← Foundation tasks (tạo mặc định)
+├── layer-1-todo.md      ← Tạo khi layer 0 xong
+├── layer-2-todo.md      ← Tạo khi layer 1 xong
+├── layer-N-todo.md      ← Tạo tùy scope breakdown
+└── done.md              ← Completed tasks log
 ```
 
-**Lợi ích:**
-- ✅ Không block — Layer 0 xong → Layer 1 start
-- ✅ Dễ parallelize — nhiều agent làm layer khác nhau
-- ✅ Flexible — có thể thêm layer nếu cần
-- ✅ Tối ưu timeline
+**Quy tắc:**
+- ✅ Số layer **phụ thuộc vào scope breakdown** — không cố định
+- ✅ Mỗi layer chứa **nhiều task độc lập** (không phải chỉ 1 task)
+- ✅ Các task trong cùng layer có thể làm **song parallel**
+- ✅ Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
+- ✅ Không block — dễ parallelize, tối ưu timeline
+
+**Cách tạo layer tiếp theo:**
+Xem hướng dẫn trong `tasks/layer-0-todo.md` để tạo `layer-1-todo.md`, `layer-2-todo.md`, ...
 
 Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
 
