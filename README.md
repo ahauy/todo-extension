@@ -303,6 +303,42 @@ Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
 - Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
 - Xem hướng dẫn trong `tasks/layer-0-todo.md` để tạo layer tiếp theo
 
+### 🏁 Bắt Đầu
+
+**Luồng mới:**
+```
+./scripts/start-project.sh
+  ↓
+Step 2: Nhập đường dẫn file mô tả chức năng (hoặc Enter để skip)
+  ↓
+Nếu có file:
+  → Copy vào docs/SPECIFICATIONS.md
+  → Tạo docs/BRIEF.md (tóm tắt 50 dòng đầu)
+  ↓
+Nếu không có file:
+  → Gõ brain dump text
+  → Tạo docs/BRIEF.md
+  ↓
+Tạo tasks/layer-0-todo.md (Foundation)
+  ↓
+OpenCode đọc CLAUDE.md/CODEX.md → bắt đầu Phase 0
+```
+
+**Files được tạo:**
+- `docs/BRIEF.md` — Tóm tắt (Opencode đọc)
+- `docs/SPECIFICATIONS.md` — Chi tiết đầy đủ (nếu có file)
+- `tasks/layer-0-todo.md` — Foundation tasks
+- `tasks/done.md` — Completed tasks log
+
+**Cách dùng:**
+```bash
+./scripts/start-project.sh
+# Nhập tên project
+# Nhập đường dẫn file mô tả (hoặc Enter để skip)
+# Script tự tạo files + git init
+# Mở folder trong Opencode → Phase 0 tự bắt đầu
+```
+
 ---
 
 ## 🚦 Web CI/CD Flow
