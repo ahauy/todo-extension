@@ -18,8 +18,10 @@ KHÔNG viết code, KHÔNG scaffold project, KHÔNG implement bất cứ thứ g
 
 Làm theo thứ tự, từng bước xong confirm user trước khi tiếp:
 
-**Bước 1 — Đọc Brief**
+**Bước 1 — Đọc Brief & Specifications**
 Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu.
+Nếu có `docs/SPECIFICATIONS.md` → đọc để hiểu chi tiết requirements, features, design.
+Nếu có `docs/SPECIFICATIONS.md` → đọc để hiểu chi tiết requirements, features, design.
 Chỉ hỏi những gì còn thiếu hoặc mơ hồ, không hỏi lại những gì đã rõ.
 
 **Bước 2 — Clarify (từng câu một)**

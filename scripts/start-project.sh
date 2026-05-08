@@ -29,27 +29,35 @@ if [ -z "$PROJECT_NAME" ]; then
   exit 1
 fi
 
-# ── Step 2: Brain dump ───────────────────────────────────────
+# ── Step 2: Specifications file ──────────────────────────────
 echo ""
-echo -e "${CYAN}Step 2/4: Brain dump ý tưởng${RESET}"
-echo -e "  ${YELLOW}Mô tả ngắn gọn về project (không cần chuẩn, cứ dump thôi):${RESET}"
-echo -e "  ${YELLOW}Ví dụ: App làm gì, user là ai, tính năng chính, stack muốn dùng...${RESET}"
+echo -e "${CYAN}Step 2/4: Specifications & Brain dump${RESET}"
+echo -e "  ${YELLOW}Bạn có file mô tả chức năng không?${RESET}"
 echo ""
 
-read -p "  Bạn muốn nhập từ file không? (y/n) [default: n]: " USE_FILE
-USE_FILE=${USE_FILE:-n}
+read -p "  Đường dẫn file (hoặc Enter để skip): " SPEC_FILE
 
-if [[ "$USE_FILE" =~ ^[Yy]$ ]]; then
-  read -p "  Đường dẫn file: " FILE_PATH
-  if [ ! -f "$FILE_PATH" ]; then
-    echo "❌ File không tồn tại: $FILE_PATH"
+SPEC_CONTENT=""
+if [ -n "$SPEC_FILE" ]; then
+  if [ ! -f "$SPEC_FILE" ]; then
+    echo "❌ File không tồn tại: $SPEC_FILE"
     exit 1
   fi
-  BRIEF=$(cat "$FILE_PATH")
+  SPEC_CONTENT=$(cat "$SPEC_FILE")
+  echo -e "  ${GREEN}✅ File đã load${RESET}"
 else
+  echo -e "  ${YELLOW}Không có file, sẽ nhập brain dump text${RESET}"
+fi
+
+# ── Step 3: Brain dump (nếu không có file) ──────────────────
+if [ -z "$SPEC_CONTENT" ]; then
+  echo ""
+  echo -e "  ${YELLOW}Mô tả ngắn gọn về project (không cần chuẩn, cứ dump thôi):${RESET}"
+  echo -e "  ${YELLOW}Ví dụ: App làm gì, user là ai, tính năng chính, stack muốn dùng...${RESET}"
   echo -e "  ${YELLOW}(Nhấn Enter 2 lần để xong)${RESET}"
   echo ""
-  BRIEF=""
+  
+  SPEC_CONTENT=""
   EMPTY_LINES=0
   while IFS= read -r line; do
     if [ -z "$line" ]; then
@@ -60,16 +68,16 @@ else
     else
       EMPTY_LINES=0
     fi
-    BRIEF="$BRIEF$line"$'\n'
+    SPEC_CONTENT="$SPEC_CONTENT$line"$'\n'
   done
-  BRIEF=$(echo "$BRIEF" | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}')
+  SPEC_CONTENT=$(echo "$SPEC_CONTENT" | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}')
 fi
 
-if [ -z "$(echo "$BRIEF" | tr -d '[:space:]')" ]; then
-  BRIEF="(Chưa có mô tả — Opencode sẽ hỏi thêm trong Phase 0)"
+if [ -z "$(echo "$SPEC_CONTENT" | tr -d '[:space:]')" ]; then
+  SPEC_CONTENT="(Chưa có mô tả — Opencode sẽ hỏi thêm trong Phase 0)"
 fi
 
-# ── Step 3: Replace placeholders ────────────────────────────
+# ── Step 4: Replace placeholders ────────────────────────────
 echo ""
 echo -e "${CYAN}Step 3/4: Đang setup files...${RESET}"
 
@@ -84,28 +92,54 @@ find . -name "*.md" -not -path "./.git/*" -type f | while read file; do
   fi
 done
 
-# Ghi brain dump vào docs/BRIEF.md
-if [ -f "docs/BRIEF.md" ]; then
-  # Xóa placeholder cũ
-  sed -i.bak '/\[BRIEF_CONTENT\]/d' docs/BRIEF.md
-  rm -f docs/BRIEF.md.bak
-  # Thêm brief vào cuối file
-  echo "" >> docs/BRIEF.md
-  echo "$BRIEF" >> docs/BRIEF.md
-else
-  # Tạo file mới nếu không tồn tại
-  mkdir -p docs
-  cat > docs/BRIEF.md << EOF
+# ── Copy SPECIFICATIONS.md ───────────────────────────────────
+mkdir -p docs
+if [ -n "$SPEC_FILE" ] && [ -f "$SPEC_FILE" ]; then
+  cp "$SPEC_FILE" docs/SPECIFICATIONS.md
+  echo -e "  ${GREEN}✅ Specifications copied to docs/SPECIFICATIONS.md${RESET}"
+fi
+
+# ── Create BRIEF.md (tóm tắt) ────────────────────────────────
+# Lấy first 50 lines hoặc toàn bộ nếu < 50 lines
+BRIEF_LINES=$(echo "$SPEC_CONTENT" | head -50)
+TOTAL_LINES=$(echo "$SPEC_CONTENT" | wc -l)
+
+cat > docs/BRIEF.md << EOF
 # Brain Dump — $PROJECT_NAME
 
-$BRIEF
+**Ngày tạo:** $TODAY
+
+## Tóm tắt
+
+$BRIEF_LINES
+EOF
+
+if [ "$TOTAL_LINES" -gt 50 ]; then
+  cat >> docs/BRIEF.md << EOF
+
+---
+
+**📌 Lưu ý:** Đây là tóm tắt (50 dòng đầu). Chi tiết đầy đủ xem **\`docs/SPECIFICATIONS.md\`**
 EOF
 fi
 
-echo -e "  ${GREEN}✅ Files updated${RESET}"
 echo -e "  ${GREEN}✅ Brain dump đã ghi vào docs/BRIEF.md${RESET}"
 
-# ── Step 4: Git reinit ───────────────────────────────────────
+# ── Update CLAUDE.md ─────────────────────────────────────────
+if [ -f "CLAUDE.md" ]; then
+  # Thêm reference đến SPECIFICATIONS.md nếu có
+  if [ -f "docs/SPECIFICATIONS.md" ]; then
+    sed -i.bak '/## Context/a\
+\
+### 📋 Specifications\
+Xem `docs/SPECIFICATIONS.md` để chi tiết đầy đủ về chức năng, requirements, và design.
+' CLAUDE.md
+    rm -f CLAUDE.md.bak
+    echo -e "  ${GREEN}✅ CLAUDE.md updated with SPECIFICATIONS reference${RESET}"
+  fi
+fi
+
+# ── Step 5: Git reinit ───────────────────────────────────────
 echo ""
 echo -e "${CYAN}Step 4/4: Reset git history...${RESET}"
 rm -rf .git
@@ -114,7 +148,7 @@ git add .
 git commit -m "feat: init $PROJECT_NAME project" -q
 echo -e "  ${GREEN}✅ Fresh git repo initialized${RESET}"
 
-# ── Step 5: Create GitHub repo (optional) ────────────────────
+# ── Step 6: Create GitHub repo (optional) ────────────────────
 echo ""
 echo -e "${CYAN}Step 5/5: GitHub repo${RESET}"
 read -p "  Tạo repo trên GitHub không? (y/n) [default: n]: " CREATE_GITHUB
@@ -129,7 +163,7 @@ if [[ "$CREATE_GITHUB" =~ ^[Yy]$ ]]; then
   # Create repo on GitHub
   if gh repo create "ocanhdt12-gif/$GITHUB_REPO" \
     --public \
-    --description "$BRIEF" \
+    --description "$PROJECT_NAME" \
     --source=. \
     --remote=origin \
     --push > /dev/null 2>&1; then
@@ -154,6 +188,12 @@ echo -e "${BOLD}  ✅ Project sẵn sàng!${RESET}"
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 echo -e "  📁 ${YELLOW}$(pwd)${RESET}"
+echo ""
+echo -e "  📄 Files tạo:"
+echo -e "    • ${CYAN}docs/BRIEF.md${RESET} — Tóm tắt (Opencode đọc)"
+if [ -f "docs/SPECIFICATIONS.md" ]; then
+  echo -e "    • ${CYAN}docs/SPECIFICATIONS.md${RESET} — Chi tiết đầy đủ"
+fi
 echo ""
 echo -e "  Bước tiếp theo:"
 echo -e "  ${CYAN}1. Mở folder này trong Opencode${RESET}"
