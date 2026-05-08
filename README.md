@@ -420,6 +420,33 @@ Xem `docs/MONITORING.md` để:
 
 ---
 
+---
+
+## 🛠️ Skills
+
+Skills là các instruction set chuyên biệt giúp AI code đúng pattern, đúng convention, và tránh lỗi phổ biến. Mỗi skill nằm trong `skills/<tên>/SKILL.md`.
+
+| Skill | Mô tả |
+|-------|-------|
+| `brainstorming` | Dùng TRƯỚC khi làm bất kỳ feature mới. Explore ý tưởng, clarify requirements, propose approaches, viết design doc trước khi code |
+| `boilerplate` | Tạo boilerplate code cho các pattern phổ biến |
+| `typescript` | Viết TypeScript type-safe với proper narrowing, inference patterns, và strict mode |
+| `api-design` | REST API best practices: request/response structure, error handling, versioning, authentication |
+| `nodejs-express-patterns` | Express.js best practices: routing, middleware, error handling, validation, production patterns |
+| `database-orm-patterns` | Database design và ORM: schema, migrations, relationships, query optimization với Prisma/TypeORM/Sequelize |
+| `frontend-agent` | Senior Frontend Developer agent — React/Vue/Angular, UI implementation, performance optimization |
+| `state-management-data-fetching` | Quản lý state với Zustand và server state với TanStack Query: store design, selectors, mutations, caching |
+| `tailwind-v4-shadcn` | Setup Tailwind CSS v4 + shadcn/ui, tránh 8 documented errors qua mandatory four-step architecture |
+| `testing-vitest-jest` | Unit, integration, component tests với Vitest + React Testing Library, coverage 80%+ |
+| `testing-backend-jest` | Unit, integration, API tests cho Node.js backend với Jest + Supertest, coverage 80%+ |
+| `error-handling` | Error handling patterns: try/catch, error boundaries, logging, monitoring, user-facing messages |
+| `security-best-practices` | Security: authentication, authorization, CORS/CSRF, secrets management, XSS prevention, OWASP Top 10 |
+| `performance-optimization` | Core Web Vitals, code splitting, lazy loading, image optimization, bundle analysis |
+| `llm-integration` | Tích hợp LLM APIs (OpenAI, Anthropic, Gemini): token optimization, streaming, caching, cost control |
+| `prompt-engineering` | Viết prompts hiệu quả: structured prompting, few-shot examples, chain-of-thought, cost reduction |
+| `git-workflow` | Git best practices: conventional commits, branch naming, PR process, merge strategies |
+| `accessibility-a11y` | Accessibility: WCAG 2.1, semantic HTML, ARIA attributes, keyboard navigation, screen reader testing |
+
 ## 📌 Rules Vàng
 
 | Rule | Lý do |
