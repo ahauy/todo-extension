@@ -40,7 +40,9 @@ Cấu trúc `CLAUDE.md`, `skills/`, `docs/` được thiết kế để Opencode
 ```
 User chạy script
   ↓
-Script hỏi: "Bạn có file mô tả chức năng không? (y/n)"
+Step 1: Nhập tên project
+  ↓
+Step 2: Script hỏi "Bạn có file mô tả chức năng không? (y/n)"
   ↓
 Nếu YES → nhập đường dẫn file
   → Copy vào docs/SPECIFICATIONS.md
@@ -52,6 +54,14 @@ Nếu NO → gõ brain dump text (cách cũ)
 Update CLAUDE.md reference cả 2 file
   ↓
 Tạo tasks/layer-0-todo.md (Foundation)
+  ↓
+Step 3: Reset git history (fresh repo)
+  ↓
+Step 4: Script hỏi "Tạo repo trên GitHub không? (y/n)"
+  ↓
+Nếu YES → tạo repo + push lên GitHub
+  ↓
+Nếu NO → hướng dẫn push thủ công
   ↓
 OpenCode đọc CLAUDE.md → bắt đầu Phase 0
 ```
