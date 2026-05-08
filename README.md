@@ -350,6 +350,7 @@ Skills là các instruction set chuyên biệt giúp AI code đúng pattern, đ�
 | Test viết ngay, không để cuối | Tránh bug chồng bug |
 | Commit sau mỗi task | Rollback dễ |
 | Review memory/ + learnings/ | Tránh lỗi cũ |
+| Dùng resource file cho secrets | Không hard-code key, url, password vào code |
 
 ---
 

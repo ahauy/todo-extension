@@ -138,6 +138,7 @@ tests/
 - **Brainstorm trước khi thêm feature** — đọc `skills/brainstorming/SKILL.md`
 - **Memory hooks** — auto-save/load context, xem `docs/MEMORY_HOOKS.md`
 - **Continuous learning** — extract patterns, xem `docs/CONTINUOUS_LEARNING.md`
+- **Resource file cho secrets** — KHÔNG hard-code key, url, password, username vào code. Lưu vào `.env` hoặc `config/resources.json` rồi gọi ra
 
 ---
 
