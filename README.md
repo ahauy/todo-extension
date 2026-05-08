@@ -35,225 +35,34 @@ Cấu trúc `CLAUDE.md`, `skills/`, `docs/` được thiết kế để Opencode
 
 ## 🏁 Bắt Đầu
 
-### Bước 1: Clone template
-
-```bash
-git clone https://github.com/ocanhdt12-gif/opencode-project-template my-project
-cd my-project
+**Luồng script:**
+```
+User chạy script
+  ↓
+Script hỏi: "Bạn có file mô tả chức năng không? (y/n)"
+  ↓
+Nếu YES → nhập đường dẫn file
+  → Copy vào docs/SPECIFICATIONS.md
+  → Tạo docs/BRIEF.md (tóm tắt)
+  ↓
+Nếu NO → gõ brain dump text (cách cũ)
+  → Tạo docs/BRIEF.md
+  ↓
+Update CLAUDE.md/CODEX.md reference cả 2 file
+  ↓
+Tạo tasks/layer-0-todo.md (Foundation)
+  ↓
+OpenCode đọc CLAUDE.md/CODEX.md → bắt đầu Phase 0
 ```
 
-### Bước 2: Chạy script khởi tạo
-
-**Linux / macOS:**
+**Cách dùng:**
 ```bash
 ./scripts/start-project.sh
+# Step 1: Nhập tên project
+# Step 2: Nhập đường dẫn file mô tả (hoặc Enter để skip)
+# → Script tự tạo files + git init
+# → Mở folder trong Opencode → Phase 0 tự bắt đầu
 ```
-
-**Windows (CMD):**
-```cmd
-scripts\start-project.bat
-```
-
-**Windows (PowerShell):**
-```powershell
-.\scripts\start-project.ps1
-```
-
-Script hỏi 5 bước:
-
-```
-Step 1/4: Project name
-  Tên project: my-awesome-app
-
-Step 2/4: Brain dump ý tưởng
-  Bạn muốn nhập từ file không? (y/n) [default: n]: 
-```
-
-**Option 1: Nhập từ file** (cho ý tưởng dài)
-```
-Bạn muốn nhập từ file không? (y/n) [default: n]: y
-Đường dẫn file: /path/to/brain-dump.txt
-```
-
-**Option 2: Gõ trực tiếp** (cách cũ)
-```
-Bạn muốn nhập từ file không? (y/n) [default: n]: n
-(Nhấn Enter 2 lần để xong)
-```
-
-Sau đó script tự:
-- Replace tên vào toàn bộ files
-- Ghi brain dump → `docs/BRIEF.md`
-- Reset git history (fresh repo)
-
-**Step 5: Tạo GitHub repo (tùy chọn)**
-```
-Step 5/5: GitHub repo
-  Tạo repo trên GitHub không? (y/n) [default: n]: y
-  Đang tạo repo...
-  ✅ Repo created: https://github.com/ocanhdt12-gif/my-awesome-app
-```
-
-Nếu chọn **yes**:
-- Script tự động tạo repo public trên GitHub
-- Tên repo: `my-awesome-app` (lowercase, spaces → hyphens)
-- Description: Lấy từ brain dump
-- Tự động push code lên
-
-Nếu chọn **no**:
-- Bỏ qua tạo GitHub repo
-- Bạn có thể push thủ công sau:
-  ```bash
-  git remote add origin git@github.com:ocanhdt12-gif/my-awesome-app.git
-  git push -u origin main
-  ```
-
-### Bước 3: Mở Opencode
-
-```bash
-opencode .
-```
-
-Opencode tự đọc `CLAUDE.md` → kích hoạt **Brainstorming Phase**.
-
----
-
-## 🗂️ Cấu Trúc Project
-
-```
-my-project/
-│
-├── CLAUDE.md                      ← 🔑 Source of truth cho Opencode
-│
-├── docs/
-│   ├── BRIEF.md                   ← Brain dump ban đầu
-│   ├── SCOPE_BREAKDOWN.md         ← 3 cách chia scope
-│   ├── MONITORING.md              ← Sentry + Prometheus + Grafana
-│   ├── MEMORY_HOOKS.md            ← Auto-save/load context
-│   ├── CONTINUOUS_LEARNING.md     ← Auto-extract patterns
-│   ├── GRAPHIFY.md                ← Knowledge graph builder
-│   ├── CI_CD_WEB.md               ← Web CI/CD flow
-│   ├── specs/                     ← Design docs (output của brainstorming)
-│   │   └── YYYY-MM-DD-[topic]-design.md
-│   └── phases/
-│       └── phase-0.md             ← Brainstorming instructions
-│
-├── skills/
-│   └── brainstorming/
-│       └── SKILL.md               ← Reusable brainstorming workflow
-│
-├── memory/                        ← Auto-save context từ sessions
-│   └── .gitkeep
-│
-├── .learnings/                    ← Auto-extract patterns + lessons
-│   └── .gitkeep
-│
-├── tasks/
-│   ├── layer-0-todo.md        ← Foundation tasks (no dependency)
-│   ├── layer-1-todo.md        ← Depends on Layer 0
-│   ├── layer-2-todo.md        ← Depends on Layer 1
-│   ├── layer-3-todo.md        ← Depends on Layer 2
-│   └── done.md                ← Completed tasks
-│   ├── todo.md                    ← Task hiện tại + up next
-│   ├── done.md                    ← Log tasks đã xong
-│   ├── layer-0-todo.md            ← Layer 0 tasks (nếu dùng Dependency-Driven)
-│   ├── layer-1-todo.md            ← Layer 1 tasks
-│   ├── layer-2-todo.md            ← Layer 2 tasks
-│   └── layer-3-todo.md            ← Layer 3 tasks (hoặc thêm layer nếu cần)
-│
-├── src/                           ← Source code
-│
-├── tests/
-│   ├── unit/                      ← Viết cùng lúc với code
-│   ├── integration/               ← Viết cuối mỗi layer
-│   └── e2e/                       ← Viết trước release
-│
-├── scripts/
-│   ├── start-project.sh           ← Script khởi tạo project
-│   ├── start-project.bat          ← Windows CMD version
-│   └── start-project.ps1          ← Windows PowerShell version
-│
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                 ← Quality gate (lint, typecheck, test, build)
-│       ├── preview-build.yml      ← Preview artifact
-│       └── production-build.yml   ← Production artifact
-│
-├── docker-compose.monitoring.yml  ← Prometheus + Grafana
-├── prometheus.yml                 ← Prometheus config
-├── .env.example                   ← Env vars template
-└── .gitignore
-```
-
-**Lưu ý:** Folder structure linh hoạt tùy cách chia scope:
-- **Feature-Based:** dùng `tasks/todo.md` chung
-- **Epic-Based:** dùng `tasks/epic-1-todo.md`, `tasks/epic-2-todo.md`, etc.
-- **Dependency-Driven:** dùng `tasks/layer-0-todo.md`, `tasks/layer-1-todo.md`, etc.
-
----
-
-## 🔄 Full Dev Process
-
-```
-./scripts/start-project.sh
-  → Nhập tên + brain dump
-  → docs/BRIEF.md tạo xong
-        ↓
-opencode .
-        ↓
-┌─── PHASE 0: BRAINSTORMING ────────────────────────┐
-│  Đọc BRIEF → clarify từng câu một                 │
-│  Propose 2-3 approaches + trade-offs              │
-│  Present design → confirm từng section            │
-│  Viết docs/specs/YYYY-MM-DD-design.md            │
-│  Tự review → user approve                        │
-│  Phân tích dependency + chia scope                │
-└───────────────────────────────────────────────────┘
-        ↓
-┌─── SCOPE BREAKDOWN ───────────────────────────────┐
-│  Chọn cách chia scope:                            │
-│  - Feature-Based (scope nhỏ)                      │
-│  - Epic-Based (scope lớn, cứng nhắc)             │
-│  - Dependency-Driven ⭐ (scope lớn, flexible)    │
-│                                                   │
-│  Xem docs/SCOPE_BREAKDOWN.md để chọn             │
-└───────────────────────────────────────────────────┘
-        ↓
-┌─── LAYER 0: FOUNDATION ───────────────────────────┐
-│  (No dependency)                                  │
-│  ┌── TASK LOOP ──────────────────────────────┐   │
-│  │ Pick task từ layer-0-todo.md              │   │
-│  │ → Code task (1 prompt = 1 task)           │   │
-│  │ → Viết unit test ngay                    │   │
-│  │ → Chạy test → fix nếu fail               │   │
-│  │ → Commit + update todo.md                │   │
-│  │ → Lặp lại                                │   │
-│  └───────────────────────────────────────────┘   │
-│  Cuối layer: Integration test                     │
-└───────────────────────────────────────────────────┘
-        ↓ (Layer 0 xong → Layer 1 start)
-┌─── LAYER 1: CORE FEATURES ────────────────────────┐
-│  (Depends on Layer 0)                             │
-│  Tương tự Layer 0                                 │
-└───────────────────────────────────────────────────┘
-        ↓
-┌─── LAYER 2: SECONDARY ────────────────────────────┐
-│  (Depends on Layer 1)                             │
-│  Tương tự Layer 0                                 │
-└───────────────────────────────────────────────────┘
-        ↓
-┌─── LAYER 3: POLISH + RELEASE ─────────────────────┐
-│  (Depends on Layer 2)                             │
-│  E2E test → fix → deploy staging                 │
-│  User review staging → deploy production 🚀      │
-└───────────────────────────────────────────────────┘
-```
-
-**Lợi ích Dependency-Driven:**
-- ✅ Agent không bị block (Layer 0 xong → Layer 1 start)
-- ✅ Dễ parallelize (nhiều agent làm layer khác nhau)
-- ✅ Flexible (có thể adjust layer nếu cần)
-- ✅ Tối ưu timeline
 
 ---
 
