@@ -288,6 +288,23 @@ Xem hướng dẫn trong `tasks/layer-0-todo.md` để tạo `layer-1-todo.md`, 
 
 Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
 
+## 📝 Recent Updates
+
+### 2026-05-08
+
+**1. Script Update — Flexible Layer Structure**
+- Script chỉ tạo `layer-0-todo.md` mặc định (Foundation)
+- Hướng dẫn tạo `layer-1-todo.md`, `layer-2-todo.md`, ... khi cần
+- Số layer **phụ thuộc vào scope breakdown**, không cố định
+
+**2. Dependency-Driven Clarification**
+- Mỗi layer chứa **nhiều task độc lập** (không phải chỉ 1 task)
+- Các task trong cùng layer có thể làm **song parallel**
+- Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
+- Xem hướng dẫn trong `tasks/layer-0-todo.md` để tạo layer tiếp theo
+
+---
+
 ## 🚦 Web CI/CD Flow
 
 Template này có 3 lớp verify:
