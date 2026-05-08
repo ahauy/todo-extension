@@ -149,6 +149,11 @@ my-project/
 │   └── .gitkeep
 │
 ├── tasks/
+│   ├── layer-0-todo.md        ← Foundation tasks (no dependency)
+│   ├── layer-1-todo.md        ← Depends on Layer 0
+│   ├── layer-2-todo.md        ← Depends on Layer 1
+│   ├── layer-3-todo.md        ← Depends on Layer 2
+│   └── done.md                ← Completed tasks
 │   ├── todo.md                    ← Task hiện tại + up next
 │   ├── done.md                    ← Log tasks đã xong
 │   ├── layer-0-todo.md            ← Layer 0 tasks (nếu dùng Dependency-Driven)
@@ -252,42 +257,32 @@ opencode .
 
 ---
 
-## 📊 Scope Breakdown
+## 📊 Scope Breakdown — Dependency-Driven
 
-Khi scope lớn, template hỗ trợ 3 cách chia scope:
+Template này dùng **Dependency-Driven approach** làm mặc định:
 
-### 1. Feature-Based
-- Chia theo feature/user story
-- Ưu: Dễ hiểu, dễ demo
-- Nhược: Khó parallelize, có thể bị block
-- Dùng khi: Scope nhỏ (< 10 features), features độc lập
+- **Layer 0 (Foundation):** Chứa nhiều task độc lập (database, API base, auth, UI components, etc.)
+- **Layer 1, 2, 3+:** Chứa nhiều task phụ thuộc vào layer trước
+- Các task trong cùng layer có thể làm **song song**
+- Chỉ khi layer N xong → mới bắt đầu layer N+1
 
-### 2. Epic-Based
-- Chia theo Epic → Stories, theo phase
-- Ưu: Rõ ràng, dễ track progress
-- Nhược: Cứng nhắc, khó adjust
-- Dùng khi: Scope lớn (> 15 features), timeline cố định
+**Cấu trúc task:**
+```
+tasks/
+├── layer-0-todo.md      ← Foundation tasks (no dependency)
+├── layer-1-todo.md      ← Depends on Layer 0
+├── layer-2-todo.md      ← Depends on Layer 1
+├── layer-3-todo.md      ← Depends on Layer 2
+└── done.md              ← Completed tasks
+```
 
-### 3. Dependency-Driven ⭐ (Recommended)
-- Chia theo dependency layer (Layer 0 → 1 → 2 → 3 → ...)
-- **Layer 0 (Foundation):** Chứa **nhiều task độc lập** (không phụ thuộc nhau)
-  - Ví dụ: Database schema, API base, Auth utils, UI components, etc.
-  - Các task trong Layer 0 có thể làm **song song** (parallelize)
-- **Layer N:** Chứa **nhiều task** phụ thuộc vào Layer 0 → N-1
-  - Chỉ bắt đầu Layer N khi Layer N-1 **hoàn toàn xong**
-  - Các task trong Layer N cũng có thể làm song song
-- Ưu: Không block, dễ parallelize, flexible, tối ưu timeline
-- Nhược: Cần phân tích dependency kỹ
-- Dùng khi: Scope lớn, cần parallelize, nhiều agent/team
-
-**QUAN TRỌNG:** 
-- Layer count flexible — có thể chia 4, 5, 6+ layers tùy scope, miễn là không vi phạm quy tắc dependency
-- Mỗi layer chứa **nhiều task**, không phải chỉ 1 task duy nhất
-- Các task trong cùng layer có thể làm **song song** (không phụ thuộc nhau)
+**Lợi ích:**
+- ✅ Không block — Layer 0 xong → Layer 1 start
+- ✅ Dễ parallelize — nhiều agent làm layer khác nhau
+- ✅ Flexible — có thể thêm layer nếu cần
+- ✅ Tối ưu timeline
 
 Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
-
----
 
 ## 🚦 Web CI/CD Flow
 

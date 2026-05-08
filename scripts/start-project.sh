@@ -125,19 +125,144 @@ fi
 
 echo -e "  ${GREEN}✅ Brain dump đã ghi vào docs/BRIEF.md${RESET}"
 
-# ── Update CLAUDE.md ─────────────────────────────────────────
+# ── Create layer-based task files ────────────────────────────
+mkdir -p tasks
+
+cat > tasks/layer-0-todo.md << 'EOF'
+# Layer 0: Foundation Tasks
+
+**Status:** In Progress
+
+Foundation layer — không phụ thuộc vào layer khác.
+Các task ở đây có thể làm song song.
+
+## Tasks
+
+- [ ] Task 1: [Mô tả]
+- [ ] Task 2: [Mô tả]
+- [ ] Task 3: [Mô tả]
+
+---
+
+**Khi layer 0 xong → bắt đầu layer 1**
+EOF
+
+cat > tasks/layer-1-todo.md << 'EOF'
+# Layer 1: Core Features
+
+**Status:** Waiting for Layer 0
+
+Phụ thuộc vào Layer 0.
+Chỉ bắt đầu khi Layer 0 hoàn toàn xong.
+
+## Tasks
+
+- [ ] Task 1: [Mô tả]
+- [ ] Task 2: [Mô tả]
+- [ ] Task 3: [Mô tả]
+
+---
+
+**Khi layer 1 xong → bắt đầu layer 2**
+EOF
+
+cat > tasks/layer-2-todo.md << 'EOF'
+# Layer 2: Secondary Features
+
+**Status:** Waiting for Layer 1
+
+Phụ thuộc vào Layer 1.
+Chỉ bắt đầu khi Layer 1 hoàn toàn xong.
+
+## Tasks
+
+- [ ] Task 1: [Mô tả]
+- [ ] Task 2: [Mô tả]
+- [ ] Task 3: [Mô tả]
+
+---
+
+**Khi layer 2 xong → bắt đầu layer 3**
+EOF
+
+cat > tasks/layer-3-todo.md << 'EOF'
+# Layer 3: Polish & Release
+
+**Status:** Waiting for Layer 2
+
+Phụ thuộc vào Layer 2.
+Chỉ bắt đầu khi Layer 2 hoàn toàn xong.
+
+## Tasks
+
+- [ ] E2E testing
+- [ ] Performance optimization
+- [ ] Documentation
+- [ ] Release preparation
+
+---
+
+**Khi layer 3 xong → ready for production 🚀**
+EOF
+
+cat > tasks/done.md << 'EOF'
+# Completed Tasks
+
+Log các task đã xong.
+
+## Format
+
+```
+- [x] Layer X, Task: [Mô tả] — Commit: [hash]
+```
+
+---
+
+(Sẽ update khi có task xong)
+EOF
+
+echo -e "  ${GREEN}✅ Layer-based task files created${RESET}"
+
+# ── Update CLAUDE.md/CODEX.md ────────────────────────────────
 if [ -f "CLAUDE.md" ]; then
-  # Thêm reference đến SPECIFICATIONS.md nếu có
-  if [ -f "docs/SPECIFICATIONS.md" ]; then
-    sed -i.bak '/## Context/a\
+  sed -i.bak '/## Context/a\
 \
 ### 📋 Specifications\
-Xem `docs/SPECIFICATIONS.md` để chi tiết đầy đủ về chức năng, requirements, và design.
+Xem `docs/SPECIFICATIONS.md` để chi tiết đầy đủ về chức năng, requirements, và design.\
+\
+### 📋 Task Structure\
+Dùng **Dependency-Driven approach**:\
+- `tasks/layer-0-todo.md` — Foundation (no dependency)\
+- `tasks/layer-1-todo.md` — Depends on Layer 0\
+- `tasks/layer-2-todo.md` — Depends on Layer 1\
+- `tasks/layer-3-todo.md` — Depends on Layer 2\
+- `tasks/done.md` — Completed tasks\
+\
+Các task trong cùng layer có thể làm song song. Chỉ khi layer N xong → mới bắt đầu layer N+1.
 ' CLAUDE.md
-    rm -f CLAUDE.md.bak
-    echo -e "  ${GREEN}✅ CLAUDE.md updated with SPECIFICATIONS reference${RESET}"
-  fi
+  rm -f CLAUDE.md.bak
 fi
+
+if [ -f "CODEX.md" ]; then
+  sed -i.bak '/## Context/a\
+\
+### 📋 Specifications\
+Xem `docs/SPECIFICATIONS.md` để chi tiết đầy đủ về chức năng, requirements, và design.\
+\
+### 📋 Task Structure\
+Dùng **Dependency-Driven approach**:\
+- `tasks/layer-0-todo.md` — Foundation (no dependency)\
+- `tasks/layer-1-todo.md` — Depends on Layer 0\
+- `tasks/layer-2-todo.md` — Depends on Layer 1\
+- `tasks/layer-3-todo.md` — Depends on Layer 2\
+- `tasks/done.md` — Completed tasks\
+\
+Các task trong cùng layer có thể làm song song. Chỉ khi layer N xong → mới bắt đầu layer N+1.
+' CODEX.md
+  rm -f CODEX.md.bak
+fi
+
+echo -e "  ${GREEN}✅ CLAUDE.md/CODEX.md updated${RESET}"
 
 # ── Step 5: Git reinit ───────────────────────────────────────
 echo ""
@@ -194,6 +319,10 @@ echo -e "    • ${CYAN}docs/BRIEF.md${RESET} — Tóm tắt (Opencode đọc)"
 if [ -f "docs/SPECIFICATIONS.md" ]; then
   echo -e "    • ${CYAN}docs/SPECIFICATIONS.md${RESET} — Chi tiết đầy đủ"
 fi
+echo -e "    • ${CYAN}tasks/layer-0-todo.md${RESET} — Foundation tasks"
+echo -e "    • ${CYAN}tasks/layer-1-todo.md${RESET} — Layer 1 tasks"
+echo -e "    • ${CYAN}tasks/layer-2-todo.md${RESET} — Layer 2 tasks"
+echo -e "    • ${CYAN}tasks/layer-3-todo.md${RESET} — Layer 3 tasks"
 echo ""
 echo -e "  Bước tiếp theo:"
 echo -e "  ${CYAN}1. Mở folder này trong Opencode${RESET}"
