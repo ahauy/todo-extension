@@ -346,6 +346,7 @@ Skills là các instruction set chuyên biệt giúp AI code đúng pattern, đ�
 | `prompt-engineering` | Viết prompts hiệu quả: structured prompting, few-shot examples, chain-of-thought, cost reduction |
 | `git-workflow` | Git best practices: conventional commits, branch naming, PR process, merge strategies |
 | `accessibility-a11y` | Accessibility: WCAG 2.1, semantic HTML, ARIA attributes, keyboard navigation, screen reader testing |
+| `chrome-devtools-mcp` | Chrome DevTools MCP for browser automation & E2E testing: Playwright, Puppeteer, CDP protocol |
 
 ---
 
