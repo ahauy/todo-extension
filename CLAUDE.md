@@ -19,27 +19,26 @@ KHÔNG viết code, KHÔNG scaffold project, KHÔNG implement bất cứ thứ g
 Làm theo thứ tự, từng bước xong confirm user trước khi tiếp:
 
 **Bước 1 — Đọc Brief & Specifications**
-Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu.
-Nếu có `docs/SPECIFICATIONS.md` → đọc để hiểu chi tiết requirements, features, design.
-Nếu có `docs/SPECIFICATIONS.md` → đọc để hiểu chi tiết requirements, features, design.
-Chỉ hỏi những gì còn thiếu hoặc mơ hồ, không hỏi lại những gì đã rõ.
+- Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu
+- Nếu có `docs/SPECIFICATIONS.md` → đọc để hiểu chi tiết requirements, features, design
+- Chỉ hỏi những gì còn thiếu hoặc mơ hồ, không hỏi lại những gì đã rõ
 
 **Bước 2 — Clarify (từng câu một)**
-Hỏi từng câu một (KHÔNG hỏi nhiều cùng lúc).
-Tập trung vào: purpose, constraints, success criteria, must-have vs nice-to-have.
-Ưu tiên câu hỏi multiple choice khi có thể.
+- Hỏi từng câu một (KHÔNG hỏi nhiều cùng lúc)
+- Tập trung vào: purpose, constraints, success criteria, must-have vs nice-to-have
+- Ưu tiên câu hỏi multiple choice khi có thể
 
 **Bước 3 — Propose 2-3 Approaches**
-Đề xuất 2-3 hướng tiếp cận khác nhau với trade-offs rõ ràng.
-Lead với recommendation của mày và giải thích lý do.
+- Đề xuất 2-3 hướng tiếp cận khác nhau với trade-offs rõ ràng
+- Lead với recommendation của mày và giải thích lý do
 
 **Bước 4 — Present Design (từng section)**
-Sau mỗi section, hỏi user confirm trước khi đi tiếp.
-Các section: Architecture → Components → Data Flow → Error Handling → Testing Strategy
+- Sau mỗi section, hỏi user confirm trước khi đi tiếp
+- Các section: Architecture → Components → Data Flow → Error Handling → Testing Strategy
 
 **Bước 5 — Viết Design Doc**
-Lưu vào `docs/specs/YYYY-MM-DD-[topic]-design.md`.
-Commit ngay sau khi viết xong.
+- Lưu vào `docs/specs/YYYY-MM-DD-[topic]-design.md`
+- Commit ngay sau khi viết xong
 
 **Bước 6 — Tự Review Spec**
 Kiểm tra:
@@ -50,8 +49,8 @@ Kiểm tra:
 Fix inline, không cần hỏi lại.
 
 **Bước 7 — User Review**
-Hỏi user review file spec trước khi tiếp tục.
-Chờ approve, nếu có changes thì update + re-review.
+- Hỏi user review file spec trước khi tiếp tục
+- Chờ approve, nếu có changes thì update + re-review
 
 **Bước 8 — Lên Layers + Tasks**
 Sau khi spec approved:
@@ -60,10 +59,32 @@ Sau khi spec approved:
 - Layer N: phụ thuộc vào Layer 0 → N-1
 - Tạo `tasks/layer-0-todo.md` (Foundation tasks)
 - Tạo `tasks/layer-1-todo.md`, `layer-2-todo.md`, ... khi cần
-- Update `CLAUDE.md`/`CODEX.md` phần Stack, Folder Structure bên dưới
+- Update `CLAUDE.md` phần Stack, Folder Structure bên dưới
 - Xóa block "FIRST TIME SETUP" này
 
 ⚠️ KHÔNG code gì trong Phase 0. KHÔNG skip bước nào.
+
+---
+
+## 📋 Context
+
+### 📋 Specifications
+Xem `docs/SPECIFICATIONS.md` để chi tiết đầy đủ về chức năng, requirements, và design.
+
+### 📋 Task Structure — Dependency-Driven
+Dùng **Dependency-Driven approach**:
+- `tasks/layer-0-todo.md` — Foundation (no dependency)
+- `tasks/layer-1-todo.md` — Depends on Layer 0 (tạo khi cần)
+- `tasks/layer-2-todo.md` — Depends on Layer 1 (tạo khi cần)
+- ... (thêm layer tùy scope)
+- `tasks/done.md` — Completed tasks
+
+**Quy tắc:**
+- Số layer phụ thuộc vào scope breakdown + dependency analysis
+- Mỗi layer chứa nhiều task độc lập (không phải chỉ 1 task)
+- Các task trong cùng layer có thể làm song parallel
+- Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
+- Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết
 
 ---
 
@@ -73,20 +94,40 @@ Sau khi spec approved:
 ## Folder Structure
 
 ```
+src/
+├── components/
+├── pages/
+├── utils/
+├── hooks/
+├── types/
+└── ...
+
+docs/
+├── BRIEF.md                    ← Tóm tắt project
+├── SPECIFICATIONS.md           ← Chi tiết requirements
+├── SCOPE_BREAKDOWN.md          ← Phân tích dependency + layers
+├── specs/
+│   └── YYYY-MM-DD-[topic]-design.md
+└── ...
+
 tasks/
-├── layer-0-todo.md      ← Foundation tasks (no dependency)
-├── layer-1-todo.md      ← Depends on Layer 0 (tạo khi cần)
-├── layer-2-todo.md      ← Depends on Layer 1 (tạo khi cần)
-├── layer-N-todo.md      ← Tạo tùy scope breakdown
-└── done.md              ← Completed tasks log
+├── layer-0-todo.md             ← Foundation tasks
+├── layer-1-todo.md             ← Layer 1 tasks (tạo khi cần)
+├── layer-2-todo.md             ← Layer 2 tasks (tạo khi cần)
+└── done.md                     ← Completed tasks log
+
+tests/
+├── unit/
+├── integration/
+└── e2e/
+
+.github/workflows/
+├── ci.yml                      ← Quality gate
+├── preview-build.yml           ← Preview artifact
+└── production-build.yml        ← Production artifact
 ```
 
-**Quy tắc:**
-- Số layer phụ thuộc vào scope breakdown + dependency analysis
-- Mỗi layer chứa nhiều task độc lập (không phải chỉ 1 task)
-- Các task trong cùng layer có thể làm song parallel
-- Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
-
+---
 
 ## Coding Rules
 - **TypeScript strict** — không dùng `any`
@@ -97,6 +138,8 @@ tasks/
 - **Brainstorm trước khi thêm feature** — đọc `skills/brainstorming/SKILL.md`
 - **Memory hooks** — auto-save/load context, xem `docs/MEMORY_HOOKS.md`
 - **Continuous learning** — extract patterns, xem `docs/CONTINUOUS_LEARNING.md`
+
+---
 
 ## Model Strategy
 
@@ -151,11 +194,15 @@ tasks/
 - Chuyển Opus khi cần reasoning sâu
 - Quay lại Sonnet sau khi xong
 
+---
+
 ## Current Layer
 Layer 0 — Foundation (chưa bắt đầu)
 
 ## Current Task
-Xem `tasks/todo.md`
+Xem `tasks/layer-0-todo.md`
+
+---
 
 ## Skills Available
 
@@ -184,11 +231,17 @@ Xem `tasks/todo.md`
 ### API & Integration
 - `skills/api-design/SKILL.md` — REST principles, request/response format, versioning, pagination
 - `skills/security-best-practices/SKILL.md` — OWASP Top 10, auth, CORS/CSRF, XSS prevention
+- `skills/llm-integration/SKILL.md` — OpenAI/Anthropic/Gemini APIs, token optimization, streaming
 
 ### Backend (Node.js)
 - `skills/nodejs-express-patterns/SKILL.md` — Express routing, middleware, controllers, services
 - `skills/database-orm-patterns/SKILL.md` — Prisma/TypeORM, schema design, migrations, transactions
 - `skills/testing-backend-jest/SKILL.md` — Unit/API tests (Jest + Supertest), mocking, fixtures
+
+### DevOps & Deployment
+- `skills/boilerplate/SKILL.md` — Stack-conditional boilerplate (React, Next.js, Node.js, etc.)
+
+---
 
 ## CI/CD Guidance
 
@@ -197,12 +250,14 @@ Xem `tasks/todo.md`
 - production build nên manual hoặc approval-gated
 - Chỉ thêm deploy provider-specific sau khi hosting được chốt rõ
 
+---
+
 ## Boilerplate (Stack-Conditional)
 
 > Chỉ dùng khi stack là **React hoặc Next.js**. Bỏ qua nếu project là Node.js API thuần, Python, CLI, v.v.
 
 Nếu Phase 0 xác định stack là React/Next.js:
-1. Đọc `skills/boilerplate/react-nextjs/BOILERPLATE.md`
+1. Đọc `skills/boilerplate/BOILERPLATE.md`
 2. Follow setup commands và config files trong đó
 3. Các skill `frontend-agent`, `typescript`, `tailwind-v4-shadcn` sẽ tự động áp dụng
 
