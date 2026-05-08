@@ -305,38 +305,33 @@ Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
 
 ### 🏁 Bắt Đầu
 
-**Luồng mới:**
+**Luồng:**
 ```
-./scripts/start-project.sh
+User chạy script
   ↓
-Step 2: Nhập đường dẫn file mô tả chức năng (hoặc Enter để skip)
+Script hỏi: "Bạn có file mô tả chức năng không? (y/n)"
   ↓
-Nếu có file:
+Nếu YES → nhập đường dẫn file
   → Copy vào docs/SPECIFICATIONS.md
-  → Tạo docs/BRIEF.md (tóm tắt 50 dòng đầu)
+  → Tạo docs/BRIEF.md (tóm tắt)
   ↓
-Nếu không có file:
-  → Gõ brain dump text
+Nếu NO → gõ brain dump text (cách cũ)
   → Tạo docs/BRIEF.md
+  ↓
+Update CLAUDE.md/CODEX.md reference cả 2 file
   ↓
 Tạo tasks/layer-0-todo.md (Foundation)
   ↓
 OpenCode đọc CLAUDE.md/CODEX.md → bắt đầu Phase 0
 ```
 
-**Files được tạo:**
-- `docs/BRIEF.md` — Tóm tắt (Opencode đọc)
-- `docs/SPECIFICATIONS.md` — Chi tiết đầy đủ (nếu có file)
-- `tasks/layer-0-todo.md` — Foundation tasks
-- `tasks/done.md` — Completed tasks log
-
 **Cách dùng:**
 ```bash
 ./scripts/start-project.sh
-# Nhập tên project
-# Nhập đường dẫn file mô tả (hoặc Enter để skip)
-# Script tự tạo files + git init
-# Mở folder trong Opencode → Phase 0 tự bắt đầu
+# Step 1: Nhập tên project
+# Step 2: Nhập đường dẫn file mô tả (hoặc Enter để skip)
+# → Script tự tạo files + git init
+# → Mở folder trong Opencode → Phase 0 tự bắt đầu
 ```
 
 ---
