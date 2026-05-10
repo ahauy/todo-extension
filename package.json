@@ -1,0 +1,11 @@
+{
+  "name": "project-template",
+  "version": "1.0.0",
+  "description": "Production-ready project template",
+  "scripts": {
+    "pick-task": "node scripts/pick-task.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
