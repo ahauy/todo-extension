@@ -86,6 +86,49 @@ Dùng **Dependency-Driven approach**:
 - Chỉ khi layer N hoàn toàn xong → mới bắt đầu layer N+1
 - Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết
 
+### 🎯 Team Workflow — Pick Task CLI
+
+**Tự động pick task + update trạng thái:**
+```bash
+npm run pick-task
+```
+
+**Script sẽ:**
+1. Detect layer hiện tại (layer-0, layer-1, ...)
+2. Hiển thị danh sách todo tasks
+3. Hỏi bạn pick task nào
+4. Hỏi tên người pick
+5. Update task file (status = in-progress, assigned = tên)
+6. **Commit + push tự động** lên main
+7. Tạo feature branch sẵn
+
+**Workflow cụ thể:**
+```bash
+# 1. Pull latest
+git pull origin main
+
+# 2. Pick task (tự động update + push)
+npm run pick-task
+# → Chọn task → Nhập tên → Xong!
+
+# 3. Làm việc trong feature branch
+# (branch đã được tạo sẵn)
+git status  # Xem branch hiện tại
+
+# 4. Commit + push khi xong
+git add .
+git commit -m "feat: Task description"
+git push origin feature/task-X-...
+
+# 5. Merge vào main (hoặc tạo PR)
+```
+
+**Lợi ích:**
+- ✅ Mọi người pull về sẽ thấy task đã assign → không ai pick lại
+- ✅ Task file luôn up-to-date trên main
+- ✅ Tránh conflict khi 2 người cùng pick task
+- ✅ Mỗi task = 1 branch riêng → dễ review + rollback
+
 ---
 
 ## Stack
