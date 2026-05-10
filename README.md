@@ -412,6 +412,57 @@ git push origin feature/task-X-...
 - ✅ Tránh conflict khi 2 người cùng pick task
 - ✅ Mỗi task = 1 branch riêng → dễ review + rollback
 
+
+---
+
+## 🆕 Handling Emerging Tasks
+
+Khi task phát sinh trong quá trình làm:
+
+### Step 1: Add Task
+
+```bash
+npm run add-task
+# → Nhập task title
+# → Nhập task description (optional)
+# → Task được add vào layer hiện tại
+```
+
+### Step 2: Brainstorm & Design
+
+1. **Clarify** - Hỏi từng câu một để làm rõ task
+2. **Propose** - Đề xuất 2-3 approaches
+3. **Design** - Trình bày design
+4. **Review** - Tự review spec
+
+### Step 3: Update Context
+
+```bash
+# 1. Update scope breakdown nếu dependency thay đổi
+# Edit: docs/SCOPE_BREAKDOWN.md
+
+# 2. Update graph
+graphify ./src
+
+# 3. Update CLAUDE.md/CODEX.md context nếu cần
+# Edit: CLAUDE.md hoặc CODEX.md
+```
+
+### Step 4: Pick & Implement
+
+```bash
+# Sau khi brainstorm xong
+npm run pick-task
+# → Pick task vừa thêm
+# → Implement như bình thường
+```
+
+**Lợi ích:**
+- ✅ Task phát sinh được track rõ ràng
+- ✅ Brainstorm trước khi code
+- ✅ Graph + context luôn up-to-date
+- ✅ Team biết task mới là gì
+
 ## 🔗 Resources
 
 - **Scope Breakdown:** `docs/SCOPE_BREAKDOWN.md`

@@ -172,6 +172,45 @@ tests/
 
 ---
 
+
+### 🆕 Handling Emerging Tasks
+
+Khi task phát sinh trong quá trình làm:
+
+**Step 1: Add Task**
+```bash
+npm run add-task
+```
+Script sẽ:
+1. Detect layer hiện tại
+2. Hỏi task title + description
+3. Add vào tasks/layer-X-todo.md
+4. Commit tự động
+
+**Step 2: Brainstorm & Design**
+- Clarify từng câu một
+- Propose 2-3 approaches
+- Present design từng section
+- Tự review spec
+
+**Step 3: Update Context**
+1. Update `docs/SCOPE_BREAKDOWN.md` nếu dependency thay đổi
+2. Chạy `graphify ./src` để update graph
+3. Update `CLAUDE.md`/`CODEX.md` context nếu cần
+
+**Step 4: Pick & Implement**
+```bash
+npm run pick-task
+# → Pick task vừa thêm
+# → Implement như bình thường
+```
+
+**Quy tắc:**
+- ✅ Brainstorm trước khi code
+- ✅ Add vào layer hiện tại (không tạo layer mới)
+- ✅ Update graph + context sau brainstorm
+- ✅ Commit sau mỗi bước
+
 ## Coding Rules
 - **TypeScript strict** — không dùng `any`
 - **Test ngay** — mỗi task phải có unit test trước khi sang task mới
