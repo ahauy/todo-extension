@@ -96,11 +96,11 @@ npm run pick-task
 **Script sẽ:**
 1. Detect layer hiện tại (layer-0, layer-1, ...)
 2. Hiển thị danh sách todo tasks
-3. Hỏi bạn pick task nào
+3. Hỏi bạn pick task nào (support single hoặc multiple)
 4. Hỏi tên người pick
-5. Update task file (status = in-progress, assigned = tên)
+5. Update task file (status = in-progress, assigned = tên) cho mỗi task
 6. **Commit + push tự động** lên main
-7. Tạo feature branch sẵn
+7. Tạo feature branch cho mỗi task
 
 **Workflow cụ thể:**
 ```bash
@@ -109,7 +109,8 @@ git pull origin main
 
 # 2. Pick task (tự động update + push)
 npm run pick-task
-# → Chọn task → Nhập tên → Xong!
+# → Chọn task: 1,2,3 (hoặc 1 2 3)
+# → Nhập tên → Xong!
 
 # 3. Làm việc trong feature branch
 # (branch đã được tạo sẵn)
@@ -123,7 +124,27 @@ git push origin feature/task-X-...
 # 5. Merge vào main (hoặc tạo PR)
 ```
 
+**Ví dụ Pick Multiple Tasks:**
+```bash
+npm run pick-task
+# → Pick task numbers (e.g., 1,2,3 or 1 2 3): 1,2,3
+# → Your name: Tuấn Anh
+# → Processing task 1: Setup database...
+# → Processing task 2: Create API base...
+# → Processing task 3: Setup auth...
+# → ✨ Done!
+# → 📌 Picked 3 task(s):
+#    1. Setup database
+#       🌿 feature/task-1-setup-database
+#    2. Create API base
+#       🌿 feature/task-2-create-api-base
+#    3. Setup auth
+#       🌿 feature/task-3-setup-auth
+# → 👤 Assigned to: @Tuấn Anh
+```
+
 **Lợi ích:**
+- ✅ Pick 1 hoặc nhiều tasks cùng lúc
 - ✅ Mọi người pull về sẽ thấy task đã assign → không ai pick lại
 - ✅ Task file luôn up-to-date trên main
 - ✅ Tránh conflict khi 2 người cùng pick task
