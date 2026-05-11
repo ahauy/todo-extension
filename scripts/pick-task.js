@@ -49,19 +49,20 @@ async function main() {
     const tasks = [];
     const lines = content.split('\n');
     
-    let currentTask = null;
-    for (const line of lines) {
-      if (line.match(/^## \[ \]/)) {
-        const match = line.match(/^## \[ \] (.+)/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Match: ## [ ] Task Title
+      if (line.match(/^##\s+\[\s*\]\s+/)) {
+        const match = line.match(/^##\s+\[\s*\]\s+(.+)/);
         if (match) {
-          currentTask = {
-            title: match[1],
+          const taskTitle = match[1].trim();
+          tasks.push({
+            title: taskTitle,
+            lineIndex: i,
             assigned: '',
             branch: '',
-            status: 'todo',
-            lineStart: lines.indexOf(line)
-          };
-          tasks.push(currentTask);
+            status: 'todo'
+          });
         }
       }
     }
@@ -112,16 +113,15 @@ async function main() {
       
       console.log(`\n⏳ Processing task ${taskIdx}: ${taskTitle}...`);
       
-      // Update task file
-      updatedContent = updatedContent.replace(
-        `## [ ] ${taskTitle}`,
-        `## [x] ${taskTitle}`
+      // Find and replace task header + metadata
+      const taskHeaderRegex = new RegExp(
+        `^## \\[\\s*\\]\\s+${taskTitle.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\s*$[\\s\\S]*?(?=^##|$)`,
+        'gm'
       );
       
-      updatedContent = updatedContent.replace(
-        `## [x] ${taskTitle}\n- Assigned: \n- Branch: \n- Status: todo`,
-        `## [x] ${taskTitle}\n- Assigned: @${personName}\n- Branch: ${branchName}\n- Status: in-progress`
-      );
+      const replacement = `## [x] ${taskTitle}\n- Assigned: @${personName}\n- Branch: ${branchName}\n- Status: in-progress\n`;
+      
+      updatedContent = updatedContent.replace(taskHeaderRegex, replacement);
       
       pickedTasks.push({
         title: taskTitle,
