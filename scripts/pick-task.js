@@ -77,61 +77,94 @@ async function main() {
       console.log(`  ${idx + 1}. ${task.title}`);
     });
     
-    const taskIdx = await question('\n🎯 Pick task number: ');
-    const selectedTask = tasks[parseInt(taskIdx) - 1];
+    const taskInput = await question('\n🎯 Pick task numbers (e.g., 1,2,3 or 1 2 3): ');
     
-    if (!selectedTask) {
-      console.log('❌ Invalid task number');
+    // Parse input: support both comma and space separated
+    const taskIndices = taskInput
+      .split(/[,\s]+/)
+      .map(x => parseInt(x.trim()))
+      .filter(x => !isNaN(x));
+    
+    if (taskIndices.length === 0) {
+      console.log('❌ No valid task numbers provided');
       process.exit(1);
+    }
+    
+    // Validate all task indices
+    for (const idx of taskIndices) {
+      if (idx < 1 || idx > tasks.length) {
+        console.log(`❌ Invalid task number: ${idx}`);
+        process.exit(1);
+      }
     }
     
     // 4. Ask for person name
     const personName = await question('👤 Your name: ');
     
-    // 5. Generate branch name
-    const branchName = `feature/task-${tasks.indexOf(selectedTask) + 1}-${selectedTask.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
-    
-    // 6. Update task file
+    // 5. Process each task
+    const pickedTasks = [];
     let updatedContent = content;
-    const taskTitle = selectedTask.title;
     
-    updatedContent = updatedContent.replace(
-      `## [ ] ${taskTitle}`,
-      `## [x] ${taskTitle}`
-    );
+    for (const taskIdx of taskIndices) {
+      const selectedTask = tasks[taskIdx - 1];
+      const taskTitle = selectedTask.title;
+      const branchName = `feature/task-${taskIdx}-${taskTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+      
+      console.log(`\n⏳ Processing task ${taskIdx}: ${taskTitle}...`);
+      
+      // Update task file
+      updatedContent = updatedContent.replace(
+        `## [ ] ${taskTitle}`,
+        `## [x] ${taskTitle}`
+      );
+      
+      updatedContent = updatedContent.replace(
+        `## [x] ${taskTitle}\n- Assigned: \n- Branch: \n- Status: todo`,
+        `## [x] ${taskTitle}\n- Assigned: @${personName}\n- Branch: ${branchName}\n- Status: in-progress`
+      );
+      
+      pickedTasks.push({
+        title: taskTitle,
+        branch: branchName,
+        index: taskIdx
+      });
+    }
     
-    updatedContent = updatedContent.replace(
-      `## [x] ${taskTitle}\n- Assigned: \n- Branch: \n- Status: todo`,
-      `## [x] ${taskTitle}\n- Assigned: @${personName}\n- Branch: ${branchName}\n- Status: in-progress`
-    );
-    
+    // Write updated content once
     fs.writeFileSync(taskFile, updatedContent);
     
-    // 7. Commit + push
-    console.log('\n⏳ Committing and pushing...');
+    // 6. Commit + push all tasks
+    console.log('\n⏳ Committing and pushing all tasks...');
     
     try {
       execSync('git add tasks/', { stdio: 'inherit' });
-      execSync(`git commit -m "chore: Pick task - ${taskTitle}"`, { stdio: 'inherit' });
+      const taskTitles = pickedTasks.map(t => t.title).join(', ');
+      execSync(`git commit -m "chore: Pick ${pickedTasks.length} tasks - ${taskTitles.substring(0, 50)}${taskTitles.length > 50 ? '...' : ''}"`, { stdio: 'inherit' });
       execSync('git push origin main', { stdio: 'inherit' });
       console.log('✅ Pushed to main');
     } catch (e) {
       console.log('⚠️  Git push failed (might be offline or no changes)');
     }
     
-    // 8. Create feature branch
-    console.log('\n⏳ Creating feature branch...');
-    try {
-      execSync(`git checkout -b ${branchName}`, { stdio: 'inherit' });
-      console.log(`✅ Branch created: ${branchName}`);
-    } catch (e) {
-      console.log(`⚠️  Branch creation failed`);
+    // 7. Create feature branches
+    console.log('\n⏳ Creating feature branches...');
+    for (const task of pickedTasks) {
+      try {
+        execSync(`git checkout -b ${task.branch}`, { stdio: 'inherit' });
+        console.log(`✅ Branch created: ${task.branch}`);
+      } catch (e) {
+        console.log(`⚠️  Branch creation failed for ${task.branch}`);
+      }
     }
     
+    // 8. Summary
     console.log('\n✨ Done!');
-    console.log(`📌 Task: ${taskTitle}`);
+    console.log(`📌 Picked ${pickedTasks.length} task(s):`);
+    pickedTasks.forEach((task, idx) => {
+      console.log(`  ${idx + 1}. ${task.title}`);
+      console.log(`     🌿 ${task.branch}`);
+    });
     console.log(`👤 Assigned to: @${personName}`);
-    console.log(`🌿 Branch: ${branchName}`);
     
     rl.close();
   } catch (error) {
