@@ -18,6 +18,12 @@ KHÔNG viết code, KHÔNG scaffold project, KHÔNG implement bất cứ thứ g
 
 Làm theo thứ tự, từng bước xong confirm user trước khi tiếp:
 
+**Bước 0 — Generate Knowledge Graph**
+- Chạy: `graphify ./src`
+- Output: `graphify-out/graph.json` (auto-generated)
+- Dùng để: Opencode hiểu structure + dependencies của project
+- Commit: Thêm `graphify-out/` vào `.gitignore` (không commit generated files)
+
 **Bước 1 — Đọc Brief & Specifications**
 - Đọc `docs/BRIEF.md` để nắm ý tưởng ban đầu
 - Nếu có `docs/SPECIFICATIONS.md` → đọc để hiểu chi tiết requirements, features, design
