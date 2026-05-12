@@ -177,8 +177,6 @@ Khi user báo bug/feature:
 - **Scope control** — không sửa file ngoài danh sách cho phép trong task
 - **Error handling** — mọi async function phải handle error
 - **Brainstorm trước khi thêm feature** — đọc `skills/brainstorming/SKILL.md`
-- **Memory hooks** — auto-save/load context, xem `docs/MEMORY_HOOKS.md`
-- **Continuous learning** — extract patterns, xem `docs/CONTINUOUS_LEARNING.md`
 - **Resource file cho secrets** — KHÔNG hard-code key, url, password, username vào code. Lưu vào `.env` hoặc `config/resources.json` rồi gọi ra
 
 ---
