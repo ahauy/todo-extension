@@ -129,6 +129,46 @@ tests/
 
 ---
 
+## 🔄 After Completion — Layer Refinement
+
+Sau khi hoàn thành tất cả layer (Layer 0 → N), user sẽ check lại luồng/giao diện và báo bug hoặc feature mới.
+
+### Workflow
+
+1. **User báo** → Bug hoặc feature mới
+2. **Em brainstorm** → Clarify + propose 2-3 approaches
+3. **User approve** → Confirm phương án
+4. **Tạo todo** → Add vào `tasks/layer-refinement-todo.md`
+5. **Pick + implement** → Như layer khác
+
+### Layer Refinement
+
+- **File:** `tasks/layer-refinement-todo.md`
+- **Mục đích:** Track bug fixes + feature requests sau khi hoàn thành
+- **Workflow:** Brainstorm → Design → Implement (giống layer khác)
+
+### Cách Thêm Task
+
+Khi user báo bug/feature:
+
+1. **Brainstorm** (Phase 0 style)
+   - Clarify từng câu một
+   - Propose 2-3 approaches
+   - Present design từng section
+
+2. **Tạo todo** vào `tasks/layer-refinement-todo.md`
+   ```markdown
+   ### [Task Number] — [Title]
+   
+   **Type:** Bug / Feature
+   **Description:** ...
+   **Acceptance Criteria:** ...
+   **Status:** todo
+   ```
+
+3. **Pick + implement** như bình thường
+
+---
 
 ## Coding Rules
 - **TypeScript strict** — không dùng `any`
