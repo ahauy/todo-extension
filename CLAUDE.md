@@ -280,6 +280,9 @@ Xem `tasks/layer-0-todo.md`
 - `skills/database-orm-patterns/SKILL.md` — Prisma/TypeORM, schema design, migrations, transactions
 - `skills/testing-backend-jest/SKILL.md` — Unit/API tests (Jest + Supertest), mocking, fixtures
 
+### Browser & Testing Tools
+- `docs/CHROME_DEVTOOLS_MCP.md` — Chrome DevTools MCP for browser automation, debugging, performance analysis, E2E testing
+
 ### DevOps & Deployment
 - `skills/boilerplate/SKILL.md` — Stack-conditional boilerplate (React, Next.js, Node.js, etc.)
 
