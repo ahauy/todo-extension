@@ -275,6 +275,59 @@ Xem `tasks/layer-0-todo.md`
 
 ---
 
+## 🧠 Context Management
+
+**Mục đích:** Tránh token tích dần khi chạy liên tục qua nhiều layer.
+
+### Config
+```yaml
+contextManagement:
+  mode: "checkpoint"           # Dùng checkpoint + semantic compression
+  keepLayers: 1                # Chỉ giữ layer hiện tại + checkpoint
+  checkpointFormat: "semantic" # Lưu architecture + decisions, không full code
+  autoCompact: true            # Tự động compact context sau mỗi layer
+  checkpointFile: "CHECKPOINT.md"
+```
+
+### Workflow
+
+**Sau mỗi layer hoàn thành:**
+
+1. **Tạo checkpoint** → Chạy script:
+   ```bash
+   npm run checkpoint
+   ```
+   Hoặc tạo `CHECKPOINT.md` theo template (xem bên dưới)
+
+2. **Ghi lại:**
+   - Architecture diagram (text)
+   - Key decisions + rationale
+   - API contracts (signatures, không full code)
+   - Known issues + solutions
+   - Completed tasks summary
+
+3. **Compact context:**
+   - Drop toàn bộ chat history từ layer trước
+   - Giữ lại: current layer + checkpoint
+   - Kết quả: context giảm 70-80%, vẫn đủ để chạy tiếp
+
+4. **Layer tiếp theo:**
+   - Load checkpoint thay vì full history
+   - Nếu cần deep context → regenerate từ checkpoint
+
+### Checkpoint Template
+
+Xem `CHECKPOINT.md` (auto-generated sau mỗi layer).
+
+### Tips
+
+- **Semantic compression:** Thay vì lưu full code → lưu function signatures + comments
+- **Decisions matter:** Ghi lại WHY, không chỉ WHAT
+- **API contracts:** Lưu input/output types, không implementation
+- **Known issues:** Ghi lại bugs/edge cases để layer tiếp theo tránh
+
+---
+
 ## Skills Available
 
 > **Scope rules để tránh conflict:**
