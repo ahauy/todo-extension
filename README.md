@@ -267,6 +267,45 @@ Xem `docs/SCOPE_BREAKDOWN.md` để chi tiết.
 
 ---
 
+## 🧠 Context Management — Compact Context Across Layers
+
+**Vấn đề:** Khi chạy liên tục qua nhiều layer, context tích dần → token burn lớn.
+
+**Giải pháp:** Checkpoint + Semantic Compression
+
+### Workflow
+
+Sau mỗi layer hoàn thành:
+
+1. **Tạo CHECKPOINT.md** — Ghi lại:
+   - Architecture diagram (text)
+   - Key decisions + rationale (WHY, not just WHAT)
+   - API contracts (signatures only, không full code)
+   - Known issues & solutions (gotchas để layer tiếp theo tránh)
+   - Completed tasks summary (LOC, test coverage, commits)
+
+2. **Compact context:**
+   - Drop toàn bộ chat history từ layer trước
+   - Giữ lại: current layer + checkpoint
+   - Kết quả: context giảm 70-80%, vẫn đủ để chạy tiếp
+
+3. **Layer tiếp theo:**
+   - Load checkpoint thay vì full history
+   - Nếu cần deep context → regenerate từ checkpoint
+
+### Semantic Compression Tips
+
+- **Thay vì lưu full code** → lưu function signatures + comments
+- **Thay vì lưu full chat** → lưu decisions + why
+- **Lưu input/output types**, không implementation
+- **Ghi lại bugs/edge cases** để layer tiếp theo tránh
+
+### Template
+
+Xem `CHECKPOINT.md` (auto-generated sau mỗi layer) để chi tiết.
+
+---
+
 ## 🚦 Web CI/CD Flow
 
 Template này có 4 lớp verify:
