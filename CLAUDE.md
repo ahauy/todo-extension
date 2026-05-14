@@ -97,6 +97,31 @@ Dùng **Dependency-Driven approach**:
 ## Stack
 [Điền sau Phase 0]
 
+## 🎨 Design System
+
+**Template:** Claude Design (Anthropic)  
+**Source:** `docs/DESIGN.md`
+
+### CSS Variables
+- **Colors:** `--color-primary`, `--color-text`, `--color-surface`, etc.
+- **Spacing:** `--spacing-xs` (4px) → `--spacing-3xl` (64px)
+- **Typography:** `--type-scale-xs` (12px) → `--type-scale-4xl` (36px)
+- **Shadows:** `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`
+
+### Components
+- **Button** (`src/components/Button.tsx`) - primary, secondary, outline, ghost
+- **Card** (`src/components/Card.tsx`) - default, elevated, outlined
+- More components coming...
+
+### When Coding
+1. Import CSS variables từ `src/styles/design-tokens.css`
+2. Use components từ `src/components/`
+3. Follow spacing scale (--spacing-*)
+4. Follow color palette (--color-*)
+5. Follow typography scale (--type-scale-*)
+6. Maintain accessibility (WCAG AA)
+7. Test responsive design (mobile, tablet, desktop)
+
 ## Folder Structure
 
 ```
