@@ -106,6 +106,30 @@ my-project/
 │   └── done.md                    ← Completed tasks log
 │
 ├── src/                           ← Source code
+│   ├── styles/
+│   │   └── design-tokens.css      ← Design system CSS variables
+│   ├── components/
+│   │   ├── Button.tsx            ← Button component
+│   │   ├── Button.css
+│   │   ├── Card.tsx              ← Card component
+│   │   ├── Card.css
+│   │   └── index.ts              ← Component exports
+│   ├── pages/
+│   ├── utils/
+│   ├── hooks/
+│   └── types/
+│
+├── docs/
+│   ├── DESIGN.md                  ← Design system (source of truth)
+│   ├── BRIEF.md                   ← Brain dump ban đầu (tóm tắt)
+│   ├── SPECIFICATIONS.md          ← Chi tiết requirements (nếu có file)
+│   ├── SCOPE_BREAKDOWN.md         ← Phân tích dependency + layers
+│   ├── MONITORING.md              ← Sentry + Prometheus + Grafana
+│   ├── CI_CD_WEB.md               ← Web CI/CD flow
+│   ├── specs/                     ← Design docs (output của brainstorming)
+│   │   └── YYYY-MM-DD-[topic]-design.md
+│   └── phases/
+│       └── phase-0.md             ← Brainstorming instructions
 │
 ├── tests/
 │   ├── unit/                      ← Viết cùng lúc với code
@@ -128,6 +152,82 @@ my-project/
 ├── .env.example                   ← Env vars template
 └── .gitignore
 ```
+
+---
+
+## 🎨 Design System
+
+**Template:** Claude Design (Anthropic)  
+**Source:** `docs/DESIGN.md`
+
+Project này tích hợp sẵn design system chuyên nghiệp để đảm bảo UI/UX consistent, accessible, và responsive.
+
+### CSS Variables
+
+Tất cả design tokens được định nghĩa trong `src/styles/design-tokens.css`:
+
+```css
+/* Colors */
+--color-primary: #d97706;        /* Terracotta */
+--color-text: #111827;           /* Dark text */
+--color-surface: #f9fafb;        /* Light surface */
+
+/* Spacing */
+--spacing-xs: 4px;               /* 4px */
+--spacing-md: 16px;              /* 16px */
+--spacing-lg: 24px;              /* 24px */
+
+/* Typography */
+--type-scale-base: 1rem;         /* 16px */
+--type-scale-lg: 1.125rem;       /* 18px */
+--type-scale-2xl: 1.5rem;        /* 24px */
+```
+
+### Components
+
+Reusable components trong `src/components/`:
+
+- **Button** — primary, secondary, outline, ghost variants
+- **Card** — default, elevated, outlined variants
+- More components coming...
+
+### When Coding
+
+**Bắt buộc tuân theo:**
+
+1. Import CSS variables từ `src/styles/design-tokens.css`
+2. Use components từ `src/components/`
+3. Follow spacing scale (--spacing-*)
+4. Follow color palette (--color-*)
+5. Follow typography scale (--type-scale-*)
+6. Maintain accessibility (WCAG AA)
+7. Test responsive design (mobile, tablet, desktop)
+
+**Ví dụ:**
+
+```tsx
+import { Button } from '@/components';
+import '@/styles/design-tokens.css';
+
+export function MyComponent() {
+  return (
+    <div style={{ padding: 'var(--spacing-md)' }}>
+      <Button variant="primary" size="lg">
+        Click me
+      </Button>
+    </div>
+  );
+}
+```
+
+### Documentation
+
+Xem `docs/DESIGN.md` để chi tiết:
+- Color palette & roles
+- Typography rules
+- Component styling
+- Layout principles
+- Responsive behavior
 
 ---
 
