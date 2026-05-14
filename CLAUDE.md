@@ -336,3 +336,163 @@ Nếu Phase 0 xác định stack là React/Next.js:
 3. Các skill `frontend-agent`, `typescript`, `tailwind-v4-shadcn` sẽ tự động áp dụng
 
 Nếu stack khác → bỏ qua folder `skills/boilerplate/` hoàn toàn.
+
+---
+
+## 🎨 Agent Prompt Guide — Design System
+
+**BẮTBUỘC đọc trước khi code UI/UX.**
+
+### Lệnh cho Agents
+
+Khi design/code bất kỳ UI/UX nào, agents phải:
+
+```
+Đọc docs/DESIGN.md trước khi bắt đầu.
+Tuân theo design system Claude (Anthropic).
+Sử dụng CSS variables từ src/styles/design-tokens.css.
+Sử dụng components từ src/components/ (Button, Card, v.v.).
+```
+
+### CSS Variables (Bắt buộc)
+
+**Luôn dùng CSS variables, KHÔNG bao giờ hardcode colors/spacing:**
+
+```tsx
+// ✅ GOOD
+<div style={{ padding: 'var(--spacing-md)', color: 'var(--color-text)' }}>
+  Content
+</div>
+
+// ❌ BAD
+<div style={{ padding: '16px', color: '#111827' }}>
+  Content
+</div>
+```
+
+### Components (Bắt buộc)
+
+**Sử dụng components từ src/components/ cho UI consistency:**
+
+```tsx
+// ✅ GOOD
+import { Button, Card } from '@/components';
+
+export function MyPage() {
+  return (
+    <Card variant="default">
+      <Button variant="primary" size="lg">
+        Submit
+      </Button>
+    </Card>
+  );
+}
+
+// ❌ BAD
+export function MyPage() {
+  return (
+    <div style={{ border: '1px solid #e5e7eb', padding: '16px' }}>
+      <button style={{ backgroundColor: '#d97706', color: 'white' }}>
+        Submit
+      </button>
+    </div>
+  );
+}
+```
+
+### Spacing Scale (Bắt buộc)
+
+**Sử dụng spacing scale, KHÔNG bao giờ custom spacing:**
+
+```css
+--spacing-xs: 4px     /* Margin/padding rất nhỏ */
+--spacing-sm: 8px     /* Margin/padding nhỏ */
+--spacing-md: 16px    /* Default margin/padding */
+--spacing-lg: 24px    /* Large margin/padding */
+--spacing-xl: 32px    /* XL margin/padding */
+--spacing-2xl: 48px   /* XXL margin/padding */
+--spacing-3xl: 64px   /* Huge margin/padding */
+```
+
+### Color Palette (Bắt buộc)
+
+**Sử dụng color palette, KHÔNG bao giờ custom colors:**
+
+```css
+--color-primary: #d97706           /* Main accent (Terracotta) */
+--color-text: #111827              /* Dark text */
+--color-text-secondary: #6b7280    /* Gray text */
+--color-surface: #f9fafb           /* Light surface */
+--color-border: #e5e7eb            /* Border color */
+--color-success: #10b981           /* Success state */
+--color-warning: #f59e0b           /* Warning state */
+--color-error: #ef4444             /* Error state */
+```
+
+### Typography Scale (Bắt buộc)
+
+**Sử dụng typography scale cho headings/text:**
+
+```css
+--type-scale-xs: 0.75rem   /* 12px - Small labels */
+--type-scale-sm: 0.875rem  /* 14px - Captions */
+--type-scale-base: 1rem    /* 16px - Body text */
+--type-scale-lg: 1.125rem  /* 18px - Subheadings */
+--type-scale-xl: 1.25rem   /* 20px - Section titles */
+--type-scale-2xl: 1.5rem   /* 24px - Page titles */
+--type-scale-3xl: 1.875rem /* 30px - Hero titles */
+--type-scale-4xl: 2.25rem  /* 36px - Main headlines */
+```
+
+### Accessibility (Bắt buộc)
+
+**Mỗi component phải:**
+
+- ✅ Có keyboard navigation support (Tab, Enter, Escape)
+- ✅ Có focus states rõ ràng (`outline: 2px solid var(--color-primary)`)
+- ✅ Có proper ARIA labels (`aria-label`, `aria-describedby`)
+- ✅ Có sufficient color contrast (≥ 4.5:1 for text)
+- ✅ Được test với screen readers
+
+### Responsive Design (Bắt buộc)
+
+**Mobile-first approach:**
+
+```css
+/* Mobile first */
+body { font-size: var(--type-scale-sm); }
+
+/* Tablet + */
+@media (min-width: 768px) {
+  body { font-size: var(--type-scale-base); }
+}
+
+/* Desktop + */
+@media (min-width: 1024px) {
+  body { font-size: var(--type-scale-lg); }
+}
+```
+
+### Testing (Bắt buộc)
+
+**Trước khi push, phải test:**
+
+- ✅ Responsive design (mobile, tablet, desktop)
+- ✅ Accessibility (keyboard, screen reader, color contrast)
+- ✅ Browser compatibility (Chrome, Firefox, Safari)
+- ✅ Dark mode (nếu có)
+
+### Checklist Trước Khi Commit
+
+- [ ] Đã dùng CSS variables (KHÔNG hardcode colors/spacing)
+- [ ] Đã dùng components từ src/components/
+- [ ] Đã follow spacing scale
+- [ ] Đã follow typography scale
+- [ ] Đã maintain accessibility (WCAG AA)
+- [ ] Đã test responsive design
+- [ ] Đã update docs/DESIGN.md nếu thêm component mới
+- [ ] Đã test trên mobile, tablet, desktop
+
+---
+
+**Nếu bất cứ câu hỏi nào về design system, hãy đọc `docs/DESIGN.md` trước tiên.**
