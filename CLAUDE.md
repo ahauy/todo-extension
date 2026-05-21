@@ -91,9 +91,9 @@ Sau khi spec approved:
 
 ---
 
-## 🔄 Sau Layer 0 — Graphify Initialization
+## 🔄 Sau Layer 0 — Graphify Initialization (Thủ Công)
 
-Sau khi Layer 0 hoàn thành (project setup xong):
+Sau khi Layer 0 hoàn thành (project setup xong), **người dùng chạy thủ công**:
 
 ```bash
 # Chạy graphify để phân tích dependency
@@ -105,6 +105,7 @@ uv run graphify /path/to/project
 ```
 
 **Lưu ý:**
+- ⚠️ **KHÔNG tự động** — người dùng phải chạy thủ công
 - Chỉ chạy sau Layer 0 (không chạy ngay ban đầu)
 - Giúp visualize project structure
 - Update `CLAUDE.md` phần "📊 Xem `graphify-out/graph.json`..." ở đầu file
