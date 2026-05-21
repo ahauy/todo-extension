@@ -91,12 +91,12 @@ Sau khi spec approved:
 
 ---
 
-## 🔄 Sau Layer 0 — Graphify Initialization (Thủ Công)
+## 🔄 Sau Layer 0 — Graphify Initialization (Tự Động)
 
-Sau khi Layer 0 hoàn thành (project setup xong), **người dùng chạy thủ công**:
+Sau khi Layer 0 hoàn thành (project setup xong), **Opencode tự động chạy**:
 
 ```bash
-# Chạy graphify để phân tích dependency
+# Opencode sẽ tự động chạy:
 cd /path/to/graphify
 uv run graphify /path/to/project
 
@@ -105,8 +105,8 @@ uv run graphify /path/to/project
 ```
 
 **Lưu ý:**
-- ⚠️ **KHÔNG tự động** — người dùng phải chạy thủ công
-- Chỉ chạy sau Layer 0 (không chạy ngay ban đầu)
+- ✅ **Tự động** — Opencode chạy sau Layer 0
+- Không cần user chạy thủ công
 - Giúp visualize project structure
 - Update `CLAUDE.md` phần "📊 Xem `graphify-out/graph.json`..." ở đầu file
 
