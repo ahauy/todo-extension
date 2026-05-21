@@ -4,7 +4,8 @@
   "description": "Production-ready project template",
   "scripts": {
     "pick-task": "node scripts/pick-task.js",
-    "add-task": "node scripts/add-task.js"
+    "add-task": "node scripts/add-task.js",
+    "checkpoint": "node scripts/checkpoint.js"
   },
   "keywords": [],
   "author": "",
