@@ -10,6 +10,25 @@
 > Nếu `docs/specs/` chưa có design doc nào → project chưa được plan.
 > **Chạy Phase 0: Brainstorming trước khi làm bất cứ thứ gì.**
 
+### Prerequisites (Cài Đặt Trước)
+
+Trước khi bắt đầu Phase 0, đảm bảo đã cài đặt:
+
+```bash
+# Python + uv (package manager)
+python --version  # >= 3.10
+uv --version      # >= 0.1.0
+
+# Cài graphify (code dependency analyzer)
+git clone https://github.com/safishamsi/graphify.git
+cd graphify
+uv sync
+```
+
+**Graphify dùng để:** Phân tích dependency + tạo graph.json (auto-generated)
+- Chạy sau Layer 0 (sau khi setup project xong)
+- Giúp hiểu structure + dependencies của project
+
 ### ▶ Phase 0: Brainstorming (bắt buộc trước khi code)
 
 <HARD-GATE>
@@ -69,6 +88,26 @@ Sau khi spec approved:
 - Xóa block "FIRST TIME SETUP" này
 
 ⚠️ KHÔNG code gì trong Phase 0. KHÔNG skip bước nào.
+
+---
+
+## 🔄 Sau Layer 0 — Graphify Initialization
+
+Sau khi Layer 0 hoàn thành (project setup xong):
+
+```bash
+# Chạy graphify để phân tích dependency
+cd /path/to/graphify
+uv run graphify /path/to/project
+
+# Output: graphify-out/graph.json (auto-generated)
+# Xem file này để hiểu structure + dependencies
+```
+
+**Lưu ý:**
+- Chỉ chạy sau Layer 0 (không chạy ngay ban đầu)
+- Giúp visualize project structure
+- Update `CLAUDE.md` phần "📊 Xem `graphify-out/graph.json`..." ở đầu file
 
 ---
 
