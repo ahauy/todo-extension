@@ -93,22 +93,35 @@ Sau khi spec approved:
 
 ## 🔄 Sau Layer 0 — Graphify Initialization (Tự Động)
 
-Sau khi Layer 0 hoàn thành (project setup xong), **Opencode tự động chạy**:
+Sau khi Layer 0 hoàn thành (project setup xong), **Opencode tự động chạy 2 bước**:
 
+### Bước 1: Tạo Knowledge Graph
 ```bash
 # Opencode sẽ tự động chạy:
-cd /path/to/graphify
-uv run graphify /path/to/project
+/graphify .
 
-# Output: graphify-out/graph.json (auto-generated)
-# Xem file này để hiểu structure + dependencies
+# Output: graphify-out/
+# ├── graph.html          ← Visualize trong browser
+# ├── GRAPH_REPORT.md     ← Highlights + suggested questions
+# └── graph.json          ← Full graph (query anytime)
+```
+
+### Bước 2: Setup Auto-Rebuild Hook
+```bash
+# Opencode sẽ tự động chạy:
+graphify hook install
+
+# Từ đó trở đi:
+# - Mỗi git commit → graphify tự động rebuild graph.json
+# - Chỉ re-extract files thay đổi (nhanh)
+# - Không API cost (dùng AST)
 ```
 
 **Lưu ý:**
 - ✅ **Tự động** — Opencode chạy sau Layer 0
-- Không cần user chạy thủ công
-- Giúp visualize project structure
-- Update `CLAUDE.md` phần "📊 Xem `graphify-out/graph.json`..." ở đầu file
+- ✅ **Hook auto-rebuild** — Mỗi git commit tự update graph
+- 📊 Query graph: `/graphify query "..."` thay vì grep files
+- 🔗 Xem graph: Mở `graphify-out/graph.html` trong browser
 
 ---
 
