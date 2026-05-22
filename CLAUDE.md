@@ -258,6 +258,7 @@ Khi user báo bug/feature:
 - **TypeScript strict** — không dùng `any`
 - **Test ngay** — mỗi task phải có unit test trước khi sang task mới
 - **1 commit = 1 task** — commit message: `feat/fix/test/chore: [mô tả ngắn]`
+- **Auto-commit** — tự động commit sau mỗi task hoàn thành. Format: `feat: [Layer X] Task name` hoặc `fix: [Layer X] Task name` tùy loại task
 - **Scope control** — không sửa file ngoài danh sách cho phép trong task
 - **Error handling** — mọi async function phải handle error
 - **Brainstorm trước khi thêm feature** — đọc `skills/brainstorming/SKILL.md`
