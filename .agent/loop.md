@@ -149,3 +149,6 @@ After each task completes (PASS or BLOCKED):
 4. **Max 3 retries** — sau đó đánh BLOCKED
 5. **Commit ngay khi PASS** — tạo rollback point
 6. **Không sửa code ngoài scope** — chỉ touch files trong task definition
+7. **Dùng response helper chung** — MỌI API response phải đi qua `ok()`/`fail()` (hoặc helper tương đương). Không bao giờ viết tay `res.json({token, user})` hay format tùy ý.
+8. **Test theo contract của client** — Test phải assert theo shape mà frontend/client thực sự tiêu thụ (ví dụ: `body.data.token`), không assert theo implementation hiện tại của backend. Nếu có shared type/interface, dùng nó làm source of truth.
+9. **Contract test bắt buộc cho auth endpoints** — Mỗi auth endpoint (login, register, refresh) PHẢI có ít nhất 1 test kiểm tra full response contract khớp với client parser.
