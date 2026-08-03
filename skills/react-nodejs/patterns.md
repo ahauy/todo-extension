@@ -249,3 +249,164 @@ export const validate = (schema: ZodSchema) => {
   };
 };
 ```
+
+---
+
+## Testing Patterns
+
+### Shared API Contract Types
+
+Tạo file này TRƯỚC khi viết bất kỳ API endpoint hay test nào:
+
+```typescript
+// shared/types/api.ts
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+export interface ApiError {
+  success: false;
+  error: string;
+  details?: unknown;
+}
+
+// Auth contracts
+export interface AuthData {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
+
+// Response helpers (server-side)
+export const ok = <T>(res: Response, data: T, status = 200) =>
+  res.status(status).json({ success: true, data } satisfies ApiResponse<T>);
+
+export const fail = (res: Response, error: string, status = 400) =>
+  res.status(status).json({ success: false, error } satisfies ApiError);
+```
+
+---
+
+### Test Pyramid — Phân bổ theo task type
+
+| Task Type | Unit | Integration | Contract |
+|-----------|------|-------------|----------|
+| Pure function / helper | ✅ Required | — | — |
+| Validator / parser | ✅ Required | — | — |
+| DB query (service layer) | ✅ mock/in-mem | — | — |
+| API endpoint | — | ✅ Required | ✅ Required |
+| Auth endpoint (login/register/refresh) | — | ✅ Required | ✅ **Test-first** |
+| UI Component | ✅ render | ✅ interaction | — |
+| Payment / critical flow | ✅ | ✅ | ✅ **Test-first** |
+
+---
+
+### Contract Test Pattern (API)
+
+```typescript
+// tests/auth.contract.test.ts
+import request from 'supertest';
+import { app } from '../src/app';
+import type { ApiResponse, AuthData } from '../shared/types/api';
+
+describe('POST /api/auth/login — contract', () => {
+  it('returns shape that client parse() can consume', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'test@example.com', password: 'password123' });
+
+    expect(res.status).toBe(200);
+
+    // Assert against shared contract, NOT backend implementation detail
+    const body = res.body as ApiResponse<AuthData>;
+    expect(body.success).toBe(true);
+    expect(body.data.token).toEqual(expect.any(String));
+    expect(body.data.user.id).toEqual(expect.any(String));
+    expect(body.data.user.email).toEqual(expect.any(String));
+
+    // Ensure old format is NOT present (regression guard)
+    expect((res.body as Record<string, unknown>).token).toBeUndefined();
+  });
+
+  it('returns consistent error shape on invalid credentials', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'bad@example.com', password: 'wrong' });
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+    expect(typeof res.body.error).toBe('string');
+  });
+});
+```
+
+---
+
+### Integration Test Pattern (API endpoint)
+
+```typescript
+// tests/users.integration.test.ts
+import request from 'supertest';
+import { app } from '../src/app';
+import { createTestDb, cleanupTestDb } from './helpers/db';
+
+beforeAll(() => createTestDb());
+afterAll(() => cleanupTestDb());
+
+describe('GET /api/users/:id', () => {
+  it('returns user in correct shape', async () => {
+    const token = await getTestToken(); // helper that calls login → returns token
+    const res = await request(app)
+      .get('/api/users/test-user-id')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toMatchObject({
+      id: expect.any(String),
+      email: expect.any(String),
+      name: expect.any(String),
+    });
+
+    // Sensitive fields must NOT leak
+    expect(res.body.data.password).toBeUndefined();
+  });
+});
+```
+
+---
+
+### Unit Test Pattern (Service / Business Logic)
+
+```typescript
+// tests/user-service.test.ts
+import { hashPassword, verifyPassword } from '../src/server/utils/password';
+
+describe('password utils', () => {
+  it('hashes and verifies correctly', async () => {
+    const plain = 'MyPassword123!';
+    const hash = await hashPassword(plain);
+
+    expect(hash).not.toBe(plain);
+    expect(await verifyPassword(plain, hash)).toBe(true);
+    expect(await verifyPassword('wrong', hash)).toBe(false);
+  });
+});
+```
+
+---
+
+### Test-First Checklist (auth & payment tasks)
+
+Before writing any auth/payment endpoint code:
+- [ ] Define request/response types in `shared/types/api.ts`
+- [ ] Write contract test first (it will fail — that's expected)
+- [ ] Implement endpoint using `ok()`/`fail()` helpers
+- [ ] Contract test must pass before moving on
+- [ ] Add regression guard: assert old format fields are `undefined`
