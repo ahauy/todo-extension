@@ -306,7 +306,38 @@ DevOps Agent generates the right config based on your deploy platform:
 |----------|-----------------|
 | **Vercel** | `vercel.json` + GitHub Actions |
 | **Railway** | `railway.toml` + GitHub Actions |
-| **VPS/Docker** | `Dockerfile` + `docker-compose.yml` |
+| **VPS/Docker** | `Dockerfile` + `docker-compose.yml` + Nginx config |
+
+### Server Deploy Config
+
+If using VPS/Docker, Brainstorm agent asks:
+- **Server IP or domain** — e.g. `103.x.x.x` or `api.myapp.com`
+- **SSH user** — to configure deployment pipeline
+- **Port** — default `3000` for Node.js
+
+DevOps agent generates:
+```
+.devops/
+├── templates/
+│   └── docker-vps.md     ← Dockerfile + docker-compose + deploy script
+├── environments.md        ← staging vs production config
+└── deploy-log.md          ← history of each deploy
+```
+
+### CI/CD Questions (during Brainstorm)
+
+Brainstorm Phase 1 now asks:
+
+```
+7. Deployment platform?
+   → Vercel / Railway / VPS+Docker / Other
+
+8. CI/CD provider?
+   → GitHub Actions / GitLab CI / Skip
+
+9. Server details? (if VPS)
+   → IP/domain, SSH user, port
+```
 
 ---
 

@@ -26,8 +26,24 @@ Hỏi **từng câu một**. Chờ user trả lời rồi mới hỏi tiếp.
 4. **Realtime**: WebSocket / SSE / None?
 5. **File Upload**: Local / S3 / Cloudinary / None?
 6. **Payment**: Stripe / VNPay / None?
-7. **Deployment**: Vercel / Railway / VPS-Docker / Other?
-8. **Timeline**: MVP (core features only) / Full (all features)?
+7. **Deployment platform?**
+   - `vercel` — Auto deploy từ git, zero config
+   - `railway` — Auto deploy từ git, supports DB
+   - `vps-docker` — VPS tự manage với Docker
+   - `other` — Platform khác
+   - `skip` — Chưa quyết định
+
+8. **CI/CD?** (chỉ hỏi nếu câu 7 không phải skip)
+   - `github-actions` — Auto lint + test + build khi push
+   - `gitlab-ci` — GitLab CI/CD
+   - `skip` — Deploy thủ công
+
+9. **Server / Hosting cụ thể?** (chỉ hỏi nếu câu 7 không phải skip)
+   - Nếu `vps-docker`: IP hoặc domain server? SSH user?
+   - Nếu `vercel`/`railway`: Tên project trên platform?
+   - Nếu `other`: URL/domain deploy?
+
+10. **Timeline**: MVP (core features only) / Full (all features)?
 
 ### Rules
 - Hỏi 1 câu → chờ answer → hỏi câu tiếp
