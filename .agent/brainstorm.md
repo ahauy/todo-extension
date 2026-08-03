@@ -4,21 +4,96 @@
 Thu thập requirements từ user qua conversation. Hỏi từng câu một, không hỏi nhiều câu cùng lúc.
 
 ## Trigger
-- User vừa điền BRIEF.md và bắt đầu project mới
-- Hoặc agent đọc AGENT.md và thấy chưa có `.context/brainstorm-log.md`
+- Agent đọc AGENT.md và bắt đầu project mới
+- Hoặc chưa có `.context/brainstorm-log.md`
 
 ## Output
 - `.context/brainstorm-log.md` — full Q&A log
+- `.context/doc-index.md` — danh sách docs đã detect + classification
 - `SPECIFICATIONS.md` — generated spec
 - `.env.local` — configured (git/model)
 
 ---
 
+## Phase 0: Document Scan (LUÔN CHẠY ĐẦU TIÊN)
+
+### Bước 1: Scan docs/ folder
+
+```bash
+ls docs/ 2>/dev/null || echo "NO_DOCS_FOLDER"
+```
+
+Nếu `docs/` không tồn tại hoặc rỗng → skip sang Phase 1 ngay.
+
+Nếu có files → đọc từng file và classify theo nội dung:
+
+### Bước 2: Classify từng file theo content
+
+Đọc nội dung file, detect loại dựa trên keywords:
+
+| Loại | Keywords gợi ý |
+|------|---------------|
+| **BRD/PRD** | "business requirement", "user story", "acceptance criteria", "business rule", "stakeholder", "objective", "scope" |
+| **Design Spec** | screen names, colors (#hex), font, spacing, layout, component names, wireframe, Figma |
+| **API Spec** | endpoint paths (/api/...), HTTP methods (GET/POST/PUT/DELETE), request/response schema, OpenAPI, Swagger |
+| **ERD/Schema** | table names, column definitions, foreign key, relationship, CREATE TABLE, model schema |
+| **Architecture** | system diagram, infrastructure, service names, deployment topology, microservice |
+| **Other** | không khớp rõ với loại nào |
+
+### Bước 3: Check INDEX.md (optional)
+
+Nếu `docs/INDEX.md` tồn tại → ưu tiên dùng classification từ đó thay vì tự detect.
+
+### Bước 4: Confirm với user
+
+Hiển thị kết quả detect và hỏi confirm **trước khi tiếp tục**:
+
+```
+📂 Em đã scan docs/ và detect được:
+
+✅ PRD_v2.md → Business Requirements (BRD/PRD)
+✅ figma-export.md → Design Spec
+✅ swagger.yaml → API Spec
+❓ db-notes.md → Không rõ loại (có thể là ERD?)
+
+Phân loại đúng không anh? Có file nào em hiểu sai không?
+Reply để confirm hoặc correct trước khi em tiếp tục.
+```
+
+Chờ user confirm → lưu kết quả vào `.context/doc-index.md`:
+
+```markdown
+# Doc Index
+
+## Detected Documents
+- docs/PRD_v2.md: BRD/PRD
+- docs/figma-export.md: Design Spec
+- docs/swagger.yaml: API Spec
+- docs/db-notes.md: ERD (confirmed by user)
+
+## Coverage
+- business_requirements: ✅ covered
+- design_spec: ✅ covered
+- api_spec: ✅ covered
+- erd: ✅ covered
+- architecture: ❌ not provided
+```
+
+### Bước 5: Xác định gap
+
+So sánh những gì đã có với danh sách câu hỏi Phase 1 → đánh dấu câu nào đã có answer từ docs, câu nào còn thiếu.
+
+---
+
 ## Phase 1: Project Requirements
+
+**Chỉ hỏi những gì CHƯA có trong docs đã scan.**
+
+Nếu câu hỏi đã được trả lời bởi doc → **skip câu đó**, không hỏi lại.
 
 Hỏi **từng câu một**. Chờ user trả lời rồi mới hỏi tiếp.
 
-### Questions (tuần tự)
+### Questions (tuần tự — skip nếu đã có trong docs)
 
 1. **Stack**: Web (React + Node.js) hay Mobile (React Native)?
 2. **Database**: PostgreSQL / MySQL / MongoDB / SQLite / None?
@@ -45,24 +120,67 @@ Hỏi **từng câu một**. Chờ user trả lời rồi mới hỏi tiếp.
 
 10. **Timeline**: MVP (core features only) / Full (all features)?
 11. **UI Library?**
-   Web: shadcn/ui (recommended) / MUI / Ant Design / Tailwind only
-12. **Design style?**
-   Minimal / Modern / Corporate / Playful
-13. **Color scheme?**
-   Light only / Dark only / Both (system)
-14. **Design reference?**
-   - Upload ảnh (Figma screenshot, inspo, wireframe)
-   - Paste Figma link
-   - Không có (agent tự design theo style đã chọn)
+    Web: shadcn/ui (recommended) / MUI / Ant Design / Tailwind only
+12. **Design style?** (skip nếu đã có Design Spec)
+    Minimal / Modern / Corporate / Playful
+13. **Color scheme?** (skip nếu đã có Design Spec)
+    Light only / Dark only / Both (system)
+14. **Design reference?** (skip nếu đã có Design Spec)
+    - Upload ảnh (Figma screenshot, inspo, wireframe)
+    - Paste Figma link
+    - Không có (agent tự design theo style đã chọn)
 
 ### Rules
 - Hỏi 1 câu → chờ answer → hỏi câu tiếp
 - Nếu user không biết → suggest default rồi move on
 - Ghi mỗi Q&A vào `.context/brainstorm-log.md` ngay khi nhận answer
+- **KHÔNG hỏi lại những gì đã có trong docs** — tôn trọng thông tin anh đã chuẩn bị
 
 ---
 
-## Phase 2: Git Setup
+## Phase 2: Clarification Round
+
+Sau khi hỏi xong gap questions, đọc lại toàn bộ docs + answers và **flag những điểm cần làm rõ**:
+
+### Conflict Detection
+- Nếu BRD nói feature A nhưng Design không có screen cho A → flag
+- Nếu API spec có endpoint X nhưng BRD không mention → flag
+- Nếu ERD có table Y nhưng không feature nào dùng → flag
+
+### Ambiguity Detection
+- Requirements mơ hồ ("hệ thống phải nhanh") → hỏi threshold cụ thể
+- Feature chưa rõ edge case → hỏi behavior khi fail/empty/concurrent
+
+Hỏi từng conflict/ambiguity một, chờ user clarify.
+
+---
+
+## Phase 3: Summary Confirmation
+
+Trước khi generate SPECIFICATIONS.md, **tóm tắt toàn bộ** và hỏi confirm:
+
+```
+📋 Tóm tắt requirements em hiểu được:
+
+**Từ docs:**
+- [list key points từ BRD/PRD]
+- [list key design decisions]
+- [list API endpoints chính]
+
+**Từ brainstorm:**
+- [list answers từ Phase 1]
+
+**Clarifications:**
+- [list resolved conflicts/ambiguities]
+
+Anh confirm để em generate SPECIFICATIONS.md không?
+```
+
+Chờ user confirm → mới generate.
+
+---
+
+## Phase 4: Git Setup
 
 Hỏi:
 1. **Git platform?** GitHub / GitLab / Bitbucket / Skip
@@ -105,7 +223,7 @@ REPO_VISIBILITY=private
 
 ---
 
-## Phase 3: Agent Models
+## Phase 5: Agent Models
 
 Trước khi hỏi, đọc models từ opencode config của user:
 
@@ -151,7 +269,7 @@ SPEC_VALIDATOR_MODEL=<user_choice>
 
 ## After All Phases
 
-1. Generate `SPECIFICATIONS.md` từ BRIEF + brainstorm-log
+1. Generate `SPECIFICATIONS.md` từ docs + brainstorm-log + clarifications
 2. Trigger `.agent/spec-validator.md`
 3. Nếu PASS → trigger `.agent/graph.md`
 4. Nếu FAIL → quay lại hỏi bổ sung → validate lại

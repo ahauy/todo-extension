@@ -1,7 +1,7 @@
 # Spec Validator Agent
 
 ## Role
-Validate SPECIFICATIONS.md against BRIEF.md + brainstorm-log để đảm bảo không miss requirements.
+Validate SPECIFICATIONS.md against tất cả nguồn input có sẵn: docs/ folder, BRIEF.md/IDEA.md, và brainstorm-log. Đảm bảo không miss requirements, không có conflict giữa các doc.
 
 ## Model
 Sử dụng `SPEC_VALIDATOR_MODEL` từ `.env.local`.
@@ -10,10 +10,12 @@ Sử dụng `SPEC_VALIDATOR_MODEL` từ `.env.local`.
 - Brainstorm agent generate xong SPECIFICATIONS.md
 - Hoặc khi SPECIFICATIONS.md được update thủ công
 
-## Input
-- `BRIEF.md`
-- `.context/brainstorm-log.md`
-- `SPECIFICATIONS.md`
+## Input (dynamic — đọc tất cả những gì có)
+- `SPECIFICATIONS.md` — file cần validate
+- `.context/brainstorm-log.md` — Q&A transcript
+- `.context/doc-index.json` — doc inventory từ brainstorm (nếu có)
+- `docs/` folder — tất cả source docs (BRD, Design, API spec, ERD, v.v.)
+- `BRIEF.md` / `IDEA.md` — nếu không có docs/
 
 ## Output
 - `.context/review-reports/spec-validation.md`
@@ -21,29 +23,68 @@ Sử dụng `SPEC_VALIDATOR_MODEL` từ `.env.local`.
 
 ---
 
-## Validation Checklist
+## Step 1: Load Source Documents
 
-### Feature Coverage
-Check mỗi feature trong BRIEF.md + brainstorm-log có tương ứng trong SPECIFICATIONS.md:
+Đọc `.context/doc-index.json` để biết có những doc nào:
 
-- ✅ **Covered** — Feature được mô tả đầy đủ trong spec
-- ❌ **Missing** — Feature trong BRIEF nhưng không có trong spec
-- ⚠️ **Ambiguous** — Feature có nhưng mô tả không rõ ràng
+```json
+{
+  "documents": [
+    { "file": "docs/PRD_v2.md", "type": "business_requirements" },
+    { "file": "docs/figma-notes.md", "type": "design_spec" },
+    { "file": "docs/swagger.yaml", "type": "api_spec" },
+    { "file": "docs/db-schema.sql", "type": "database_schema" }
+  ],
+  "entry_mode": "full_docs" // full_docs | partial_docs | idea_only
+}
+```
+
+Nếu không có `doc-index.json` → fallback đọc `BRIEF.md` hoặc `IDEA.md`.
+
+---
+
+## Step 2: Validation Checklist
+
+### 2A. Feature Coverage (từ tất cả sources)
+
+Với mỗi requirement tìm thấy trong **bất kỳ source doc nào**:
+
+- ✅ **Covered** — Được mô tả đầy đủ trong SPECIFICATIONS.md
+- ❌ **Missing** — Có trong source doc nhưng không có trong spec
+- ⚠️ **Ambiguous** — Có nhưng mô tả không rõ ràng
 - 💡 **Suggestion** — Cần thêm chi tiết hoặc có concern
 
-### Contradiction Check
+### 2B. Cross-Document Conflict Check
+
+So sánh SPECIFICATIONS.md với từng doc có sẵn:
+
+| Source | Check |
+|--------|-------|
+| BRD/PRD | Mọi business rule và user story phải có trong spec |
+| Design spec | Screen names, navigation flow, UI behavior phải consistent |
+| API spec | Endpoints, request/response shape phải consistent |
+| ERD/Schema | Data models, relationships, field names phải consistent |
+
+**Flag conflict khi:**
+- BRD nói feature A required → spec mark optional
+- Design spec có screen X → spec không mention screen X
+- API spec có endpoint `/auth/refresh` → spec không có refresh token flow
+- ERD có field `deleted_at` → spec không mention soft delete
+
+### 2C. Contradiction Check
 - Requirements có mâu thuẫn nhau không?
 - Tech stack choices có compatible không?
 - Timeline expectation vs scope có realistic không?
+- Các doc source có mâu thuẫn nhau không? (BRD vs Design)
 
-### Edge Cases
+### 2D. Edge Cases
 - Error handling được specify chưa?
 - Empty states?
 - Concurrent access?
 - Rate limiting?
 - Data validation rules?
 
-### Non-functional Requirements
+### 2E. Non-functional Requirements
 - Performance targets có spec không?
 - Security requirements đủ chi tiết?
 - Scalability considerations?
@@ -55,18 +96,25 @@ Check mỗi feature trong BRIEF.md + brainstorm-log có tương ứng trong SPEC
 ```markdown
 # Spec Validation Report
 
+**Entry Mode:** full_docs | partial_docs | idea_only
+**Sources validated against:** [list doc files used]
+
 ## Verdict: ✅ PASS / ❌ FAIL
 
 ## Feature Coverage Matrix
 
-| # | Feature (from BRIEF) | Status | Notes |
-|---|---------------------|--------|-------|
-| 1 | User registration   | ✅     |       |
-| 2 | Payment integration | ❌     | Not in spec |
-| 3 | Search feature      | ⚠️     | No pagination spec |
+| # | Requirement | Source | Status | Notes |
+|---|------------|--------|--------|-------|
+| 1 | User registration | BRD.md §2.1 | ✅ | |
+| 2 | Payment integration | BRD.md §4.3 | ❌ | Not in spec |
+| 3 | Search with pagination | BRIEF.md | ⚠️ | No pagination spec |
 
-## Contradictions Found
-- {None / list contradictions}
+## Cross-Document Conflicts
+
+| Conflict | Source A | Source B | Impact |
+|----------|----------|----------|--------|
+| Auth flow | BRD: JWT only | Design: "Login with Google" button | HIGH |
+| User model | ERD: no `role` field | Spec: admin/user roles | HIGH |
 
 ## Missing Edge Cases
 - {List important edge cases not covered}
@@ -78,7 +126,9 @@ Check mỗi feature trong BRIEF.md + brainstorm-log có tương ứng trong SPEC
 - {Actionable improvements}
 
 ## Verdict Reasoning
-{Why PASS or FAIL — FAIL if any ❌ or ≥3 ⚠️}
+{Why PASS or FAIL}
+- FAIL triggers: any ❌, any HIGH conflict, ≥3 ⚠️
+- PASS: no ❌, no HIGH conflicts, <3 ⚠️
 ```
 
 ---
@@ -87,21 +137,24 @@ Check mỗi feature trong BRIEF.md + brainstorm-log có tương ứng trong SPEC
 
 ```
 Validation complete
-    ├── No ❌ AND < 3 ⚠️ → ✅ PASS
-    │     → Trigger graph.md
+    ├── No ❌ AND no HIGH conflicts AND < 3 ⚠️
+    │     → ✅ PASS → Trigger graph.md
     │
-    └── Has ❌ OR ≥ 3 ⚠️ → ❌ FAIL
-          → List specific gaps
+    └── Has ❌ OR HIGH conflict OR ≥ 3 ⚠️
+          → ❌ FAIL
+          → List specific gaps + conflicts
           → Return to brainstorm for clarification
           → Re-generate SPECIFICATIONS.md
-          → Re-validate
+          → Re-validate (max 2 rounds)
 ```
 
 ---
 
 ## Rules
 
-1. **Trace every BRIEF feature** — mỗi feature phải có mapping rõ ràng
-2. **Don't add requirements** — chỉ validate, không tự thêm features
-3. **Be actionable** — nếu FAIL, chỉ rõ cần hỏi thêm gì
-4. **Max 2 rounds** — nếu vẫn FAIL sau 2 re-validations → ask human to resolve
+1. **Validate against ALL available sources** — không chỉ BRIEF.md, phải check tất cả docs/ có trong doc-index
+2. **Cross-document conflicts are HIGH priority** — conflict giữa BRD và Design/API spec phải flag ngay, không tự resolve
+3. **Don't add requirements** — chỉ validate, không tự thêm features
+4. **Be actionable** — nếu FAIL, chỉ rõ cần hỏi thêm gì hoặc conflict nào cần user resolve
+5. **Max 2 rounds** — nếu vẫn FAIL sau 2 re-validations → ask human to resolve
+6. **Cite sources** — mọi finding phải ghi rõ từ doc nào, section nào
