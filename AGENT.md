@@ -17,20 +17,23 @@ The system uses 4 patterns working together:
 
 | Agent | File | Role |
 |-------|------|------|
-| Brainstorm | `.agent/brainstorm.md` | Gather requirements, configure git & models |
+| Brainstorm | `.agent/brainstorm.md` | Gather requirements; Phase 0.5 sets up git/VPS/CI/CD/models upfront |
 | Spec Validator | `.agent/spec-validator.md` | Validate SPECIFICATIONS.md against requirements |
+| Design | `.agent/design.md` | Generate design tokens + screen specs |
 | Graph | `.agent/graph.md` | Decompose spec into layered tasks |
 | Loop | `.agent/loop.md` | Execute tasks (ReAct pattern) |
-| Reviewer | `.agent/reviewer.md` | Independent code review (different model) |
+| Reviewer | `.agent/reviewer.md` | Per-task code review (`REVIEWER_MODEL`) + per-layer spec cross-check (`SPEC_VALIDATOR_MODEL`) |
 | Error Analyzer | `.agent/error-analyzer.md` | Root cause analysis + pattern learning |
 | Context Manager | `.agent/context-manager.md` | Context compression when window fills |
 | Rollback | `.agent/rollback.md` | Git checkpoint + revert strategy |
-| DevOps | `.agent/devops.md` | Git init, CI/CD, deploy |
+| DevOps | `.agent/devops.md` | Git init, CI/CD, auto-push after each layer, deploy |
 
 ## Workflow
 
 ```
-BRIEF.md → Brainstorm → SPECIFICATIONS.md → Spec Validate
+BRIEF.md → Brainstorm Phase 0.5 (git/VPS/CI/CD/models setup)
+    ↓
+Brainstorm Phase 1-3 (requirements) → SPECIFICATIONS.md → Spec Validate
     ↓ (PASS)
 Design Agent → design-tokens.md + design-spec.md
     ↓ (user confirms design tokens)
@@ -38,16 +41,21 @@ Graph → Layer Plan
     ↓
 👀 HUMAN CHECKPOINT: Review layer plan → user approves
     ↓
-┌──── For each Layer N ────────────────────────────────┐
-│                                                       │
-│  Loop (per task, respecting dependencies):            │
-│  Read → Plan → Code → Test → Error Analyzer (fail)   │
-│      ↓ (PASS)                                         │
-│  Reviewer (different model) → git commit              │
-│      ↓ (PASS)                                         │
-│  👀 HUMAN CHECKPOINT: Layer N done → proceed?         │
-│      ↓ (user approves)                                │
-└───────────────────────────────────────────────────────┘
+┌──── For each Layer N ────────────────────────────────────────┐
+│                                                               │
+│  Loop (per task, respecting dependencies):                    │
+│  Read → Plan → Code → Test → Error Analyzer (fail)           │
+│      ↓ (PASS)                                                 │
+│  Reviewer [REVIEWER_MODEL] → code quality/security/tests      │
+│      ↓ (PASS) → git commit                                    │
+│                                                               │
+│  (after ALL tasks in layer PASS)                             │
+│  Layer Review [SPEC_VALIDATOR_MODEL] → cross-check vs SPEC   │
+│      ↓ (PASS) → DevOps auto-push layer to git                │
+│                                                               │
+│  👀 HUMAN CHECKPOINT: Layer N done → proceed?                │
+│      ↓ (user approves)                                        │
+└───────────────────────────────────────────────────────────────┘
     ↓ (all layers done)
 DevOps → CI/CD → Deploy staging
     ↓
@@ -62,9 +70,18 @@ Deploy production → Health check → Done ✅
 3. Read `.context/progress.json` — resume point (if exists)
 4. Read `.context/decisions.md` — past architectural decisions (if exists)
 
+### Phase 0.5: Project Setup (`.agent/brainstorm.md` — Phase 0.5)
+- Chạy ngay sau doc scan, **trước khi hỏi requirements**
+- Git platform + token + repo → tạo repo tự động luôn sau khi có token
+- Deploy platform → VPS info (IP/user/SSH port/dir/domain) hoặc Vercel/Railway config
+- CI/CD platform → generate workflow files sau khi setup
+- 3 models: `CODING_MODEL`, `REVIEWER_MODEL`, `SPEC_VALIDATOR_MODEL` (đọc từ opencode config tự động)
+- Lưu tất cả vào `.env.local` ngay
+- **User setup xong xuôi một lần → mới bắt đầu Phase 1**
+
 ### Phase 1: Brainstorm (`.agent/brainstorm.md`)
 - Interactive Q&A with user about project requirements
-- Stack, database, auth, deployment, UI, design reference, etc.
+- Stack, database, auth, deployment, UI library, etc.
 - Output: populated `SPECIFICATIONS.md` + `.context/brainstorm-log.md`
 - **After completing → MUST proceed to Phase 2 (Spec Validation)**
 
@@ -100,11 +117,18 @@ Deploy production → Health check → Done ✅
 - **Max 3 retries per task** → BLOCKED → notify human
 
 ### Phase 5: Review (`.agent/reviewer.md`) — per layer
-- Code quality, security, performance
-- Uses `REVIEWER_MODEL` (different provider to avoid bias)
+
+**5a. Per-task Review** (`REVIEWER_MODEL`)
+- Code quality, security, performance, testing
 - Write reports to `.context/review-reports/`
-- **PASS** → Human checkpoint below
+- **PASS** → git commit → next task
 - **FAIL** → return to Loop with feedback (max 2 rounds, then escalate)
+
+**5b. Layer Review** (`SPEC_VALIDATOR_MODEL`) — sau khi ALL tasks PASS
+- Cross-check toàn bộ layer với `SPECIFICATIONS.md`
+- Đảm bảo features đã build đúng và đủ theo spec ban đầu
+- **PASS** → DevOps auto-push layer → Human checkpoint
+- **FAIL** → trả về Loop với danh sách gaps → fix → Layer Review lại
 
 > 👀 **HUMAN CHECKPOINT — End of Each Layer**
 > "Layer N hoàn thành. Em tóm tắt:
