@@ -40,12 +40,15 @@ curl -u $GIT_USERNAME:$GIT_TOKEN \
   https://api.bitbucket.org/2.0/repositories/$GIT_USERNAME/$REPO_NAME \
   -d '{"scm": "git", "is_private": true}'
 
-# 4. Initial commit + push
+# 4. Generate CI/CD files TRƯỚC KHI PUSH (xem Phase 1.5 bên dưới)
+# ... Phase 1.5 chạy ở đây ...
+
+# 5. Initial commit + push (SAU KHI đã có CI files)
 git add .
-git commit -m "feat: initial project setup"
+git commit -m "feat: initial project setup with CI/CD"
 git push -u origin main
 
-# 5. Setup branch convention
+# 6. Setup branch convention
 git checkout -b develop
 git push -u origin develop
 git checkout main
@@ -58,9 +61,12 @@ git checkout main
 
 ---
 
-## Phase 1.5: Generate CI/CD Files
+## Phase 1.5: Generate CI/CD Files (CHẠY TRƯỚC PUSH)
 
-Sau khi git init + remote setup, đọc `.env.local` và **generate CI/CD config files thực tế**:
+⚠️ **QUAN TRỌNG**: Phase này PHẢI chạy TRƯỚC bước `git add . && git push` ở Phase 1.
+Thứ tự đúng: `git init` → `remote setup` → **generate CI files** → `git add .` → `commit` → `push`
+
+Đọc `.env.local` và generate CI/CD config files thực tế:
 
 ```bash
 source .env.local
