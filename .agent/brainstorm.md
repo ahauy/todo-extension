@@ -81,47 +81,44 @@ REPO_VISIBILITY=private
 
 ## Phase 3: Agent Models
 
-Hiển thị danh sách models:
+Trước khi hỏi, đọc models từ opencode config của user:
+
+```bash
+# Thử các path phổ biến của opencode config
+cat ~/.opencode/config.json 2>/dev/null || \
+cat ~/.config/opencode/config.json 2>/dev/null || \
+cat ~/opencode.json 2>/dev/null
+```
+
+Parse danh sách models từ config → hiển thị cho user chọn theo format:
 
 ```
-╔═══════════════════════════════════════════════════════════════╗
-║                    AVAILABLE MODELS                            ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                               ║
-║  ANTHROPIC (via AIHub):                                       ║
-║  • claude-sonnet-4-6    — Cân bằng speed/quality              ║
-║  • claude-opus-4-6      — Mạnh, reasoning tốt                ║
-║  • claude-opus-4-8      — Mạnh nhất Anthropic                 ║
-║                                                               ║
-║  OPENAI (via AIHub):                                          ║
-║  • gpt-5.5              — Mạnh, general purpose               ║
-║  • gpt-5.4              — Cân bằng cost/performance           ║
-║  • gpt-5.3-codex        — Chuyên code, nhanh                  ║
-║                                                               ║
-║  DEEPSEEK (via Huawei MAAS):                                  ║
-║  • deepseek-v4-pro      — Reasoning mạnh, giá rẻ             ║
-║  • deepseek-v4-flash    — Nhanh nhất, rẻ nhất                 ║
-║  • glm-5.2              — Nhẹ, tiết kiệm                      ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════╗
+║           AVAILABLE MODELS                ║
+║      (from your OpenCode config)          ║
+╠═══════════════════════════════════════════╣
+║                                           ║
+║  [LIST ĐỘNG TỪ CONFIG CỦA USER]           ║
+║  Ví dụ:                                   ║
+║  • provider/model-name — description      ║
+║                                           ║
+╚═══════════════════════════════════════════╝
 ```
+
+Nếu không đọc được config → fallback hỏi user tự nhập model ID:
+"Không tìm thấy opencode config. Bạn nhập model ID trực tiếp nhé (ví dụ: claude-opus-4, gpt-4o)"
 
 Hỏi lần lượt:
 
-1. **CODING_MODEL** — Model viết code chính?
-   - Gợi ý: `claude-opus-4-6` (mạnh, reasoning tốt cho code phức tạp)
-
-2. **REVIEWER_MODEL** — Model review code? (nên khác hãng với coding)
-   - Gợi ý: `gpt-5.4` (perspective khác, tránh blind spots)
-
-3. **SPEC_VALIDATOR_MODEL** — Model validate spec? (nên khác 2 cái trên)
-   - Gợi ý: `deepseek-v4-pro` (reasoning mạnh, góc nhìn thứ 3)
+1. **CODING_MODEL** — Model viết code chính? (gợi ý: model mạnh nhất có sẵn)
+2. **REVIEWER_MODEL** — Model review code? (nên chọn model KHÁC hãng với coding để tránh bias)
+3. **SPEC_VALIDATOR_MODEL** — Model validate spec? (nên chọn model KHÁC 2 cái trên)
 
 Lưu vào `.env.local`:
 ```
-CODING_MODEL=claude-opus-4-6
-REVIEWER_MODEL=gpt-5.4
-SPEC_VALIDATOR_MODEL=deepseek-v4-pro
+CODING_MODEL=<user_choice>
+REVIEWER_MODEL=<user_choice>
+SPEC_VALIDATOR_MODEL=<user_choice>
 ```
 
 ---
