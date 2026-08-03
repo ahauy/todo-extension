@@ -18,20 +18,29 @@ Setup git repository, CI/CD pipeline, và deployment theo platform đã chọn.
 git init
 echo "node_modules/\ndist/\nbuild/\n.DS_Store\n.env.local" > .gitignore
 
-# 2. Read platform config from .env.local
+# 2. Read ALL config từ .env.local (đã được fill bởi Phase 0.5)
 source .env.local
+# Biến cần có: GIT_PLATFORM, GIT_TOKEN, GIT_USERNAME, REPO_NAME, REPO_VISIBILITY
 
-# 3. Create remote repo (based on platform)
-# GitHub:
-gh repo create $REPO_NAME --$REPO_VISIBILITY --source=. --push
+# 3. Tự động tạo repo dùng token đã có — KHÔNG hỏi thêm
 
-# GitLab:
+# GitHub (GIT_PLATFORM=github):
+GITHUB_TOKEN=$GIT_TOKEN gh repo create $REPO_NAME --$REPO_VISIBILITY
+git remote add origin https://$GIT_TOKEN@github.com/$GIT_USERNAME/$REPO_NAME.git
+
+# GitLab (GIT_PLATFORM=gitlab):
+glab auth login --token $GIT_TOKEN
 glab repo create $REPO_NAME --$REPO_VISIBILITY
+git remote add origin https://oauth2:$GIT_TOKEN@gitlab.com/$GIT_USERNAME/$REPO_NAME.git
 
-# Bitbucket:
-# Manual or via API
+# Bitbucket (GIT_PLATFORM=bitbucket):
+git remote add origin https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/$GIT_USERNAME/$REPO_NAME.git
+# Tạo repo qua API:
+curl -u $GIT_USERNAME:$GIT_TOKEN \
+  https://api.bitbucket.org/2.0/repositories/$GIT_USERNAME/$REPO_NAME \
+  -d '{"scm": "git", "is_private": true}'
 
-# 4. Initial commit
+# 4. Initial commit + push
 git add .
 git commit -m "feat: initial project setup"
 git push -u origin main

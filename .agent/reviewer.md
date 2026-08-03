@@ -104,6 +104,74 @@ Review complete
 
 ---
 
+## Layer Review (MANDATORY — sau khi tất cả tasks trong 1 layer PASS)
+
+### Model
+Dùng `SPEC_VALIDATOR_MODEL` từ `.env.local` — **khác với REVIEWER_MODEL** để tránh bias.
+
+### Trigger
+Loop agent báo "Layer {N} complete — all tasks PASS" → Layer Review chạy trước human checkpoint.
+
+### Mục đích
+Cross-check những gì đã build với `SPECIFICATIONS.md` ban đầu — đảm bảo layer không bỏ sót feature nào.
+
+### Steps
+
+1. **Đọc SPECIFICATIONS.md** — lấy danh sách features/requirements thuộc layer này
+2. **Đọc tất cả task files** trong `tasks/layer-{N}/` — xem scope đã cover gì
+3. **Đọc review reports** trong `.context/review-reports/layer-{N}-*` — xem kết quả từng task
+4. **Cross-check** từng requirement trong SPEC với những gì đã implement
+
+### Layer Review Report Format
+
+```markdown
+# Layer Review: Layer {N}
+
+## Model Used: {SPEC_VALIDATOR_MODEL}
+
+## Verdict: ✅ COMPLETE / ⚠️ GAPS FOUND
+
+## Coverage Check
+
+| Requirement (từ SPEC) | Task cover | Status |
+|----------------------|------------|--------|
+| Feature A — user login | layer-0/task-02 | ✅ Covered |
+| Feature B — email verify | layer-0/task-03 | ✅ Covered |
+| Feature C — rate limiting | — | ❌ Missing |
+
+## Gaps Found
+- **[MISSING]** {Requirement chưa được implement}
+- **[PARTIAL]** {Requirement implement chưa đầy đủ — thiếu edge case X}
+
+## Summary
+{1-2 sentences: layer này cover được bao nhiêu % spec, có gap gì không}
+```
+
+### Decision Flow
+
+```
+Layer Review complete
+    ├── COMPLETE (no gaps) → ✅ Layer PASS
+    │     → Human checkpoint: "Layer {N} done — review report attached. Proceed?"
+    │     → Human approves → Unlock layer {N+1}
+    │
+    └── GAPS FOUND
+          ├── [MISSING] critical feature → ❌ Return to Loop
+          │     → Tạo task bổ sung → implement → re-review layer
+          │
+          └── [PARTIAL] minor gap → ⚠️ Flag to human
+                → Human decides: fix now or accept as tech debt
+                → Ghi vào .context/decisions.md
+```
+
+### Rules
+- Layer Review dùng **SPEC_VALIDATOR_MODEL**, không dùng REVIEWER_MODEL
+- Lưu report vào `.context/review-reports/layer-{N}-layer-review.md`
+- **KHÔNG unlock layer tiếp theo** nếu có gap MISSING chưa được resolve
+- Human checkpoint **sau** Layer Review, không phải trước
+
+---
+
 ## Rules
 
 1. **Be specific** — "line 42 has XSS vulnerability" not "security issues exist"
@@ -112,3 +180,4 @@ Review complete
 4. **CRITICAL = security or data loss risk** — không lạm dụng
 5. **Max 2 review rounds** — nếu vẫn FAIL sau 2 rounds → escalate to human
 6. **Review cả tests** — bad tests = false confidence
+7. **Layer Review bắt buộc** — không skip, dùng SPEC_VALIDATOR_MODEL

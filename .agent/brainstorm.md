@@ -85,6 +85,193 @@ So sánh những gì đã có với danh sách câu hỏi Phase 1 → đánh d�
 
 ---
 
+## Phase 0.5: Project Setup (CHẠY NGAY SAU PHASE 0 — TRƯỚC KHI HỎI REQUIREMENTS)
+
+> Setup toàn bộ config một lần ngay đầu. User điền xong xuôi rồi mới bắt đầu requirements.
+
+### 0.5.A — Git Setup
+
+Hỏi **từng câu một**:
+
+1. **Git platform?** GitHub / GitLab / Bitbucket / Skip
+
+Nếu KHÔNG skip:
+
+2. **Repo mới hay có sẵn?** (new / existing)
+
+3. **Repo name?** (tên repository sẽ tạo hoặc tên repo hiện có)
+
+4. **Visibility?** private / public
+
+5. **Git username?** (tên tài khoản git)
+
+Sau khi hỏi xong, hiển thị hướng dẫn lấy token **tương ứng platform đã chọn**:
+
+```
+📋 Hướng dẫn lấy Personal Access Token:
+
+🔸 GitHub:
+   1. Vào https://github.com/settings/tokens
+   2. Click "Generate new token (classic)"
+   3. Đặt tên token (vd: my-project-deploy)
+   4. Expiration: 90 days hoặc No expiration
+   5. Scope: ☑️ repo (full control of private repositories)
+   6. Click "Generate token" → Copy token ngay (chỉ hiện 1 lần!)
+
+🔸 GitLab:
+   1. Vào https://gitlab.com/-/user_settings/personal_access_tokens
+   2. Đặt tên token
+   3. Scope: ☑️ api
+   4. Click "Create personal access token" → Copy token
+
+🔸 Bitbucket:
+   1. Vào https://bitbucket.org/account/settings/app-passwords
+   2. Click "Create app password"
+   3. Permissions: ☑️ Repositories: Read + Write
+   4. Copy token
+```
+
+6. **WAIT**: "Anh đã lấy được token chưa? Reply token để em điền vào `.env.local`, hoặc reply 'skip' để bỏ qua git setup."
+
+Sau khi nhận token, ghi ngay vào `.env.local`:
+
+```bash
+cat >> .env.local << EOF
+GIT_PLATFORM=<platform>
+GIT_TOKEN=<token>
+GIT_USERNAME=<username>
+REPO_NAME=<repo_name>
+REPO_VISIBILITY=<private|public>
+EOF
+```
+
+---
+
+### 0.5.B — Deploy & CI/CD Config
+
+Hỏi:
+
+1. **Deployment platform?**
+   - `vercel` — Auto deploy từ git, zero config
+   - `railway` — Auto deploy từ git, supports DB
+   - `vps-docker` — VPS tự manage với Docker
+   - `other` — Platform khác
+   - `skip` — Chưa quyết định
+
+2. **CI/CD?** (chỉ hỏi nếu câu 1 không phải skip)
+   - `github-actions` — Auto lint + test + build khi push
+   - `gitlab-ci` — GitLab CI/CD
+   - `skip` — Deploy thủ công
+
+Nếu `vps-docker`, hỏi tiếp:
+3. **VPS IP hoặc domain?** (vd: 123.45.67.89 hoặc myapp.com)
+4. **SSH user?** (vd: root, ubuntu, deploy)
+5. **SSH port?** (default: 22)
+6. **Deploy directory trên VPS?** (default: /opt/app)
+7. **Domain cho app?** (vd: myapp.com — dùng cho SSL + Nginx)
+
+Nếu `vercel`, hỏi tiếp:
+3. **Vercel project name?**
+4. **Vercel team slug?** (để trống nếu personal account)
+
+Nếu `railway`, hỏi tiếp:
+3. **Railway project name?**
+
+Ghi tất cả vào `.env.local`:
+
+```bash
+cat >> .env.local << EOF
+DEPLOY_PLATFORM=<platform>
+CI_CD=<github-actions|gitlab-ci|skip>
+# VPS fields (nếu vps-docker):
+VPS_HOST=<ip_or_domain>
+VPS_USER=<ssh_user>
+VPS_PORT=<ssh_port>
+DEPLOY_DIR=<deploy_dir>
+APP_DOMAIN=<domain>
+# Vercel fields (nếu vercel):
+VERCEL_PROJECT=<project_name>
+VERCEL_TEAM=<team_slug>
+# Railway fields (nếu railway):
+RAILWAY_PROJECT=<project_name>
+EOF
+```
+
+Thông báo về CI/CD:
+- `github-actions` → "DevOps agent sẽ tạo `.github/workflows/` tự động khi bắt đầu code."
+- `gitlab-ci` → "DevOps agent sẽ tạo `.gitlab-ci.yml` tự động khi bắt đầu code."
+
+---
+
+### 0.5.C — Agent Models
+
+Trước khi hỏi, đọc models từ opencode config của user:
+
+```bash
+# Thử các path phổ biến của opencode config
+cat ~/.opencode/config.json 2>/dev/null || \
+cat ~/.config/opencode/config.json 2>/dev/null || \
+cat ~/opencode.json 2>/dev/null
+```
+
+Parse danh sách models từ config → hiển thị cho user chọn:
+
+```
+╔═══════════════════════════════════════════╗
+║           AVAILABLE MODELS                ║
+║      (from your OpenCode config)          ║
+╠═══════════════════════════════════════════╣
+║                                           ║
+║  [LIST ĐỘNG TỪ CONFIG CỦA USER]           ║
+║  Ví dụ:                                   ║
+║  • provider/model-name — description      ║
+║                                           ║
+╚═══════════════════════════════════════════╝
+```
+
+Nếu không đọc được config → fallback hỏi user tự nhập model ID:
+"Không tìm thấy opencode config. Bạn nhập model ID trực tiếp nhé (ví dụ: claude-opus-4, gpt-4o)"
+
+Hỏi lần lượt:
+
+1. **CODING_MODEL** — Model viết code chính? (gợi ý: model mạnh nhất có sẵn)
+2. **REVIEWER_MODEL** — Model review code? (nên chọn model KHÁC hãng với coding để tránh bias)
+3. **SPEC_VALIDATOR_MODEL** — Model validate spec và layer review? (nên chọn model KHÁC 2 cái trên)
+
+Lưu vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+CODING_MODEL=<user_choice>
+REVIEWER_MODEL=<user_choice>
+SPEC_VALIDATOR_MODEL=<user_choice>
+EOF
+```
+
+---
+
+### 0.5.D — Confirm Setup
+
+Sau khi điền xong, hiển thị tóm tắt:
+
+```
+✅ Project Setup Complete!
+
+📁 Git:      <platform> — <username>/<repo_name> (<visibility>)
+🚀 Deploy:   <platform> → <host_or_project>
+⚙️  CI/CD:    <github-actions|gitlab-ci|skip>
+🤖 Models:
+   • Coding:         <CODING_MODEL>
+   • Reviewer:       <REVIEWER_MODEL>
+   • Spec Validator: <SPEC_VALIDATOR_MODEL>
+
+Tất cả đã lưu vào .env.local (git-ignored).
+Ready để bắt đầu requirements! 🚀
+```
+
+Chờ user confirm → mới chạy Phase 1.
+
+---
+
 ## Phase 1: Project Requirements
 
 **Chỉ hỏi những gì CHƯA có trong docs đã scan.**
@@ -174,194 +361,7 @@ Chờ user confirm → mới generate.
 
 ---
 
-## Phase 4: Git Setup
-
-Hỏi **từng câu một**:
-
-1. **Git platform?** GitHub / GitLab / Bitbucket / Skip
-
-Nếu KHÔNG skip:
-
-2. **Repo mới hay có sẵn?** (new / existing)
-
-3. **Repo name?** (tên repository sẽ tạo hoặc tên repo hiện có)
-
-4. **Visibility?** private / public
-
-5. **Git username?** (tên tài khoản git)
-
-Sau khi hỏi xong, hiển thị hướng dẫn lấy token **tương ứng platform đã chọn**:
-
-```
-📋 Hướng dẫn lấy Personal Access Token:
-
-🔸 GitHub:
-   1. Vào https://github.com/settings/tokens
-   2. Click "Generate new token (classic)"
-   3. Đặt tên token (vd: my-project-deploy)
-   4. Expiration: 90 days hoặc No expiration
-   5. Scope: ☑️ repo (full control of private repositories)
-   6. Click "Generate token" → Copy token ngay (chỉ hiện 1 lần!)
-
-🔸 GitLab:
-   1. Vào https://gitlab.com/-/user_settings/personal_access_tokens
-   2. Đặt tên token
-   3. Scope: ☑️ api
-   4. Click "Create personal access token" → Copy token
-
-🔸 Bitbucket:
-   1. Vào https://bitbucket.org/account/settings/app-passwords
-   2. Click "Create app password"
-   3. Permissions: ☑️ Repositories: Read + Write
-   4. Copy token
-```
-
-Sau đó ghi ngay vào `.env.local`:
-
-```bash
-# Ghi git config vào .env.local
-cat >> .env.local << EOF
-GIT_PLATFORM=<platform>
-GIT_TOKEN=<token>
-GIT_USERNAME=<username>
-REPO_NAME=<repo_name>
-REPO_VISIBILITY=<private|public>
-EOF
-```
-
-6. **WAIT**: "Anh đã lấy được token chưa? Reply token để em điền vào `.env.local`, hoặc reply 'skip' để bỏ qua git setup."
-
----
-
-## Phase 5: Deploy & CI/CD Config
-
-Chỉ chạy phase này nếu Phase 1 câu 7 KHÔNG phải `skip`.
-
-Đọc `DEPLOY_PLATFORM` từ `.context/brainstorm-log.md`.
-
-### Nếu `vps-docker`:
-
-Hỏi:
-1. **VPS IP hoặc domain?** (vd: 123.45.67.89 hoặc myapp.com)
-2. **SSH user?** (vd: root, ubuntu, deploy)
-3. **SSH port?** (default: 22)
-4. **Deploy directory trên VPS?** (default: /opt/app)
-5. **Domain cho app?** (vd: myapp.com — dùng cho SSL + Nginx)
-
-Ghi vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-VPS_HOST=<ip_or_domain>
-VPS_USER=<ssh_user>
-VPS_PORT=<ssh_port>
-DEPLOY_DIR=<deploy_dir>
-APP_DOMAIN=<domain>
-EOF
-```
-
-### Nếu `vercel`:
-
-Hỏi:
-1. **Vercel project name?** (tên project trên Vercel)
-2. **Vercel team slug?** (nếu dùng team account, để trống nếu personal)
-
-Ghi vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-VERCEL_PROJECT=<project_name>
-VERCEL_TEAM=<team_slug>
-EOF
-```
-
-### Nếu `railway`:
-
-Hỏi:
-1. **Railway project name?** (tên project trên Railway)
-
-Ghi vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-RAILWAY_PROJECT=<project_name>
-EOF
-```
-
-### CI/CD Setup
-
-Đọc `CI_CD` từ `.context/brainstorm-log.md`.
-
-Nếu `github-actions`:
-- Ghi vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-CI_CD=github-actions
-EOF
-```
-- Thông báo: "Sau khi generate spec xong, DevOps agent sẽ tạo file `.github/workflows/` tự động."
-
-Nếu `gitlab-ci`:
-- Ghi vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-CI_CD=gitlab-ci
-EOF
-```
-- Thông báo: "Sau khi generate spec xong, DevOps agent sẽ tạo file `.gitlab-ci.yml` tự động."
-
-Nếu `skip`:
-- Ghi vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-CI_CD=skip
-EOF
-```
-
----
-
-## Phase 6: Agent Models
-
-Trước khi hỏi, đọc models từ opencode config của user:
-
-```bash
-# Thử các path phổ biến của opencode config
-cat ~/.opencode/config.json 2>/dev/null || \
-cat ~/.config/opencode/config.json 2>/dev/null || \
-cat ~/opencode.json 2>/dev/null
-```
-
-Parse danh sách models từ config → hiển thị cho user chọn theo format:
-
-```
-╔═══════════════════════════════════════════╗
-║           AVAILABLE MODELS                ║
-║      (from your OpenCode config)          ║
-╠═══════════════════════════════════════════╣
-║                                           ║
-║  [LIST ĐỘNG TỪ CONFIG CỦA USER]           ║
-║  Ví dụ:                                   ║
-║  • provider/model-name — description      ║
-║                                           ║
-╚═══════════════════════════════════════════╝
-```
-
-Nếu không đọc được config → fallback hỏi user tự nhập model ID:
-"Không tìm thấy opencode config. Bạn nhập model ID trực tiếp nhé (ví dụ: claude-opus-4, gpt-4o)"
-
-Hỏi lần lượt:
-
-1. **CODING_MODEL** — Model viết code chính? (gợi ý: model mạnh nhất có sẵn)
-2. **REVIEWER_MODEL** — Model review code? (nên chọn model KHÁC hãng với coding để tránh bias)
-3. **SPEC_VALIDATOR_MODEL** — Model validate spec? (nên chọn model KHÁC 2 cái trên)
-
-Lưu vào `.env.local`:
-```
-CODING_MODEL=<user_choice>
-REVIEWER_MODEL=<user_choice>
-SPEC_VALIDATOR_MODEL=<user_choice>
-```
-
----
-
-## After All Phases (Post Phase 6)
+## After All Phases (Post Phase 3)
 
 1. Generate `SPECIFICATIONS.md` từ docs + brainstorm-log + clarifications
 2. Trigger `.agent/spec-validator.md`
