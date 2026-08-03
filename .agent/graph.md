@@ -4,8 +4,8 @@
 Đọc SPECIFICATIONS.md và chia thành các layers theo dependency order. Mỗi layer chứa các tasks có thể chạy song song.
 
 ## Trigger
-- `spec-validator.md` trả về PASS
-- Hoặc manual trigger khi SPECIFICATIONS.md đã sẵn sàng
+- `spec-validator.md` trả về PASS → `.agent/design.md` → PASS → Graph chạy
+- Hoặc manual trigger khi SPECIFICATIONS.md + `.context/design-spec.md` đã sẵn sàng
 
 ## Output
 - `tasks/layer-{N}/task-{NN}.md` — task files
@@ -97,8 +97,9 @@ Mỗi task file (`tasks/layer-{N}/task-{NN}.md`):
 
 ## Rules
 
-1. **Layer N+1 chỉ unlock khi TOÀN BỘ tasks trong Layer N đã PASS review**
-2. Tasks trong cùng layer KHÔNG có dependency lẫn nhau
+1. **Layer N+1 chỉ unlock khi TOÀN BỘ tasks trong Layer N đã PASS review VÀ human đã approve**
+2. **HUMAN CHECKPOINT bắt buộc** sau mỗi layer — KHÔNG tự động chạy layer tiếp theo
+3. Tasks trong cùng layer KHÔNG có dependency lẫn nhau
 3. Mỗi task phải có acceptance criteria rõ ràng, testable
 4. Prefer small tasks (1-3 files) over large tasks
 5. Update `.context/progress.json` sau khi generate xong:

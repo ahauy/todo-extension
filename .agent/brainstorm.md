@@ -44,6 +44,16 @@ Hỏi **từng câu một**. Chờ user trả lời rồi mới hỏi tiếp.
    - Nếu `other`: URL/domain deploy?
 
 10. **Timeline**: MVP (core features only) / Full (all features)?
+11. **UI Library?**
+   Web: shadcn/ui (recommended) / MUI / Ant Design / Tailwind only
+12. **Design style?**
+   Minimal / Modern / Corporate / Playful
+13. **Color scheme?**
+   Light only / Dark only / Both (system)
+14. **Design reference?**
+   - Upload ảnh (Figma screenshot, inspo, wireframe)
+   - Paste Figma link
+   - Không có (agent tự design theo style đã chọn)
 
 ### Rules
 - Hỏi 1 câu → chờ answer → hỏi câu tiếp

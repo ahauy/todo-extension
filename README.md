@@ -125,6 +125,12 @@ Spec Validator (different model)
 └─ PASS → continue
     │
     ▼
+Design Agent
+├─ Analyze design reference (ảnh/Figma)
+├─ Generate design tokens
+└─ Screen layout specs
+    │
+    ▼
 Graph Agent → Break into dependency layers
     │
     ▼
@@ -166,6 +172,7 @@ Done ✅ → Extract patterns → Update common-errors.md
 |-------|------|-------------|
 | **Brainstorm** | `.agent/brainstorm.md` | Gathers requirements via interactive Q&A |
 | **Spec Validator** | `.agent/spec-validator.md` | Validates spec completeness using a different model |
+| **Design** | `.agent/design.md` | Creates design system, analyzes reference images, generates design tokens |
 | **Graph Planner** | `.agent/graph.md` | Decomposes project into dependency-ordered layers |
 | **Loop Builder** | `.agent/loop.md` | Implements tasks using ReAct (read → plan → code → test → fix) |
 | **Blackboard** | `.agent/blackboard.md` | Maintains shared state; enables pause/resume |

@@ -54,6 +54,18 @@ Execute từng task theo ReAct cycle: Read → Plan → Act → Observe → Repe
 
 ## Execution Steps
 
+### 0. Check Dependencies
+TRƯỚC KHI làm bất cứ gì:
+```
+1. Đọc task file → lấy danh sách Dependencies
+2. Đọc .context/progress.json → kiểm tra completedTasks
+3. Nếu dependency CHƯA có trong completedTasks:
+   → STOP
+   → Báo: "⚠️ Task {NN} blocked: waiting for {task-XX} to complete first"
+   → Chờ hoặc chuyển sang task khác trong cùng layer không có dependency
+4. Nếu ĐÃ DONE → proceed bình thường
+```
+
 ### 1. Read Context
 ```
 Read:
@@ -62,6 +74,13 @@ Read:
 - skills/react-nodejs/conventions.md (style guide)
 - skills/react-nodejs/patterns.md (implementation patterns)
 - Related source files (if modifying existing code)
+- .context/design-spec.md (nếu task liên quan UI/screen)
+- skills/react-nodejs/design-tokens.md (nếu task liên quan UI/screen)
+
+Nếu task liên quan đến UI/component:
+- .context/design-spec.md (layout spec cho screen này)
+- skills/react-nodejs/design-tokens.md (colors, typography, spacing)
+→ PHẢI đọc design tokens trước khi viết bất kỳ UI component nào
 ```
 
 ### 2. Plan
