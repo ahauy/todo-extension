@@ -367,16 +367,52 @@ Sau khi brainstorm agent generate CI/CD files, cần add secrets vào platform:
 | `VERCEL_TOKEN` | Deploy Vercel | Token từ https://vercel.com/account/tokens |
 | `RAILWAY_TOKEN` | Deploy Railway | Token từ https://railway.app/account/tokens |
 
-#### Cách lấy VPS SSH Key
-```bash
-# Xem nội dung private key (copy toàn bộ output)
-cat ~/.ssh/id_rsa
+#### GitHub Actions — Cách add secrets step-by-step
+1. Vào repo trên GitHub → **Settings** tab
+2. Sidebar: **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Điền Name (vd: `VPS_HOST`) + Value → **Add secret**
+5. Lặp lại cho từng secret trong bảng trên
 
-# Nếu chưa có key, tạo mới
-ssh-keygen -t ed25519 -C "your-email@example.com"
-# Sau đó copy public key lên VPS:
-ssh-copy-id user@your-vps-ip
+#### GitLab CI — Cách add variables step-by-step
+1. Vào repo trên GitLab → **Settings** → **CI/CD**
+2. Expand section **Variables**
+3. Click **Add variable**
+4. Key = tên secret (vd: `VPS_HOST`), Value = giá trị
+5. ⚠️ Với SSH key: tick **Type = File** và **Mask variable**
+6. Click **Add variable** → Lặp lại
+
+#### Cách tạo + lấy VPS SSH Key
+```bash
+# 1. Tạo SSH key mới (nếu chưa có)
+ssh-keygen -t ed25519 -C "deploy@myproject"
+# → Enter file: ~/.ssh/deploy_key
+# → Passphrase: để trống (cho CI/CD)
+
+# 2. Copy PUBLIC key lên VPS
+ssh-copy-id -i ~/.ssh/deploy_key.pub user@your-vps-ip
+
+# 3. Lấy PRIVATE key để paste vào GitHub/GitLab secret
+cat ~/.ssh/deploy_key
+# ⚠️ Copy TOÀN BỘ output (bao gồm dòng -----BEGIN... và -----END...)
 ```
+
+#### Cách lấy Vercel Token
+1. Vào https://vercel.com/account/tokens
+2. Click **Create Token**
+3. Name: `ci-deploy`, Scope: chọn team/project
+4. Click **Create** → Copy ngay
+
+#### Cách lấy Railway Token
+1. Vào https://railway.app/account/tokens
+2. Click **Create Token**
+3. Name: `ci-deploy`
+4. Click **Create** → Copy ngay
+
+> 💡 **Tips:**
+> - SSH key cho CI/CD nên tạo key riêng (không dùng key cá nhân)
+> - Secrets chỉ cần add 1 lần, CI/CD sẽ tự dùng mỗi lần deploy
+> - Nếu đổi server/key → update secret trong Settings là xong
 
 ---
 
