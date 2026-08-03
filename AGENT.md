@@ -59,6 +59,12 @@ Graph → Layer Plan
     ↓ (all layers done)
 DevOps → CI/CD → Deploy staging
     ↓
+👀 HUMAN CHECKPOINT: CI/CD Secrets added? → user confirms 'done'
+    ↓
+DevOps verifies CI passes on remote
+    ↓
+... (layers execute) ...
+    ↓
 👀 HUMAN CHECKPOINT: Approve production deploy
     ↓
 Deploy production → Health check → Done ✅

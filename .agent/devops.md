@@ -264,7 +264,22 @@ deploy:
    Repo → Settings → CI/CD → Variables → Add variable
 ```
 
-3. **WAIT**: "Anh đã add secrets chưa? Reply 'done' khi xong để em tiếp tục"
+3. **🛑 MANDATORY WAIT — DO NOT PROCEED UNTIL USER CONFIRMS**
+
+```
+📋 Em đã generate CI/CD files xong!
+
+⚠️ Để CI chạy được, anh cần add secrets vào platform trước.
+(Xem hướng dẫn chi tiết ở trên)
+
+Anh add xong rồi reply 'done' để em tiếp tục nhé!
+```
+
+**Rules:**
+- KHÔNG tự chạy tiếp sau bước này
+- KHÔNG assume user đã add secrets
+- CHỈ proceed khi user reply: `done`, `ok`, `xong`, `đã add`, hoặc tương đương
+- Nếu user hỏi thêm về secrets → giải thích thêm, vẫn WAIT
 
 ---
 
