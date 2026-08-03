@@ -128,6 +128,21 @@ npm run build
 - **FAIL** → Trigger Error Analyzer → Get fix → Retry from ACT
 - **3 retries fail** → Mark task as BLOCKED → Move to next task → Notify human
 
+### 6. Context Compact Check
+Sau mỗi task PASS, kiểm tra:
+```
+completedTasks = số task đã done (đọc từ .context/progress.json)
+
+Nếu completedTasks % 3 == 0:
+  → Invoke .agent/context-manager.md (compact)
+  → Đọc .context/compressed-summary.md thay vì giữ full history
+```
+
+Sau khi mỗi **layer hoàn thành** (tất cả tasks trong layer PASS):
+  → **MANDATORY** invoke .agent/context-manager.md
+  → Compact toàn bộ layer vừa xong
+  → Tiếp tục layer tiếp theo với context đã compressed
+
 ---
 
 ## Commit Convention
