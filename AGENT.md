@@ -27,7 +27,7 @@ The system uses 4 patterns working together:
 | Rollback | `.agent/rollback.md` | Git checkpoint + revert strategy |
 | DevOps | `.agent/devops.md` | Git init, CI/CD, deploy |
 
-## Flow
+## Workflow
 
 ```
 BRIEF.md → Brainstorm → SPECIFICATIONS.md → Spec Validate
@@ -41,13 +41,60 @@ Reviewer → PASS → DevOps (commit/deploy) → Next Task
 Loop (with feedback) → retry
 ```
 
+### Phase 0: Load Context
+1. Read `BRIEF.md` — project overview
+2. Read `SPECIFICATIONS.md` — detailed requirements (if exists)
+3. Read `.context/progress.json` — resume point (if exists)
+4. Read `.context/decisions.md` — past architectural decisions (if exists)
+
+### Phase 1: Brainstorm (`.agent/brainstorm.md`)
+- Interactive Q&A with user about project requirements
+- Stack, database, auth, deployment, UI, design reference, etc.
+- Output: populated `SPECIFICATIONS.md` + `.context/brainstorm-log.md`
+- **After completing → MUST proceed to Phase 2 (Spec Validation)**
+
+### Phase 2: Spec Validation (`.agent/spec-validator.md`) ← MANDATORY
+- Validate `SPECIFICATIONS.md` for completeness and consistency
+- Check for conflicts, missing configs, ambiguous requirements
+- **PASS** → proceed to Phase 3 (Task Graph)
+- **FAIL** → return to Phase 1 (Brainstorm) with specific gaps listed, then re-validate
+
+### Phase 3: Task Graph (`.agent/graph.md`)
+- Decompose specs into dependency-ordered layers
+- Write task files to `tasks/` directory
+- Each task: clear scope, inputs, outputs, acceptance criteria
+
+### Phase 4: Execution Loop (`.agent/loop.md`)
+- Pick next task from graph (lowest unlocked layer)
+- Implement with TDD where appropriate
+- Update `.context/progress.json` after each task
+- Handle errors via `.agent/error-analyzer.md`
+
+### Phase 5: Review (`.agent/reviewer.md`)
+- Code quality, security, performance
+- Uses `REVIEWER_MODEL` (different provider to avoid bias)
+- Write reports to `.context/review-reports/`
+- **PASS** → proceed to DevOps
+- **FAIL** → return to Loop with feedback
+
+### Phase 6: DevOps (`.agent/devops.md`)
+- Git commit, push, CI/CD
+- Deploy to configured platform
+
+## Resume Protocol
+
+If `.context/progress.json` exists and `status !== "not_started"`:
+1. Read progress state
+2. Read blackboard for current context
+3. Resume at the recorded phase/task
+4. Do NOT re-run completed phases
+
 ## Getting Started (New Project)
 
 1. Fill in `BRIEF.md` with your project idea
 2. Copy `.env.local.example` → `.env.local`
 3. Tell your AI assistant: **"Read AGENT.md and start the project"**
-4. The assistant will run `.agent/brainstorm.md` to gather details
-5. Everything flows automatically from there
+4. The assistant will run `.agent/brainstorm.md` → spec-validator → graph automatically
 
 ## Resuming a Project
 
