@@ -49,6 +49,210 @@ git checkout main
 
 ---
 
+## Phase 1.5: Generate CI/CD Files
+
+Sau khi git init + remote setup, đọc `.env.local` và **generate CI/CD config files thực tế**:
+
+```bash
+source .env.local
+# Đọc: CI_CD, GIT_PLATFORM, DEPLOY_PLATFORM
+# Đọc VPS fields nếu DEPLOY_PLATFORM=vps-docker:
+#   VPS_HOST, VPS_USER, VPS_SSH_KEY_PATH, DEPLOY_DIR, DOMAIN
+```
+
+### GitHub Actions (CI_CD=github-actions)
+
+Generate `.github/workflows/ci.yml`:
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test -- --passWithNoTests
+      - run: npm run build
+```
+
+Nếu `DEPLOY_PLATFORM=vps-docker` → thêm `deploy.yml`:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: []
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cd ${{ secrets.DEPLOY_DIR }}
+            git pull origin main
+            docker compose pull
+            docker compose up -d --build
+            docker compose exec -T app npx prisma migrate deploy || true
+          EOF
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl -f https://${{ secrets.DOMAIN }}/api/health || exit 1
+```
+
+Nếu `DEPLOY_PLATFORM=vercel` → thêm `deploy.yml`:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+```
+
+Nếu `DEPLOY_PLATFORM=railway` → thêm `deploy.yml`:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm i -g @railway/cli
+      - run: railway up --environment production
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+```
+
+### GitLab CI (CI_CD=gitlab-ci)
+
+Generate `.gitlab-ci.yml`:
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - ci
+  - deploy
+
+variables:
+  NODE_VERSION: '20'
+
+cache:
+  paths:
+    - node_modules/
+
+ci:
+  stage: ci
+  image: node:20-alpine
+  script:
+    - npm ci
+    - npm run lint
+    - npx tsc --noEmit
+    - npm test -- --passWithNoTests
+    - npm run build
+  only:
+    - main
+    - develop
+    - merge_requests
+
+deploy:
+  stage: deploy
+  image: alpine
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$VPS_SSH_KEY" | ssh-add -
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+  script:
+    - ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd $DEPLOY_DIR && git pull && docker compose up -d --build"
+  only:
+    - main
+  environment:
+    name: production
+```
+
+### Sau khi generate files
+
+1. Hiển thị cho user danh sách files đã tạo
+2. Hướng dẫn add Secrets vào CI/CD platform:
+
+```
+📋 Secrets cần thêm vào GitHub/GitLab:
+
+🔸 Nếu deploy VPS:
+   VPS_HOST      = <ip hoặc domain server>
+   VPS_USER      = <ssh username>
+   VPS_SSH_KEY   = <nội dung private key ~/.ssh/id_rsa>
+   DEPLOY_DIR    = <thư mục project trên VPS, vd: /opt/myapp>
+   DOMAIN        = <domain của app, vd: myapp.com>
+
+🔸 Nếu deploy Vercel:
+   VERCEL_TOKEN  = <token từ https://vercel.com/account/tokens>
+
+🔸 Nếu deploy Railway:
+   RAILWAY_TOKEN = <token từ https://railway.app/account/tokens>
+
+📍 Cách add vào GitHub:
+   Repo → Settings → Secrets and variables → Actions → New repository secret
+
+📍 Cách add vào GitLab:
+   Repo → Settings → CI/CD → Variables → Add variable
+```
+
+3. **WAIT**: "Anh đã add secrets chưa? Reply 'done' khi xong để em tiếp tục"
+
+---
+
 ## Phase 2: CI/CD Checks (After Each Layer)
 
 ### Run Checks

@@ -32,6 +32,8 @@ This template provides a **multi-agent workflow** for building web applications.
 - 🧠 **Error memory** — agents learn from mistakes, avoid repeating them
 - 🔍 **Independent review** — separate model reviews code to eliminate bias
 - 🚀 **Automated DevOps** — git setup, CI/CD, and deployment handled by DevOps agent
+- 📂 **Doc-driven input** — drop existing BRD, Design, API Spec, ERD into `docs/` — agents read and classify automatically
+- 🗜️ **Auto context compaction** — context compressed every 3 tasks and after each layer to prevent context bloat
 
 ---
 
@@ -328,6 +330,53 @@ feature/*   ← one branch per task
 | **GitHub** | https://github.com/settings/tokens | `repo` |
 | **GitLab** | https://gitlab.com/-/user_settings/personal_access_tokens | `api` |
 | **Bitbucket** | https://bitbucket.org/account/settings/app-passwords | `Repositories Read+Write` |
+
+#### GitHub — Chi tiết
+1. Vào https://github.com/settings/tokens
+2. Click **"Generate new token (classic)"**
+3. Note: tên bất kỳ (vd: `my-project`)
+4. Expiration: 90 days hoặc No expiration
+5. Tick scope: ☑️ **repo** (full control of private repositories)
+6. Click **Generate token** → Copy ngay (chỉ hiện 1 lần)
+
+#### GitLab — Chi tiết
+1. Vào https://gitlab.com/-/user_settings/personal_access_tokens
+2. Token name: tên bất kỳ
+3. Tick scope: ☑️ **api**
+4. Click **Create personal access token** → Copy ngay
+
+#### Bitbucket — Chi tiết
+1. Vào https://bitbucket.org/account/settings/app-passwords
+2. Click **Create app password**
+3. Tick permissions: ☑️ **Repositories: Read + Write**
+4. Click **Create** → Copy ngay
+
+### CI/CD Secrets
+
+Sau khi brainstorm agent generate CI/CD files, cần add secrets vào platform:
+
+#### GitHub Actions → Repo Settings → Secrets and variables → Actions
+
+| Secret | Khi nào cần | Giá trị |
+|--------|-------------|--------|
+| `VPS_HOST` | Deploy VPS | IP hoặc domain server |
+| `VPS_USER` | Deploy VPS | SSH username (vd: `ubuntu`, `root`) |
+| `VPS_SSH_KEY` | Deploy VPS | Nội dung file `~/.ssh/id_rsa` (private key) |
+| `DEPLOY_DIR` | Deploy VPS | Đường dẫn project trên VPS (vd: `/opt/myapp`) |
+| `DOMAIN` | Deploy VPS | Domain của app (vd: `myapp.com`) |
+| `VERCEL_TOKEN` | Deploy Vercel | Token từ https://vercel.com/account/tokens |
+| `RAILWAY_TOKEN` | Deploy Railway | Token từ https://railway.app/account/tokens |
+
+#### Cách lấy VPS SSH Key
+```bash
+# Xem nội dung private key (copy toàn bộ output)
+cat ~/.ssh/id_rsa
+
+# Nếu chưa có key, tạo mới
+ssh-keygen -t ed25519 -C "your-email@example.com"
+# Sau đó copy public key lên VPS:
+ssh-copy-id user@your-vps-ip
+```
 
 ---
 

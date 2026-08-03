@@ -182,48 +182,148 @@ Chờ user confirm → mới generate.
 
 ## Phase 4: Git Setup
 
-Hỏi:
+Hỏi **từng câu một**:
+
 1. **Git platform?** GitHub / GitLab / Bitbucket / Skip
 
 Nếu KHÔNG skip:
-2. **Repo mới hay có sẵn?**
 
-Nếu tạo mới, hướng dẫn lấy token:
+2. **Repo mới hay có sẵn?** (new / existing)
+
+3. **Repo name?** (tên repository sẽ tạo hoặc tên repo hiện có)
+
+4. **Visibility?** private / public
+
+5. **Git username?** (tên tài khoản git)
+
+Sau khi hỏi xong, hiển thị hướng dẫn lấy token **tương ứng platform đã chọn**:
 
 ```
 📋 Hướng dẫn lấy Personal Access Token:
 
 🔸 GitHub:
    1. Vào https://github.com/settings/tokens
-   2. "Generate new token (classic)"
-   3. Scope: ☑️ repo (full control)
-   4. Copy token
+   2. Click "Generate new token (classic)"
+   3. Đặt tên token (vd: my-project-deploy)
+   4. Expiration: 90 days hoặc No expiration
+   5. Scope: ☑️ repo (full control of private repositories)
+   6. Click "Generate token" → Copy token ngay (chỉ hiện 1 lần!)
 
 🔸 GitLab:
    1. Vào https://gitlab.com/-/user_settings/personal_access_tokens
-   2. Scope: ☑️ api
-   3. Copy token
+   2. Đặt tên token
+   3. Scope: ☑️ api
+   4. Click "Create personal access token" → Copy token
 
 🔸 Bitbucket:
    1. Vào https://bitbucket.org/account/settings/app-passwords
-   2. Permissions: ☑️ Repositories Read + Write
-   3. Copy token
+   2. Click "Create app password"
+   3. Permissions: ☑️ Repositories: Read + Write
+   4. Copy token
 ```
 
-3. Hướng dẫn user điền vào `.env.local`:
-```
-GIT_PLATFORM=github
-GIT_TOKEN=ghp_xxxxxxxxxxxx
-GIT_USERNAME=your-username
-REPO_NAME=my-project
-REPO_VISIBILITY=private
+Sau đó ghi ngay vào `.env.local`:
+
+```bash
+# Ghi git config vào .env.local
+cat >> .env.local << EOF
+GIT_PLATFORM=<platform>
+GIT_TOKEN=<token>
+GIT_USERNAME=<username>
+REPO_NAME=<repo_name>
+REPO_VISIBILITY=<private|public>
+EOF
 ```
 
-4. **WAIT**: "Điền xong chưa anh? Reply 'continue' để tiếp tục"
+6. **WAIT**: "Anh đã lấy được token chưa? Reply token để em điền vào `.env.local`, hoặc reply 'skip' để bỏ qua git setup."
 
 ---
 
-## Phase 5: Agent Models
+## Phase 5: Deploy & CI/CD Config
+
+Chỉ chạy phase này nếu Phase 1 câu 7 KHÔNG phải `skip`.
+
+Đọc `DEPLOY_PLATFORM` từ `.context/brainstorm-log.md`.
+
+### Nếu `vps-docker`:
+
+Hỏi:
+1. **VPS IP hoặc domain?** (vd: 123.45.67.89 hoặc myapp.com)
+2. **SSH user?** (vd: root, ubuntu, deploy)
+3. **SSH port?** (default: 22)
+4. **Deploy directory trên VPS?** (default: /opt/app)
+5. **Domain cho app?** (vd: myapp.com — dùng cho SSL + Nginx)
+
+Ghi vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+VPS_HOST=<ip_or_domain>
+VPS_USER=<ssh_user>
+VPS_PORT=<ssh_port>
+DEPLOY_DIR=<deploy_dir>
+APP_DOMAIN=<domain>
+EOF
+```
+
+### Nếu `vercel`:
+
+Hỏi:
+1. **Vercel project name?** (tên project trên Vercel)
+2. **Vercel team slug?** (nếu dùng team account, để trống nếu personal)
+
+Ghi vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+VERCEL_PROJECT=<project_name>
+VERCEL_TEAM=<team_slug>
+EOF
+```
+
+### Nếu `railway`:
+
+Hỏi:
+1. **Railway project name?** (tên project trên Railway)
+
+Ghi vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+RAILWAY_PROJECT=<project_name>
+EOF
+```
+
+### CI/CD Setup
+
+Đọc `CI_CD` từ `.context/brainstorm-log.md`.
+
+Nếu `github-actions`:
+- Ghi vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+CI_CD=github-actions
+EOF
+```
+- Thông báo: "Sau khi generate spec xong, DevOps agent sẽ tạo file `.github/workflows/` tự động."
+
+Nếu `gitlab-ci`:
+- Ghi vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+CI_CD=gitlab-ci
+EOF
+```
+- Thông báo: "Sau khi generate spec xong, DevOps agent sẽ tạo file `.gitlab-ci.yml` tự động."
+
+Nếu `skip`:
+- Ghi vào `.env.local`:
+```bash
+cat >> .env.local << EOF
+CI_CD=skip
+EOF
+```
+
+---
+
+## Phase 6: Agent Models
 
 Trước khi hỏi, đọc models từ opencode config của user:
 
@@ -267,7 +367,7 @@ SPEC_VALIDATOR_MODEL=<user_choice>
 
 ---
 
-## After All Phases
+## After All Phases (Post Phase 6)
 
 1. Generate `SPECIFICATIONS.md` từ docs + brainstorm-log + clarifications
 2. Trigger `.agent/spec-validator.md`
