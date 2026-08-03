@@ -121,14 +121,8 @@ Hỏi **từng câu một**. Chờ user trả lời rồi mới hỏi tiếp.
 10. **Timeline**: MVP (core features only) / Full (all features)?
 11. **UI Library?**
     Web: shadcn/ui (recommended) / MUI / Ant Design / Tailwind only
-12. **Design style?** (skip nếu đã có Design Spec)
-    Minimal / Modern / Corporate / Playful
-13. **Color scheme?** (skip nếu đã có Design Spec)
-    Light only / Dark only / Both (system)
-14. **Design reference?** (skip nếu đã có Design Spec)
-    - Upload ảnh (Figma screenshot, inspo, wireframe)
-    - Paste Figma link
-    - Không có (agent tự design theo style đã chọn)
+
+> ℹ️ Design style, color scheme, và design reference sẽ được hỏi riêng bởi **Design Agent** sau khi Spec Validator PASS.
 
 ### Rules
 - Hỏi 1 câu → chờ answer → hỏi câu tiếp

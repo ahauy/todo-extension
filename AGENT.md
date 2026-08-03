@@ -32,13 +32,28 @@ The system uses 4 patterns working together:
 ```
 BRIEF.md → Brainstorm → SPECIFICATIONS.md → Spec Validate
     ↓ (PASS)
-Graph → tasks/layer-0/ → tasks/layer-1/ → ...
+Design Agent → design-tokens.md + design-spec.md
+    ↓ (user confirms design tokens)
+Graph → Layer Plan
     ↓
-Loop (per task) → Code → Test → Error Analyzer (if fail)
-    ↓ (PASS)
-Reviewer → PASS → DevOps (commit/deploy) → Next Task
-    ↓ (FAIL)
-Loop (with feedback) → retry
+👀 HUMAN CHECKPOINT: Review layer plan → user approves
+    ↓
+┌──── For each Layer N ────────────────────────────────┐
+│                                                       │
+│  Loop (per task, respecting dependencies):            │
+│  Read → Plan → Code → Test → Error Analyzer (fail)   │
+│      ↓ (PASS)                                         │
+│  Reviewer (different model) → git commit              │
+│      ↓ (PASS)                                         │
+│  👀 HUMAN CHECKPOINT: Layer N done → proceed?         │
+│      ↓ (user approves)                                │
+└───────────────────────────────────────────────────────┘
+    ↓ (all layers done)
+DevOps → CI/CD → Deploy staging
+    ↓
+👀 HUMAN CHECKPOINT: Approve production deploy
+    ↓
+Deploy production → Health check → Done ✅
 ```
 
 ### Phase 0: Load Context
@@ -56,30 +71,57 @@ Loop (with feedback) → retry
 ### Phase 2: Spec Validation (`.agent/spec-validator.md`) ← MANDATORY
 - Validate `SPECIFICATIONS.md` for completeness and consistency
 - Check for conflicts, missing configs, ambiguous requirements
-- **PASS** → proceed to Phase 3 (Task Graph)
+- **PASS** → proceed to Phase 2.5 (Design)
 - **FAIL** → return to Phase 1 (Brainstorm) with specific gaps listed, then re-validate
+
+### Phase 2.5: Design (`.agent/design.md`) ← MANDATORY
+- Ask for design reference (image / Figma link / none)
+- If image/Figma → analyze and extract colors, layout, typography, components
+- If none → generate design system based on style chosen in brainstorm
+- Output: `.context/design-spec.md` + `skills/react-nodejs/design-tokens.md`
+- Confirm design tokens with user before proceeding
+- **PASS** → proceed to Phase 3 (Task Graph)
 
 ### Phase 3: Task Graph (`.agent/graph.md`)
 - Decompose specs into dependency-ordered layers
 - Write task files to `tasks/` directory
-- Each task: clear scope, inputs, outputs, acceptance criteria
+- Each task: clear scope, inputs, outputs, acceptance criteria, **explicit dependency list**
+- Show layer plan to user and **wait for approval before starting execution**
 
-### Phase 4: Execution Loop (`.agent/loop.md`)
-- Pick next task from graph (lowest unlocked layer)
+> 👀 **HUMAN CHECKPOINT — Layer Plan**
+> "Em đã chia xong tasks. Anh review layer plan trước khi em bắt đầu code nhé?"
+> Chờ user reply 'ok' / 'proceed' mới chạy Loop.
+
+### Phase 4: Execution Loop (`.agent/loop.md`) — per layer
+- Check dependencies: chỉ chạy task khi tất cả deps đã PASS
 - Implement with TDD where appropriate
 - Update `.context/progress.json` after each task
 - Handle errors via `.agent/error-analyzer.md`
+- **Max 3 retries per task** → BLOCKED → notify human
 
-### Phase 5: Review (`.agent/reviewer.md`)
+### Phase 5: Review (`.agent/reviewer.md`) — per layer
 - Code quality, security, performance
 - Uses `REVIEWER_MODEL` (different provider to avoid bias)
 - Write reports to `.context/review-reports/`
-- **PASS** → proceed to DevOps
-- **FAIL** → return to Loop with feedback
+- **PASS** → Human checkpoint below
+- **FAIL** → return to Loop with feedback (max 2 rounds, then escalate)
+
+> 👀 **HUMAN CHECKPOINT — End of Each Layer**
+> "Layer N hoàn thành. Em tóm tắt:
+> - Tasks done: [...]
+> - Tests: X passed
+> - Review: PASS
+> Anh muốn em tiếp tục Layer N+1 không?"
+> **KHÔNG tự động chạy layer tiếp theo.** Chờ user confirm.
 
 ### Phase 6: DevOps (`.agent/devops.md`)
-- Git commit, push, CI/CD
-- Deploy to configured platform
+- Git commit, push, CI/CD checks after each layer
+- Final layer only: deploy to staging
+
+> 👀 **HUMAN CHECKPOINT — Before Production Deploy**
+> "Staging deploy xong. Health check: ✅
+> Anh confirm để em deploy production không?"
+> **KHÔNG tự động deploy production.** Chờ user approve.
 
 ## Resume Protocol
 
