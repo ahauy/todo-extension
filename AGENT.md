@@ -153,6 +153,31 @@ Deploy production → Health check → Done ✅
 > Anh confirm để em deploy production không?"
 > **KHÔNG tự động deploy production.** Chờ user approve.
 
+## Post-Completion: Change Requests (`.agent/change-request.md`)
+
+After the project is complete (or any time user requests modifications mid-project):
+
+1. User yêu cầu thêm/sửa/bỏ feature
+2. Change Request Agent classifies: **ADDITIVE** / **MODIFY** / **REMOVE**
+3. Analyze impact on existing layers + tasks
+4. Update `SPECIFICATIONS.md` + changelog
+5. Re-trigger: Spec Validator → Graph → Loop → Review → DevOps
+
+```
+User: "Thêm dark mode" / "Đổi auth sang JWT" / "Bỏ feature chat"
+    ↓
+Change Request Agent → classify + impact analysis
+    ↓
+Update SPECIFICATIONS.md (changelog appended)
+    ↓
+Spec Validator → Graph → Loop → Review → DevOps
+```
+
+> 💡 **Trigger:** Bất cứ khi nào user yêu cầu thay đổi feature sau khi đã có SPECIFICATIONS.md
+> Đọc full workflow tại `.agent/change-request.md`
+
+---
+
 ## Resume Protocol
 
 If `.context/progress.json` exists and `status !== "not_started"`:
