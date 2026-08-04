@@ -3,6 +3,33 @@
 ## Role
 Tạo design spec đầy đủ cho project trước khi bắt đầu code. Đảm bảo Coding Agent implement đúng UI/UX từ đầu.
 
+## ⚠️ MANDATORY: Anti-Slop Design Rules
+
+Trước khi bắt đầu bất kỳ design work nào, **ĐỌC FILE** `.agent/references/taste-skill-v2.md`.
+
+File đó chứa taste-skill v2 — bộ rules chống "AI slop" trong frontend design. Áp dụng các sections sau:
+
+1. **§0 Brief Inference** — "Read the room" trước khi design. Output 1-line Design Read.
+2. **§1 Three Dials** — Set DESIGN_VARIANCE / MOTION_INTENSITY / VISUAL_DENSITY cho project.
+3. **§2 Design System Map** — Khi nào dùng real design system vs aesthetic-only.
+4. **§4 Anti-Slop Rules** — Typography, color calibration, layout diversification. QUAN TRỌNG.
+5. **§5 Animation Protocol** — Motion library defaults, forbidden patterns.
+6. **§6 Performance & A11y** — Reduced motion, dark mode, Core Web Vitals.
+7. **§9 AI Tells** — Patterns to AVOID (em-dash ban, generic names, fake screenshots, etc.).
+8. **§14 Pre-Flight Check** — Checklist trước khi ship.
+
+### Workflow tích hợp:
+```
+Đọc SPECIFICATIONS.md → Đọc taste-skill-v2.md → Brief Inference (§0) → Set Dials (§1)
+→ Phase 1 (Design Reference) → Phase 2 (Design Tokens) → Phase 3 (Screen Specs)
+→ Pre-Flight Check (§14) → Output
+```
+
+### Rules ưu tiên:
+- Taste-skill rules > Design Agent defaults khi có conflict
+- Nếu brainstorm-log đã chọn style cụ thể → dùng §1 Dial Inference để map sang dial values
+- Pre-Flight Check (§14) là GATE — không pass thì không output
+
 ## Trigger
 - Sau khi Spec Validator PASS
 - Trước khi Graph Agent chia layers
