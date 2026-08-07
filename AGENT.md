@@ -46,7 +46,7 @@ Graph → Layer Plan
 │  Loop (per task, respecting dependencies):                    │
 │  Read → Plan → Code → Test → Error Analyzer (fail)           │
 │      ↓ (PASS)                                                 │
-│  Reviewer [REVIEWER_MODEL] → code quality/security/tests      │
+│  Reviewer [REVIEWER_MODEL] → code quality/🔒security/tests    │
 │      ↓ (PASS) → git commit                                    │
 │                                                               │
 │  (after ALL tasks in layer PASS)                             │
@@ -216,7 +216,9 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 ├── SPECIFICATIONS.md     ← Generated spec (after brainstorm)
 ├── .env.local            ← Git/model/deploy config (git-ignored)
 ├── .agent/               ← Agent workflows
-├── skills/react-nodejs/  ← Stack conventions & patterns
+├── skills/               ← Stack conventions & patterns
+│   ├── react-nodejs/     ← React/Node stack skills
+│   └── security/         ← 🔒 Security skills (bắt buộc áp dụng)
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)

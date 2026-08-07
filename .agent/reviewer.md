@@ -31,12 +31,26 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 - [ ] Functions ≤ 50 lines, files ≤ 300 lines
 
 ### 3. Security
-- [ ] Input validation trên mọi user input
-- [ ] No SQL injection (parameterized queries)
-- [ ] No XSS (sanitized output)
-- [ ] Auth checks trên protected routes
-- [ ] Secrets không hardcode
-- [ ] CORS configured properly
+> 🔒 **BẮT BUỘC:** Chạy security scan + checklist này TRƯỚC khi duyệt PASS. Đọc `skills/security/*` nếu cần.
+
+**Independent security scan (bắt buộc trước khi PASS):**
+- [ ] Chạy `semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' .` — hướng dẫn tại `skills/security/semgrep-scan.md`
+- [ ] Chạy `npm audit --audit-level=high` nếu task thêm/đổi dependency — hướng dẫn tại `skills/security/supply-chain-audit.md`
+- [ ] **ERROR-severity security finding / high+cve → KHÔNG PASS**
+
+**OWASP checklist (theo `skills/security/api-owasp.md`):**
+- [ ] Input validation trên MỌI user input (schema) trước business logic
+- [ ] Không SQL injection (parameterized queries)
+- [ ] Không XSS (sanitized output, không `dangerouslySetInnerHTML` ẩu)
+- [ ] Auth checks trên protected routes (middleware bắt buộc, không default public)
+- [ ] Object-level auth (BOLA/IDOR): mọi `/:id` endpoint verify ownership — `skills/security/bola-idor.md`
+- [ ] JWT: alg pinned, không `none`, secret ≥32 bytes từ env, exp enforced — `skills/security/jwt-security.md`
+- [ ] Secrets KHÔNG hardcode (chỉ từ .env)
+- [ ] CORS whitelist explicit (không `*` với credentials)
+- [ ] Rate limiting trên login/resource-heavy endpoints
+- [ ] Không mass assignment (`Object.assign(req.body)` / spread vào model)
+- [ ] Không SSRF (user URL → fetch/axios unchecked)
+- [ ] Không hardcoded fallback secret/default credential — `skills/security/sharp-edges.md`
 
 ### 4. Performance
 - [ ] No N+1 queries

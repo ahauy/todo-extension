@@ -77,6 +77,17 @@ Read:
 - .context/design-spec.md (nếu task liên quan UI/screen)
 - skills/react-nodejs/design-tokens.md (nếu task liên quan UI/screen)
 
+🔒 Nếu task liên quan đến input handling, auth, database, API endpoint, hoặc secret:
+- skills/security/semgrep-scan.md (scan lỗi bảo mật)
+- skills/security/api-owasp.md (OWASP Top 10 API)
+- skills/security/jwt-security.md (nếu dùng JWT/auth)
+- skills/security/bola-idor.md (nếu có object-by-id endpoint)
+- skills/security/sharp-edges.md (config/secret/secure-defaults)
+→ PHẢI đọc ít nhất 1 security skill trước khi code bất kỳ file xử lý input/auth/DB
+
+🔒 Mọi task thêm/cập nhật dependency:
+- skills/security/supply-chain-audit.md (npm audit + dependency risk)
+
 Nếu task liên quan đến UI/component:
 - .context/design-spec.md (layout spec cho screen này)
 - skills/react-nodejs/design-tokens.md (colors, typography, spacing)

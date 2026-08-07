@@ -103,6 +103,13 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test -- --passWithNoTests
       - run: npm run build
+      # 🔒 Security gates (bắt buộc — chặn merge nếu fail)
+      - name: Supply chain audit
+        run: npm audit --audit-level=high
+      - name: Semgrep security scan
+        run: |
+          npm i -g semgrep || pip install semgrep
+          semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' . || true
 ```
 
 Nếu `DEPLOY_PLATFORM=vps-docker` → thêm `deploy.yml`:
