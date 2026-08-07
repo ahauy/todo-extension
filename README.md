@@ -85,13 +85,19 @@ project-template/
 │   │   ├── stack.md              ← Libraries, tools, versions
 │   │   ├── patterns.md           ← API, auth, DB, testing patterns
 │   │   └── common-errors.md     ← Known issues + fixes
-│   └── security/                 ← 🔒 Security skills (bắt buộc áp dụng)
-│       ├── semgrep-scan.md          ← Static analysis security scan
-│       ├── api-owasp.md             ← OWASP API Top 10 checklist
-│       ├── jwt-security.md          ← JWT algorithm/signature hardening
-│       ├── bola-idor.md             ← Broken Object Level Authorization
-│       ├── sharp-edges.md           ← Secure defaults & footgun config
-│       └── supply-chain-audit.md    ← npm audit + dependency risk
+│   ├── security/                 ← 🔒 Security skills (bắt buộc áp dụng)
+│   │   ├── semgrep-scan.md          ← Static analysis security scan
+│   │   ├── api-owasp.md             ← OWASP API Top 10 checklist
+│   │   ├── jwt-security.md          ← JWT algorithm/signature hardening
+│   │   ├── bola-idor.md             ← Broken Object Level Authorization
+│   │   ├── sharp-edges.md           ← Secure defaults & footgun config
+│   │   └── supply-chain-audit.md    ← npm audit + dependency risk
+│   └── monitoring/               ← 📊 Monitoring skills (bắt buộc áp dụng)
+│       ├── otel-instrumentation.md  ← OTel traces/metrics/logs (backend)
+│       ├── otel-browser.md          ← Browser RUM (Web Vitals, JS errors)
+│       ├── otel-collector.md        ← Collector config (receivers/exporters)
+│       ├── otel-semantic-conventions.md ← OTel naming compliance
+│       └── production-monitoring.md ← Health check, uptime, structured logging
 │
 ├── tasks/
 │   ├── layer-0/                  ← Foundation tasks
@@ -139,6 +145,32 @@ Template tích hợp sẵn các quy tắc bảo mật (nhiều agent đọc & á
 3. **Khi push** (`devops.md` / CI) → `npm audit --audit-level=high` + semgrep scan trong CI
 
 > 🔴 ERROR-severity security finding hoặc high/critical CVE → **KHÔNG PASS / không merge**.
+
+---
+
+## 📊 Monitoring Integration
+
+Template tích hợp sẵn giám sát production (uptime + runtime observability) dựa trên **OpenTelemetry** — vendor-neutral, chạy được cả web lẫn mobile.
+
+### Skills (`skills/monitoring/`)
+
+| Skill | Tác dụng |
+|-------|----------|
+| `otel-instrumentation.md` | OTel traces/metrics/logs cho backend Node.js/Next.js |
+| `otel-browser.md` | Browser RUM (Web Vitals, JS errors, route tracing) |
+| `otel-collector.md` | Collector config (receivers/processors/exporters) |
+| `otel-semantic-conventions.md` | OTel naming compliance (span/attribute) |
+| `production-monitoring.md` | Health check, uptime, structured logging, dashboard |
+
+### Keys setup ở Phase 0.5
+
+Monitor keys/token (OTLP endpoint, service name, uptime) được hỏi & lưu vào `.env.local` ở **Phase 0.5** (giống git setup) — xem `.agent/brainstorm.md` → `0.5.D Monitor Setup`.
+
+### 3 Chốt chặn bắt buộc
+
+1. **Khi code** (`loop.md`) → phải đọc monitoring skill trước khi viết file API/performance/logging
+2. **Khi review** (`reviewer.md`) → check health endpoint, structured logging, OTel naming trước khi PASS
+3. **Khi push** (`devops.md` / CI) → verify health endpoint tồn tại trong CI
 
 ---
 

@@ -249,7 +249,50 @@ EOF
 
 ---
 
-### 0.5.D — Confirm Setup
+### 0.5.D — Monitor Setup
+
+> Setup keys/token cho monitoring (OpenTelemetry + uptime). Lưu tất cả vào `.env.local` giống git/deploy.
+
+Hỏi **từng câu một**:
+
+1. **Có setup monitoring không?** `otel` / `skip`
+
+Nếu `otel`:
+
+2. **OTLP endpoint?** (nơi nhận telemetry — tự host hoặc provider)
+   - Vendor-neutral: nhập URL endpoint (vd: `https://otlp.example.com/v1/traces`)
+   - Hoặc dùng provider (Grafana Cloud, SigNoz, etc.)
+
+3. **OTLP token/headers?** (auth cho exporter, nếu có)
+
+4. **Service name?** (tên service trong telemetry, vd: `my-app`)
+
+5. **Environment?** (vd: `production`, `staging`)
+
+6. **Uptime monitor?** (vd: UptimeRobot/StatusCake) — nếu có, hỏi:
+   - **Uptime service?** (tên service)
+   - **Uptime token?** (API token nếu dùng API tạo monitor)
+
+Ghi tất cả vào `.env.local`:
+
+```bash
+cat >> .env.local << EOF
+# ─── Monitoring (OpenTelemetry) ───
+MONITOR_ENABLED=<true|false>
+OTEL_EXPORTER_OTLP_ENDPOINT=<otlp_endpoint>
+OTEL_EXPORTER_OTLP_TOKEN=<otlp_token>
+OTEL_SERVICE_NAME=<service_name>
+OTEL_ENV=<environment>
+UPTIME_SERVICE=<uptime_service>
+UPTIME_TOKEN=<uptime_token>
+EOF
+```
+
+> ⚠️ Không bắt buộc — nếu `skip` thì bỏ qua. Nếu chưa có endpoint, dùng placeholder và bổ sung sau.
+
+---
+
+### 0.5.E — Confirm Setup
 
 Sau khi điền xong, hiển thị tóm tắt:
 

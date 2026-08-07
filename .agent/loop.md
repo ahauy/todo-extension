@@ -88,6 +88,12 @@ Read:
 🔒 Mọi task thêm/cập nhật dependency:
 - skills/security/supply-chain-audit.md (npm audit + dependency risk)
 
+📊 Nếu task liên quan đến API endpoint, performance, logging, hoặc observability:
+- skills/monitoring/otel-instrumentation.md (traces/metrics/logs backend)
+- skills/monitoring/otel-browser.md (RUM Web Vitals, JS errors)
+- skills/monitoring/otel-semantic-conventions.md (naming span/attribute)
+→ PHẢI đọc ít nhất 1 monitoring skill trước khi code file API/performance/logging
+
 Nếu task liên quan đến UI/component:
 - .context/design-spec.md (layout spec cho screen này)
 - skills/react-nodejs/design-tokens.md (colors, typography, spacing)

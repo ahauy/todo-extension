@@ -17,7 +17,7 @@ The system uses 4 patterns working together:
 
 | Agent | File | Role |
 |-------|------|------|
-| Brainstorm | `.agent/brainstorm.md` | Gather requirements; Phase 0.5 sets up git/VPS/CI/CD/models upfront |
+| Brainstorm | `.agent/brainstorm.md` | Gather requirements; Phase 0.5 sets up git/VPS/CI/CD/models/monitor keys upfront |
 | Spec Validator | `.agent/spec-validator.md` | Validate SPECIFICATIONS.md against requirements |
 | Design | `.agent/design.md` | Generate design tokens + screen specs |
 | Graph | `.agent/graph.md` | Decompose spec into layered tasks |
@@ -31,7 +31,7 @@ The system uses 4 patterns working together:
 ## Workflow
 
 ```
-BRIEF.md → Brainstorm Phase 0.5 (git/VPS/CI/CD/models setup)
+BRIEF.md → Brainstorm Phase 0.5 (git/VPS/CI/CD/models/monitor keys setup)
     ↓
 Brainstorm Phase 1-3 (requirements) → SPECIFICATIONS.md → Spec Validate
     ↓ (PASS)
@@ -218,7 +218,8 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 ├── .agent/               ← Agent workflows
 ├── skills/               ← Stack conventions & patterns
 │   ├── react-nodejs/     ← React/Node stack skills
-│   └── security/         ← 🔒 Security skills (bắt buộc áp dụng)
+│   ├── security/         ← 🔒 Security skills (bắt buộc áp dụng)
+│   └── monitoring/       ← 📊 Monitoring skills (bắt buộc áp dụng)
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)

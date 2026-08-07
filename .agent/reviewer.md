@@ -52,6 +52,14 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 - [ ] Không SSRF (user URL → fetch/axios unchecked)
 - [ ] Không hardcoded fallback secret/default credential — `skills/security/sharp-edges.md`
 
+**Monitoring/Observability checklist (`skills/monitoring/*`):**
+- [ ] Health check endpoint (`/health`, `/ready`) verify deps reachable — `production-monitoring.md`
+- [ ] Structured JSON logging, không log secret/PII/stack trace — `production-monitoring.md`
+- [ ] Traces/metrics instrumented (OTel) — `otel-instrumentation.md`
+- [ ] Span/attribute naming đúng chuẩn, không raw-ID/PII — `otel-semantic-conventions.md`
+- [ ] Browser RUM (Web Vitals, JS errors) nếu có frontend — `otel-browser.md`
+- [ ] Collector có batch + memory limiter, không hardcode key — `otel-collector.md`
+
 ### 4. Performance
 - [ ] No N+1 queries
 - [ ] Proper indexing hints (cho DB tasks)

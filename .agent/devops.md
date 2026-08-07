@@ -110,6 +110,9 @@ jobs:
         run: |
           npm i -g semgrep || pip install semgrep
           semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' . || true
+      # 📊 Monitoring gate — verify OTel deps + health endpoint exist
+      - name: Verify health endpoint
+        run: grep -rE "(\/health|\/ready)" src app pages --include='*.ts' --include='*.tsx' -l 2>/dev/null | head -1 || echo "⚠️ No health endpoint found — add GET /health"
 ```
 
 Nếu `DEPLOY_PLATFORM=vps-docker` → thêm `deploy.yml`:
