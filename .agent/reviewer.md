@@ -6,6 +6,30 @@ Review code từ góc nhìn độc lập, sử dụng model khác với coding a
 ## Model
 Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với CODING_MODEL).
 
+## ⚠️ MANDATORY: UI Craft-Floor (task có giao diện)
+
+> Nếu task có UI/component/screen → **ĐỌC `skills/impeccable/SKILL.md`** và chạy craft-floor trước khi duyệt PASS.
+
+**Verify trên sản phẩm thật (không phải ý định):**
+- [ ] Contrast body/placeholder ≥4.5:1, large ≥3:1 — không gray-on-gray
+- [ ] Shadow có offset + soft blur (không hard offset / halo decoration)
+- [ ] Spacing: nhiều space trên heading hơn dưới, nhóm tight + separation rộng
+- [ ] Type measure 60–75ch, tracking ≥-0.04em, scale/weight rõ ràng, không overflow mọi breakpoint
+- [ ] Motion: 1 authored moment, ease-out, có reduced-motion
+- [ ] States đủ: hover, disabled, loading, error, empty
+- [ ] Browser surfaces được theme (selection, caret, scrollbar, focus ring)
+- [ ] Copy: controls nêu action, errors nêu problem + recovery
+- [ ] Mọi brief requirement present + findable
+
+**Refuse (đánh dấu FAIL nếu task dùng:)**
+- Cards đều kích cỡ icon+heading+text làm cấu trúc trang, nested cards
+- Hero-metric template (số to + label nhỏ + stats)
+- Kicker/eyebrow trên heading (ban tuyệt đối)
+- Section numbers (01/02/03) không cần thiết
+- Gradient text, glass/blur decoration, border-left >1px màu
+- Emoji/glyph thay icon system
+- Hard offset shadow ngoài world neobrutalist
+
 ## Trigger
 - Loop agent hoàn thành 1 task (tests pass)
 - Hoặc khi human request review
@@ -71,6 +95,9 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 - [ ] Error path tested
 - [ ] Edge cases tested
 - [ ] Test names describe behavior
+
+### 5b. UI Craft-Floor Check (task có UI)
+> Nếu task UI → chạy craft-floor từ `skills/impeccable/SKILL.md` (contrast, depth, spacing, type, motion, states, browser surfaces, copy, coverage).
 
 ### 6. Integration
 - [ ] Không break existing code

@@ -77,6 +77,12 @@ Read:
 - .context/design-spec.md (nếu task liên quan UI/screen)
 - skills/react-nodejs/design-tokens.md (nếu task liên quan UI/screen)
 
+⚙️ Mọi task code (implement/bugfix/refactor):
+- Đọc `skills/superpowers/SKILL.md` — Iron Law debug + TDD gate
+- Trước khi fix bug → đọc `skills/superpowers/systematic-debugging.md` (4 phases)
+- Trước khi thêm tính năng → đọc `skills/superpowers/test-driven-development.md` (test-first)
+- Đọc `skills/ponytail/SKILL.md` — lazy senior dev ladder, chống over-engineering
+
 🔒 Nếu task liên quan đến input handling, auth, database, API endpoint, hoặc secret:
 - skills/security/semgrep-scan.md (scan lỗi bảo mật)
 - skills/security/api-owasp.md (OWASP Top 10 API)
@@ -108,8 +114,15 @@ Nếu task liên quan đến UI/component:
 
 ### 3. Act
 
-**Critical paths (auth, payment, data mutations): viết test TRƯỚC khi viết code.**
-Các task khác: viết code và test cùng lượt.
+**⚙️ MANDATORY TDD (theo `skills/superpowers/test-driven-development.md`):**
+```
+Write the test first. Watch it fail. Write minimal code to pass.
+```
+- **Critical paths (auth, payment, data mutations): viết test TRƯỚC khi viết code** (RED → GREEN)
+- Các task khác: viết code và test cùng lượt
+- Không viết code implement trước khi có failing test (trừ exception đã hỏi human)
+- Nghĩ "skip test lần này" → DỪNG, đó là rationalization
+- **Ponytail ladder (theo `skills/ponytail/SKILL.md`):** 1) cần tồn tại không (YAGNI) → 2) đã có trong codebase? → 3) stdlib? → 4) native? → 5) dependency đã cài? → 6) 1 dòng được? → 7) mới code tối thiểu
 
 ```
 Task type checklist:

@@ -18,6 +18,20 @@ File đó chứa taste-skill v2 — bộ rules chống "AI slop" trong frontend 
 7. **§9 AI Tells** — Patterns to AVOID (em-dash ban, generic names, fake screenshots, etc.).
 8. **§14 Pre-Flight Check** — Checklist trước khi ship.
 
+## ^ MANDATORY: UI/UX Design Intelligence
+
+> **ĐỌC `skills/ui-ux-pro-max/SKILL.md`** để đưa quyết định thiết kế cụ thể (color/typography/layout/animation theo product type) — không tự bịa.
+
+Áp dụng 10 priority categories (theo thứ tự ưu tiên):
+- **CRITICAL**: Accessibility (contrast 4.5:1, keyboard nav, aria) + Touch & Interaction (min 44×44px, spacing 8px+, loading feedback)
+- **HIGH**: Performance (WebP/AVIF, lazy, CLS<0.1) + Style (match product type, SVG icon không emoji) + Layout & Responsive (mobile-first, no h-scroll)
+- **MEDIUM**: Typography & Color (base 16px, line-height 1.5, semantic tokens) + Animation (150–300ms, meaningful motion) + Forms (visible labels, error near field)
+- **Navigation**: predictable back, bottom nav ≤5, deep linking
+
+**Workflow Generate Design System** (cho page/project mới): analyze product type → build pattern + style + colors + typography + effects → đối chiếu `skills/react-nodejs/design-tokens.md`.
+
+**Ưu tiên conflict:** taste-skill §4 Anti-Slop > ui-ux-pro-max defaults.
+
 ### Workflow tích hợp:
 ```
 Đọc SPECIFICATIONS.md → Đọc taste-skill-v2.md → Brief Inference (§0) → Set Dials (§1)
