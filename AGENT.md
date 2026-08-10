@@ -19,11 +19,11 @@ The system uses 4 patterns working together:
 |-------|------|------|
 | Brainstorm | `.agent/brainstorm.md` | Gather requirements; Phase 0.5 sets up git/VPS/CI/CD/models/monitor keys upfront |
 | Spec Validator | `.agent/spec-validator.md` | Validate SPECIFICATIONS.md against requirements |
-| Design | `.agent/design.md` | Generate design tokens + screen specs |
+| Design | `.agent/design.md` | Generate design tokens + screen specs (taste-skill v2 anti-slop + `ui-ux-pro-max` design intelligence) |
 | Graph | `.agent/graph.md` | Decompose spec into layered tasks |
-| Loop | `.agent/loop.md` | Execute tasks (ReAct pattern) |
-| Reviewer | `.agent/reviewer.md` | Per-task code review (`REVIEWER_MODEL`) + per-layer spec cross-check (`SPEC_VALIDATOR_MODEL`) |
-| Error Analyzer | `.agent/error-analyzer.md` | Root cause analysis + pattern learning |
+| Loop | `.agent/loop.md` | Execute tasks (ReAct pattern; TDD test-first + ponytail ladder) |
+| Reviewer | `.agent/reviewer.md` | Per-task code review (`REVIEWER_MODEL`) + per-layer spec cross-check (`SPEC_VALIDATOR_MODEL`); UI craft-floor via `impeccable` |
+| Error Analyzer | `.agent/error-analyzer.md` | Root cause analysis (Iron Law) + pattern learning |
 | Context Manager | `.agent/context-manager.md` | Context compression when window fills |
 | Rollback | `.agent/rollback.md` | Git checkpoint + revert strategy |
 | DevOps | `.agent/devops.md` | Git init, CI/CD, auto-push after each layer, deploy |
@@ -102,6 +102,8 @@ Deploy production → Health check → Done ✅
 - If image/Figma → analyze and extract colors, layout, typography, components
 - If none → generate design system based on style chosen in brainstorm
 - **MANDATORY: ĐỌC `skills/responsive-web/SKILL.md` + `skills/responsive-web/responsive.md` trước khi viết screen specs**
+- **MANDATORY: ĐỌC `skills/ui-ux-pro-max/SKILL.md`** — generate design system (pattern/style/colors/typography/effects) theo product type, đối chiếu `design-tokens.md`
+- **MANDATORY: ĐỌC `.agent/references/taste-skill-v2.md`** — anti-slop rules. Ưu tiên taste-skill §4 Anti-Slop > ui-ux-pro-max khi conflict
 - Mỗi screen phải khai báo **Responsive Behavior** (mobile/tablet/desktop layout) — không được bỏ trống
 - Output: `.context/design-spec.md` + `skills/react-nodejs/design-tokens.md`
 - Confirm design tokens with user before proceeding
@@ -118,10 +120,11 @@ Deploy production → Health check → Done ✅
 > Chờ user reply 'ok' / 'proceed' mới chạy Loop.
 
 ### Phase 4: Execution Loop (`.agent/loop.md`) — per layer
+- Implement with TDD where appropriate (theo `skills/superpowers/test-driven-development.md`: test-first, xem fail, code tối thiểu pass)
+- Áp dụng ponytail ladder (`skills/ponytail/SKILL.md`) — dừng ở giải pháp tối giản nhất work, chống over-engineering
 - Check dependencies: chỉ chạy task khi tất cả deps đã PASS
-- Implement with TDD where appropriate
 - Update `.context/progress.json` after each task
-- Handle errors via `.agent/error-analyzer.md`
+- Handle errors via `.agent/error-analyzer.md` (theo Iron Law `skills/superpowers/systematic-debugging.md`: NO FIX WITHOUT ROOT CAUSE)
 - **Max 3 retries per task** → BLOCKED → notify human
 
 ### Phase 5: Review (`.agent/reviewer.md`) — per layer
@@ -129,6 +132,7 @@ Deploy production → Health check → Done ✅
 **5a. Per-task Review** (`REVIEWER_MODEL`)
 - Code quality, security, performance, testing
 - **MANDATORY: chạy Responsive Checklist Gate** từ `skills/responsive-web/SKILL.md` cho mọi task có UI (test 375/768/1280px)
+- **MANDATORY (task UI): chạy UI Craft-Floor** từ `skills/impeccable/SKILL.md` — contrast ≥4.5:1, depth, type measure, states, browser surfaces, copy; refuse-list AI slop (identical card grids, hero-metric, eyebrow, gradient text, emoji icons…)
 - Write reports to `.context/review-reports/`
 - **PASS** → git commit → next task
 - **FAIL** → return to Loop with feedback (max 2 rounds, then escalate)
@@ -222,7 +226,12 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 ├── skills/               ← Stack conventions & patterns
 │   ├── react-nodejs/     ← React/Node stack skills
 │   ├── security/         ← 🔒 Security skills (bắt buộc áp dụng)
-│   └── monitoring/       ← 📊 Monitoring skills (bắt buộc áp dụng)
+│   ├── monitoring/       ← 📊 Monitoring skills (bắt buộc áp dụng)
+│   ├── responsive-web/   ← 📱 Responsive design checklist (375/768/1280px)
+│   ├── superpowers/      ← 🧠 Debug Iron Law + TDD test-first (curate from obra/superpowers)
+│   ├── ponytail/         → 🪶 Lazy senior dev ladder, chống over-engineering
+│   ├── impeccable/       → 🎨 UI craft-floor + polish gate (curate from pbakaus/impeccable)
+│   └── ui-ux-pro-max/    → 🧩 Design intelligence: 10 priority categories (curate from nextlevelbuilder)
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)

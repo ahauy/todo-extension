@@ -12,6 +12,9 @@
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
+- [🔒 Security Integration](#-security-integration)
+- [📊 Monitoring Integration](#-monitoring-integration)
+- [⚙️ Workflow Skills Integration](#️-workflow-skills-integration)
 - [How It Works](#how-it-works)
 - [Agent Roles](#agent-roles)
 - [Change Requests](#change-requests)
@@ -98,6 +101,11 @@ project-template/
 │       ├── otel-collector.md        ← Collector config (receivers/exporters)
 │       ├── otel-semantic-conventions.md ← OTel naming compliance
 │       └── production-monitoring.md ← Health check, uptime, structured logging
+│   ├── responsive-web/          ← 📱 Responsive design checklist (375/768/1280)
+│   ├── superpowers/             ← 🧠 Debug Iron Law + TDD (obra/superpowers)
+│   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
+│   ├── impeccable/              ← 🎨 UI craft-floor + polish (pbakaus)
+│   └── ui-ux-pro-max/           ← 🧩 Design intelligence (nextlevelbuilder)
 │
 ├── tasks/
 │   ├── layer-0/                  ← Foundation tasks
@@ -171,6 +179,28 @@ Monitor keys/token (OTLP endpoint, service name, uptime) được hỏi & lưu v
 1. **Khi code** (`loop.md`) → phải đọc monitoring skill trước khi viết file API/performance/logging
 2. **Khi review** (`reviewer.md`) → check health endpoint, structured logging, OTel naming trước khi PASS
 3. **Khi push** (`devops.md` / CI) → verify health endpoint tồn tại trong CI
+
+---
+
+## ⚙️ Workflow Skills Integration
+
+Template tích hợp 4 skill workflow (curate từ các repo open-source nổi tiếng — chọn tinh túy, không copy nguyên xi) để nâng chất lượng code + UI xuyên suốt pipeline.
+
+### Skills (`skills/`)
+
+| Skill | Nguồn | Dùng khi / Tác dụng |
+|-------|-------|---------------------|
+| `superpowers/` | obra/superpowers (270k⭐) | Mọi task code — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
+| `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer duyệt task **UI** — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
+| `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence theo product type (10 priority categories: a11y, touch, performance, style, layout…) |
+| `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop khi implement — **lazy senior dev ladder**, dừng ở giải pháp tối giản nhất, chống over-engineering |
+
+### 4 Chốt chặn bắt buộc
+
+1. **Khi debug** (`error-analyzer.md`) → Iron Law: **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**. Đọc `superpowers/systematic-debugging.md` trước khi đề xuất fix. ≥3 fixes fail = nghi architecture, không thử fix #4
+2. **Khi implement** (`loop.md`) → TDD test-first (`superpowers/test-driven-development.md`) + ponytail ladder; test fail → code tối thiểu pass
+3. **Khi review UI** (`reviewer.md`) → chạy craft-floor (`impeccable/SKILL.md`): contrast ≥4.5:1, refuse identical card grids / hero-metric / eyebrow / gradient text / emoji icons
+4. **Khi design** (`design.md`) → gen design system theo product type (`ui-ux-pro-max/SKILL.md`), đối chiếu taste-skill v2 anti-slop (ưu tiên taste-skill khi conflict)
 
 ---
 
