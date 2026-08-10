@@ -101,6 +101,8 @@ Deploy production → Health check → Done ✅
 - Ask for design reference (image / Figma link / none)
 - If image/Figma → analyze and extract colors, layout, typography, components
 - If none → generate design system based on style chosen in brainstorm
+- **MANDATORY: ĐỌC `skills/responsive-web/SKILL.md` + `skills/responsive-web/responsive.md` trước khi viết screen specs**
+- Mỗi screen phải khai báo **Responsive Behavior** (mobile/tablet/desktop layout) — không được bỏ trống
 - Output: `.context/design-spec.md` + `skills/react-nodejs/design-tokens.md`
 - Confirm design tokens with user before proceeding
 - **PASS** → proceed to Phase 3 (Task Graph)
@@ -126,6 +128,7 @@ Deploy production → Health check → Done ✅
 
 **5a. Per-task Review** (`REVIEWER_MODEL`)
 - Code quality, security, performance, testing
+- **MANDATORY: chạy Responsive Checklist Gate** từ `skills/responsive-web/SKILL.md` cho mọi task có UI (test 375/768/1280px)
 - Write reports to `.context/review-reports/`
 - **PASS** → git commit → next task
 - **FAIL** → return to Loop with feedback (max 2 rounds, then escalate)

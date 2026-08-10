@@ -108,10 +108,36 @@ List all screens and their key UI elements:
 
 ---
 
-## Responsive Breakpoints
+## Responsive Breakpoints (Mobile-First)
 
-| Breakpoint | Width | Target |
-|------------|-------|--------|
-| Mobile | < 768px | Phone |
-| Tablet | 768px – 1024px | iPad |
-| Desktop | > 1024px | Laptop/Desktop |
+> **MANDATORY:** Đọc `skills/responsive-web/SKILL.md` + `skills/responsive-web/responsive.md` trước khi thiết kế responsive. Skill chứa kỹ thuật cụ thể (container queries, fluid typography, checklist gate).
+
+| Breakpoint | Width | Tailwind | Target |
+|------------|-------|----------|--------|
+| Base (Mobile) | < 640px | (default) | Phone — viết styles mặc định trước |
+| sm | ≥ 640px | `sm:` | Large phones, small tablets |
+| md | ≥ 768px | `md:` | Tablets |
+| lg | ≥ 1024px | `lg:` | Laptops |
+| xl | ≥ 1280px | `xl:` | Desktops |
+| 2xl | ≥ 1536px | `2xl:` | Large screens |
+
+**Nguyên tắc:**
+- **Mobile-first**: viết base styles cho mobile → dùng `min-width` media query (Tailwind `sm:`/`md:`/...) để enhance cho màn hình lớn hơn.
+- **Content-based breakpoints**: đặt breakpoint nơi content cần thay đổi, không theo thiết bị cụ thể.
+- **Ưu tiên fluid** (`clamp()`, `rem`, `%`, `fr`, `vw`) hơn fixed `px`.
+- **Container queries** cho component-level responsive (độc lập viewport).
+
+## Responsive Behavior (BẮT BUỘC cho mỗi screen)
+
+Với TỪNG screen trong Screen Inventory, khai báo rõ responsive behavior:
+
+```markdown
+### Screen: [Name]
+- **Mobile (< 640px):** [layout mobile — stack dọc, hamburger nav, cột đơn, ...]
+- **Tablet (≥ 768px):** [layout tablet — 2 cột, sidebar xuất hiện, ...]
+- **Desktop (≥ 1024px):** [layout desktop — full grid, nav ngang, ...]
+- **Large (≥ 1280px):** [layout large — tối đa columns, nới spacing, ...]
+```
+
+Không được bỏ trống mục này — Review sẽ FAIL nếu thiếu.
+
