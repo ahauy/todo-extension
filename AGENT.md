@@ -232,6 +232,7 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   ├── ponytail/         → 🪶 Lazy senior dev ladder, chống over-engineering
 │   ├── impeccable/       → 🎨 UI craft-floor + polish gate (curate from pbakaus/impeccable)
 │   └── ui-ux-pro-max/    → 🧩 Design intelligence: 10 priority categories (curate from nextlevelbuilder)
+│   └── scalability-architecture/ → 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)

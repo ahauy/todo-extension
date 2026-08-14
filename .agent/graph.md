@@ -23,6 +23,11 @@ Luôn là layer đầu tiên. Bao gồm:
 - Config management (env vars, constants)
 - Git init + remote setup (via devops.md)
 
+> 📦 **Scalability (OPTIONAL):** Nếu `SPECIFICATIONS.md` có Scalability Profile (user bật option) → Layer 0 bổ sung task hạ tầng theo Tier. ĐỌC `skills/scalability-architecture/templates/` tương ứng Tier trước khi sinh task:
+> - **Standard**: health check, connection pool, backup script, LB-able config
+> - **High Traffic**: Redis (session/cache/rate limit), queue + worker, read replica routing, circuit breaker, observability, auto-scale guideline
+> - **Enterprise**: chia thành các task/sub-layer theo ADR đã duyệt (multi-region → sharding → event-driven → DR) — ưu tiên từng bước, đo + verify trước khi sang bước sau
+
 ### Layer 1: Core Backend
 - API routes cho core features
 - Database models/queries

@@ -40,6 +40,24 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 ---
 
+## ⚠️ Scalability Checklist Gate (chỉ khi có Scalability Profile)
+
+> Nếu `SPECIFICATIONS.md` có mục **Scalability Profile** (user bật option) → với task liên quan hạ tầng/backend/DB, **ĐỌC `skills/scalability-architecture/SKILL.md`** và chạy **Scalability Checklist Gate** ở mức Tier đã chọn TRƯỚC khi duyệt PASS.
+
+- **Tier Standard**: backend stateless, health check, connection pool, migration+backup, chạy ≥2 instance sau LB, env config, logging.
+- **Tier High Traffic** (thêm): Redis session/cache/rate limit, queue+worker, idempotency, read replica + route read/write, circuit breaker + timeout, observability, auto-scale guideline.
+- **Tier Enterprise** (thêm): multi-region/DR + RTO/RPO, sharding/distributed SQL, event-driven, CQRS/read model, load test + chaos test, SLO/SLA.
+
+> ❌ **Refuse (đánh dấu FAIL nếu task vi phạm):**
+> - Session/cache trong RAM instance (phải Redis)
+> - Tác vụ nặng xử lý trong request thay vì queue
+> - Hardcode single instance address / không LB-able
+> - Không health check / readiness
+> - Endpoint ghi không idempotency (Tier ≥ High Traffic)
+> - Microservices/sharding/Kubernetes tự ý thêm khi Tier không yêu cầu (over-engineering — ponytail)
+
+---
+
 ## Review Checklist
 
 ### 1. Requirements Coverage

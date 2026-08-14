@@ -23,6 +23,21 @@
 ## Authentication
 <!-- Auto-generated -->
 
+## Scalability Profile (OPTIONAL — chỉ khi user bật Scalability Option)
+<!-- Nếu user KHÔNG bật option, để trống hoặc ghi: off (không áp dụng) -->
+
+- **Scalability Option:** off
+- **Tier:** Standard / High Traffic / Enterprise
+- **CCU dự kiến:**
+- **Peak RPS ước tính:**
+- **Tỉ lệ đọc/ghi:**
+- **Peak/off-peak chênh lệch:**
+- **Tăng trưởng 6–12 tháng:**
+- **Availability (SLA):**
+- **Recovery (RTO/RPO):**
+
+> Chi tiết thiết kế hạ tầng theo Tier tại `skills/scalability-architecture/`. Nếu off → đi theo mặc định đơn giản (modular monolith + stateless + PostgreSQL).
+
 ## Deployment
 <!-- Auto-generated -->
 

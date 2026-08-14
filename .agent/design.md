@@ -56,6 +56,38 @@ File đó chứa taste-skill v2 — bộ rules chống "AI slop" trong frontend 
 ## Output
 - `.context/design-spec.md` — design spec đầy đủ cho từng screen
 - `skills/react-nodejs/design-tokens.md` — design tokens (colors, typography, spacing)
+- Nếu bật Scalability Option → thêm mục Architecture & Infrastructure vào design-spec
+
+---
+
+## ⚠️ Scalability Architecture (OPTIONAL — chỉ khi user bật option)
+
+> Nếu `SPECIFICATIONS.md` có mục **Scalability Profile** (user đã bật Scalability Option trong brainstorm) → **ĐỌC `skills/scalability-architecture/SKILL.md`** + `references/scalability-tiers.md` TRƯỚC khi viết design-spec.
+
+Thêm mục **"Architecture & Infrastructure"** vào `.context/design-spec.md` tương ứng Tier:
+
+### Tier Standard
+- Modular monolith + stateless backend
+- PostgreSQL/MySQL primary
+- Redis optional
+- Health check + connection pool + backup
+- Horizontal-scaling-ready (không hardcode single instance)
+
+### Tier High Traffic
+- Stateless backend → nhiều instance (auto-scale)
+- Redis: session/cache/rate limit
+- Queue + workers (email/notify/report/webhook)
+- DB Primary + Read Replica (route read/write)
+- Circuit breaker + timeout + idempotency
+- Observability: metrics/logs/tracing
+
+### Tier Enterprise
+- Multi-AZ/Region + DR (RTO/RPO ghi rõ)
+- Sharding hoặc distributed SQL (khi cần)
+- Event-driven (Kafka/event bus) nếu cần
+- Data warehouse + read model/CQRS
+
+> Khi viết design-spec cho hạ tầng: tham chiếu `templates/` tương ứng Tier để lấy config/pattern chuẩn. KHÔNG tự ý nâng Tier — chỉ theo Tier user đã chọn trong Scalability Profile.
 
 ---
 
