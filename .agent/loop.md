@@ -82,6 +82,7 @@ Read:
 - Trước khi fix bug → đọc `skills/superpowers/systematic-debugging.md` (4 phases)
 - Trước khi thêm tính năng → đọc `skills/superpowers/test-driven-development.md` (test-first)
 - Đọc `skills/ponytail/SKILL.md` — lazy senior dev ladder, chống over-engineering
+- **Nếu task EDIT code có sẵn (nâng cấp/refactor/sửa) → Đọc `skills/karpathy-guidelines/references/surgical-changes.md`** — chỉ chạm đúng phần cần, không dọn dẹp code người khác, match style. (Think Before Coding: nêu giả định rõ, không tự chọn thầm cách hiểu mơ hồ — xem `skills/karpathy-guidelines/references/think-before-coding.md` nếu task mơ hồ)
 
 🔒 Nếu task liên quan đến input handling, auth, database, API endpoint, hoặc secret:
 - skills/security/semgrep-scan.md (scan lỗi bảo mật)

@@ -106,7 +106,8 @@ project-template/
 │   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
 │   ├── impeccable/              ← 🎨 UI craft-floor + polish (pbakaus)
 │   ├── ui-ux-pro-max/           ← 🧩 Design intelligence (nextlevelbuilder)
-│   └── scalability-architecture/ ← 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
+│   ├── scalability-architecture/ ← 📦 OPTIONAL scalability tiers — chỉ khi user bật option
+│   └── karpathy-guidelines/      ← ✂️ Surgical changes + think before coding (andrej-karpathy-skills)
 │
 ├── tasks/
 │   ├── layer-0/                  ← Foundation tasks
@@ -196,6 +197,7 @@ Template tích hợp 4 skill workflow (curate từ các repo open-source nổi t
 | `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence theo product type (10 priority categories: a11y, touch, performance, style, layout…) |
 | `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop khi implement — **lazy senior dev ladder**, dừng ở giải pháp tối giản nhất, chống over-engineering |
 | `scalability-architecture/` | curate (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Chỉ khi user bật Scalability Option trong brainstorm. Chống over-engineering: không tự áp dụng microservices/sharding/K8s khi không cần |
+| `karpathy-guidelines/` | andrej-karpathy-skills (curate) | Loop khi edit code cũ — **surgical changes** (chỉ chạm đúng phần cần, không drive-by refactor) + Reviewer khi review diff — **assumption check** (nêu giả định, không tự chọn thầm). Bổ trợ ponytail (simplicity) + superpowers (goal-driven) |
 
 ### 4 Chốt chặn bắt buộc
 
