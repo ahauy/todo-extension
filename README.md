@@ -88,14 +88,14 @@ project-template/
 │   │   ├── stack.md              ← Libraries, tools, versions
 │   │   ├── patterns.md           ← API, auth, DB, testing patterns
 │   │   └── common-errors.md     ← Known issues + fixes
-│   ├── security/                 ← 🔒 Security skills (bắt buộc áp dụng)
+│   ├── security/                 ← 🔒 Security skills (mandatory)
 │   │   ├── semgrep-scan.md          ← Static analysis security scan
 │   │   ├── api-owasp.md             ← OWASP API Top 10 checklist
 │   │   ├── jwt-security.md          ← JWT algorithm/signature hardening
 │   │   ├── bola-idor.md             ← Broken Object Level Authorization
 │   │   ├── sharp-edges.md           ← Secure defaults & footgun config
 │   │   └── supply-chain-audit.md    ← npm audit + dependency risk
-│   └── monitoring/               ← 📊 Monitoring skills (bắt buộc áp dụng)
+│   └── monitoring/               ← 📊 Monitoring skills (mandatory)
 │       ├── otel-instrumentation.md  ← OTel traces/metrics/logs (backend)
 │       ├── otel-browser.md          ← Browser RUM (Web Vitals, JS errors)
 │       ├── otel-collector.md        ← Collector config (receivers/exporters)
@@ -106,7 +106,7 @@ project-template/
 │   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
 │   ├── impeccable/              ← 🎨 UI craft-floor + polish (pbakaus)
 │   ├── ui-ux-pro-max/           ← 🧩 Design intelligence (nextlevelbuilder)
-│   ├── scalability-architecture/ ← 📦 OPTIONAL scalability tiers — chỉ khi user bật option
+│   ├── scalability-architecture/ ← 📦 OPTIONAL scalability tiers — only when user enables the option
 │   └── karpathy-guidelines/      ← ✂️ Surgical changes + think before coding (andrej-karpathy-skills)
 │
 ├── tasks/
@@ -135,76 +135,76 @@ project-template/
 
 ## 🔒 Security Integration
 
-Template tích hợp sẵn các quy tắc bảo mật (nhiều agent đọc & áp dụng bắt buộc), đảm bảo code sinh ra chuẩn security.
+The template ships with built-in security rules (read and applied mandatorily by multiple agents) to ensure the generated code meets security standards.
 
 ### Skills (`skills/security/`)
 
-| Skill | Tác dụng |
-|-------|----------|
-| `semgrep-scan.md` | Static analysis scan lỗi bảo mật trước commit |
-| `api-owasp.md` | OWASP API Top 10 checklist cho mọi endpoint |
-| `jwt-security.md` | JWT hardening (alg pin, không `none`, secret mạnh) |
-| `bola-idor.md` | Object-level authorization (mọi `/:id` verify ownership) |
+| Skill | Purpose |
+|-------|---------|
+| `semgrep-scan.md` | Static analysis security scan before commit |
+| `api-owasp.md` | OWASP API Top 10 checklist for every endpoint |
+| `jwt-security.md` | JWT hardening (alg pinning, no `none`, strong secret) |
+| `bola-idor.md` | Object-level authorization (every `/:id` verifies ownership) |
 | `sharp-edges.md` | Secure defaults & footgun config/secret |
 | `supply-chain-audit.md` | `npm audit` + dependency takeover risk |
 
-### 3 Chốt chặn bắt buộc
+### 3 Mandatory Checkpoints
 
-1. **Khi code** (`loop.md`) → phải đọc security skill trước khi viết file xử lý input/auth/DB
-2. **Khi review** (`reviewer.md`) → chạy semgrep + `npm audit` + OWASP checklist trước khi PASS
-3. **Khi push** (`devops.md` / CI) → `npm audit --audit-level=high` + semgrep scan trong CI
+1. **When coding** (`loop.md`) → read the security skill before writing any file that handles input/auth/DB
+2. **When reviewing** (`reviewer.md`) → run semgrep + `npm audit` + OWASP checklist before PASS
+3. **When pushing** (`devops.md` / CI) → `npm audit --audit-level=high` + semgrep scan in CI
 
-> 🔴 ERROR-severity security finding hoặc high/critical CVE → **KHÔNG PASS / không merge**.
+> 🔴 ERROR-severity security finding or high/critical CVE → **DO NOT PASS / do not merge**.
 
 ---
 
 ## 📊 Monitoring Integration
 
-Template tích hợp sẵn giám sát production (uptime + runtime observability) dựa trên **OpenTelemetry** — vendor-neutral, chạy được cả web lẫn mobile.
+The template ships with built-in production monitoring (uptime + runtime observability) based on **OpenTelemetry** — vendor-neutral, works for both web and mobile.
 
 ### Skills (`skills/monitoring/`)
 
-| Skill | Tác dụng |
-|-------|----------|
-| `otel-instrumentation.md` | OTel traces/metrics/logs cho backend Node.js/Next.js |
+| Skill | Purpose |
+|-------|---------|
+| `otel-instrumentation.md` | OTel traces/metrics/logs for Node.js/Next.js backend |
 | `otel-browser.md` | Browser RUM (Web Vitals, JS errors, route tracing) |
 | `otel-collector.md` | Collector config (receivers/processors/exporters) |
 | `otel-semantic-conventions.md` | OTel naming compliance (span/attribute) |
 | `production-monitoring.md` | Health check, uptime, structured logging, dashboard |
 
-### Keys setup ở Phase 0.5
+### Keys setup in Phase 0.5
 
-Monitor keys/token (OTLP endpoint, service name, uptime) được hỏi & lưu vào `.env.local` ở **Phase 0.5** (giống git setup) — xem `.agent/brainstorm.md` → `0.5.D Monitor Setup`.
+Monitor keys/tokens (OTLP endpoint, service name, uptime) are asked and saved into `.env.local` in **Phase 0.5** (like git setup) — see `.agent/brainstorm.md` → `0.5.D Monitor Setup`.
 
-### 3 Chốt chặn bắt buộc
+### 3 Mandatory Checkpoints
 
-1. **Khi code** (`loop.md`) → phải đọc monitoring skill trước khi viết file API/performance/logging
-2. **Khi review** (`reviewer.md`) → check health endpoint, structured logging, OTel naming trước khi PASS
-3. **Khi push** (`devops.md` / CI) → verify health endpoint tồn tại trong CI
+1. **When coding** (`loop.md`) → read the monitoring skill before writing API/performance/logging files
+2. **When reviewing** (`reviewer.md`) → check health endpoint, structured logging, OTel naming before PASS
+3. **When pushing** (`devops.md` / CI) → verify the health endpoint exists in CI
 
 ---
 
 ## ⚙️ Workflow Skills Integration
 
-Template tích hợp 4 skill workflow (curate từ các repo open-source nổi tiếng — chọn tinh túy, không copy nguyên xi) để nâng chất lượng code + UI xuyên suốt pipeline.
+The template ships with 4 curated workflow skills (curated from well-known open-source repos — picking the essence, not copying verbatim) to raise code + UI quality throughout the pipeline.
 
 ### Skills (`skills/`)
 
-| Skill | Nguồn | Dùng khi / Tác dụng |
+| Skill | Source | When used / Purpose |
 |-------|-------|---------------------|
-| `superpowers/` | obra/superpowers (270k⭐) | Mọi task code — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
-| `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer duyệt task **UI** — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
-| `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence theo product type (10 priority categories: a11y, touch, performance, style, layout…) |
-| `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop khi implement — **lazy senior dev ladder**, dừng ở giải pháp tối giản nhất, chống over-engineering |
-| `scalability-architecture/` | curate (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Chỉ khi user bật Scalability Option trong brainstorm. Chống over-engineering: không tự áp dụng microservices/sharding/K8s khi không cần |
-| `karpathy-guidelines/` | andrej-karpathy-skills (curate) | Loop khi edit code cũ — **surgical changes** (chỉ chạm đúng phần cần, không drive-by refactor) + Reviewer khi review diff — **assumption check** (nêu giả định, không tự chọn thầm). Bổ trợ ponytail (simplicity) + superpowers (goal-driven) |
+| `superpowers/` | obra/superpowers (270k⭐) | Every coding task — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
+| `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer reviews **UI** tasks — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
+| `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence by product type (10 priority categories: a11y, touch, performance, style, layout…) |
+| `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop while implementing — **lazy senior dev ladder**, stop at the simplest solution, avoid over-engineering |
+| `scalability-architecture/` | curated (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Only when the user enables the Scalability Option in brainstorm. Avoids over-engineering: do not apply microservices/sharding/K8s when not needed |
+| `karpathy-guidelines/` | andrej-karpathy-skills (curated) | Loop when editing old code — **surgical changes** (touch only what's needed, no drive-by refactor) + Reviewer when reviewing diffs — **assumption check** (state assumptions, don't silently choose). Complements ponytail (simplicity) + superpowers (goal-driven) |
 
-### 4 Chốt chặn bắt buộc
+### 4 Mandatory Checkpoints
 
-1. **Khi debug** (`error-analyzer.md`) → Iron Law: **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**. Đọc `superpowers/systematic-debugging.md` trước khi đề xuất fix. ≥3 fixes fail = nghi architecture, không thử fix #4
-2. **Khi implement** (`loop.md`) → TDD test-first (`superpowers/test-driven-development.md`) + ponytail ladder; test fail → code tối thiểu pass
-3. **Khi review UI** (`reviewer.md`) → chạy craft-floor (`impeccable/SKILL.md`): contrast ≥4.5:1, refuse identical card grids / hero-metric / eyebrow / gradient text / emoji icons
-4. **Khi design** (`design.md`) → gen design system theo product type (`ui-ux-pro-max/SKILL.md`), đối chiếu taste-skill v2 anti-slop (ưu tiên taste-skill khi conflict)
+1. **When debugging** (`error-analyzer.md`) → Iron Law: **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**. Read `superpowers/systematic-debugging.md` before proposing a fix. ≥3 failed fixes = suspect the architecture, don't try fix #4
+2. **When implementing** (`loop.md`) → TDD test-first (`superpowers/test-driven-development.md`) + ponytail ladder; test fails → write minimal code to pass
+3. **When reviewing UI** (`reviewer.md`) → run craft-floor (`impeccable/SKILL.md`): contrast ≥4.5:1, refuse identical card grids / hero-metric / eyebrow / gradient text / emoji icons
+4. **When designing** (`design.md`) → generate a design system by product type (`ui-ux-pro-max/SKILL.md`), cross-check against taste-skill v2 anti-slop (prefer taste-skill on conflict)
 
 ---
 
@@ -429,88 +429,88 @@ feature/*   ← one branch per task
 | **GitLab** | https://gitlab.com/-/user_settings/personal_access_tokens | `api` |
 | **Bitbucket** | https://bitbucket.org/account/settings/app-passwords | `Repositories Read+Write` |
 
-#### GitHub — Chi tiết
-1. Vào https://github.com/settings/tokens
+#### GitHub — Steps
+1. Go to https://github.com/settings/tokens
 2. Click **"Generate new token (classic)"**
-3. Note: tên bất kỳ (vd: `my-project`)
-4. Expiration: 90 days hoặc No expiration
+3. Note: any name (e.g. `my-project`)
+4. Expiration: 90 days or No expiration
 5. Tick scope: ☑️ **repo** (full control of private repositories)
-6. Click **Generate token** → Copy ngay (chỉ hiện 1 lần)
+6. Click **Generate token** → Copy immediately (shown only once)
 
-#### GitLab — Chi tiết
-1. Vào https://gitlab.com/-/user_settings/personal_access_tokens
-2. Token name: tên bất kỳ
+#### GitLab — Steps
+1. Go to https://gitlab.com/-/user_settings/personal_access_tokens
+2. Token name: any name
 3. Tick scope: ☑️ **api**
-4. Click **Create personal access token** → Copy ngay
+4. Click **Create personal access token** → Copy immediately
 
-#### Bitbucket — Chi tiết
-1. Vào https://bitbucket.org/account/settings/app-passwords
+#### Bitbucket — Steps
+1. Go to https://bitbucket.org/account/settings/app-passwords
 2. Click **Create app password**
 3. Tick permissions: ☑️ **Repositories: Read + Write**
-4. Click **Create** → Copy ngay
+4. Click **Create** → Copy immediately
 
 ### CI/CD Secrets
 
-Sau khi brainstorm agent generate CI/CD files, cần add secrets vào platform:
+Once the brainstorm agent generates the CI/CD files, add the secrets to your platform:
 
 #### GitHub Actions → Repo Settings → Secrets and variables → Actions
 
-| Secret | Khi nào cần | Giá trị |
-|--------|-------------|--------|
-| `VPS_HOST` | Deploy VPS | IP hoặc domain server |
-| `VPS_USER` | Deploy VPS | SSH username (vd: `ubuntu`, `root`) |
-| `VPS_SSH_KEY` | Deploy VPS | Nội dung file `~/.ssh/id_rsa` (private key) |
-| `DEPLOY_DIR` | Deploy VPS | Đường dẫn project trên VPS (vd: `/opt/myapp`) |
-| `DOMAIN` | Deploy VPS | Domain của app (vd: `myapp.com`) |
-| `VERCEL_TOKEN` | Deploy Vercel | Token từ https://vercel.com/account/tokens |
-| `RAILWAY_TOKEN` | Deploy Railway | Token từ https://railway.app/account/tokens |
+| Secret | When needed | Value |
+|--------|-------------|-------|
+| `VPS_HOST` | Deploy VPS | Server IP or domain |
+| `VPS_USER` | Deploy VPS | SSH username (e.g. `ubuntu`, `root`) |
+| `VPS_SSH_KEY` | Deploy VPS | Contents of `~/.ssh/id_rsa` (private key) |
+| `DEPLOY_DIR` | Deploy VPS | Project path on the VPS (e.g. `/opt/myapp`) |
+| `DOMAIN` | Deploy VPS | App domain (e.g. `myapp.com`) |
+| `VERCEL_TOKEN` | Deploy Vercel | Token from https://vercel.com/account/tokens |
+| `RAILWAY_TOKEN` | Deploy Railway | Token from https://railway.app/account/tokens |
 
-#### GitHub Actions — Cách add secrets step-by-step
-1. Vào repo trên GitHub → **Settings** tab
+#### GitHub Actions — Add secrets step-by-step
+1. Open your repo on GitHub → **Settings** tab
 2. Sidebar: **Secrets and variables** → **Actions**
 3. Click **New repository secret**
-4. Điền Name (vd: `VPS_HOST`) + Value → **Add secret**
-5. Lặp lại cho từng secret trong bảng trên
+4. Enter Name (e.g. `VPS_HOST`) + Value → **Add secret**
+5. Repeat for each secret in the table above
 
-#### GitLab CI — Cách add variables step-by-step
-1. Vào repo trên GitLab → **Settings** → **CI/CD**
+#### GitLab CI — Add variables step-by-step
+1. Open your repo on GitLab → **Settings** → **CI/CD**
 2. Expand section **Variables**
 3. Click **Add variable**
-4. Key = tên secret (vd: `VPS_HOST`), Value = giá trị
-5. ⚠️ Với SSH key: tick **Type = File** và **Mask variable**
-6. Click **Add variable** → Lặp lại
+4. Key = secret name (e.g. `VPS_HOST`), Value = secret value
+5. ⚠️ For SSH keys: tick **Type = File** and **Mask variable**
+6. Click **Add variable** → Repeat
 
-#### Cách tạo + lấy VPS SSH Key
+#### How to create & retrieve a VPS SSH Key
 ```bash
-# 1. Tạo SSH key mới (nếu chưa có)
+# 1. Create a new SSH key (if you don't have one)
 ssh-keygen -t ed25519 -C "deploy@myproject"
 # → Enter file: ~/.ssh/deploy_key
-# → Passphrase: để trống (cho CI/CD)
+# → Passphrase: leave empty (for CI/CD)
 
-# 2. Copy PUBLIC key lên VPS
+# 2. Copy the PUBLIC key to the VPS
 ssh-copy-id -i ~/.ssh/deploy_key.pub user@your-vps-ip
 
-# 3. Lấy PRIVATE key để paste vào GitHub/GitLab secret
+# 3. Retrieve the PRIVATE key to paste into GitHub/GitLab secret
 cat ~/.ssh/deploy_key
-# ⚠️ Copy TOÀN BỘ output (bao gồm dòng -----BEGIN... và -----END...)
+# ⚠️ Copy the ENTIRE output (including the -----BEGIN... and -----END... lines)
 ```
 
-#### Cách lấy Vercel Token
-1. Vào https://vercel.com/account/tokens
+#### How to get a Vercel Token
+1. Go to https://vercel.com/account/tokens
 2. Click **Create Token**
-3. Name: `ci-deploy`, Scope: chọn team/project
-4. Click **Create** → Copy ngay
+3. Name: `ci-deploy`, Scope: select team/project
+4. Click **Create** → Copy immediately
 
-#### Cách lấy Railway Token
-1. Vào https://railway.app/account/tokens
+#### How to get a Railway Token
+1. Go to https://railway.app/account/tokens
 2. Click **Create Token**
 3. Name: `ci-deploy`
-4. Click **Create** → Copy ngay
+4. Click **Create** → Copy immediately
 
 > 💡 **Tips:**
-> - SSH key cho CI/CD nên tạo key riêng (không dùng key cá nhân)
-> - Secrets chỉ cần add 1 lần, CI/CD sẽ tự dùng mỗi lần deploy
-> - Nếu đổi server/key → update secret trong Settings là xong
+> - Create a dedicated SSH key for CI/CD (do not use your personal key)
+> - Secrets only need to be added once; CI/CD will use them automatically on every deploy
+> - If you change server/key → update the secret in Settings
 
 ---
 
