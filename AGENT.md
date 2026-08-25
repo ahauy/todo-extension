@@ -103,6 +103,7 @@ Deploy production → Health check → Done ✅
 - If none → generate design system based on style chosen in brainstorm
 - **MANDATORY: ĐỌC `skills/responsive-web/SKILL.md` + `skills/responsive-web/responsive.md` trước khi viết screen specs**
 - **MANDATORY: ĐỌC `skills/ui-ux-pro-max/SKILL.md`** — generate design system (pattern/style/colors/typography/effects) theo product type, đối chiếu `design-tokens.md`
+- **MANDATORY (public page): ĐỌC `skills/frontend-checklist/SKILL.md`** — khai báo SEO metadata (title/description/canonical/OG/structured data) + image strategy (format/srcset/lazy) + performance budget ngay trong screen specs
 - **MANDATORY: ĐỌC `.agent/references/taste-skill-v2.md`** — anti-slop rules. Ưu tiên taste-skill §4 Anti-Slop > ui-ux-pro-max khi conflict
 - Mỗi screen phải khai báo **Responsive Behavior** (mobile/tablet/desktop layout) — không được bỏ trống
 - Output: `.context/design-spec.md` + `skills/react-nodejs/design-tokens.md`
@@ -133,6 +134,7 @@ Deploy production → Health check → Done ✅
 - Code quality, security, performance, testing
 - **MANDATORY: chạy Responsive Checklist Gate** từ `skills/responsive-web/SKILL.md` cho mọi task có UI (test 375/768/1280px)
 - **MANDATORY (task UI): chạy UI Craft-Floor** từ `skills/impeccable/SKILL.md` — contrast ≥4.5:1, depth, type measure, states, browser surfaces, copy; refuse-list AI slop (identical card grids, hero-metric, eyebrow, gradient text, emoji icons…)
+- **MANDATORY (task UI/public-facing): chạy Frontend Checklist Gate** từ `skills/frontend-checklist/SKILL.md` — HTML semantics, accessibility/WCAG, SEO (title/canonical/OG/structured data/sitemap), Core Web Vitals (LCP/CLS/INP), images, frontend security (CSP/SRI/cookies), privacy. CRITICAL items FAIL → task FAIL; HIGH items mặc định bắt buộc (ghi lý do nếu bỏ)
 - Write reports to `.context/review-reports/`
 - **PASS** → git commit → next task
 - **FAIL** → return to Loop with feedback (max 2 rounds, then escalate)
@@ -228,6 +230,7 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   ├── security/         ← 🔒 Security skills (bắt buộc áp dụng)
 │   ├── monitoring/       ← 📊 Monitoring skills (bắt buộc áp dụng)
 │   ├── responsive-web/   ← 📱 Responsive design checklist (375/768/1280px)
+│   ├── frontend-checklist/ ← ✅ Frontend quality gate: HTML/a11y/SEO/perf/images/security/privacy (curate from thedaviddias/Front-End-Checklist)
 │   ├── superpowers/      ← 🧠 Debug Iron Law + TDD test-first (curate from obra/superpowers)
 │   ├── ponytail/         → 🪶 Lazy senior dev ladder, chống over-engineering
 │   ├── impeccable/       → 🎨 UI craft-floor + polish gate (curate from pbakaus/impeccable)

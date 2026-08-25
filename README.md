@@ -102,6 +102,7 @@ project-template/
 │       ├── otel-semantic-conventions.md ← OTel naming compliance
 │       └── production-monitoring.md ← Health check, uptime, structured logging
 │   ├── responsive-web/          ← 📱 Responsive design checklist (375/768/1280)
+│   ├── frontend-checklist/       ← ✅ Frontend quality gate: HTML/a11y/SEO/perf/images/security/privacy (curated from thedaviddias/Front-End-Checklist)
 │   ├── superpowers/             ← 🧠 Debug Iron Law + TDD (obra/superpowers)
 │   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
 │   ├── impeccable/              ← 🎨 UI craft-floor + polish (pbakaus)
@@ -193,18 +194,20 @@ The template ships with 4 curated workflow skills (curated from well-known open-
 | Skill | Source | When used / Purpose |
 |-------|-------|---------------------|
 | `superpowers/` | obra/superpowers (270k⭐) | Every coding task — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
+| `frontend-checklist/` | thedaviddias/Front-End-Checklist (curated) | Reviewer reviews **UI/public-facing** tasks — HTML semantics, accessibility/WCAG, SEO (title/canonical/OG/structured data/sitemap), Core Web Vitals (LCP/CLS/INP), images, frontend security (CSP/SRI/cookies), privacy. Curated: only critical + high priority rules
 | `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer reviews **UI** tasks — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
 | `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence by product type (10 priority categories: a11y, touch, performance, style, layout…) |
 | `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop while implementing — **lazy senior dev ladder**, stop at the simplest solution, avoid over-engineering |
 | `scalability-architecture/` | curated (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Only when the user enables the Scalability Option in brainstorm. Avoids over-engineering: do not apply microservices/sharding/K8s when not needed |
 | `karpathy-guidelines/` | andrej-karpathy-skills (curated) | Loop when editing old code — **surgical changes** (touch only what's needed, no drive-by refactor) + Reviewer when reviewing diffs — **assumption check** (state assumptions, don't silently choose). Complements ponytail (simplicity) + superpowers (goal-driven) |
 
-### 4 Mandatory Checkpoints
+### 5 Mandatory Checkpoints
 
 1. **When debugging** (`error-analyzer.md`) → Iron Law: **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**. Read `superpowers/systematic-debugging.md` before proposing a fix. ≥3 failed fixes = suspect the architecture, don't try fix #4
 2. **When implementing** (`loop.md`) → TDD test-first (`superpowers/test-driven-development.md`) + ponytail ladder; test fails → write minimal code to pass
-3. **When reviewing UI** (`reviewer.md`) → run craft-floor (`impeccable/SKILL.md`): contrast ≥4.5:1, refuse identical card grids / hero-metric / eyebrow / gradient text / emoji icons
-4. **When designing** (`design.md`) → generate a design system by product type (`ui-ux-pro-max/SKILL.md`), cross-check against taste-skill v2 anti-slop (prefer taste-skill on conflict)
+3. **When reviewing UI** (`reviewer.md`) → run craft-floor (`impeccable/SKILL.md`): contrast ≥4.5:1, refuse identical card grids / hero-metric / eyebrow / gradient text / emoji icons + **Frontend Checklist Gate** (`frontend-checklist/SKILL.md`): HTML semantics, a11y, SEO, Core Web Vitals, images, frontend security, privacy — CRITICAL items FAIL → task FAIL
+4. **When designing** (`design.md`) → generate a design system by product type (`ui-ux-pro-max/SKILL.md`), cross-check against taste-skill v2 anti-slop (prefer taste-skill on conflict); for public pages also declare SEO metadata + image strategy (`frontend-checklist/SKILL.md`)
+5. **When reviewing UI** (`reviewer.md`) → run responsive checklist gate (`responsive-web/SKILL.md`) at 375/768/1280px
 
 ---
 
