@@ -6,8 +6,9 @@
 |----------|-----------|---------|
 | Language | TypeScript | 5.x |
 | Runtime | Node.js | 20 LTS |
-| Frontend | React | 18.x |
-| Bundler | Vite | 5.x |
+| Frontend | React | 19.x |
+| Bundler | Vite | 8.x |
+| React Compiler | oxc-transform-react (native Rust) | latest |
 | Backend | Express | 4.x |
 | ORM | Prisma | 5.x |
 | Validation | Zod | 3.x |
@@ -25,6 +26,7 @@
 | Icons | Lucide React | Tree-shakeable |
 | HTTP Client | ky / fetch | Lightweight |
 | Date | date-fns | Immutable, tree-shakeable |
+| React Compiler | oxc-transform-react | Native Rust compiler via `@vitejs/plugin-react` `compiler: true` |
 
 ## Backend Stack
 
@@ -75,8 +77,13 @@
 Always pin exact versions in `package.json`:
 ```json
 "dependencies": {
-  "react": "18.2.0",     // ✅ exact
-  "express": "4.18.2"    // ✅ exact
+  "react": "19.1.0",      // ✅ exact
+  "express": "4.19.2"     // ✅ exact
+}
+"devDependencies": {
+  "vite": "8.1.0",        // ✅ exact
+  "@vitejs/plugin-react": "6.1.0",
+  "oxc-transform-react": "1.0.0"
 }
 // NOT "^18.2.0" or "~18.2.0"
 ```

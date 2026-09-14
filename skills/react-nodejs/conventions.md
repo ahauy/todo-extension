@@ -62,6 +62,7 @@ src/
 - **Max file length**: 300 lines (split if longer)
 - **Max function length**: 50 lines
 - **Prefer early returns** over nested if/else
+- **Compiler-friendly**: đừng tự `memo`/`useMemo`/`useCallback` tràn lan — React Compiler (Rust) tự tối ưu. Chỉ dùng tay khi đã đo được bottleneck.
 
 ## Formatting
 
@@ -78,7 +79,7 @@ src/
 
 ## ESLint
 
-- Extend: `eslint:recommended`, `@typescript-eslint/recommended`, `react/recommended`
+- Extend: `eslint:recommended`, `@typescript-eslint/recommended`, `react/recommended`, `eslint-plugin-react-compiler`
 - No `any` (use `unknown` + type guards)
 - No unused variables
 - No console.log (use logger)

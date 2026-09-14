@@ -132,7 +132,30 @@ const users = await prisma.user.findMany({ include: { posts: true } });
 
 ---
 
-## 10. Environment Variable Issues
+## 11. React Compiler Errors
+
+### "Module 'oxc-transform-react' not found" | "reactCompilerPreset" deprecated
+**Symptoms:** Build fails after bumping Vite/plugin-react; old Babel preset import error
+**Root Cause:** Template migrated to native Rust compiler — `@rolldown/plugin-babel` + `reactCompilerPreset` removed
+**Fix:**
+```bash
+npm install -D oxc-transform-react
+```
+```typescript
+// vite.config.ts — new (Rust native)
+import react from '@vitejs/plugin-react';
+plugins: [react({ compiler: true })]
+// NOT: babel({ presets: [reactCompilerPreset()] })
+```
+**Prevention:** Don't re-add `@rolldown/plugin-babel`; keep `oxc-transform-react` in devDependencies.
+
+### Component memoization not applied (compiler bailout)
+**Symptoms:** Perf regression on a component; compiler silently skips it
+**Root Cause:** One of the 2 unsupported patterns: `throw` inside `try` block, or logical assignment (`??=`, `&&=`, `||=`)
+**Fix:** Extract the bailout logic into a separate function/variable so the compiler can optimize the rest.
+**Prevention:** Run `eslint-plugin-react-compiler` to catch these patterns at write-time.
+
+---
 
 ### "Cannot read process.env.X" (undefined)
 **Symptoms:** Feature silently fails or throws

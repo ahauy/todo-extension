@@ -252,6 +252,33 @@ export const validate = (schema: ZodSchema) => {
 
 ---
 
+## React Compiler — Compiler-Aware Coding
+
+Template bật **React Compiler (native Rust)** qua `@vitejs/plugin-react` với `compiler: true` (không cần `@rolldown/plugin-babel` + preset nữa). Compiler tự động memo hóa component/hook → rẻ hơn build, nhanh hơn runtime.
+
+### Viết code "compiler-friendly"
+
+- Không lạm dụng `memo`, `useMemo`, `useCallback` thủ công — compiler tự lo, chỉ dùng tay khi đã đo được bottleneck thật (profiler/console).
+- Viết component/hook thuần, không mutate props/state — compiler tối ưu được khi code "đúng luật" React.
+- Giữ logic trong component body (compiler phân tích được) thay vì nhét hết vào thư viện bên ngoài.
+
+### 2 pattern khiến compiler bỏ qua (bailout)
+
+- `throw` bên trong `try` block
+- Logical assignment: `??=`, `&&=`, `||=`
+
+Nếu gặp 2 pattern này, tách ra biến/function riêng để compiler tiếp tục tối ưu.
+
+### Lint
+
+Thêm `eslint-plugin-react-compiler` để ESLint bắt luôn pattern không được compiler support ngay lúc viết code.
+```json
+// .eslintrc — plugins
+eslint-plugin-react-compiler
+```
+
+---
+
 ## Testing Patterns
 
 ### Shared API Contract Types
