@@ -107,7 +107,8 @@ Mỗi task file (`tasks/layer-{N}/task-{NN}.md`):
 3. Tasks trong cùng layer KHÔNG có dependency lẫn nhau
 3. Mỗi task phải có acceptance criteria rõ ràng, testable
 4. Prefer small tasks (1-3 files) over large tasks
-5. Update `.context/progress.json` sau khi generate xong:
+5. **Layer plan diagram (HUMAN CHECKPOINT):** sau khi sinh xong layer plan và trước khi user approve → **ĐỌC `skills/archify/SKILL.md`**, tạo 1 `workflow` diagram thể hiện dependency Layer 0 → 1 → 2… (kèm HUMAN CHECKPOINT giữa các layer), lưu `docs/diagrams/layer-plan.html`, mở cho user xác nhận. Diagram giúp user thấy được kế hoạch trước khi duyệt.
+6. Update `.context/progress.json` sau khi generate xong:
    ```json
    {
      "totalLayers": N,

@@ -80,6 +80,19 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 ---
 
+## 🗺️ Archify Diagram Check (task liên quan diagram)
+
+> Task nào tạo/sửa diagram (`docs/diagrams/*.html`, `.context/arch/*.json`) → **ĐỌC `skills/archify/SKILL.md`** + chạy lại validate/deliver TRƯỚC khi duyệt PASS:
+
+- [ ] `node bin/archify.mjs validate <type> <candidate.json> --quality showcase --json` — 0 composition errors + 0 warnings
+- [ ] `deliver` non-zero exit → không được gọi là pass
+- [ ] Mở HTML thật, verify topology khớp code/spec hiện tại (component/service/flow đúng, không vẽ bừa)
+- [ ] Diagram không khớp code thật → FAIL; sửa theo đúng `subject` được diagnostic
+
+> ⚠️ Diagram chỉ để **minh họa + verify** — không tự ý thêm component/service không có trong code/spec (same spirit như karpathy: không bịa topology).
+
+---
+
 ## Review Checklist
 
 ### 1. Requirements Coverage

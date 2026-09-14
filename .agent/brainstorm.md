@@ -83,6 +83,12 @@ Chờ user confirm → lưu kết quả vào `.context/doc-index.md`:
 
 So sánh những gì đã có với danh sách câu hỏi Phase 1 → đánh dấu câu nào đã có answer từ docs, câu nào còn thiếu.
 
+Nếu gap là **architecture** (`architecture: ❌ not provided`) mà docs đã scan đủ thông tin hệ thống/service/flow → đề xuất user:
+
+> 🗺️ Em có thể dựng **architecture diagram** từ docs đã scan bằng archify (xuất HTML tương tác, dark/light, export PNG) — giúp confirm topology trước khi vào requirements. Cho em vẽ nhé?
+
+User OK → **ĐỌC `skills/archify/SKILL.md`**, dựng diagram (`architecture` từ descriptions; `workflow` từ process/flow), lưu vào `.context/arch/`, cập nhật doc-index `architecture: ✅ covered (archify diagram)`.
+
 ---
 
 ## Phase 0.5: Project Setup (CHẠY NGAY SAU PHASE 0 — TRƯỚC KHI HỎI REQUIREMENTS)

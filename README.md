@@ -102,6 +102,7 @@ project-template/
 │       ├── otel-semantic-conventions.md ← OTel naming compliance
 │       └── production-monitoring.md ← Health check, uptime, structured logging
 │   ├── responsive-web/          ← 📱 Responsive design checklist (375/768/1280)
+│   ├── archify/                 ← 🗺️ Architecture/workflow/sequence/dataflow diagrams → self-contained HTML (tt-a1i/archify, curated)
 │   ├── frontend-checklist/       ← ✅ Frontend quality gate: HTML/a11y/SEO/perf/images/security/privacy (curated from thedaviddias/Front-End-Checklist)
 │   ├── superpowers/             ← 🧠 Debug Iron Law + TDD (obra/superpowers)
 │   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
@@ -194,6 +195,7 @@ The template ships with 4 curated workflow skills (curated from well-known open-
 | Skill | Source | When used / Purpose |
 |-------|-------|---------------------|
 | `superpowers/` | obra/superpowers (270k⭐) | Every coding task — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
+| `archify/` | tt-a1i/archify (curated, MIT) | **Diagrams** — architecture/workflow/sequence/dataflow/lifecycle → self-contained HTML (dark/light, export PNG/SVG). Hooked in Phase 0 (architecture gap), design (diagrams in design-spec), graph (layer-plan diagram at human checkpoint), reviewer (verify diagrams match real code) |
 | `frontend-checklist/` | thedaviddias/Front-End-Checklist (curated) | Reviewer reviews **UI/public-facing** tasks — HTML semantics, accessibility/WCAG, SEO (title/canonical/OG/structured data/sitemap), Core Web Vitals (LCP/CLS/INP), images, frontend security (CSP/SRI/cookies), privacy. Curated: only critical + high priority rules
 | `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer reviews **UI** tasks — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
 | `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence by product type (10 priority categories: a11y, touch, performance, style, layout…) |

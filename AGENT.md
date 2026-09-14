@@ -230,6 +230,7 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   ├── security/         ← 🔒 Security skills (bắt buộc áp dụng)
 │   ├── monitoring/       ← 📊 Monitoring skills (bắt buộc áp dụng)
 │   ├── responsive-web/   ← 📱 Responsive design checklist (375/768/1280px)
+│   ├── archify/          → 🗺️ Architecture/workflow/sequence/dataflow diagrams → self-contained HTML (tt-a1i/archify, curated)
 │   ├── frontend-checklist/ ← ✅ Frontend quality gate: HTML/a11y/SEO/perf/images/security/privacy (curate from thedaviddias/Front-End-Checklist)
 │   ├── superpowers/      ← 🧠 Debug Iron Law + TDD test-first (curate from obra/superpowers)
 │   ├── ponytail/         → 🪶 Lazy senior dev ladder, chống over-engineering
