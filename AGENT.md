@@ -238,7 +238,8 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   └── ui-ux-pro-max/    → 🧩 Design intelligence: 10 priority categories (curate from nextlevelbuilder)
 │   └── scalability-architecture/ → 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
 │   ├── karpathy-guidelines/ → ✂️ Behavioral rules: surgical changes (chỉ chạm đúng phần cần sửa) + think before coding (nêu giả định) (curate from andrej-karpathy-skills)
-│   └── aislop/           → 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
+│   ├── aislop/           → 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
+│   └── open-code-review/ → 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — reviewer chạy ocr review, bắt bug XSS/SQLi/NPE/thread-safety
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)
