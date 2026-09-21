@@ -164,3 +164,12 @@ plugins: [react({ compiler: true })]
 - Backend: ensure `dotenv` loads early (`import 'dotenv/config'`)
 - Frontend: prefix with `VITE_` for Vite projects
 **Prevention:** Validate all required env vars at startup.
+
+### Vitest 5 migration errors (v4 → v5)
+**Symptoms:** Tests fail after bump — `loupe.inspect` import error, tests chạy song song bất ngờ, matcher message khác
+**Root Cause:** Vitest 5 breaking changes (ra 03/09/2026): bỏ `loupe.inspect` → dùng `pretty-format`; `sequential` mặc định thành concurrent
+**Fix:**
+- Bỏ import `loupe` → dùng snapshot/`pretty-format` output mới
+- Muốn chạy file tuần tự: `fileParallelism: false` trong `vitest.config.ts` (thay cho `sequence.sequencer` cũ)
+- Update Node ≥ 22.12 + Vite ≥ 6.4 (template đã Vite 8 ✓)
+**Prevention:** Xem migration guide `vitest.dev/blog/vitest-5.html` khi bump major; pin exact `vitest: 5.0.1`.

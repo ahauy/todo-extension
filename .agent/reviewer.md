@@ -110,6 +110,18 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 ---
 
+## 🧹 anti-slop Oxlint Gate (task có code TS/JS)
+
+> Khi review task thay đổi code TS/JS → chạy `npx oxlint` (rules từ `skills/anti-slop/SKILL.md`) bên cạnh AISlop — bắt low-evidence patterns ở tầng lint:
+
+- [ ] Nếu project đã cài oxlint + anti-slop → `npx oxlint` — **error rule anti-slop → FAIL** (hoặc MAJOR nếu 1-2 rule nhẹ)
+- [ ] `array.filter().map()` / `reduce` copy accumulator / `object` tham số / type assertion không safety comment → yêu cầu sửa
+- [ ] Chưa cài anti-slop trong project → bỏ qua gate, ghi chú (không tự cài đè)
+
+> Oxlint/anti-slop bắt "mùi kiểu code" — bổ trợ AISlop (mùi nội dung) + OCR (bug thật). KHÔNG thay thế security checklist.
+
+---
+
 ## 🗺️ Archify Diagram Check (task liên quan diagram)
 
 > Task nào tạo/sửa diagram (`docs/diagrams/*.html`, `.context/arch/*.json`) → **ĐỌC `skills/archify/SKILL.md`** + chạy lại validate/deliver TRƯỚC khi duyệt PASS:
@@ -144,6 +156,7 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 - [ ] Chạy `semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' .` — hướng dẫn tại `skills/security/semgrep-scan.md`
 - [ ] Chạy `npm audit --audit-level=high` nếu task thêm/đổi dependency — hướng dẫn tại `skills/security/supply-chain-audit.md`
 - [ ] **ERROR-severity security finding / high+cve → KHÔNG PASS**
+- [ ] *(Optional)* Task nhạy cảm (auth/API public/input user) → `npx blitzstrike serve --mcp` + audit source thay đổi — pentest live, chỉ report finding đã STRIKE-validate — `skills/blitzstrike/SKILL.md`
 
 **OWASP checklist (theo `skills/security/api-owasp.md`):**
 - [ ] Input validation trên MỌI user input (schema) trước business logic

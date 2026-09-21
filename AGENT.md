@@ -239,7 +239,10 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   └── scalability-architecture/ → 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
 │   ├── karpathy-guidelines/ → ✂️ Behavioral rules: surgical changes (chỉ chạm đúng phần cần sửa) + think before coding (nêu giả định) (curate from andrej-karpathy-skills)
 │   ├── aislop/           → 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
-│   └── open-code-review/ → 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — reviewer chạy ocr review, bắt bug XSS/SQLi/NPE/thread-safety
+│   ├── open-code-review/ → 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — reviewer chạy ocr review, bắt bug XSS/SQLi/NPE/thread-safety
+│   ├── anti-slop/        → 🧬 Oxlint rules chống low-evidence TS/JS (dmmulroy/anti-slop, curated) — lint gate khi code
+│   ├── m3e-canvas/       → 🖼️ Sketch M3 UI trong browser → vibe prompt (lnkiai/m3e-canvas, curated) — Phase 2 design
+│   └── blitzstrike/      → ⚡ MCP pentest toolbelt (shinthink/blitzstrike, curated) — security optional
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)
