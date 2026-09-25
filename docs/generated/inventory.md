@@ -1,10 +1,10 @@
 # Generated Inventory
 
 > ⚠️ AUTO-GENERATED — **không sửa tay**. Chạy lại:
-> `pnpm docs:inventory` hoặc `node scripts/generate-inventory.mjs`.
+> `npm docs:inventory` hoặc `node scripts/generate-inventory.mjs`.
 
-- Git: `2f99d5c`
-- Source roots: `src`
+- Git: `98531a2`
+- Source roots: 
 - Total files: 0
 
 ## By extension

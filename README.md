@@ -146,7 +146,7 @@ project-template/
 │   │   ├── bola-idor.md             ← Broken Object Level Authorization
 │   │   ├── sharp-edges.md           ← Secure defaults & footgun config
 │   │   └── supply-chain-audit.md    ← dependency audit + dependency risk
-│   └── monitoring/               ← 📊 Monitoring skills (mandatory)
+│   ├── monitoring/               ← 📊 Monitoring skills (mandatory)
 │       ├── otel-instrumentation.md  ← OTel traces/metrics/logs (backend)
 │       ├── otel-browser.md          ← Browser RUM (Web Vitals, JS errors)
 │       ├── otel-collector.md        ← Collector config (receivers/exporters)

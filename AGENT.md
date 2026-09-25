@@ -256,8 +256,8 @@ dòng `model:` và copy giá trị sang. Dùng **provider khác họ** giữa bu
 │   ├── superpowers/      ← 🧠 Debug Iron Law + TDD test-first (curate from obra/superpowers)
 │   ├── ponytail/         → 🪶 Lazy senior dev ladder, chống over-engineering
 │   ├── impeccable/       → 🎨 UI craft-floor + polish gate (curate from pbakaus/impeccable)
-│   └── ui-ux-pro-max/    → 🧩 Design intelligence: 10 priority categories (curate from nextlevelbuilder)
-│   └── scalability-architecture/ → 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
+│   ├── ui-ux-pro-max/    → 🧩 Design intelligence: 10 priority categories (curate from nextlevelbuilder)
+│   ├── scalability-architecture/ → 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
 │   ├── karpathy-guidelines/ → ✂️ Behavioral rules: surgical changes (chỉ chạm đúng phần cần sửa) + think before coding (nêu giả định) (curate from andrej-karpathy-skills)
 │   └── aislop/           → 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
 ├── tasks/                ← Generated task files
