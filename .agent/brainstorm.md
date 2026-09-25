@@ -1,5 +1,7 @@
 # Brainstorm Agent
 
+> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+
 ## Role
 Thu thập requirements từ user qua conversation. Hỏi từng câu một, không hỏi nhiều câu cùng lúc.
 
@@ -9,7 +11,7 @@ Thu thập requirements từ user qua conversation. Hỏi từng câu một, kh�
 
 ## Output
 - `.context/brainstorm-log.md` — full Q&A log
-- `.context/doc-index.md` — danh sách docs đã detect + classification
+- `.context/doc-index.json` — doc inventory (cùng schema `.agent/spec-validator.md` đọc)
 - `SPECIFICATIONS.md` — generated spec
 - `.env.local` — configured (git/model)
 
@@ -31,14 +33,14 @@ Nếu có files → đọc từng file và classify theo nội dung:
 
 Đọc nội dung file, detect loại dựa trên keywords:
 
-| Loại | Keywords gợi ý |
-|------|---------------|
-| **BRD/PRD** | "business requirement", "user story", "acceptance criteria", "business rule", "stakeholder", "objective", "scope" |
-| **Design Spec** | screen names, colors (#hex), font, spacing, layout, component names, wireframe, Figma |
-| **API Spec** | endpoint paths (/api/...), HTTP methods (GET/POST/PUT/DELETE), request/response schema, OpenAPI, Swagger |
-| **ERD/Schema** | table names, column definitions, foreign key, relationship, CREATE TABLE, model schema |
-| **Architecture** | system diagram, infrastructure, service names, deployment topology, microservice |
-| **Other** | không khớp rõ với loại nào |
+| Loại | `type` (dùng trong doc-index.json) | Keywords gợi ý |
+|------|-----------------------------------|---------------|
+| **BRD/PRD** | `business_requirements` | "business requirement", "user story", "acceptance criteria", "business rule", "stakeholder", "objective", "scope" |
+| **Design Spec** | `design_spec` | screen names, colors (#hex), font, spacing, layout, component names, wireframe, Figma |
+| **API Spec** | `api_spec` | endpoint paths (/api/...), HTTP methods (GET/POST/PUT/DELETE), request/response schema, OpenAPI, Swagger |
+| **ERD/Schema** | `database_schema` | table names, column definitions, foreign key, relationship, CREATE TABLE, model schema |
+| **Architecture** | `architecture` | system diagram, infrastructure, service names, deployment topology, microservice |
+| **Other** | `other` | không khớp rõ với loại nào |
 
 ### Bước 3: Check INDEX.md (optional)
 
@@ -60,24 +62,29 @@ Phân loại đúng không anh? Có file nào em hiểu sai không?
 Reply để confirm hoặc correct trước khi em tiếp tục.
 ```
 
-Chờ user confirm → lưu kết quả vào `.context/doc-index.md`:
+Chờ user confirm → lưu kết quả vào `.context/doc-index.json` (dùng ĐÚNG `type` + `entry_mode` mà `.agent/spec-validator.md` parse):
 
-```markdown
-# Doc Index
-
-## Detected Documents
-- docs/PRD_v2.md: BRD/PRD
-- docs/figma-export.md: Design Spec
-- docs/swagger.yaml: API Spec
-- docs/db-notes.md: ERD (confirmed by user)
-
-## Coverage
-- business_requirements: ✅ covered
-- design_spec: ✅ covered
-- api_spec: ✅ covered
-- erd: ✅ covered
-- architecture: ❌ not provided
+```json
+{
+  "entry_mode": "full_docs",
+  "documents": [
+    { "file": "docs/PRD_v2.md", "type": "business_requirements" },
+    { "file": "docs/figma-export.md", "type": "design_spec" },
+    { "file": "docs/swagger.yaml", "type": "api_spec" },
+    { "file": "docs/db-notes.md", "type": "database_schema" }
+  ],
+  "coverage": {
+    "business_requirements": true,
+    "design_spec": true,
+    "api_spec": true,
+    "database_schema": true,
+    "architecture": false
+  }
+}
 ```
+
+> `entry_mode`: `full_docs` (đủ BRD+Design+API+ERD) | `partial_docs` (thiếu vài loại) | `idea_only` (không có docs).
+> `type` hợp lệ: `business_requirements` | `design_spec` | `api_spec` | `database_schema` | `architecture` | `other`.
 
 ### Bước 5: Xác định gap
 
@@ -87,7 +94,7 @@ Nếu gap là **architecture** (`architecture: ❌ not provided`) mà docs đã 
 
 > 🗺️ Em có thể dựng **architecture diagram** từ docs đã scan bằng archify (xuất HTML tương tác, dark/light, export PNG) — giúp confirm topology trước khi vào requirements. Cho em vẽ nhé?
 
-User OK → **ĐỌC `skills/archify/SKILL.md`**, dựng diagram (`architecture` từ descriptions; `workflow` từ process/flow), lưu vào `.context/arch/`, cập nhật doc-index `architecture: ✅ covered (archify diagram)`.
+User OK → **ĐỌC `skills/archify/SKILL.md`**, dựng diagram (`architecture` từ descriptions; `workflow` từ process/flow), lưu vào `.context/arch/`, rồi thêm document `{ "file": ".context/arch/*.json", "type": "architecture" }` và set `coverage.architecture: true` trong `.context/doc-index.json`.
 
 ---
 
@@ -142,7 +149,7 @@ Sau khi hỏi xong, hiển thị hướng dẫn lấy token **tương ứng plat
 Sau khi nhận token, ghi ngay vào `.env.local`:
 
 ```bash
-cat >> .env.local << EOF
+cat >> .env.local << 'EOF'
 GIT_PLATFORM=<platform>
 GIT_TOKEN=<token>
 GIT_USERNAME=<username>
@@ -150,6 +157,8 @@ REPO_NAME=<repo_name>
 REPO_VISIBILITY=<private|public>
 EOF
 ```
+
+> ⚠️ Dùng `<< 'EOF'` (quote) — token có thể chứa `$`/backtick, không để shell expand. Không log token ra console.
 
 ---
 
@@ -173,35 +182,43 @@ Nếu `vps-docker`, hỏi tiếp:
 3. **VPS IP hoặc domain?** (vd: 123.45.67.89 hoặc myapp.com)
 4. **SSH user?** (vd: root, ubuntu, deploy)
 5. **SSH port?** (default: 22)
-6. **Deploy directory trên VPS?** (default: /opt/app)
-7. **Domain cho app?** (vd: myapp.com — dùng cho SSL + Nginx)
+6. **Đường dẫn SSH private key trên máy local?** (default: ~/.ssh/id_rsa)
+7. **Deploy directory trên VPS?** (default: /opt/app)
+8. **Domain cho app?** (vd: myapp.com — dùng cho SSL + Nginx)
 
 Nếu `vercel`, hỏi tiếp:
-3. **Vercel project name?**
-4. **Vercel team slug?** (để trống nếu personal account)
+3. **Vercel project name/ID?** (lấy từ `vercel link`)
+4. **Vercel org/team ID?** (để trống nếu personal account — lấy từ `vercel link`)
+5. **Vercel token?** (từ https://vercel.com/account/tokens — dùng cho CI)
 
 Nếu `railway`, hỏi tiếp:
-3. **Railway project name?**
+3. **Railway project ID?** (lấy từ `railway link`)
+4. **Railway token?** (từ https://railway.app/account/tokens — dùng cho CI)
 
-Ghi tất cả vào `.env.local`:
+Ghi tất cả vào `.env.local` (dùng ĐÚNG tên key như `.env.local.example` — CI/CD đọc lại các key này):
 
 ```bash
-cat >> .env.local << EOF
+cat >> .env.local << 'EOF'
 DEPLOY_PLATFORM=<platform>
 CI_CD=<github-actions|gitlab-ci|skip>
 # VPS fields (nếu vps-docker):
 VPS_HOST=<ip_or_domain>
 VPS_USER=<ssh_user>
 VPS_PORT=<ssh_port>
-DEPLOY_DIR=<deploy_dir>
-APP_DOMAIN=<domain>
+VPS_SSH_KEY_PATH=<~/.ssh/id_rsa>
+VPS_DEPLOY_DIR=<deploy_dir>
+DOMAIN=<domain>
 # Vercel fields (nếu vercel):
-VERCEL_PROJECT=<project_name>
-VERCEL_TEAM=<team_slug>
+VERCEL_TOKEN=<token>
+VERCEL_ORG_ID=<org_id>
+VERCEL_PROJECT_ID=<project_id>
 # Railway fields (nếu railway):
-RAILWAY_PROJECT=<project_name>
+RAILWAY_TOKEN=<token>
+RAILWAY_PROJECT_ID=<project_id>
 EOF
 ```
+
+> ⚠️ Heredoc dùng `<< 'EOF'` (quote) để không expand `$`/backtick trong token/key.
 
 Thông báo về CI/CD:
 - `github-actions` → "DevOps agent sẽ tạo `.github/workflows/` tự động khi bắt đầu code."
@@ -209,49 +226,41 @@ Thông báo về CI/CD:
 
 ---
 
-### 0.5.C — Agent Models
+### 0.5.C — Agent Models (cấu hình trong agent files) ← có 🛑 RESTART checkpoint
 
-Trước khi hỏi, đọc models từ opencode config của user:
+> ⚠️ Model **KHÔNG** đọc từ `.env.local` (biến đó vô tác dụng). Cấu hình ở frontmatter
+> `.opencode/agent/*.md`, khai 1 lần ở `.agent/PROJECT_PROFILE.md` mục `models:`.
+> ⚠️ Agent file/config **không hot-reload** → set xong PHẢI restart opencode. Vì vậy bước này
+> phải xong + restart **trước khi** pipeline gọi subagent.
 
+**1. Lấy danh sách model** (tùy bản opencode; nếu không có thì đọc config hoặc tự nhập):
 ```bash
-# Thử các path phổ biến của opencode config
-cat ~/.opencode/config.json 2>/dev/null || \
-cat ~/.config/opencode/config.json 2>/dev/null || \
-cat ~/opencode.json 2>/dev/null
+opencode models 2>/dev/null || \
+cat ~/.config/opencode/opencode.json 2>/dev/null || \
+cat ~/.config/opencode/config.json 2>/dev/null
 ```
 
-Parse danh sách models từ config → hiển thị cho user chọn:
+**2. Hỏi lần lượt** (skip được nếu chưa biết — để comment `# model:` = kế thừa model chính):
+1. **builder** — model code chính.
+2. **builder_strong** — model mạnh hơn (chỉ dùng khi user yêu cầu rõ).
+3. **reviewer** — **KHÁC HỌ** với builder.
+4. **spec_validator** — họ thứ 3 nếu có.
 
+**3. Ghi cấu hình:**
+- `.agent/PROJECT_PROFILE.md` → mục `models:`
+- Bỏ comment + điền `model:` trong frontmatter:
+  `.opencode/agent/builder.md`, `builder-strong.md`, `reviewer.md`, `spec-validator.md`
+
+**4. 🛑 MANDATORY RESTART checkpoint:**
 ```
-╔═══════════════════════════════════════════╗
-║           AVAILABLE MODELS                ║
-║      (from your OpenCode config)          ║
-╠═══════════════════════════════════════════╣
-║                                           ║
-║  [LIST ĐỘNG TỪ CONFIG CỦA USER]           ║
-║  Ví dụ:                                   ║
-║  • provider/model-name — description      ║
-║                                           ║
-╚═══════════════════════════════════════════╝
+✅ Đã cấu hình model vào .opencode/agent/*.md.
+
+⚠️ opencode cần RESTART để nạp agent/config mới (không hot-reload).
+Anh thoát và mở lại opencode, rồi reply 'continue' để em chạy tiếp Phase 1.
 ```
-
-Nếu không đọc được config → fallback hỏi user tự nhập model ID:
-"Không tìm thấy opencode config. Bạn nhập model ID trực tiếp nhé (ví dụ: claude-opus-4, gpt-4o)"
-
-Hỏi lần lượt:
-
-1. **CODING_MODEL** — Model viết code chính? (gợi ý: model mạnh nhất có sẵn)
-2. **REVIEWER_MODEL** — Model review code? (nên chọn model KHÁC hãng với coding để tránh bias)
-3. **SPEC_VALIDATOR_MODEL** — Model validate spec và layer review? (nên chọn model KHÁC 2 cái trên)
-
-Lưu vào `.env.local`:
-```bash
-cat >> .env.local << EOF
-CODING_MODEL=<user_choice>
-REVIEWER_MODEL=<user_choice>
-SPEC_VALIDATOR_MODEL=<user_choice>
-EOF
-```
+- **KHÔNG** chạy requirements/graph/loop trong cùng session vừa sửa model.
+- Nếu user **skip** model → ghi rõ vào brainstorm-log: *"chưa cấu hình model — subagent kế thừa
+  model chính (builder == reviewer), mất tác dụng tránh bias"* và vẫn yêu cầu restart nếu đã sửa file.
 
 ---
 
@@ -282,7 +291,7 @@ Nếu `otel`:
 Ghi tất cả vào `.env.local`:
 
 ```bash
-cat >> .env.local << EOF
+cat >> .env.local << 'EOF'
 # ─── Monitoring (OpenTelemetry) ───
 MONITOR_ENABLED=<true|false>
 OTEL_EXPORTER_OTLP_ENDPOINT=<otlp_endpoint>
@@ -298,7 +307,35 @@ EOF
 
 ---
 
-### 0.5.E — Confirm Setup
+### 0.5.E — Project Profile
+
+> Điền `.agent/PROJECT_PROFILE.md` để workflow biết branch/package manager/verify commands/DB.
+> Chạy `/setup-profile` sẽ làm các bước dưới tự động (detect + hỏi + ghi file + sync quyền verify command).
+> Bước này cũng cần cho maintenance mode trên repo có sẵn.
+
+**1. Auto-detect** (không hỏi): chạy `node scripts/detect-profile.mjs` → package manager, source roots,
+scripts (`test/lint/typecheck/build`), `db_tool`, `migration_required`.
+
+**2. Hỏi bắt buộc** (từng câu một):
+1. `target_branch` — branch đích commit/push.
+2. `forbidden_branch` — mặc định `main`, chỉ confirm.
+3. `auto_push_after_pass` — `true|false`; tên cũ `auto_commit_after_pass`. Đây **KHÔNG phải auto-commit** — commit sau PASS luôn bắt buộc; flag chỉ = tự **push** `target_branch` sau PASS.
+
+**3. Confirm detect**: stack, `package_manager`, `source_roots`, verify commands (sửa nếu sai).
+
+**4. Nếu có DB** (`db_tool != none`): confirm `db_tool`/`migration_required`; hỏi `staging_db`/`prod_db`
+là **tên env var** (không ghi secret), bắt buộc `staging_db != prod_db`; hỏi `migration_command` nếu có.
+
+**5. Ghi** `.agent/PROJECT_PROFILE.md` (giữ cấu trúc + comment), rồi sync allow rule:
+chạy `node scripts/apply-verify-permissions.mjs` (dry-run) → xem danh sách bỏ qua → `--write` để ghi
+vào `reviewer.md`/`spec-validator.md`. Command không an toàn (shell meta, DB-destructive, wildcard,
+deploy) không được auto-allow; exit code khác 0 (thiếu marker) → dừng, báo chưa hoàn tất.
+
+> Nếu repo chưa có app code/command → giữ `null`; workflow ghi `skip, no app configured`, không bịa lệnh.
+
+---
+
+### 0.5.F — Confirm Setup
 
 Sau khi điền xong, hiển thị tóm tắt:
 
@@ -308,12 +345,15 @@ Sau khi điền xong, hiển thị tóm tắt:
 📁 Git:      <platform> — <username>/<repo_name> (<visibility>)
 🚀 Deploy:   <platform> → <host_or_project>
 ⚙️  CI/CD:    <github-actions|gitlab-ci|skip>
-🤖 Models:
-   • Coding:         <CODING_MODEL>
-   • Reviewer:       <REVIEWER_MODEL>
-   • Spec Validator: <SPEC_VALIDATOR_MODEL>
+📦 Profile:  target=<target_branch> · forbidden=<forbidden_branch> · auto-push=<true|false>
+             pm=<package_manager> · test=<test_command> · db=<db_tool>
+🤖 Models:   đã ghi vào .agent/PROJECT_PROFILE.md + .opencode/agent/*.md
+   • builder:        <model>
+   • builder-strong: <model>
+   • reviewer:       <model>
+   • spec-validator: <model>
 
-Tất cả đã lưu vào .env.local (git-ignored).
+Cấu hình trong .env.local (git-ignored).
 Ready để bắt đầu requirements! 🚀
 ```
 
@@ -331,33 +371,18 @@ Hỏi **từng câu một**. Chờ user trả lời rồi mới hỏi tiếp.
 
 ### Questions (tuần tự — skip nếu đã có trong docs)
 
+> ℹ️ Deploy platform, CI/CD, server/hosting, git và model keys đã hỏi & lưu ở **Phase 0.5** — KHÔNG hỏi lại ở đây.
+
 1. **Stack**: Web (React + Node.js) hay Mobile (React Native)?
 2. **Database**: PostgreSQL / MySQL / MongoDB / SQLite / None?
 3. **Auth**: JWT / Session / OAuth / None?
 4. **Realtime**: WebSocket / SSE / None?
 5. **File Upload**: Local / S3 / Cloudinary / None?
 6. **Payment**: Stripe / VNPay / None?
-7. **Deployment platform?**
-   - `vercel` — Auto deploy từ git, zero config
-   - `railway` — Auto deploy từ git, supports DB
-   - `vps-docker` — VPS tự manage với Docker
-   - `other` — Platform khác
-   - `skip` — Chưa quyết định
-
-8. **CI/CD?** (chỉ hỏi nếu câu 7 không phải skip)
-   - `github-actions` — Auto lint + test + build khi push
-   - `gitlab-ci` — GitLab CI/CD
-   - `skip` — Deploy thủ công
-
-9. **Server / Hosting cụ thể?** (chỉ hỏi nếu câu 7 không phải skip)
-   - Nếu `vps-docker`: IP hoặc domain server? SSH user?
-   - Nếu `vercel`/`railway`: Tên project trên platform?
-   - Nếu `other`: URL/domain deploy?
-
-10. **Timeline**: MVP (core features only) / Full (all features)?
-11. **UI Library?**
+7. **Timeline**: MVP (core features only) / Full (all features)?
+8. **UI Library?**
     Web: shadcn/ui (recommended) / MUI / Ant Design / Tailwind only
-12. **Scalability Option?** (OPTIONAL — chỉ kích hoạt khi user chọn bật)
+9. **Scalability Option?** (OPTIONAL — chỉ kích hoạt khi user chọn bật)
     - `off` (mặc định) — Không cần hạ tầng scale phức tạp. Đi theo mô hình modular monolith + stateless + PostgreSQL đơn giản.
     - `on` — Cần thiết kế hạ tầng/backend/database cho nhiều user/CCU cao. Chọn Tier + khai Scalability Profile.
 
@@ -388,7 +413,7 @@ Confirm Tier với user → ghi vào SPECIFICATIONS.md mục **Scalability Profi
 
 > ℹ️ Design style, color scheme, và design reference sẽ được hỏi riêng bởi **Design Agent** sau khi Spec Validator PASS.
 
-> 📦 **Scalability Option (OPTIONAL):** Câu hỏi #12 trong Phase 1. Chỉ kích hoạt khi user bật `on`. Không mặc định áp dụng. Chi tiết tại `SKILL.md` mục Scalability Profile.
+> 📦 **Scalability Option (OPTIONAL):** Câu hỏi #9 trong Phase 1. Chỉ kích hoạt khi user bật `on`. Không mặc định áp dụng. Chi tiết tại `SKILL.md` mục Scalability Profile.
 
 ### Rules
 - Hỏi 1 câu → chờ answer → hỏi câu tiếp

@@ -7,10 +7,10 @@ Template cho platform không nằm trong danh sách cụ thể. Áp dụng best 
 
 ```bash
 # Install dependencies
-pnpm install --frozen-lockfile
+<install_command from PROJECT_PROFILE>
 
 # Build
-pnpm run build
+<build_command from PROJECT_PROFILE>
 
 # Output: dist/
 #   dist/client/  → Static frontend files
@@ -45,7 +45,7 @@ Response: { "status": "ok", "timestamp": "2024-01-01T00:00:00.000Z" }
 - [ ] All tests pass locally
 - [ ] Build succeeds without errors
 - [ ] Environment variables configured on platform
-- [ ] Database migrated (`npx prisma migrate deploy`)
+- [ ] Migration: `<migration_command from PROJECT_PROFILE if migration_required=true>`; if `db_tool: none`, skip
 - [ ] Health check responds after deploy
 - [ ] Frontend loads and can call backend APIs
 - [ ] SSL/HTTPS configured

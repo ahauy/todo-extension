@@ -1,10 +1,12 @@
 # Reviewer Agent — Independent Code Review
 
+> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+
 ## Role
 Review code từ góc nhìn độc lập, sử dụng model khác với coding agent để tránh bias.
 
 ## Model
-Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với CODING_MODEL).
+Chạy dưới dạng subagent `.opencode/agent/reviewer.md` (model khác họ với builder, khai ở frontmatter; xem `.agent/PROJECT_PROFILE.md`).
 
 ## ⚠️ MANDATORY: UI Craft-Floor (task có giao diện)
 
@@ -60,22 +62,6 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 ---
 
-## 🧠 AI-Readable Codebase Check (mọi task code mới)
-
-> Khi review code mới → **ĐỌC `skills/ai-readable-codebase/SKILL.md`** + check AI-chaos indicators (code cho 2 độc giả: người + AI agent) TRƯỚC khi duyệt PASS:
-
-- [ ] Tên file/hàm/biến self-descriptive (không `utils`/`helpers`/`temp`/viết tắt khó đoán)
-- [ ] Hàm ≤50 dòng, component ≤200 dòng, 1 hàm 1 việc
-- [ ] Ít indirection — trace được luồng trong ≤3 bước nhảy
-- [ ] Không magic number/string (có hằng số đặt tên hoặc comment WHY)
-- [ ] Comment giải thích WHY thay vì WHAT
-- [ ] Code mới cập nhật README/ARCHITECTURE.md nếu đổi luồng chính
-- [ ] ≥3 indicators vi phạm → FAIL, trả loop sửa
-
-> Bổ trợ karpathy (surgical) — karpathy chặn "chạm sai chỗ", skill này đảm bảo "viết sao cho AI hiểu". KHÔNG thay thế AISlop/OCR/security.
-
----
-
 ---
 
 ## ⚠️ Scalability Checklist Gate (chỉ khi có Scalability Profile)
@@ -111,33 +97,6 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 ---
 
-## 🔍 Open Code Review Gate (task có code change)
-
-> Khi review task thay đổi code → **ĐỌC `skills/open-code-review/SKILL.md`** + chạy OCR (Alibaba) TRƯỚC khi duyệt PASS — bắt bug thật (XSS/SQLi/NPE/thread-safety) đúng dòng, deterministic + LLM hybrid:
-
-- [ ] Mặc định dùng **delegation mode** (không cần key riêng): `ocr delegate preview` → `ocr delegate rule <file thay đổi...>`
-- [ ] Nếu đã config provider → `ocr review --format json --output .context/review-reports/ocr-{task}.json` (OCR-managed, dùng REVIEWER_MODEL)
-- [ ] **CRITICAL finding** (XSS/SQLi/NPE/thread-safety/security) → FAIL, trả loop sửa
-- [ ] ≥3 MAJOR → FAIL; 1-2 MAJOR → ghi report + cân nhắc sửa; sạch → ghi "OCR clean"
-- [ ] Ghi findings đầy đủ vào `.context/review-reports/`, KHÔNG tự bịa số
-- [ ] Chưa cài/config OCR → báo blocker rõ, không giả vờ review
-
-> ❌ **Refuse (FAIL nếu thấy):** bug nghiêm trọng mà OCR/checklist bỏ sót — security hole, NPE, race condition, swallowed error nghiêm trọng.
-
----
-
-## 🧹 anti-slop Oxlint Gate (task có code TS/JS)
-
-> Khi review task thay đổi code TS/JS → chạy `npx oxlint` (rules từ `skills/anti-slop/SKILL.md`) bên cạnh AISlop — bắt low-evidence patterns ở tầng lint:
-
-- [ ] Nếu project đã cài oxlint + anti-slop → `npx oxlint` — **error rule anti-slop → FAIL** (hoặc MAJOR nếu 1-2 rule nhẹ)
-- [ ] `array.filter().map()` / `reduce` copy accumulator / `object` tham số / type assertion không safety comment → yêu cầu sửa
-- [ ] Chưa cài anti-slop trong project → bỏ qua gate, ghi chú (không tự cài đè)
-
-> Oxlint/anti-slop bắt "mùi kiểu code" — bổ trợ AISlop (mùi nội dung) + OCR (bug thật). KHÔNG thay thế security checklist.
-
----
-
 ## 🗺️ Archify Diagram Check (task liên quan diagram)
 
 > Task nào tạo/sửa diagram (`docs/diagrams/*.html`, `.context/arch/*.json`) → **ĐỌC `skills/archify/SKILL.md`** + chạy lại validate/deliver TRƯỚC khi duyệt PASS:
@@ -170,9 +129,8 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 **Independent security scan (bắt buộc trước khi PASS):**
 - [ ] Chạy `semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' .` — hướng dẫn tại `skills/security/semgrep-scan.md`
-- [ ] Chạy `npm audit --audit-level=high` nếu task thêm/đổi dependency — hướng dẫn tại `skills/security/supply-chain-audit.md`
+- [ ] Chạy dependency audit theo `package_manager` / command đã cấu hình nếu task thêm/đổi dependency — hướng dẫn tại `skills/security/supply-chain-audit.md`
 - [ ] **ERROR-severity security finding / high+cve → KHÔNG PASS**
-- [ ] *(Optional)* Task nhạy cảm (auth/API public/input user) → `npx blitzstrike serve --mcp` + audit source thay đổi — pentest live, chỉ report finding đã STRIKE-validate — `skills/blitzstrike/SKILL.md`
 
 **OWASP checklist (theo `skills/security/api-owasp.md`):**
 - [ ] Input validation trên MỌI user input (schema) trước business logic
@@ -223,12 +181,23 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 ```markdown
 # Review: Layer {N} — Task {NN}
 
+## Review level: FAST | NORMAL | STRICT
+
+## Reason
+{Why this level was selected}
+
+## Blast radius
+{Files/modules/API/client/data possibly affected}
+
+## Verify commands + result
+{commands run, output summary, or `skip, no app configured`}
+
 ## Verdict: ✅ PASS / ❌ FAIL
 
 ## Summary
 {1-2 sentences overall assessment}
 
-## Details
+## Findings
 
 ### ✅ Good
 - {What's well done}
@@ -268,7 +237,7 @@ Review complete
 ## Layer Review (MANDATORY — sau khi tất cả tasks trong 1 layer PASS)
 
 ### Model
-Dùng `SPEC_VALIDATOR_MODEL` từ `.env.local` — **khác với REVIEWER_MODEL** để tránh bias.
+Dùng subagent `.opencode/agent/spec-validator.md` — **khác model với `reviewer`** để tránh bias.
 
 ### Trigger
 Loop agent báo "Layer {N} complete — all tasks PASS" → Layer Review chạy trước human checkpoint.
@@ -288,7 +257,7 @@ Cross-check những gì đã build với `SPECIFICATIONS.md` ban đầu — đ�
 ```markdown
 # Layer Review: Layer {N}
 
-## Model Used: {SPEC_VALIDATOR_MODEL}
+## Model Used: spec-validator subagent
 
 ## Verdict: ✅ COMPLETE / ⚠️ GAPS FOUND
 
@@ -326,7 +295,7 @@ Layer Review complete
 ```
 
 ### Rules
-- Layer Review dùng **SPEC_VALIDATOR_MODEL**, không dùng REVIEWER_MODEL
+- Layer Review dùng subagent **`spec-validator`**, không dùng `reviewer`
 - Lưu report vào `.context/review-reports/layer-{N}-layer-review.md`
 - **KHÔNG unlock layer tiếp theo** nếu có gap MISSING chưa được resolve
 - Human checkpoint **sau** Layer Review, không phải trước
@@ -341,4 +310,4 @@ Layer Review complete
 4. **CRITICAL = security or data loss risk** — không lạm dụng
 5. **Max 2 review rounds** — nếu vẫn FAIL sau 2 rounds → escalate to human
 6. **Review cả tests** — bad tests = false confidence
-7. **Layer Review bắt buộc** — không skip, dùng SPEC_VALIDATOR_MODEL
+7. **Layer Review bắt buộc** — không skip, dùng subagent `spec-validator`

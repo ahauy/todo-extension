@@ -1,5 +1,14 @@
 # AGENT.md — AI-Powered Project Template
 
+> 📌 **LEGACY / OPTIONAL — greenfield only.** Entry point thực tế là `AGENTS.md`
+> (router, luôn được load). File này chỉ dùng khi build project **từ đầu**.
+> Repo đã có code → dùng **maintenance workflow** `.agent/FEATURE_WORKFLOW.md`
+> (`/bug-check`, `/bug`, `/feature`). Giá trị project: `.agent/PROJECT_PROFILE.md`.
+>
+> ⚠️ Mọi hướng dẫn **auto-push** trong file này + `.agent/devops.md` + `.agent/rollback.md`
+> bị **override** bởi maintenance rules (`AGENTS.md` + `FEATURE_WORKFLOW.md`): cấm push
+> `forbidden_branch`; push theo branch model trong `.agent/FEATURE_WORKFLOW.md` §6.
+
 ## What Is This?
 
 This is a **model-agnostic**, multi-agent project template designed for building web applications (React + Node.js). Any AI coding assistant that can read markdown and execute commands can use this template.
@@ -22,11 +31,11 @@ The system uses 4 patterns working together:
 | Design | `.agent/design.md` | Generate design tokens + screen specs (taste-skill v2 anti-slop + `ui-ux-pro-max` design intelligence) |
 | Graph | `.agent/graph.md` | Decompose spec into layered tasks |
 | Loop | `.agent/loop.md` | Execute tasks (ReAct pattern; TDD test-first + ponytail ladder) |
-| Reviewer | `.agent/reviewer.md` | Per-task code review (`REVIEWER_MODEL`) + per-layer spec cross-check (`SPEC_VALIDATOR_MODEL`); UI craft-floor via `impeccable` |
+| Reviewer | `.agent/reviewer.md` + `.opencode/agent/reviewer.md` | Per-task code review (subagent `reviewer`) + per-layer spec cross-check (subagent `spec-validator`); UI craft-floor via `impeccable` |
 | Error Analyzer | `.agent/error-analyzer.md` | Root cause analysis (Iron Law) + pattern learning |
 | Context Manager | `.agent/context-manager.md` | Context compression when window fills |
 | Rollback | `.agent/rollback.md` | Git checkpoint + revert strategy |
-| DevOps | `.agent/devops.md` | Git init, CI/CD, auto-push after each layer, deploy |
+| DevOps | `.agent/devops.md` | Git init, CI/CD, push layer, deploy ⚠️ auto-push bị override ở maintenance mode |
 
 ## Workflow
 
@@ -46,12 +55,12 @@ Graph → Layer Plan
 │  Loop (per task, respecting dependencies):                    │
 │  Read → Plan → Code → Test → Error Analyzer (fail)           │
 │      ↓ (PASS)                                                 │
-│  Reviewer [REVIEWER_MODEL] → code quality/🔒security/tests    │
+│  Reviewer [subagent reviewer] → code quality/🔒security/tests │
 │      ↓ (PASS) → git commit                                    │
 │                                                               │
 │  (after ALL tasks in layer PASS)                             │
-│  Layer Review [SPEC_VALIDATOR_MODEL] → cross-check vs SPEC   │
-│      ↓ (PASS) → DevOps auto-push layer to git                │
+│  Layer Review [subagent spec-validator] → cross-check vs SPEC│
+│      ↓ (PASS) → DevOps push layer (override ở maintenance)   │
 │                                                               │
 │  👀 HUMAN CHECKPOINT: Layer N done → proceed?                │
 │      ↓ (user approves)                                        │
@@ -81,13 +90,16 @@ Deploy production → Health check → Done ✅
 - Git platform + token + repo → tạo repo tự động luôn sau khi có token
 - Deploy platform → VPS info (IP/user/SSH port/dir/domain) hoặc Vercel/Railway config
 - CI/CD platform → generate workflow files sau khi setup
-- 3 models: `CODING_MODEL`, `REVIEWER_MODEL`, `SPEC_VALIDATOR_MODEL` (đọc từ opencode config tự động)
-- Lưu tất cả vào `.env.local` ngay
+- Models theo vai: khai ở `.agent/PROJECT_PROFILE.md` (`models:`) rồi điền vào frontmatter
+  `.opencode/agent/*.md` — **KHÔNG** dùng biến model trong `.env.local`
+- Lưu config vào `.env.local` + `.agent/PROJECT_PROFILE.md` ngay
+- 🛑 **RESTART CHECKPOINT**: agent/config không hot-reload → sau khi set model phải thoát &
+  mở lại opencode, rồi mới chạy tiếp (xem `0.5.C`)
 - **User setup xong xuôi một lần → mới bắt đầu Phase 1**
 
 ### Phase 1: Brainstorm (`.agent/brainstorm.md`)
 - Interactive Q&A with user about project requirements
-- Stack, database, auth, deployment, UI library, etc.
+- Stack, database, auth, UI library, etc. (deploy/CI/CD/models đã setup ở Phase 0.5)
 - Output: populated `SPECIFICATIONS.md` + `.context/brainstorm-log.md`
 - **After completing → MUST proceed to Phase 2 (Spec Validation)**
 
@@ -130,7 +142,7 @@ Deploy production → Health check → Done ✅
 
 ### Phase 5: Review (`.agent/reviewer.md`) — per layer
 
-**5a. Per-task Review** (`REVIEWER_MODEL`)
+**5a. Per-task Review** (subagent `.opencode/agent/reviewer.md`)
 - Code quality, security, performance, testing
 - **MANDATORY: chạy Responsive Checklist Gate** từ `skills/responsive-web/SKILL.md` cho mọi task có UI (test 375/768/1280px)
 - **MANDATORY (task UI): chạy UI Craft-Floor** từ `skills/impeccable/SKILL.md` — contrast ≥4.5:1, depth, type measure, states, browser surfaces, copy; refuse-list AI slop (identical card grids, hero-metric, eyebrow, gradient text, emoji icons…)
@@ -139,10 +151,11 @@ Deploy production → Health check → Done ✅
 - **PASS** → git commit → next task
 - **FAIL** → return to Loop with feedback (max 2 rounds, then escalate)
 
-**5b. Layer Review** (`SPEC_VALIDATOR_MODEL`) — sau khi ALL tasks PASS
+**5b. Layer Review** (subagent `.opencode/agent/spec-validator.md`) — sau khi ALL tasks PASS
 - Cross-check toàn bộ layer với `SPECIFICATIONS.md`
 - Đảm bảo features đã build đúng và đủ theo spec ban đầu
-- **PASS** → DevOps auto-push layer → Human checkpoint
+- **PASS** → DevOps push layer → Human checkpoint
+  ⚠️ Ở **maintenance mode**, push bị override theo branch model trong `.agent/FEATURE_WORKFLOW.md` §6.
 - **FAIL** → trả về Loop với danh sách gaps → fix → Layer Review lại
 
 > 👀 **HUMAN CHECKPOINT — End of Each Layer**
@@ -154,7 +167,8 @@ Deploy production → Health check → Done ✅
 > **KHÔNG tự động chạy layer tiếp theo.** Chờ user confirm.
 
 ### Phase 6: DevOps (`.agent/devops.md`)
-- Git commit, push, CI/CD checks after each layer
+- Git commit, CI/CD checks after each layer
+- Push ⚠️ **override ở maintenance mode**: chỉ `target_branch`, chỉ khi PASS + `auto_push_after_pass: true`
 - Final layer only: deploy to staging
 
 > 👀 **HUMAN CHECKPOINT — Before Production Deploy**
@@ -187,15 +201,22 @@ Spec Validator → Graph → Loop → Review → DevOps
 
 ---
 
-## Resume Protocol
+## Resume Protocol (Greenfield — legacy/optional)
 
-If `.context/progress.json` exists and `status !== "not_started"`:
-1. Read progress state
-2. Read blackboard for current context
-3. Resume at the recorded phase/task
-4. Do NOT re-run completed phases
+> **For maintenance projects, do not start here. Use `AGENTS.md` and `.agent/FEATURE_WORKFLOW.md`.**
+> Maintenance dùng `.context/progress.json` schema mới (`mode`, `activeWorkItem`, `features`, `bugs`).
 
-## Getting Started (New Project)
+If `.context/progress.json` exists:
+1. Nếu `mode === "maintenance"` (hoặc có `features`/`bugs`) → đi theo maintenance workflow
+   (`AGENTS.md` + `.agent/FEATURE_WORKFLOW.md`); **KHÔNG** dùng logic layer/task của file này.
+2. Legacy greenfield: đọc state cũ (`.context/progress.json` + `.context/blackboard.md`), resume tại phase/task.
+3. Do NOT re-run completed phases.
+   (Các field global `currentLayer`/`totalLayers`/`completedTasks` là **legacy greenfield**,
+   không áp dụng ở maintenance mode.)
+
+## Getting Started (Greenfield — legacy/optional)
+
+> **For maintenance projects, do not start here. Use `AGENTS.md` and `.agent/FEATURE_WORKFLOW.md`.**
 
 1. Fill in `BRIEF.md` with your project idea
 2. Copy `.env.local.example` → `.env.local`
@@ -209,13 +230,13 @@ If `.context/progress.json` exists and `status !== "not_started"`:
 
 ## Model Configuration
 
-Models are configured in `.env.local`. Use **different providers** for different roles to avoid bias:
+Models theo vai nằm trong **frontmatter** `.opencode/agent/*.md` (`builder`, `builder-strong`,
+`reviewer`, `spec-validator`) — khai ở `.agent/PROJECT_PROFILE.md` (`models:`) rồi **bỏ comment**
+dòng `model:` và copy giá trị sang. Dùng **provider khác họ** giữa builder và reviewer để tránh bias.
 
-```
-CODING_MODEL=claude-opus-4-6          # Writes code
-REVIEWER_MODEL=gpt-5.4                # Reviews code (different provider!)
-SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
-```
+> ⚠️ Biến model trong `.env.local` KHÔNG có tác dụng với opencode (không đọc). Đã bỏ.
+> Sửa agent/config phải **restart opencode** (config không hot-reload). Chưa restart thì
+> `model:` vẫn là comment → subagent kế thừa model chính (builder == reviewer).
 
 ## Directory Structure
 
@@ -238,13 +259,7 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   └── ui-ux-pro-max/    → 🧩 Design intelligence: 10 priority categories (curate from nextlevelbuilder)
 │   └── scalability-architecture/ → 📦 OPTIONAL scalability tiers (Standard/High-Traffic/Enterprise) — chỉ khi user bật option
 │   ├── karpathy-guidelines/ → ✂️ Behavioral rules: surgical changes (chỉ chạm đúng phần cần sửa) + think before coding (nêu giả định) (curate from andrej-karpathy-skills)
-│   ├── aislop/           → 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
-│   ├── open-code-review/ → 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — reviewer chạy ocr review, bắt bug XSS/SQLi/NPE/thread-safety
-│   ├── anti-slop/        → 🧬 Oxlint rules chống low-evidence TS/JS (dmmulroy/anti-slop, curated) — lint gate khi code
-│   ├── m3e-canvas/       → 🖼️ Sketch M3 UI trong browser → vibe prompt (lnkiai/m3e-canvas, curated) — Phase 2 design
-│   ├── ai-readable-codebase/ → 🧠 AI-native code: viết cho 2 độc giả (người + AI) — tên self-descriptive, ít indirection, README+ARCHITECTURE bắt buộc
-│   ├── ai-friendly-web/  → 🌐 Web AI-ready: llms.txt, robots cho AI crawlers, sitemap, JSON-LD, OpenAPI — agent đọc web đã deploy được ngay
-│   └── blitzstrike/      → ⚡ MCP pentest toolbelt (shinthink/blitzstrike, curated) — security optional
+│   └── aislop/           → 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
 └── .context/             ← Shared state (progress, decisions, errors)

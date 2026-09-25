@@ -1,3 +1,8 @@
+---
+name: impeccable
+description: "Use when reviewing or polishing UI screens, components, visual craft, accessibility contrast, responsive states, motion, copy, or AI-slop visual defaults before approving frontend work."
+---
+
 # Impeccable — UI Review & Polish (Curated)
 
 > Curated from [pbakaus/impeccable](https://github.com/pbakaus/impeccable) — chọn phần hay nhất (craft-floor + audit/polish gate) khớp với Phase 5 Review của template. Không copy nguyên xi; đã Việt hóa + rút gọn.

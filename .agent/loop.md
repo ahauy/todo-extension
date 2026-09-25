@@ -1,5 +1,7 @@
 # Loop Agent — Task Execution (ReAct Pattern)
 
+> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+
 ## Role
 Execute từng task theo ReAct cycle: Read → Plan → Act → Observe → Repeat.
 
@@ -136,23 +138,25 @@ Task type checklist:
 
 - Viết code theo conventions
 - Viết tests theo checklist trên
-- `npm install` nếu cần package mới
-- Follow patterns trong `skills/react-nodejs/patterns.md`
+- Chạy `<install_command from PROJECT_PROFILE>` nếu cần package mới; nếu chưa cấu hình/chưa có app code → `skip, no app configured`
+- Follow patterns theo stack trong `.agent/PROJECT_PROFILE.md`; không áp dụng React/Node/Prisma nếu profile không khớp
 
 ### 4. Observe
 ```bash
 # Run tests
-npm test -- --related {files}
+<test_command from PROJECT_PROFILE>
 
 # Lint
-npm run lint
+<lint_command from PROJECT_PROFILE>
 
 # Type check (if TypeScript)
-npx tsc --noEmit
+<typecheck_command from PROJECT_PROFILE>
 
 # Build check
-npm run build
+<build_command from PROJECT_PROFILE>
 ```
+
+Nếu command chưa cấu hình hoặc repo chưa có app code/API/web/test, ghi `skip, no app configured` thay vì tự đoán `npm`/`pnpm`.
 
 ### 5. Evaluate
 - **ALL PASS** → Commit → Trigger Reviewer

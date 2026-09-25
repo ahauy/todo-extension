@@ -1,5 +1,8 @@
 # React + Node.js — Implementation Patterns
 
+> Example patterns for React + Node projects only. Đọc `.agent/PROJECT_PROFILE.md` trước.
+> DB examples only apply when `db_tool` matches; if `db_tool: none`, skip all database patterns.
+
 ## API Pattern
 
 ### Route Definition
@@ -38,7 +41,9 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
 };
 ```
 
-### Service Pattern
+### Service Pattern (Prisma example — only when `PROJECT_PROFILE.db_tool = prisma`)
+If `db_tool` is not `prisma`, adapt this layer to the configured data tool. If `db_tool: none`, skip DB access.
+
 ```typescript
 // server/services/user-service.ts
 import { prisma } from '@/server/utils/db';
@@ -105,7 +110,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
 ---
 
-## Database Pattern (Prisma)
+## Prisma pattern — only when `PROJECT_PROFILE.db_tool = prisma`
+
+Do not require `prisma/schema.prisma`, `@prisma/client`, or `export const prisma` when `db_tool`
+is `none`, `drizzle`, or `other`. If `db_tool: none`, skip this entire database pattern.
 
 ### Schema
 ```prisma

@@ -1,5 +1,13 @@
 # DevOps Agent — Git, CI/CD, Deploy
 
+> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+
+> ⚠️ **Maintenance push override:** Maintenance mode overrides all literal push examples below.
+> Do NOT push `main`/`develop` from these examples. Auto-push after PASS review must use
+> branch model in `.agent/FEATURE_WORKFLOW.md` §6 (default: `git push origin <target_branch>` only from `target_branch`).
+> Bare `git push` is denied by `opencode.jsonc`. Production/main promotion requires explicit
+> human approval outside normal maintenance workflow.
+
 ## Role
 Setup git repository, CI/CD pipeline, và deployment theo platform đã chọn.
 
@@ -23,22 +31,26 @@ source .env.local
 # Biến cần có: GIT_PLATFORM, GIT_TOKEN, GIT_USERNAME, REPO_NAME, REPO_VISIBILITY
 
 # 3. Tự động tạo repo dùng token đã có — KHÔNG hỏi thêm
+# ⚠️ KHÔNG nhúng token vào URL remote — token sẽ lưu plaintext trong .git/config
+#    và lộ qua `git remote -v`. Dùng credential helper / SSH thay thế.
 
 # GitHub (GIT_PLATFORM=github):
 GITHUB_TOKEN=$GIT_TOKEN gh repo create $REPO_NAME --$REPO_VISIBILITY
-git remote add origin https://$GIT_TOKEN@github.com/$GIT_USERNAME/$REPO_NAME.git
+gh auth setup-git                       # dùng gh làm credential helper, không lưu token trong URL
+git remote add origin https://github.com/$GIT_USERNAME/$REPO_NAME.git
 
 # GitLab (GIT_PLATFORM=gitlab):
-glab auth login --token $GIT_TOKEN
+glab auth login --token $GIT_TOKEN      # glab tự cấu hình credential helper
 glab repo create $REPO_NAME --$REPO_VISIBILITY
-git remote add origin https://oauth2:$GIT_TOKEN@gitlab.com/$GIT_USERNAME/$REPO_NAME.git
+git remote add origin https://gitlab.com/$GIT_USERNAME/$REPO_NAME.git
 
 # Bitbucket (GIT_PLATFORM=bitbucket):
-git remote add origin https://$GIT_USERNAME:$GIT_TOKEN@bitbucket.org/$GIT_USERNAME/$REPO_NAME.git
-# Tạo repo qua API:
-curl -u $GIT_USERNAME:$GIT_TOKEN \
+# Tạo repo qua API (token chỉ dùng cho request này, không ghi vào git config):
+curl -sS -u $GIT_USERNAME:$GIT_TOKEN \
   https://api.bitbucket.org/2.0/repositories/$GIT_USERNAME/$REPO_NAME \
   -d '{"scm": "git", "is_private": true}'
+# Dùng SSH (khuyến nghị) hoặc credential helper — KHÔNG nhúng token vào URL:
+git remote add origin git@bitbucket.org:$GIT_USERNAME/$REPO_NAME.git
 
 # 4. Generate CI/CD files TRƯỚC KHI PUSH (xem Phase 1.5 bên dưới)
 # ... Phase 1.5 chạy ở đây ...
@@ -72,7 +84,7 @@ Thứ tự đúng: `git init` → `remote setup` → **generate CI files** → `
 source .env.local
 # Đọc: CI_CD, GIT_PLATFORM, DEPLOY_PLATFORM
 # Đọc VPS fields nếu DEPLOY_PLATFORM=vps-docker:
-#   VPS_HOST, VPS_USER, VPS_SSH_KEY_PATH, DEPLOY_DIR, DOMAIN
+#   VPS_HOST, VPS_USER, VPS_PORT, VPS_SSH_KEY_PATH, VPS_DEPLOY_DIR, DOMAIN
 ```
 
 ### GitHub Actions (CI_CD=github-actions)
@@ -97,19 +109,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run lint
-      - run: npx tsc --noEmit
-      - run: npm test -- --passWithNoTests
-      - run: npm run build
+          cache: '<package_manager from PROJECT_PROFILE>'
+      - run: <install_command from PROJECT_PROFILE>
+      - run: <lint_command from PROJECT_PROFILE>
+      - run: <typecheck_command from PROJECT_PROFILE>
+      - run: <test_command from PROJECT_PROFILE>
+      - run: <build_command from PROJECT_PROFILE>
       # 🔒 Security gates (bắt buộc — chặn merge nếu fail)
       - name: Supply chain audit
-        run: npm audit --audit-level=high
+        run: <dependency_audit_command from PROJECT_PROFILE, or skip if not configured>
       - name: Semgrep security scan
         run: |
-          npm i -g semgrep || pip install semgrep
-          semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' . || true
+          <semgrep_install_command from PROJECT_PROFILE, or preinstall in CI image>
+          semgrep --metrics=off --config p/security-audit --config p/owasp-top-ten --severity ERROR --error --include 'src/**' .
       # 📊 Monitoring gate — verify OTel deps + health endpoint exist
       - name: Verify health endpoint
         run: grep -rE "(\/health|\/ready)" src app pages --include='*.ts' --include='*.tsx' -l 2>/dev/null | head -1 || echo "⚠️ No health endpoint found — add GET /health"
@@ -139,12 +151,12 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-            cd ${{ secrets.DEPLOY_DIR }}
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT || '22' }} ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cd ${{ secrets.VPS_DEPLOY_DIR }}
             git pull origin main
             docker compose pull
             docker compose up -d --build
-            docker compose exec -T app npx prisma migrate deploy || true
+            # Run <migration_command from PROJECT_PROFILE> only if migration_required=true; if db_tool: none, skip.
           EOF
 
       - name: Health check
@@ -171,8 +183,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci
-      - run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+      - run: <install_command from PROJECT_PROFILE>
+      - run: <vercel_deploy_command from PROJECT_PROFILE>
 ```
 
 Nếu `DEPLOY_PLATFORM=railway` → thêm `deploy.yml`:
@@ -193,8 +205,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm i -g @railway/cli
-      - run: railway up --environment production
+      - run: <railway_cli_install_command from PROJECT_PROFILE>
+      - run: <railway_deploy_command from PROJECT_PROFILE>
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 ```
@@ -220,11 +232,11 @@ ci:
   stage: ci
   image: node:20-alpine
   script:
-    - npm ci
-    - npm run lint
-    - npx tsc --noEmit
-    - npm test -- --passWithNoTests
-    - npm run build
+    - <install_command from PROJECT_PROFILE>
+    - <lint_command from PROJECT_PROFILE>
+    - <typecheck_command from PROJECT_PROFILE>
+    - <test_command from PROJECT_PROFILE>
+    - <build_command from PROJECT_PROFILE>
   only:
     - main
     - develop
@@ -239,7 +251,7 @@ deploy:
     - echo "$VPS_SSH_KEY" | ssh-add -
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
   script:
-    - ssh -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "cd $DEPLOY_DIR && git pull && docker compose up -d --build"
+    - ssh -o StrictHostKeyChecking=no -p "${VPS_PORT:-22}" $VPS_USER@$VPS_HOST "cd $VPS_DEPLOY_DIR && git pull && docker compose up -d --build"
   only:
     - main
   environment:
@@ -255,11 +267,11 @@ deploy:
 📋 Secrets cần thêm vào GitHub/GitLab:
 
 🔸 Nếu deploy VPS:
-   VPS_HOST      = <ip hoặc domain server>
-   VPS_USER      = <ssh username>
-   VPS_SSH_KEY   = <nội dung private key ~/.ssh/id_rsa>
-   DEPLOY_DIR    = <thư mục project trên VPS, vd: /opt/myapp>
-   DOMAIN        = <domain của app, vd: myapp.com>
+   VPS_HOST        = <ip hoặc domain server>
+   VPS_USER        = <ssh username>
+   VPS_SSH_KEY     = <nội dung private key ~/.ssh/id_rsa>
+   VPS_DEPLOY_DIR  = <thư mục project trên VPS, vd: /opt/myapp>
+   DOMAIN          = <domain của app, vd: myapp.com>
 
 🔸 Nếu deploy Vercel:
    VERCEL_TOKEN  = <token từ https://vercel.com/account/tokens>
@@ -298,17 +310,19 @@ Anh add xong rồi reply 'done' để em tiếp tục nhé!
 ### Run Checks
 ```bash
 # Lint
-npm run lint
+<lint_command from PROJECT_PROFILE>
 
 # Type check
-npx tsc --noEmit
+<typecheck_command from PROJECT_PROFILE>
 
 # Tests
-npm test
+<test_command from PROJECT_PROFILE>
 
 # Build
-npm run build
+<build_command from PROJECT_PROFILE>
 ```
+
+Nếu command chưa cấu hình hoặc repo chưa có app code, ghi `skip, no app configured`; không tự hardcode npm/pnpm.
 
 ### If ALL PASS:
 - Commit + push
@@ -358,9 +372,11 @@ git commit -m "feat(layer-{N}): task-{NN} {description}"
 ```
 
 ### Per Layer Complete
+> ⚠️ **Maintenance mode override:** KHÔNG push `main`/`forbidden_branch`. Push theo branch model
+> trong `.agent/FEATURE_WORKFLOW.md` §6 khi reviewer PASS + push được phép.
 ```bash
 git tag "layer-{N}-done" -m "Layer {N}: {description}"
-git push origin main --tags
+git push origin main --tags   # ❌ LEGACY greenfield — bị override ở maintenance mode
 ```
 
 ### Commit Message Convention
@@ -382,19 +398,3 @@ chore: update dependencies             # Maintenance
 3. **Human checkpoint before production** — never auto-deploy to prod
 4. **Health checks are mandatory** — verify deployment works
 5. **Auto-rollback on health check failure** — don't leave broken prod
-
----
-
-## Phase Final: AI-Readiness Check (SAU DEPLOY, trước khi bàn giao)
-
-> Web không chỉ người đọc mà AI agent cũng đọc/dùng được → **ĐỌC `skills/ai-friendly-web/SKILL.md`** + chạy checklist AI-Readiness sau khi deploy:
-
-- [ ] `llms.txt` (mục lục cho LLM) + `llms-full.txt` — sinh từ nội dung THẬT, curl test 200
-- [ ] `robots.txt` — KHÔNG chặn GPTBot/ClaudeBot/PerplexityBot + có `Sitemap:`
-- [ ] `sitemap.xml` — đủ trang public + `lastmod` đúng
-- [ ] JSON-LD structured data cho trang public chính
-- [ ] Semantic HTML/ARIA/meta đầy đủ (tái dùng frontend-checklist)
-- [ ] OpenAPI spec nếu web có API public
-- [ ] Verify bằng curl từng file chuẩn (không "tin là có")
-
-> ❌ Thiếu llms.txt / chặn AI crawlers → MAJOR, sửa trước khi bàn giao.

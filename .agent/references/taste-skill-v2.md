@@ -842,7 +842,8 @@ The Reference Vocabulary (Section 10) names patterns. The Block Library implemen
 
 ### 12.A File Location
 ```
-skills/taste-skill/blocks/
+External reference only — `skills/taste-skill/blocks/` is not bundled in this template.
+If you add a local taste-skill block library, place it under `skills/taste-skill/blocks/` and register it explicitly.
   hero/
     asymmetric-split.md
     editorial-manifesto.md
@@ -1206,4 +1207,3 @@ But that is **web glassmorphism / frosted-glass approximation**, not official Ap
 ---
 
 **End of appendices.** Install commands above are reality anchors. The Apple Liquid Glass skeleton is a labeled approximation, not an Apple-issued package. For canonical docs per design system, consult the system's official docs (links in Section 2 plus Appendix B).
-

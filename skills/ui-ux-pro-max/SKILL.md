@@ -1,3 +1,8 @@
+---
+name: ui-ux-pro-max
+description: "Use when designing UI/UX, generating design systems, choosing product-specific color, typography, layout, interaction, animation, accessibility, or responsive design rules."
+---
+
 # UI/UX Pro Max — Design Intelligence (Curated)
 
 > Curated from [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) — chọn phần hay nhất (design-system generation + 10 priority rule categories) khớp với Phase 2 Design Agent của template. Không copy nguyên xi database/scripts; giữ lại tinh túy rule-based design.

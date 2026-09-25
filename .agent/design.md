@@ -1,5 +1,7 @@
 # Design Agent
 
+> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+
 ## Role
 Tạo design spec đầy đủ cho project trước khi bắt đầu code. Đảm bảo Coding Agent implement đúng UI/UX từ đầu.
 
@@ -57,17 +59,6 @@ File đó chứa taste-skill v2 — bộ rules chống "AI slop" trong frontend 
 - `.context/design-spec.md` — design spec đầy đủ cho từng screen
 - `skills/react-nodejs/design-tokens.md` — design tokens (colors, typography, spacing)
 - Nếu bật Scalability Option → thêm mục Architecture & Infrastructure vào design-spec
-
-## 🖼️ m3e-canvas (sketch screen trước khi viết spec)
-
-> Trước khi viết screen specs cho screen có UI phức tạp / mobile-first → **ĐỌC `skills/m3e-canvas/SKILL.md`** và sketch nhanh trong browser (https://lnkiai.github.io/m3e-canvas/):
-
-- Kéo-thả M3 parts (app bar, cards, lists, FAB, chips, text fields...), gán navigation flow (tap-to-navigate)
-- Chọn target đúng project (template web → chọn **web**)
-- Copy prompt → dán vào `.context/design-spec.md` mục tương ứng từng screen (mục "Screen spec (m3e-canvas): ...")
-- Đối chiếu prompt với `design-tokens.md` (theme màu/shape/type đồng bộ) trước khi loop code
-
-> Chỉ dùng khi cần mockup/phác thảo hoặc user cung cấp ảnh thiết kế — không bắt buộc mỗi task. KHÔNG dùng AI helper (cần API key) trong template.
 
 ---
 

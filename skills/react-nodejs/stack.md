@@ -1,5 +1,9 @@
 # React + Node.js — Tech Stack
 
+> Example/default for React + Node projects only. Không phải rule global.
+> Luôn đọc `.agent/PROJECT_PROFILE.md` trước: ORM lấy từ `db_tool`, package manager lấy từ
+> `package_manager`. Nếu unset/`none`, không giả định Prisma/pnpm.
+
 ## Core
 
 | Category | Technology | Version |
@@ -10,7 +14,7 @@
 | Bundler | Vite | 8.x |
 | React Compiler | oxc-transform-react (native Rust) | latest |
 | Backend | Express | 4.x |
-| ORM | Prisma | 5.x |
+| ORM | From `PROJECT_PROFILE.db_tool` | `none` / `prisma` / `drizzle` / `other`; không giả định Prisma |
 | Validation | Zod | 3.x |
 
 ## Frontend Stack
@@ -54,32 +58,19 @@
 
 ## Testing
 
-| Category | Tool | Version / Notes |
-|----------|------|-----------------|
-| Framework | Vitest | **5.x** — cần Node ≥ 22.12 & Vite ≥ 6.4 (template đã Vite 8 ✓) |
-| Unit (FE) | Vitest + Testing Library | |
-| Unit (BE) | Vitest | |
-| Integration | Vitest + supertest | |
-| E2E | Playwright | |
-| Coverage | c8 / istanbul | |
-
-**Vitest 5 — điều cần biết:**
-- **Concurrent mặc định** — các test file chạy song song; bỏ config `sequential` cũ, muốn chạy tuần tự thì dùng `fileParallelism: false` trong `vitest.config.ts`.
-- **expect API mới** — thay `loupe.inspect` bằng `pretty-format`; matchers được tối ưu hơn, message fail rõ hơn (migration guide: vitest.dev/blog/vitest-5.html).
-- Performance tốt hơn hẳn v4 — ít cần workaround tăng tốc nữa.
-
-Pin exact version:
-```json
-"devDependencies": {
-  "vitest": "5.0.1"
-}
-```
+| Category | Tool |
+|----------|------|
+| Unit (FE) | Vitest + Testing Library |
+| Unit (BE) | Vitest |
+| Integration | Vitest + supertest |
+| E2E | Playwright |
+| Coverage | c8 / istanbul |
 
 ## DevOps
 
 | Category | Tool |
 |----------|------|
-| Package Manager | pnpm |
+| Package Manager | From `PROJECT_PROFILE.package_manager`; không giả định pnpm |
 | Linting | ESLint |
 | Formatting | Prettier |
 | Git Hooks | husky + lint-staged |

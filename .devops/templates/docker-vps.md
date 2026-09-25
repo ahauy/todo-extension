@@ -13,9 +13,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
+RUN <install_command from PROJECT_PROFILE>
 COPY . .
-RUN pnpm run build
+RUN <build_command from PROJECT_PROFILE>
 
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -106,7 +106,8 @@ ssh $SERVER << 'EOF'
   cd /opt/app
   docker compose pull
   docker compose up -d --build
-  docker compose exec app npx prisma migrate deploy
+  # Run <migration_command from PROJECT_PROFILE> only if migration_required=true.
+  # If db_tool: none, skip migration.
   echo "✅ Deployed successfully"
 EOF
 
