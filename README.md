@@ -114,6 +114,7 @@ project-template/
 │   ├── open-code-review/         ← 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — reviewer chạy ocr review, bắt bug XSS/SQLi/NPE/thread-safety
 │   ├── anti-slop/                ← 🧬 Oxlint rules chống low-evidence TS/JS (dmmulroy/anti-slop, curated) — lint gate khi code
 │   ├── m3e-canvas/               ← 🖼️ Sketch M3 UI trong browser → vibe prompt (lnkiai/m3e-canvas, curated) — Phase 2 design
+│   ├── ai-readable-codebase/     ← 🧠 AI-native code: viết cho 2 độc giả (người + AI) — tên self-descriptive, ít indirection, README+ARCHITECTURE bắt buộc
 │   └── blitzstrike/              ← ⚡ MCP pentest toolbelt (shinthink/blitzstrike, curated) — security optional
 │   ├── layer-0/                  ← Foundation tasks
 │   ├── layer-1/                  ← Core feature tasks
@@ -208,6 +209,7 @@ The template ships with 4 curated workflow skills (curated from well-known open-
 | `aislop/` | scanaislop/aislop (curated, MIT) | Reviewer reviews **code changes** — deterministic AI-slop scan (narrative comments, swallowed errors, hidden fallbacks, `as any`, duplication, dead code, todo stubs), score 0-100 ≥80 gate, `fix --safe` mechanical, offline no API key |
 | `open-code-review/` | alibaba/open-code-review (curated, Apache-2.0) | Reviewer reviews **code changes** — hybrid deterministic + LLM code review, precise line-level comments, built-in ruleset (NPE, thread-safety, XSS, SQLi). Delegation mode = no API key needed; CRITICAL finding → FAIL |
 | `anti-slop/` | dmmulroy/anti-slop (curated, MIT) | Loop while coding TS/JS + Reviewer — **Oxlint rules** chặn low-evidence patterns (no-reduce-accumulator-copy, no-object-parameters, no-unsafe-dictionary-type, type assertion cần safety comment). Chặn ở tầng lint — bổ trợ aislop (mùi nội dung) + OCR (bug thật) |
+| `ai-readable-codebase/` | curated (in-house) | Loop + Reviewer — **AI-native code** viết cho 2 độc giả (người + AI agent): tên self-descriptive, ít indirection, 1 file 1 trách nhiệm, comment WHY, README + ARCHITECTURE.md bắt buộc. Reviewer check AI-chaos indicators (≥3 → FAIL). Bổ trợ karpathy (chạm đúng chỗ) + anti-slop |
 | `m3e-canvas/` | lnkiai/m3e-canvas (curated, MIT) | Design Agent — **sketch M3 UI trong browser** (https://lnkiai.github.io/m3e-canvas/) → vibe-coding prompt chuẩn, gán navigation flow; dán prompt vào design-spec. Bổ trợ ui-ux-pro-max vẽ mockup trước khi code |
 | `blitzstrike/` | shinthink/blitzstrike (curated, MIT) | Reviewer — **optional** MCP pentest toolbelt (BLITZ recon → EAGLE-EYE source trace → STRIKE live validate). Task nhạy cảm (auth/API/input) → chỉ report finding đã verify live |
 

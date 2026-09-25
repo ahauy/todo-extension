@@ -60,6 +60,22 @@ Sử dụng `REVIEWER_MODEL` từ `.env.local` (recommended: khác hãng với C
 
 ---
 
+## 🧠 AI-Readable Codebase Check (mọi task code mới)
+
+> Khi review code mới → **ĐỌC `skills/ai-readable-codebase/SKILL.md`** + check AI-chaos indicators (code cho 2 độc giả: người + AI agent) TRƯỚC khi duyệt PASS:
+
+- [ ] Tên file/hàm/biến self-descriptive (không `utils`/`helpers`/`temp`/viết tắt khó đoán)
+- [ ] Hàm ≤50 dòng, component ≤200 dòng, 1 hàm 1 việc
+- [ ] Ít indirection — trace được luồng trong ≤3 bước nhảy
+- [ ] Không magic number/string (có hằng số đặt tên hoặc comment WHY)
+- [ ] Comment giải thích WHY thay vì WHAT
+- [ ] Code mới cập nhật README/ARCHITECTURE.md nếu đổi luồng chính
+- [ ] ≥3 indicators vi phạm → FAIL, trả loop sửa
+
+> Bổ trợ karpathy (surgical) — karpathy chặn "chạm sai chỗ", skill này đảm bảo "viết sao cho AI hiểu". KHÔNG thay thế AISlop/OCR/security.
+
+---
+
 ---
 
 ## ⚠️ Scalability Checklist Gate (chỉ khi có Scalability Profile)

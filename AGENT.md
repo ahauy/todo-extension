@@ -242,6 +242,7 @@ SPEC_VALIDATOR_MODEL=deepseek-v4-pro  # Validates specs (yet another provider!)
 │   ├── open-code-review/ → 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — reviewer chạy ocr review, bắt bug XSS/SQLi/NPE/thread-safety
 │   ├── anti-slop/        → 🧬 Oxlint rules chống low-evidence TS/JS (dmmulroy/anti-slop, curated) — lint gate khi code
 │   ├── m3e-canvas/       → 🖼️ Sketch M3 UI trong browser → vibe prompt (lnkiai/m3e-canvas, curated) — Phase 2 design
+│   ├── ai-readable-codebase/ → 🧠 AI-native code: viết cho 2 độc giả (người + AI) — tên self-descriptive, ít indirection, README+ARCHITECTURE bắt buộc
 │   └── blitzstrike/      → ⚡ MCP pentest toolbelt (shinthink/blitzstrike, curated) — security optional
 ├── tasks/                ← Generated task files
 ├── .devops/              ← Deploy templates
