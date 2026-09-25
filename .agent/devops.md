@@ -382,3 +382,19 @@ chore: update dependencies             # Maintenance
 3. **Human checkpoint before production** — never auto-deploy to prod
 4. **Health checks are mandatory** — verify deployment works
 5. **Auto-rollback on health check failure** — don't leave broken prod
+
+---
+
+## Phase Final: AI-Readiness Check (SAU DEPLOY, trước khi bàn giao)
+
+> Web không chỉ người đọc mà AI agent cũng đọc/dùng được → **ĐỌC `skills/ai-friendly-web/SKILL.md`** + chạy checklist AI-Readiness sau khi deploy:
+
+- [ ] `llms.txt` (mục lục cho LLM) + `llms-full.txt` — sinh từ nội dung THẬT, curl test 200
+- [ ] `robots.txt` — KHÔNG chặn GPTBot/ClaudeBot/PerplexityBot + có `Sitemap:`
+- [ ] `sitemap.xml` — đủ trang public + `lastmod` đúng
+- [ ] JSON-LD structured data cho trang public chính
+- [ ] Semantic HTML/ARIA/meta đầy đủ (tái dùng frontend-checklist)
+- [ ] OpenAPI spec nếu web có API public
+- [ ] Verify bằng curl từng file chuẩn (không "tin là có")
+
+> ❌ Thiếu llms.txt / chặn AI crawlers → MAJOR, sửa trước khi bàn giao.
