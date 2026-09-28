@@ -255,6 +255,7 @@ Repo chưa cài tool / không có app code / không áp dụng → ghi `N/A` ho�
 | `skills/ai-friendly-web/SKILL.md` | Reviewer + DevOps, task/web public-facing | thiếu `llms.txt`/`robots.txt`/`sitemap.xml` hoặc chặn AI crawlers → **MAJOR → FAIL** |
 | `skills/m3e-canvas/SKILL.md` | Builder Phase 3 UI (optional) | sketch screen → prompt lưu `.context/design-spec.md`; **không bắt buộc** mỗi task |
 | `skills/blitzstrike/SKILL.md` | Reviewer Phase 2 STRICT (optional) | pentest live trên môi trường được phép; chỉ finding **STRIKE-validated** mới tính FAIL; chưa cài/không môi trường → bỏ qua |
+| `skills/security/codex-security.md` | Reviewer, task nhạy cảm (auth/API/secrets/endpoint mới, optional) | `npx @openai/codex-security scan <dir>` — CRITICAL **verified** → FAIL, ≥3 MAJOR → FAIL; chưa login/không network/không cài được → ghi `N/A` + lý do, không chặn PASS |
 
 > Thứ tự ưu tiên khi mâu thuẫn: `impeccable` (craft-floor) > `taste-skill-v2` > `ui-ux-pro-max`;
 > `aislop` (nội dung) + `anti-slop` (kiểu dáng) + `ocr` (bug thật) là 3 lớp bổ trợ, không thay thế nhau.

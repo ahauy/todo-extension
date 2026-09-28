@@ -145,7 +145,8 @@ project-template/
 │   │   ├── jwt-security.md          ← JWT algorithm/signature hardening
 │   │   ├── bola-idor.md             ← Broken Object Level Authorization
 │   │   ├── sharp-edges.md           ← Secure defaults & footgun config
-│   │   └── supply-chain-audit.md    ← dependency audit + dependency risk
+│   │   ├── supply-chain-audit.md    ← dependency audit + dependency risk
+│   │   └── codex-security.md        ← OpenAI Codex Security CLI scan/fix (AI-driven, curated)
 │   ├── monitoring/               ← 📊 Monitoring skills (mandatory)
 │       ├── otel-instrumentation.md  ← OTel traces/metrics/logs (backend)
 │       ├── otel-browser.md          ← Browser RUM (Web Vitals, JS errors)
@@ -210,6 +211,7 @@ The template ships with built-in security rules (read and applied mandatorily by
 | `bola-idor.md` | Object-level authorization (every `/:id` verifies ownership) |
 | `sharp-edges.md` | Secure defaults & footgun config/secret |
 | `supply-chain-audit.md` | Configured package-manager audit + dependency takeover risk |
+| `codex-security.md` | OpenAI Codex Security CLI — AI-driven scan/fix (curated, optional) |
 
 ### 3 Mandatory Checkpoints
 
@@ -270,6 +272,7 @@ The template ships with curated workflow skills (curated from well-known open-so
 | `ai-friendly-web/` | curated (in-house) | Reviewer/DevOps task web public — web AI-ready: `llms.txt`, `robots.txt` cho AI crawlers, `sitemap.xml`, JSON-LD, OpenAPI. Thiếu → MAJOR → FAIL |
 | `m3e-canvas/` | lnkiai/m3e-canvas (curated, MIT) | Design Phase 3 (optional) — sketch M3 UI trong browser → vibe prompt, lưu `.context/design-spec.md`. Bổ trợ ui-ux-pro-max |
 | `blitzstrike/` | shinthink/blitzstrike (curated, MIT) | Reviewer STRICT task nhạy cảm (optional) — MCP pentest (BLITZ → EAGLE-EYE → STRIKE). Chỉ finding STRIKE-validated mới chặn; chưa cài → bỏ qua |
+| `security/codex-security.md` | openai/codex-security (curated, npm `@openai/codex-security`) | Reviewer task nhạy cảm (optional) — AI-driven scan/fix; **CRITICAL verified** → FAIL, ≥3 MAJOR → FAIL; chưa login/không network → ghi `N/A`, không chặn PASS |
 
 ### Mandatory Checkpoints
 
