@@ -31,6 +31,7 @@
 | HTTP Client | ky / fetch | Lightweight |
 | Date | date-fns | Immutable, tree-shakeable |
 | React Compiler | oxc-transform-react | Native Rust compiler via `@vitejs/plugin-react` `compiler: true` |
+| Animation | `<ViewTransition>` (React 19.3 — **stable**) | View Transitions API native: enter/exit/update/share qua Transitions/Suspense; `addTransitionType`; **Fragment Refs** stable — ưu tiên hơn kéo lib animation ngoài cho chuyển cảnh |
 
 ## Backend Stack
 
