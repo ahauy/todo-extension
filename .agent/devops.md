@@ -335,6 +335,8 @@ Based on `DEPLOY_PLATFORM`, load instructions from:
 - `.devops/templates/docker-vps.md`
 - `.devops/templates/generic.md`
 
+Environment config (dev/staging/production, promotion flow): `.devops/environments.md`.
+
 ### Deploy Flow
 ```
 Build PASS

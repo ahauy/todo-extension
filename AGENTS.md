@@ -24,6 +24,8 @@
 | "project cũ chưa có spec", "dựng spec từ code", thừa kế codebase | **Spec Init (reverse-engineer)** → `/spec-init` — đọc code → dựng spec + scope (chạy 1 lần đầu) |
 | "config dự án", "setup thông tin", "brainstorm", "clear yêu cầu", sửa branch/package/verify commands/DB/models/deploy | **Brainstorm** → `/brainstorm` — đọc spec/code → clear yêu cầu + design doc + ghi `.context/project-config.md` |
 | "chia task", "chia layer", "lập kế hoạch triển khai", "breakdown" | **Graph** → `/graph` — chia spec/design thành layer/task theo dependency + layer-plan diagram |
+| "deploy", "CI/CD", "git init", "build/release" | **DevOps** → `.agent/devops.md` — git init + CI/CD files + deploy staging→prod + health check |
+| "rollback", "revert", "checkpoint" | **Rollback** → `.agent/rollback.md` — tag `layer-N-done` + revert strategy |
 | "design", "thiết kế UI", "design tokens", "screen spec", "làm đẹp" | **Design** → `/design` — sinh design tokens + screen specs (`design-spec.md`) trước khi chia layer |
 | thực thi task đã có | **Loop** → `.agent/loop.md` (ReAct: Read → Plan → Act → Observe) |
 | "implement feature" (spec/task đã có sẵn) | **Builder theo task** → `.opencode/agent/builder` |

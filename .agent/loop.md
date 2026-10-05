@@ -72,7 +72,7 @@ TRƯỚC KHI làm bất cứ gì:
 ### 1. Read Context
 ```
 Read:
-- Task file hiện tại (`tasks/<feature|bug>-<slug>/phase-<N>-task-<NN>.md`)
+- Task file hiện tại — initial build: `tasks/<slug>/layer-{N}-task-{NN}.md`; change hậu-build: `tasks/<feature|bug>-<slug>/phase-<N>-task-<NN>.md`
 - .context/error-memory.md (avoid past mistakes)
 - skills/react-nodejs/conventions.md (style guide)
 - skills/react-nodejs/patterns.md (implementation patterns)
@@ -171,6 +171,17 @@ Sau mỗi task PASS:
 - Task đã commit → tin git, không giữ nguyên văn trong context
 - Error patterns đã ghi vào .context/error-memory.md → không cần nhớ máy móc
 ```
+
+### 7. Context Compact Check (`.agent/context-manager.md`)
+Sau mỗi task PASS (đọc `completedTasks` từ `.context/progress.json`):
+```
+Nếu số task đã done % 3 == 0:
+  → INVOKE .agent/context-manager.md (compact)
+  → Đọc .context/compressed-summary.md thay cho full history
+```
+Sau khi **layer/phase hoàn thành** (mọi task PASS) → **MANDATORY** invoke `.agent/context-manager.md`, compact cả layer/phase vừa xong rồi mới sang layer/phase tiếp.
+
+> 📋 **State (`.agent/blackboard.md`)**: `.context/progress.json` là source of truth — đọc trước khi làm (resume), atomic update sau mỗi bước đổi trạng thái (`inProgressTask`/`completedTasks`/`currentLayer`).
 
 ---
 
