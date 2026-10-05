@@ -88,11 +88,13 @@ Chỉ bỏ checkpoint nếu prompt có đúng một trong các cụm: `auto proc
 - Set `done` sau khi reviewer PASS, Doc Impact/Reconcile đã xong hoặc ghi `no doc impact`, và report đúng tên tồn tại trong `.context/review-reports/` (§5). Trạng thái `done`/progress/doc-impact này phải nằm trong close-out commit; progress/task file không cần biết SHA của commit đang được tạo.
 
 ### 2.7b Test scope (handoff sang template test) — bắt buộc khi fix bug
-- Sau khi bug PASS review, sinh/cập nhật `.context/test-scope.json` (hợp đồng bàn giao cho template AUTOTEST — schema trong `docs/FLOWS.md` của autotest template):
+- Sau khi bug PASS review, sinh/cập nhật **`spec/test-scope/current.json`** (hợp đồng bàn giao cho template AUTOTEST — schema + version scheme trong `docs/SPEC_VERSIONING.md`):
   - `trigger: bug-fix`, `workItem`, `specRefs` (requirement liên quan), `changed.files/modules`
   - `impact.direct` (hành vi vừa sửa), `impact.dependents` (module phụ thuộc), `impact.regression` (luồng cũ cần retest)
   - `acceptance` (tiêu chí nghiệm thu), `risk` (low/medium/high)
-- Mục đích: template test đọc scope này test đúng phạm vi, không phải tự mò.
+  - **`specVersion`** (= version hiện tại của `SPECIFICATIONS.md`) + **`scopeVersion`** (tăng 1 mỗi lần sinh)
+- Nếu bug đổi ngữ nghĩa requirement → bump spec version + ghi delta trước (xem §3.2b).
+- Mục đích: template test đọc scope này (so version để biết cover đến đâu), không phải tự mò.
 
 ### 2.8 Commit / push (commit-first)
 - Sau khi task/bug/phase PASS review + close-out + cập nhật `.context/progress.json`, phải commit lên branch hiện tại theo convention bên dưới.
@@ -185,6 +187,9 @@ Classify → Spec delta → Spec Validator → Phase/Task → Human duyệt plan
 - Nếu thay đổi behavior/scope → **cập nhật spec** hoặc ghi rõ lý do không cần.
 - Liệt kê ảnh hưởng tới phase/task đã có (regression risk).
 
+### 3.2b Cập nhật spec + version (khi spec delta)
+- Nếu thay đổi behavior/scope: sửa `SPECIFICATIONS.md` → **bump `spec_version`** (semver: MAJOR breaking / MINOR thêm req / PATCH làm rõ) → thêm dòng vào `spec/CHANGELOG.md` → ghi delta vào `spec/updates/YYYY-MM-DD-<slug>.md`. Mốc release → copy vào `spec/archive/SPECIFICATIONS-<version>.md`. Chi tiết: `docs/SPEC_VERSIONING.md`.
+
 ### 3.3 Spec Validator
 - Gọi subagent `spec-validator` (không sửa source; chỉ được ghi report scoped) cross-check delta vs spec & docs.
 - Ghi report pre-plan: `.context/review-reports/feature-<slug>-spec-validation.md`.
@@ -235,10 +240,11 @@ Classify → Spec delta → Spec Validator → Phase/Task → Human duyệt plan
 - Commit/push: xem §2.8 (commit-first sau PASS; default staging-direct push `target_branch`, feature branch chỉ khi user yêu cầu).
 
 ### 3.9b Test scope (handoff sang template test) — bắt buộc khi update feature
-- Sau khi task/phase PASS, sinh/cập nhật `.context/test-scope.json` (hợp đồng bàn giao cho template AUTOTEST):
+- Sau khi task/phase PASS, sinh/cập nhật **`spec/test-scope/current.json`** (hợp đồng bàn giao cho template AUTOTEST):
   - `trigger: feature-update`, `workItem`, `specRefs` (spec delta), `changed.files/modules`
   - `impact.direct` / `impact.dependents` / `impact.regression`, `acceptance`, `risk`
-- Mục đích: template test chạy luồng 2 (`/test-scope`) + luồng 3 (`/regression`) đúng phạm vi.
+  - **`specVersion`** (= version hiện tại của `SPECIFICATIONS.md` sau bump ở §3.2b) + **`scopeVersion`** (tăng 1 mỗi lần sinh)
+- Mục đích: template test chạy luồng 2 (`/test-scope`) + luồng 3 (`/regression`) đúng phạm vi, so version để biết cover đến đâu.
 
 ---
 
