@@ -3,6 +3,8 @@
 > This is the **always-loaded entry point**. Read it before acting on any request.
 > Detailed workflow: greenfield build → `AGENT.md`; maintenance (bug/feature/update) → `.agent/FEATURE_WORKFLOW.md`.
 > Project-specific values (branch, package manager, check commands) → `.agent/PROJECT_PROFILE.md`.
+>
+> ⭐ **Sau initial build, MỌI thay đổi đi qua MỘT agent: `change-request`** (feature mới + fix bug). Cửa vào: **`/change`** (đọc hết `spec/changes/*.md`), hoặc `/bug` / `/feature` (tương đương). `/bug-check` chỉ soi read-only.
 
 ## Precedence
 
@@ -15,9 +17,10 @@ file or `.agent/FEATURE_WORKFLOW.md`, follow **this file**. Legacy files carry a
 
 | Intent (user says…) | Route (mandatory) |
 |---|---|
-| "fix bug", "lỗi", "broken", regression, crash (đã biết rõ bug nào) | **Bug workflow** (§Bug) → `/bug` |
+| "fix bug", "lỗi", "broken", regression, crash (đã biết rõ bug nào) | **Change Request (BUG)** → agent `change-request` · `/change` (hoặc `/bug`) |
 | "soi/kiểm tra màn", "cảm giác nhiều lỗi nhưng không rõ" | **Bug discovery / sweep** → `/bug-check` — READ-ONLY, KHÔNG fix |
-| "thêm/sửa/bỏ/xóa tính năng", "change/update feature" | **Change Request workflow** → `.agent/FEATURE_WORKFLOW.md` → `/feature` |
+| "thêm/sửa/bỏ/xóa tính năng", "change/update feature" | **Change Request (ADDITIVE/MODIFY/REMOVE)** → agent `change-request` · `/change` (hoặc `/feature`) |
+| thay đổi đã ghi sẵn trong `spec/changes/` | **`/change`** — đọc hết file pending → agent `change-request` |
 | "project cũ chưa có spec", "dựng spec từ code", thừa kế codebase | **Spec Init (reverse-engineer)** → `/spec-init` — đọc code → dựng spec + scope |
 | "implement feature" (spec/task đã có sẵn) | **Builder theo task** → `.opencode/agent/builder` |
 | "review", "check", "soát" (một diff/task cụ thể) | **Reviewer** → `.opencode/agent/reviewer` — KHÔNG tự sửa code |
@@ -30,9 +33,10 @@ Không rõ intent → hỏi 1 câu ngắn để phân loại, đừng đoán.
 
 | Command | Dùng khi | Tính chất |
 |---|---|---|
+| `/change` | **Cửa vào chính cho thay đổi hậu-build** | Đọc hết `spec/changes/*.md` pending → gọi agent `change-request`. Không có file → báo "không có change chờ". |
 | `/bug-check` | Khu vực/màn mơ hồ, "cảm giác nhiều lỗi" | **READ-ONLY** — soi, liệt kê defect vào `tasks/bug-<slug>/scan.md`, **dừng chờ user chọn**. Không sửa, không commit. |
-| `/bug` | **Một bug đã biết** hoặc list bug đã xác nhận | Diagnose root cause → task → builder → reviewer → progress → **★ Spec Publisher (tự động: sinh test-scope/current.json cho vùng vừa sửa)** → commit-first → push theo branch model nếu được phép |
-| `/feature` | Thêm/sửa/bỏ tính năng | Classify ADDITIVE/MODIFY/REMOVE → spec delta → **★ Spec Publisher (tự động: bump version + spec/updates/ + test-scope/current.json)** → phase/task → builder/reviewer/spec-validator → progress |
+| `/bug` | **Một bug đã biết** hoặc list bug đã xác nhận | Cửa vào → agent `change-request` (class BUG): root cause → task → builder → reviewer → **★ Spec Publisher (sinh test-scope/current.json)** → progress → commit-first |
+| `/feature` | Thêm/sửa/bỏ tính năng | Cửa vào → agent `change-request` (class ADDITIVE/MODIFY/REMOVE): spec delta → **★ Spec Publisher (bump version + spec/updates/ + test-scope/current.json)** → phase/task → builder/reviewer/spec-validator |
 | `/spec-publish` | Phát hành spec cho template test (thường tự động chạy; dùng khi cần chạy lại/thủ công) | Bump `spec_version` + ghi `spec/updates/` + `spec/CHANGELOG.md` + sinh `spec/test-scope/current.json` |
 | `/spec-init` | Project CŨ đã có code nhưng **chưa có spec** (legacy/thừa kế) | Reverse-engineer: scan code → dựng `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`). Read-only, chạy 1 lần |
 | `/resume` | Mở session mới **làm tiếp** việc đang dở | Đọc Run Journal → reconcile đĩa → thực hiện `next`. **KHÔNG** classify/phase-plan lại (§ Session Handoff) |

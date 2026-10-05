@@ -10,6 +10,10 @@ spec/
 ├── CHANGELOG.md             ← lịch sử version spec (1 dòng / lần đổi)
 ├── updates/                 ← 1 file / lần update (spec delta)
 │   └── YYYY-MM-DD-<slug>.md
+├── changes/                 ← ⭐ change request sau initial build (1 file / thay đổi)
+│   ├── _TEMPLATE.md
+│   ├── YYYY-MM-DD-<slug>.md  ← pending → agent change-request xử lý
+│   └── archive/              ← change đã xử lý (status: done)
 ├── archive/                 ← bản spec đóng băng theo mốc release
 │   └── SPECIFICATIONS-<version>.md
 └── test-scope/              ← hợp đồng bàn giao cho template TEST
@@ -17,6 +21,8 @@ spec/
     └── archive/
         └── test-scope-<specVersion>-<scopeVersion>.json
 ```
+
+> ⭐ **`spec/changes/` là cửa vào cho mọi thay đổi sau initial build.** `/change` đọc hết file pending → gọi agent `change-request` (feature mới + fix bug) → sinh `spec/updates/` + `spec/test-scope/current.json`.
 
 > **DEV chỉ giữ spec** (cần test cái gì). Trạng thái "đã test đến đâu / phần nào đã test" **do template TEST tự lưu** (trong repo test) — DEV không giữ.
 

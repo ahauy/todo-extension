@@ -176,28 +176,32 @@ Deploy production → Health check → Done ✅
 > Anh confirm để em deploy production không?"
 > **KHÔNG tự động deploy production.** Chờ user approve.
 
-## Post-Completion: Change Requests (`.agent/change-request.md`)
+## Post-Completion: Change Requests
 
-After the project is complete (or any time user requests modifications mid-project):
+> ⭐ **Sau khi project build xong lần đầu (greenfield hoàn tất), MỌI thay đổi đi qua MỘT agent duy nhất: `change-request`** — feature mới (ADDITIVE/MODIFY/REMOVE) **và** fix bug (BUG). Cửa vào: **`/change`** (đọc hết `spec/changes/*.md`) · `/bug` · `/feature`.
+> Greenfield pipeline **chỉ dùng để build lần đầu** — không dùng lại cho thay đổi sau này.
 
-1. User yêu cầu thêm/sửa/bỏ feature
-2. Change Request Agent classifies: **ADDITIVE** / **MODIFY** / **REMOVE**
-3. Analyze impact on existing layers + tasks
-4. Update `SPECIFICATIONS.md` + changelog
-5. Re-trigger: Spec Validator → Graph → Loop → Review → DevOps
+1. Ghi change request: tạo file `spec/changes/YYYY-MM-DD-<slug>.md` (copy `spec/changes/_TEMPLATE.md`) — hoặc mô tả trực tiếp qua `/change`.
+2. Chạy **`/change`** → agent `change-request` đọc hết file pending + phân tích.
+3. Change Request Agent classifies: **ADDITIVE** / **MODIFY** / **REMOVE** / **BUG**.
+4. Analyze impact on existing layers + tasks.
+5. Update `SPECIFICATIONS.md` + changelog + **★ Spec Publisher tự động** (`spec/updates/` + `spec/test-scope/current.json`).
+6. Re-trigger: Spec Validator → Graph → Loop → Review → DevOps → **test-scope handoff** (bên test `/test-scope` chạy được).
 
 ```
-User: "Thêm dark mode" / "Đổi auth sang JWT" / "Bỏ feature chat"
+User ghi spec/changes/<file>.md  →  /change
     ↓
-Change Request Agent → classify + impact analysis
+Change Request Agent → classify (BUG/ADDITIVE/MODIFY/REMOVE) + impact
     ↓
-Update SPECIFICATIONS.md (changelog appended)
+Update SPECIFICATIONS.md + spec/updates/ + spec/CHANGELOG.md + spec/test-scope/current.json
     ↓
 Spec Validator → Graph → Loop → Review → DevOps
+    ↓
+Đóng change file (status=done → spec/changes/archive/)
 ```
 
-> 💡 **Trigger:** Bất cứ khi nào user yêu cầu thay đổi feature sau khi đã có SPECIFICATIONS.md
-> Đọc full workflow tại `.agent/change-request.md`
+> 💡 **Trigger:** bất cứ khi nào cần thay đổi sau khi đã có `SPECIFICATIONS.md` + build xong.
+> Đọc full workflow tại `.agent/change-request.md`.
 
 ---
 

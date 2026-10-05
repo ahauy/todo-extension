@@ -34,6 +34,8 @@ Không rõ intent → hỏi 1 câu ngắn. **Không tự phân loại thành "ch
 
 ## 2. Bug workflow
 
+> ⭐ Agent thực thi: **`change-request`** (class BUG) — cửa vào `/bug` hoặc `/change`.
+
 ```
 Triage → Reproduce → Root cause → Task → Builder → Reviewer PASS
    → Doc Impact/Reconcile → progress.json → commit current branch (= target_branch mặc định)
@@ -171,6 +173,8 @@ Quy tắc bắt buộc:
 ---
 
 ## 3. Change Request workflow (feature / update)
+
+> ⭐ Agent thực thi: **`change-request`** (class ADDITIVE/MODIFY/REMOVE) — cửa vào `/feature` hoặc `/change` (đọc `spec/changes/`).
 
 ```
 Classify → Spec delta → Spec Validator → Phase/Task → Human duyệt plan

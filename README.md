@@ -89,13 +89,17 @@ project-template/
 │   ├── agent/
 │   │   ├── builder.md            ← Default code+test (model code chính)
 │   │   ├── builder-strong.md     ← Hard task (opt-in only; gated)
+│   │   ├── change-request.md     ← ⭐ agent DUY NHẤT cho hậu-build (feature + bug)
+│   │   ├── spec-init.md          ← reverse-engineer spec cho project CŨ
+│   │   ├── spec-publisher.md     ← tự động phát hành spec + test-scope cho template test
 │   │   ├── reviewer.md           ← Independent review (edit: deny)
 │   │   └── spec-validator.md     ← Spec/phase cross-check (edit: deny)
 │   ├── command/
 │   │   ├── setup-profile.md      ← /setup-profile → onboarding repo thật (PROJECT_PROFILE)
+│   │   ├── change.md             ← /change → change request hậu-build (đọc spec/changes/ → agent change-request)
 │   │   ├── bug-check.md          ← /bug-check → read-only sweep, list defects
-│   │   ├── bug.md                ← /bug  → fix ONE known bug
-│   │   ├── feature.md            ← /feature → Change Request workflow
+│   │   ├── bug.md                ← /bug  → fix ONE known bug (→ agent change-request)
+│   │   ├── feature.md            ← /feature → Change Request workflow (→ agent change-request)
 │   │   ├── spec-init.md          ← /spec-init → reverse-engineer spec cho project CŨ (chưa có spec)
 │   │   ├── spec-publish.md       ← /spec-publish → phát hành spec cho template test (thường tự động)
 │   │   └── resume.md             ← /resume → continue from Run Journal (cross-session)
@@ -134,7 +138,7 @@ project-template/
 │   ├── context-manager.md        ← Context window management
 │   ├── rollback.md               ← Git checkpoint + recovery strategy
 │   ├── devops.md                 ← Git setup, CI/CD, deployment
-│   └── change-request.md        ← Modify features after project is done
+│   └── change-request.md        ← ⭐ Agent DUY NHẤT cho mọi thay đổi hậu-build (feature + bug) — đọc spec/changes/
 │
 ├── skills/
 │   ├── react-nodejs/
@@ -390,6 +394,9 @@ Done ✅ → Extract patterns → Update common-errors.md
 | **Builder (strong)** | `.opencode/agent/builder-strong.md` | Same, for hard tasks — **opt-in only**, gated by `permission.task` |
 | **Reviewer** | `.opencode/agent/reviewer.md` | Independent review, risk level FAST/NORMAL/STRICT (`edit: deny`) |
 | **Spec Validator** | `.opencode/agent/spec-validator.md` | Cross-check spec/phase vs requirements (`edit: deny`) |
+| **Change Request** ⭐ | `.opencode/agent/change-request.md` | **Agent DUY NHẤT cho mọi thay đổi hậu-build** (feature mới + fix bug) — đọc `spec/changes/`, spec-publish + test-scope. Cửa vào: `/change`, `/bug`, `/feature` |
+| **Spec Init** | `.opencode/agent/spec-init.md` | Reverse-engineer spec cho project CŨ (chưa có spec) |
+| **Spec Publisher** | `.opencode/agent/spec-publisher.md` | Tự động bump spec + sinh `spec/test-scope/current.json` cho template test |
 
 **Greenfield (legacy/optional)** — prompt-level agents in `.agent/`:
 
@@ -406,7 +413,7 @@ Done ✅ → Extract patterns → Update common-errors.md
 | **Context Manager** | `.agent/context-manager.md` | Summarizes and pins context to prevent amnesia in long sessions |
 | **Rollback** | `.agent/rollback.md` | Git commit strategy; reverts layer on failure |
 | **DevOps** | `.agent/devops.md` | Git init, CI/CD pipeline, staging/production deployments |
-| **Change Request** | `.agent/change-request.md` | Handles feature additions, modifications, or removals post-launch |
+| **Change Request** | `.agent/change-request.md` | ⭐ Đã nâng thành agent hậu-build duy nhất (feature + bug); wrapper subagent ở `.opencode/agent/change-request.md` |
 
 ---
 
@@ -440,6 +447,7 @@ opencode
 | `/bug-check <khu vực>` | Chưa rõ bug nào — soi **read-only**, liệt kê defect vào `tasks/bug-<slug>/scan.md`, dừng chờ bạn chọn |
 | `/bug <mô tả>` | **Một bug đã biết** hoặc list bug đã xác nhận — root cause → build → reviewer → progress → commit-first → push theo branch model nếu được phép |
 | `/feature <mô tả>` | Thêm/sửa/bỏ tính năng — classify → spec delta → phase/task → build/review/validate |
+| `/change` ⭐ | **Cửa vào chính cho thay đổi hậu-build** — đọc hết file pending trong `spec/changes/` → gọi agent `change-request` (feature mới + fix bug) |
 | `/spec-init` | Project CŨ đã có code nhưng **chưa có spec** (legacy/thừa kế) — reverse-engineer: scan code → dựng `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`, read-only, chạy 1 lần) |
 | `/spec-publish` | Phát hành spec cho template test (thường **tự động** sau bug/feature; dùng khi cần chạy lại/thủ công) |
 | `/resume <type>/<slug>` | Mở session mới **làm tiếp** việc đang dở — đọc Run Journal + reconcile đĩa rồi chạy bước `next` (không classify/phase-plan lại) |
@@ -693,8 +701,9 @@ values in `.agent/PROJECT_PROFILE.md`.
 | Intent | Route |
 |--------|-------|
 | "soi/kiểm tra màn", "cảm giác nhiều lỗi" | **Bug discovery / sweep** → `/bug-check` (READ-ONLY) |
-| "fix bug", "lỗi", regression | **Bug workflow** — root cause first, then task → builder → reviewer (`/bug`) |
-| "thêm/sửa/bỏ tính năng" | **Change Request workflow** — classify → spec delta → phase plan → builder → reviewer → spec-validator (`/feature`) |
+| "fix bug", "lỗi", regression | **Change Request (BUG)** — root cause first, then task → builder → reviewer (`/change` · `/bug`) |
+| "thêm/sửa/bỏ tính năng" | **Change Request** → agent `change-request` — classify → spec delta → phase plan → builder → reviewer → spec-validator (`/change` · `/feature`) |
+| thay đổi đã ghi trong `spec/changes/` | **`/change`** — đọc hết file pending → agent `change-request` |
 | "project cũ chưa có spec", "dựng spec từ code", thừa kế codebase | **Spec Init (reverse-engineer)** → `/spec-init` — đọc code → dựng spec + scope (read-only, 1 lần) |
 | "implement feature" (task có sẵn) | `builder` subagent |
 | "review / check" | `reviewer` subagent (`edit: deny`) |
@@ -708,7 +717,7 @@ Reviewer tự chọn risk level `FAST` / `NORMAL` / `STRICT`; `STRICT` là bắt
 tenant/org isolation, DB/schema/migration, destructive/bulk update, shared/API contract, security,
 cron/webhook, payment/subscription, root cause chưa rõ, hoặc logic quan trọng thiếu test.
 
-Triggers: `/bug-check <khu vực>`, `/bug <mô tả>`, `/feature <mô tả>`, `/spec-init` (project cũ chưa có spec), `/spec-publish` (phát hành spec cho template test).
+Triggers: `/change` (cửa vào chính cho thay đổi hậu-build — đọc `spec/changes/`), `/bug-check <khu vực>`, `/bug <mô tả>`, `/feature <mô tả>`, `/spec-init` (project cũ chưa có spec), `/spec-publish` (phát hành spec cho template test).
 
 > ⚠️ Agent/command/config changes are **not hot-reloaded** — restart opencode after editing them.
 > In auto-approve mode the `ask` gate is auto-accepted; keep manual mode to preserve it.
