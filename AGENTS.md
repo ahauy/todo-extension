@@ -30,8 +30,9 @@ Không rõ intent → hỏi 1 câu ngắn để phân loại, đừng đoán.
 | Command | Dùng khi | Tính chất |
 |---|---|---|
 | `/bug-check` | Khu vực/màn mơ hồ, "cảm giác nhiều lỗi" | **READ-ONLY** — soi, liệt kê defect vào `tasks/bug-<slug>/scan.md`, **dừng chờ user chọn**. Không sửa, không commit. |
-| `/bug` | **Một bug đã biết** hoặc list bug đã xác nhận | Diagnose root cause → task → builder → reviewer → progress → commit-first → push theo branch model nếu được phép |
-| `/feature` | Thêm/sửa/bỏ tính năng | Classify ADDITIVE/MODIFY/REMOVE → spec delta → phase/task → builder/reviewer/spec-validator → progress |
+| `/bug` | **Một bug đã biết** hoặc list bug đã xác nhận | Diagnose root cause → task → builder → reviewer → progress → **★ Spec Publisher (tự động: sinh test-scope/current.json cho vùng vừa sửa)** → commit-first → push theo branch model nếu được phép |
+| `/feature` | Thêm/sửa/bỏ tính năng | Classify ADDITIVE/MODIFY/REMOVE → spec delta → **★ Spec Publisher (tự động: bump version + spec/updates/ + test-scope/current.json)** → phase/task → builder/reviewer/spec-validator → progress |
+| `/spec-publish` | Phát hành spec cho template test (thường tự động chạy; dùng khi cần chạy lại/thủ công) | Bump `spec_version` + ghi `spec/updates/` + `spec/CHANGELOG.md` + sinh `spec/test-scope/current.json` |
 | `/resume` | Mở session mới **làm tiếp** việc đang dở | Đọc Run Journal → reconcile đĩa → thực hiện `next`. **KHÔNG** classify/phase-plan lại (§ Session Handoff) |
 
 ---
@@ -57,6 +58,7 @@ Không rõ intent → hỏi 1 câu ngắn để phân loại, đừng đoán.
 1. **Classify ADDITIVE / MODIFY / REMOVE** trước khi code.
 2. Requirement mơ hồ → **hỏi lại**, không tự chọn giả định lớn.
 3. Đổi behavior/scope → cập nhật **spec delta** hoặc ghi rõ lý do không cần.
+3b. **★ TỰ ĐỘNG Spec Publisher** (`.agent/spec-publish.md`): sau spec delta → bump `spec_version` + ghi `spec/updates/` + `spec/CHANGELOG.md` + sinh `spec/test-scope/current.json` (tăng `scopeVersion`) cho template test. Không chờ user nhắc.
 4. Tạo `tasks/feature-<slug>/phase-<N>-task-<NN>.md` khi nhiều bước hoặc có risk.
 5. Task phải có `Classification / Risk`, verification summary, và Retry/Escalation theo `/feature` + `.agent/FEATURE_WORKFLOW.md` §3.
 6. Sau 3 attempt fail → status `architecture_review_needed`, dừng chờ review kiến trúc/refactor.

@@ -27,6 +27,7 @@ Change Request Agent:
     ├─ Classify: ADDITIVE / MODIFY / REMOVE
     ├─ Analyze impact (layers, dependencies)
     ├─ Update SPECIFICATIONS.md + Changelog
+    ├─ ★ Spec Publisher (TỰ ĐỘNG): bump spec_version + spec/updates/ + spec/CHANGELOG.md + spec/test-scope/current.json
     │
     ▼
 Spec Validator check lại
@@ -37,6 +38,8 @@ Graph tạo task mới / update task cũ
     ▼
 Loop → Review → DevOps
 ```
+
+> ★ **Spec Publisher (tự động, không chờ user nhắc):** sau khi update spec → chạy `.agent/spec-publish.md` → bump `spec_version`, ghi `spec/updates/YYYY-MM-DD-<slug>.md`, thêm `spec/CHANGELOG.md`, sinh `spec/test-scope/current.json` (tăng `scopeVersion`) để template TEST nắm ngay feature mới. Xem `.opencode/agent/spec-publisher.md`.
 
 ---
 
@@ -51,10 +54,11 @@ Loop → Review → DevOps
 2. Đọc `.context/progress.json` để biết project đang ở layer nào
 3. Xác định feature mới thuộc layer nào (dựa trên dependency)
 4. Append feature mới vào SPECIFICATIONS.md (section phù hợp)
-5. Append changelog entry
-6. Trigger `spec-validator.md` để validate spec mới
-7. Trigger `graph.md` để tạo tasks mới cho feature
-8. Tasks mới được thêm vào layer phù hợp (hoặc tạo layer mới)
+5. Append changelog entry (theo `.agent/spec-publish.md`)
+6. **★ Spec Publisher (TỰ ĐỘNG):** bump `spec_version` (MINOR) + ghi `spec/updates/` + `spec/CHANGELOG.md` + sinh `spec/test-scope/current.json` (`specRefs` = requirement mới)
+7. Trigger `spec-validator.md` để validate spec mới
+8. Trigger `graph.md` để tạo tasks mới cho feature
+9. Tasks mới được thêm vào layer phù hợp (hoặc tạo layer mới)
 
 **Rules:**
 - KHÔNG đụng code/tasks đã complete
@@ -81,14 +85,15 @@ Loop → Review → DevOps
    - Task đang IN_PROGRESS → update task definition
    - Task chưa bắt đầu → edit task trực tiếp
 5. Update SPECIFICATIONS.md với changes
-6. Append changelog entry
-7. Trigger `spec-validator.md`
-8. Xử lý theo task status:
+6. Append changelog entry (theo `.agent/spec-publish.md`)
+7. **★ Spec Publisher (TỰ ĐỘNG):** bump `spec_version` (MODIFY đổi behavior) + ghi `spec/updates/` + `spec/CHANGELOG.md` + sinh `spec/test-scope/current.json`
+8. Trigger `spec-validator.md`
+9. Xử lý theo task status:
    - **Completed task:** Tạo task mới `task-{NN}-mod-{M}.md` trong layer hiện tại hoặc next
    - **In-progress task:** Reset task → re-run loop
    - **Pending task:** Edit task file trực tiếp
-9. Re-run `loop.md` cho affected task(s)
-10. Re-run `reviewer.md` cho affected task(s)
+10. Re-run `loop.md` cho affected task(s)
+11. Re-run `reviewer.md` cho affected task(s)
 
 **Impact Analysis:**
 ```
@@ -132,7 +137,7 @@ Affected tasks list:
    - Dependencies có thể uninstall
 5. Tạo cleanup task:
    - `tasks/layer-{current}/task-{NN}-cleanup.md`
-6. Append changelog entry
+6. Append changelog entry + **★ Spec Publisher (TỰ ĐỘNG)** — bump `spec_version` (MAJOR nếu xoá requirement) + `spec/updates/` + sinh `spec/test-scope/current.json`
 7. Trigger `spec-validator.md`
 8. Run cleanup task qua `loop.md`
 9. Trigger `reviewer.md` để verify clean removal
@@ -273,9 +278,10 @@ LOW / MEDIUM / HIGH
 
 1. **Always read current state** — đọc progress.json + spec trước khi làm gì
 2. **Always update changelog** — mỗi spec change phải có changelog entry
-3. **Never modify completed code directly** — tạo new task thay vì edit
-4. **Validate after every change** — spec-validator phải PASS
-5. **One change at a time** — không batch multiple unrelated changes
-6. **Impact before action** — analyze impact trước, execute sau
-7. **Preserve rollback ability** — mọi change phải reversible qua git
-8. **Ask when ambiguous** — nếu không rõ ADDITIVE vs MODIFY → ask human
+3. **Always publish spec (tự động)** — sau mỗi change, chạy `.agent/spec-publish.md`: bump version + `spec/updates/` + `spec/test-scope/current.json` để template test nắm được
+4. **Never modify completed code directly** — tạo new task thay vì edit
+5. **Validate after every change** — spec-validator phải PASS
+6. **One change at a time** — không batch multiple unrelated changes
+7. **Impact before action** — analyze impact trước, execute sau
+8. **Preserve rollback ability** — mọi change phải reversible qua git
+9. **Ask when ambiguous** — nếu không rõ ADDITIVE vs MODIFY → ask human

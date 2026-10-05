@@ -468,7 +468,10 @@ Chờ user confirm → mới generate.
 
 ## After All Phases (Post Phase 3)
 
-1. Generate `SPECIFICATIONS.md` từ docs + brainstorm-log + clarifications
-2. Trigger `.agent/spec-validator.md`
-3. Nếu PASS → trigger `.agent/graph.md`
-4. Nếu FAIL → quay lại hỏi bổ sung → validate lại
+1. Generate `SPECIFICATIONS.md` từ docs + brainstorm-log + clarifications, **kèm frontmatter `spec_version: 1.0.0` + `updated_at`** (theo `docs/SPEC_VERSIONING.md`)
+2. ★ **Spec Publisher (TỰ ĐỘNG):** tạo `spec/CHANGELOG.md` entry đầu (1.0.0) + sinh `spec/test-scope/current.json` (`trigger: initial-build`, `specRefs` = toàn bộ requirement) → bàn giao cho template test
+3. Trigger `.agent/spec-validator.md`
+4. Nếu PASS → trigger `.agent/graph.md`
+5. Nếu FAIL → quay lại hỏi bổ sung → validate lại
+
+> ★ Chi tiết Spec Publisher: `.agent/spec-publish.md` (bật version + delta + scope). Bước này **tự động**, không chờ user nhắc.

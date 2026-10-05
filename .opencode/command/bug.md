@@ -24,6 +24,16 @@ Chỉ bỏ checkpoint nếu prompt có đúng một trong các cụm: `auto proc
 Sau khi user xác nhận thứ tự xử lý, `/bug` phải xử lý **từng bug theo vòng fix-loop** bên dưới.
 Không được chuyển sang Bug discovery/read-only trừ khi input thực sự chỉ là khu vực mơ hồ chưa có bug cụ thể.
 
+## ★ Tự động Spec Publish sau mỗi bug (không chờ user nhắc)
+
+Sau khi bug PASS review, **tự động** chạy `.agent/spec-publish.md`:
+1. Nếu bug đổi ngữ nghĩa requirement → bump `spec_version` + `spec/updates/` + `spec/CHANGELOG.md`.
+2. **Luôn** sinh/cập nhật `spec/test-scope/current.json` (`trigger: bug-fix`, tăng `scopeVersion`) — để template test nắm vùng vừa sửa mà test lại.
+3. Close-out commit gồm code + `spec/test-scope/current.json` (+ `spec/updates/` nếu có).
+4. Báo 1 dòng: "scope v{N} đã phát hành cho bug <slug> — bên test `/test-scope` là chạy được."
+
+> Bước này tự động, tương tự Spec Publisher của `/feature` — xem `.opencode/agent/spec-publisher.md`.
+
 ## Fix-loop bắt buộc cho từng bug
 
 Một bug chỉ được coi là xong khi **original repro không còn tái hiện** và Reviewer PASS.
