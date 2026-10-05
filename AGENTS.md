@@ -18,6 +18,7 @@ file or `.agent/FEATURE_WORKFLOW.md`, follow **this file**. Legacy files carry a
 | "fix bug", "lỗi", "broken", regression, crash (đã biết rõ bug nào) | **Bug workflow** (§Bug) → `/bug` |
 | "soi/kiểm tra màn", "cảm giác nhiều lỗi nhưng không rõ" | **Bug discovery / sweep** → `/bug-check` — READ-ONLY, KHÔNG fix |
 | "thêm/sửa/bỏ/xóa tính năng", "change/update feature" | **Change Request workflow** → `.agent/FEATURE_WORKFLOW.md` → `/feature` |
+| "project cũ chưa có spec", "dựng spec từ code", thừa kế codebase | **Spec Init (reverse-engineer)** → `/spec-init` — đọc code → dựng spec + scope |
 | "implement feature" (spec/task đã có sẵn) | **Builder theo task** → `.opencode/agent/builder` |
 | "review", "check", "soát" (một diff/task cụ thể) | **Reviewer** → `.opencode/agent/reviewer` — KHÔNG tự sửa code |
 | "thêm skill", "add skill", "tạo skill", "register skill" | **Customize opencode** — tạo/cập nhật runtime skill đúng format (§Local skills) |
@@ -33,6 +34,7 @@ Không rõ intent → hỏi 1 câu ngắn để phân loại, đừng đoán.
 | `/bug` | **Một bug đã biết** hoặc list bug đã xác nhận | Diagnose root cause → task → builder → reviewer → progress → **★ Spec Publisher (tự động: sinh test-scope/current.json cho vùng vừa sửa)** → commit-first → push theo branch model nếu được phép |
 | `/feature` | Thêm/sửa/bỏ tính năng | Classify ADDITIVE/MODIFY/REMOVE → spec delta → **★ Spec Publisher (tự động: bump version + spec/updates/ + test-scope/current.json)** → phase/task → builder/reviewer/spec-validator → progress |
 | `/spec-publish` | Phát hành spec cho template test (thường tự động chạy; dùng khi cần chạy lại/thủ công) | Bump `spec_version` + ghi `spec/updates/` + `spec/CHANGELOG.md` + sinh `spec/test-scope/current.json` |
+| `/spec-init` | Project CŨ đã có code nhưng **chưa có spec** (legacy/thừa kế) | Reverse-engineer: scan code → dựng `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`). Read-only, chạy 1 lần |
 | `/resume` | Mở session mới **làm tiếp** việc đang dở | Đọc Run Journal → reconcile đĩa → thực hiện `next`. **KHÔNG** classify/phase-plan lại (§ Session Handoff) |
 
 ---
