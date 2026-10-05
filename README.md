@@ -284,13 +284,17 @@ The template ships with curated workflow skills (curated from well-known open-so
 
 ## How It Works
 
-> 📌 **Bắt đầu ở đâu:** repo đã có code → `/brainstorm` (cấu hình) → **`/spec-init`** (đọc code → dựng spec, chạy 1 lần) → **loop** thực thi task → **`/change`** cho mọi thay đổi sau đó (agent `change-request`).
+> 📌 **Start dự án:** `/start` (TỰ ĐỘNG) — đọc spec (`/spec-init` nếu chưa có) → `/brainstorm` (clear yêu cầu + design doc + config) → `/graph` (chia layer/task) → **loop**. Mỗi bước dừng ở human checkpoint. Sau khi build xong → `/change` cho mọi thay đổi.
+> `/brainstorm` và `/graph` là lệnh **manual** — chạy tay để chạy lại/update; trong `/start` chúng tự động được gọi.
 
 ### Pipeline
 
 ```
-/spec-init (đọc code → SPECIFICATIONS.md + spec/ + test-scope)   ← chạy 1 lần
-    │  spec-validator PASS
+🚀 /start  (tự động chuỗi khởi tạo)
+├─ 1. Đọc spec          → có rồi thì dùng; chưa có → /spec-init (đọc code → SPECIFICATIONS.md + spec/)
+├─ 2. /brainstorm       → clear yêu cầu (design doc docs/specs/) + config .context/project-config.md   ← DỪNG chờ approve design
+└─ 3. /graph            → chia layer/task (tasks/<slug>/layer-N-task-NN.md) + layer-plan diagram         ← DỪNG chờ duyệt plan
+    │
     ▼
 Loop Agent — execute từng task (ReAct)
 ├─ Builder code + test
@@ -303,7 +307,7 @@ Review Agent (different model)
 └─ PASS → close-out
     │
     ▼
-👀 Human Checkpoint → task/phase tiếp theo
+👀 Human Checkpoint → layer/phase tiếp theo (Layer N+1 chỉ unlock khi Layer N PASS + user approve)
 
 ────────── Sau đó: mọi thay đổi ──────────
 spec/changes/<file>.md → /change → agent change-request
@@ -356,12 +360,11 @@ git clone <template-repo-url> template && cd template
 # 2. Mở opencode
 opencode
 
-# 3. Trong opencode, chạy /brainstorm để auto-detect stack rồi sửa profile THEO NHÓM
-#    (Git & branch / Stack & source / Verify commands / Database & migration):
-#    chọn nhóm → sửa cả nhóm → chọn tiếp hoặc dừng, ghi .context/project-config.md
-#    và sync quyền verify command khi chọn "Xong".
-#    Hoặc điền tay: target_branch, forbidden_branch, auto_push_after_pass,
-#    package_manager, verify commands, db_tool, migration_required.
+# 3. Trong opencode, chạy /start (chuỗi TỰ ĐỘNG):
+#    đọc spec → /brainstorm (clear yêu cầu + config theo nhóm) → /graph (chia layer/task)
+#    - /brainstorm: auto-detect stack → sửa config THEO NHÓM → ghi .context/project-config.md
+#    - /graph: chia layer/task + layer-plan diagram, dừng chờ anh duyệt plan
+#    (chạy tay /brainstorm hoặc /graph bất cứ lúc nào để chạy lại/update)
 
 # 4. Khai model theo vai trong .context/project-config.md (models:) rồi BỎ COMMENT
 #    dòng `model:` trong .opencode/agent/*.md
@@ -371,7 +374,9 @@ opencode
 
 | Command | Khi nào dùng |
 |---|---|
-| `/brainstorm` | Onboarding repo thật — auto-detect stack, sửa profile **theo nhóm** (chọn nhóm → sửa cả nhóm → chọn tiếp/dừng), ghi `.context/project-config.md`, sync quyền verify command |
+| `/start` 🚀 | **Khởi tạo dự án (lần đầu)** — chuỗi TỰ ĐỘNG: đọc spec (`/spec-init` nếu chưa có) → `/brainstorm` → `/graph`. Dừng ở human checkpoint mỗi bước. Build xong → dùng `/change` |
+| `/brainstorm` | **Clear yêu cầu + chốt config dự án** (manual — tự động trong `/start`) — design doc + auto-detect stack, sửa profile **theo nhóm**, ghi `.context/project-config.md`, sync quyền verify command |
+| `/graph` | **Chia layer/task** cho initial build (manual — tự động trong `/start`) — sinh `tasks/<slug>/layer-{N}-task-{NN}.md` + layer-plan diagram + update `progress.json` |
 | `/bug-check <khu vực>` | Chưa rõ bug nào — soi **read-only**, liệt kê defect vào `tasks/bug-<slug>/scan.md`, dừng chờ bạn chọn |
 | `/bug <mô tả>` | **Một bug đã biết** hoặc list bug đã xác nhận — root cause → build → reviewer → progress → commit-first → push theo branch model nếu được phép |
 | `/feature <mô tả>` | Thêm/sửa/bỏ tính năng — classify → spec delta → phase/task → build/review/validate |
@@ -393,14 +398,17 @@ Checklist smoke-test cho template trống nằm ở `docs/smoke-tests/MAINTENANC
 - Guard: `builder-strong` phải ask; `git push origin main`, ref main, `git push --force`, `git reset --hard`, `git checkout --` phải deny.
 - Sau khi sửa `.opencode/*` hoặc `opencode.jsonc`, quit và restart opencode vì config/commands/agents không hot-reload.
 
-### Bắt đầu (repo đã có code)
+### Bắt đầu (dự án mới / repo đã có code)
 
-> Luồng: `/brainstorm` (cấu hình) → **`/spec-init`** (đọc code → dựng `SPECIFICATIONS.md` + `spec/`, chạy 1 lần) → **loop** thực thi task → **`/change`** cho thay đổi sau đó.
+> Luồng: **`/start`** (TỰ ĐỘNG) — đọc spec (`/spec-init` nếu chưa có) → `/brainstorm` (clear yêu cầu + config) → `/graph` (chia layer/task) → **loop** → `/change` cho thay đổi sau đó.
 
 ```bash
 # Trong opencode:
-/brainstorm        # onboarding: auto-detect stack → .context/project-config.md
-/spec-init            # đọc code → dựng spec + spec/ + test-scope (1 lần)
+/start                    # 🚀 chuỗi tự động: đọc spec → brainstorm → graph (dừng ở checkpoint)
+# hoặc chạy tay từng bước:
+/spec-init                # đọc code → dựng spec + spec/ + test-scope (1 lần)
+/brainstorm               # clear yêu cầu + design doc + config → .context/project-config.md
+/graph                    # chia layer/task + layer-plan diagram
 # sau đó dùng /change (hoặc /bug, /feature) cho mọi thay đổi
 ```
 
