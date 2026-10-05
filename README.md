@@ -2,11 +2,11 @@
 
 > A model-agnostic multi-agent template for **working on repos that already have code** (bug/feature/update).
 
-> 📌 **Luồng làm việc:** `/spec-init` (đọc code → dựng spec, chạy 1 lần đầu) → **loop** thực thi task → **`/change`** cho mọi thay đổi sau đó (qua agent `change-request`).
-> Setup ban đầu: `/brainstorm`.
+> 📌 **Workflow:** `/spec-init` (read code → build spec, run once) → **loop** executes tasks → **`/change`** for all subsequent changes (via the `change-request` agent).
+> Initial setup: `/brainstorm`.
 >
-> ⭐ **Sau khi spec đã có, MỌI thay đổi (feature mới + fix bug) đi qua MỘT agent: `change-request`.**
-> Cửa vào: **`/change`** (đọc hết `spec/changes/*.md`) · `/bug` · `/feature`.
+> ⭐ **Once a spec exists, EVERY change (new feature + bug fix) goes through ONE agent: `change-request`.**
+> Entry points: **`/change`** (reads all `spec/changes/*.md`) · `/bug` · `/feature`.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Works with](https://img.shields.io/badge/Works%20with-Cursor%20%7C%20Opencode%20%7C%20Windsurf%20%7C%20Copilot-blue)](https://opencode.ai)
@@ -36,7 +36,7 @@
 
 ## Overview
 
-This template provides a **multi-agent workflow** for **repos that already have code** (bug / feature / update). Bắt đầu bằng `/spec-init` (đọc code → spec) → loop thực thi task → `/change` cho mọi thay đổi sau đó (agent `change-request`). `AGENTS.md` routes every request; specialized subagents handle build, independent review, spec validation, and close-out.
+This template provides a **multi-agent workflow** for **repos that already have code** (bug / feature / update). Start with `/spec-init` (read code → spec) → loop executes tasks → `/change` for all subsequent changes (the `change-request` agent). `AGENTS.md` routes every request; specialized subagents handle build, independent review, spec validation, and close-out.
 
 **Key features:**
 - 🧭 **Intent router** — `AGENTS.md` classifies every request (bug / sweep / feature / review / research) before any code is touched
@@ -46,7 +46,7 @@ This template provides a **multi-agent workflow** for **repos that already have 
 - 🔍 **Independent review** — reviewer / spec-validator run as separate subagents (`edit: deny`) with different models to reduce bias
 - 💾 **Session handoff** — Run Journal in `.context/runs/` + `/resume`, so a new session continues from the last safe step
 - 🧠 **Error memory** — agents learn from mistakes, avoid repeating them
-- 🚀 **CI/CD & deploy** — templates trong `.devops/` (git setup, pipeline, staging → production)
+- 🚀 **CI/CD & deploy** — templates in `.devops/` (git setup, pipeline, staging → production)
 - 📚 **Doc-aware input** — drop existing BRD/Design/API Spec/ERD into `docs/`; agents classify and only ask about gaps
 
 ---
@@ -57,9 +57,9 @@ This template provides a **multi-agent workflow** for **repos that already have 
 |------|------|------|
 | **Router** | `AGENTS.md` | Classify intent → `/spec-init` · `/change` · `/bug-check` · `/bug` · `/feature` · review · research |
 | **Workflow** | `.agent/FEATURE_WORKFLOW.md` | Bug fix-loop, Change Request flow, Phase model 1–5, gates, commit-first |
-| **Loop engine** | `.agent/loop.md` | Execute từng task (ReAct: Read → Plan → Act → Observe → Repeat) |
-| **Change agent** | `.agent/change-request.md` | Agent DUY NHẤT cho mọi thay đổi (feature + bug) sau khi có spec |
-| **State** | `.context/progress.json` + `.context/runs/` | Work-item status + Run Journal cho cross-session resume |
+| **Loop engine** | `.agent/loop.md` | Execute each task (ReAct: Read → Plan → Act → Observe → Repeat) |
+| **Change agent** | `.agent/change-request.md` | The ONLY agent for all changes (feature + bug) once a spec exists |
+| **State** | `.context/progress.json` + `.context/runs/` | Work-item status + Run Journal for cross-session resume |
 
 ---
 
@@ -68,28 +68,33 @@ This template provides a **multi-agent workflow** for **repos that already have 
 ```
 project-template/
 ├── AGENTS.md                     ← ✅ Entry point (router) — always loaded
-├── SPECIFICATIONS.md             ← Spec canonical (dựng bởi /spec-init từ code)
+├── SPECIFICATIONS.md             ← Canonical spec (built by /spec-init from code)
 ├── opencode.jsonc                ← Permission gate (builder-strong = ask)
 ├── .env.local                    ← Git/deploy secrets (gitignored)
 ├── .env.local.example            ← Template for .env.local
 │
 ├── .opencode/
 │   ├── agent/
-│   │   ├── builder.md            ← Default code+test (model code chính)
+│   │   ├── builder.md            ← Default code+test (main coding model)
 │   │   ├── builder-strong.md     ← Hard task (opt-in only; gated)
-│   │   ├── change-request.md     ← ⭐ agent DUY NHẤT cho hậu-build (feature + bug)
-│   │   ├── spec-init.md          ← reverse-engineer spec cho project CŨ
-│   │   ├── spec-publisher.md     ← tự động phát hành spec + test-scope cho template test
+│   │   ├── change-request.md     ← ⭐ the ONLY agent for post-build (feature + bug)
+│   │   ├── design.md             ← Design Agent: design tokens + screen specs
+│   │   ├── graph.md              ← Split spec/design into layers + tasks
+│   │   ├── spec-init.md          ← reverse-engineer spec for an EXISTING project
+│   │   ├── spec-publisher.md     ← auto-publish spec + test-scope for the test template
 │   │   ├── reviewer.md           ← Independent review (edit: deny)
 │   │   └── spec-validator.md     ← Spec/phase cross-check (edit: deny)
 │   ├── command/
-│   │   ├── brainstorm.md      ← /brainstorm → onboarding repo thật (project-config)
-│   │   ├── change.md             ← /change → change request hậu-build (đọc spec/changes/ → agent change-request)
+│   │   ├── start.md              ← /start → continuous init chain (spec → brainstorm → design → graph → loop)
+│   │   ├── brainstorm.md         ← /brainstorm → clarify requirements + project config
+│   │   ├── design.md             ← /design → design tokens + screen specs
+│   │   ├── graph.md              ← /graph → split into layers/tasks + layer-plan diagram
+│   │   ├── change.md             ← /change → post-build change request (reads spec/changes/ → agent change-request)
 │   │   ├── bug-check.md          ← /bug-check → read-only sweep, list defects
 │   │   ├── bug.md                ← /bug  → fix ONE known bug (→ agent change-request)
 │   │   ├── feature.md            ← /feature → Change Request workflow (→ agent change-request)
-│   │   ├── spec-init.md          ← /spec-init → reverse-engineer spec cho project CŨ (chưa có spec)
-│   │   ├── spec-publish.md       ← /spec-publish → phát hành spec cho template test (thường tự động)
+│   │   ├── spec-init.md          ← /spec-init → reverse-engineer spec for an EXISTING project (no spec yet)
+│   │   ├── spec-publish.md       ← /spec-publish → publish spec for the test template (usually automatic)
 │   │   └── resume.md             ← /resume → continue from Run Journal (cross-session)
 │   └── plugins/loop-guard.ts     ← Doom-loop guard + usage() gate
 │
@@ -107,26 +112,26 @@ project-template/
 │
 ├── scripts/
 │   ├── generate-inventory.mjs         ← Deterministic inventory generator
-│   ├── detect-profile.mjs             ← Detect stack → gợi ý project-config (dùng bởi /brainstorm)
-│   └── apply-verify-permissions.mjs   ← Sync allow rule verify command vào reviewer/spec-validator
+│   ├── detect-profile.mjs             ← Detect stack → suggest project-config (used by /brainstorm)
+│   └── apply-verify-permissions.mjs   ← Sync verify-command allow rules into reviewer/spec-validator
 │
 ├── .agent/
 │   ├── FEATURE_WORKFLOW.md       ← ✅ Workflow entry (bug/feature/update)
-│   ├── brainstorm.md             ← ✅ Đọc spec/code → clear yêu cầu + chốt config → .context/project-config.md
-│   ├── design.md                 ← Design Agent: design tokens + screen specs (trước khi chia layer)
-│   ├── graph.md                  ← Chia spec/design → layer + task (dependency order)
+│   ├── brainstorm.md             ← ✅ Read spec/code → clarify requirements + set config → .context/project-config.md
+│   ├── design.md                 ← Design Agent: design tokens + screen specs (before layer split)
+│   ├── graph.md                  ← Split spec/design → layers + tasks (dependency order)
 │   ├── loop.md                   ← Execute tasks (ReAct pattern)
-│   ├── devops.md                 ← Git init, CI/CD, deploy (layer 0 + sau mỗi layer + final)
+│   ├── devops.md                 ← Git init, CI/CD, deploy (layer 0 + after each layer + final)
 │   ├── rollback.md               ← Git checkpoint + revert strategy
-│   ├── blackboard.md             ← Shared state (.context/progress.json là source of truth)
-│   ├── context-manager.md        ← Nén context khi phình to
+│   ├── blackboard.md             ← Shared state (.context/progress.json is the source of truth)
+│   ├── context-manager.md        ← Compress context when it grows too large
 │   ├── references/               ← taste-skill-v2.md (anti-slop design reference)
 │   ├── spec-validator.md         ← Validate spec vs code/docs
-│   ├── spec-init.md              ← /spec-init: reverse-engineer spec cho project CŨ (code có sẵn)
-│   ├── spec-publish.md           ← /spec-publish: phát hành spec + test-scope cho template test
+│   ├── spec-init.md              ← /spec-init: reverse-engineer spec for an EXISTING project
+│   ├── spec-publish.md           ← /spec-publish: publish spec + test-scope for the test template
 │   ├── reviewer.md               ← Independent code review
 │   ├── error-analyzer.md         ← Root cause analysis + error memory
-│   └── change-request.md        ← ⭐ Agent DUY NHẤT cho mọi thay đổi (feature + bug) — đọc spec/changes/
+│   └── change-request.md        ← ⭐ the ONLY agent for all changes (feature + bug) — reads spec/changes/
 │
 ├── skills/
 │   ├── react-nodejs/
@@ -153,19 +158,19 @@ project-template/
 │   ├── archify/                 ← 🗺️ Architecture/workflow/sequence/dataflow diagrams → self-contained HTML (tt-a1i/archify, curated)
 │   ├── frontend-checklist/       ← ✅ Frontend quality gate: HTML/a11y/SEO/perf/images/security/privacy (curated from thedaviddias/Front-End-Checklist)
 │   ├── superpowers/             ← 🧠 Debug Iron Law + TDD (obra/superpowers)
-│   ├── brainstorming/           ← 💬 Clear yêu cầu → propose approaches → design doc trước khi code (nửa "clarify" của /brainstorm)
+│   ├── brainstorming/           ← 💬 Clarify requirements → propose approaches → design doc before coding (the "clarify" half of /brainstorm)
 │   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
 │   ├── impeccable/              ← 🎨 UI craft-floor + polish (pbakaus)
 │   ├── ui-ux-pro-max/           ← 🧩 Design intelligence (nextlevelbuilder)
 │   ├── scalability-architecture/ ← 📦 OPTIONAL scalability tiers — only when user enables the option
 │   ├── karpathy-guidelines/      ← ✂️ Surgical changes + think before coding (andrej-karpathy-skills)
-│   ├── aislop/                   ← 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer chạy aislop scan, score ≥ 80
-│   ├── anti-slop/                ← 🧬 Oxlint rules chống low-evidence TS/JS (dmmulroy/anti-slop, curated)
+│   ├── aislop/                   ← 🧹 AI-slop detection gate (scanaislop/aislop, curated) — reviewer runs aislop scan, score ≥ 80
+│   ├── anti-slop/                ← 🧬 Oxlint rules against low-evidence TS/JS (dmmulroy/anti-slop, curated)
 │   ├── open-code-review/         ← 🔍 Alibaba OCR gate (alibaba/open-code-review, curated) — CRITICAL → FAIL
-│   ├── ai-readable-codebase/     ← 🧠 Code cho 2 độc giả (người + AI) — tên rõ, ít indirection, README+ARCHITECTURE
-│   ├── ai-friendly-web/          ← 🌐 Web AI-ready: llms.txt, robots cho AI crawlers, sitemap, JSON-LD, OpenAPI
-│   ├── m3e-canvas/               ← 🖼️ Sketch M3 UI trong browser → vibe prompt (lnkiai/m3e-canvas, curated)
-│   └── blitzstrike/              ← ⚡ MCP pentest toolbelt (shinthink/blitzstrike, curated) — security optional
+│   ├── ai-readable-codebase/     ← 🧠 Code for 2 readers (human + AI) — clear names, low indirection, README+ARCHITECTURE required
+│   ├── ai-friendly-web/          ← 🌐 AI-ready web: llms.txt, robots for AI crawlers, sitemap, JSON-LD, OpenAPI
+│   ├── m3e-canvas/               ← 🖼️ Sketch M3 UI in browser → vibe prompt (lnkiai/m3e-canvas, curated)
+│   └── blitzstrike/              ← ⚡ MCP pentest toolbelt (shinthink/blitzstrike, curated) — optional security
 │
 ├── tasks/                        ← Maintenance task board
 │   ├── README.md                 ← Task file format + rules
@@ -177,9 +182,9 @@ project-template/
 │   ├── session-policy.json       ← Usage gate thresholds (loop-guard)
 │   ├── runs/                     ← Run Journal per task (cross-session resume)
 │   │   └── _TEMPLATE.md
-│   ├── project-config.md         ← ✅ Project config (branch, pm, checks, DB, models) — do /brainstorm ghi
+│   ├── project-config.md         ← ✅ Project config (branch, pm, checks, DB, models) — written by /brainstorm
 │   ├── decisions.md              ← Architecture decisions log
-│   ├── spec-notes.md             ← Ghi chú dựng spec (/spec-init)
+│   ├── spec-notes.md             ← Spec build notes (/spec-init)
 │   ├── error-memory.md           ← Errors encountered + fixes
 │   └── review-reports/           ← Reviewer / spec-validator reports
 │
@@ -235,9 +240,9 @@ The template ships with built-in production monitoring (uptime + runtime observa
 | `otel-semantic-conventions.md` | OTel naming compliance (span/attribute) |
 | `production-monitoring.md` | Health check, uptime, structured logging, dashboard |
 
-### Keys setup in Phase 0.5
+### Keys setup (Phase 0.5)
 
-Monitor keys/tokens (OTLP endpoint, service name, uptime) lưu vào `.env.local` khi `/brainstorm` (cùng git setup).
+Monitor keys/tokens (OTLP endpoint, service name, uptime) are stored in `.env.local` during `/brainstorm` (along with git setup).
 
 ### 3 Mandatory Checkpoints
 
@@ -256,22 +261,22 @@ The template ships with curated workflow skills (curated from well-known open-so
 | Skill | Source | When used / Purpose |
 |-------|-------|---------------------|
 | `superpowers/` | obra/superpowers (270k⭐) | Every coding task — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
-| `brainstorming/` | curated (in-house) | **Trước khi code** feature/thay đổi lớn — clear/clarify yêu cầu từng câu một, propose 2-3 approaches + trade-offs, present design, viết `docs/specs/*-design.md`, user approve trước khi implement (HARD-GATE). Nửa "clear yêu cầu" của `/brainstorm` |
-| `archify/` | tt-a1i/archify (curated, MIT) | **Diagrams** — architecture/workflow/sequence/dataflow/lifecycle → self-contained HTML (dark/light, export PNG/SVG). Hooked in Phase 0 (architecture gap), design (diagrams in design-spec), graph (layer-plan diagram at human checkpoint), reviewer (verify diagrams match real code) |
+| `brainstorming/` | curated (in-house) | **Before coding** a feature/big change — clarify requirements one question at a time, propose 2-3 approaches + trade-offs, present the design, write `docs/specs/*-design.md`, get user approval before implementing (HARD-GATE). The "clarify" half of `/brainstorm` |
+| `archify/` | tt-a1i/archify (curated, MIT) | **Diagrams** — architecture/workflow/sequence/dataflow/lifecycle → self-contained HTML (dark/light, export PNG/SVG). Hooked into brainstorm (architecture gap), design (diagrams in design-spec), graph (layer-plan diagram at human checkpoint), reviewer (verify diagrams match real code) |
 | `frontend-checklist/` | thedaviddias/Front-End-Checklist (curated) | Reviewer reviews **UI/public-facing** tasks — HTML semantics, accessibility/WCAG, SEO (title/canonical/OG/structured data/sitemap), Core Web Vitals (LCP/CLS/INP), images, frontend security (CSP/SRI/cookies), privacy. Curated: only critical + high priority rules
 | `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer reviews **UI** tasks — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
 | `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence by product type (10 priority categories: a11y, touch, performance, style, layout…) |
 | `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop while implementing — **lazy senior dev ladder**, stop at the simplest solution, avoid over-engineering |
-| `scalability-architecture/` | curated (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Only when the user enables the Scalability Option at /brainstorm. Avoids over-engineering: do not apply microservices/sharding/K8s when not needed |
+| `scalability-architecture/` | curated (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Only when the user enables the Scalability Option at `/brainstorm`. Avoids over-engineering: do not apply microservices/sharding/K8s when not needed |
 | `karpathy-guidelines/` | andrej-karpathy-skills (curated) | Loop when editing old code — **surgical changes** (touch only what's needed, no drive-by refactor) + Reviewer when reviewing diffs — **assumption check** (state assumptions, don't silently choose). Complements ponytail (simplicity) + superpowers (goal-driven) |
 | `aislop/` | scanaislop/aislop (curated, MIT) | Reviewer reviews **code changes** — deterministic AI-slop scan (narrative comments, swallowed errors, hidden fallbacks, `as any`, duplication, dead code, todo stubs), score 0-100 ≥80 gate, `fix --safe` mechanical, offline no API key |
-| `anti-slop/` | dmmulroy/anti-slop (curated, MIT) | Builder/Reviewer with TS/JS — **Oxlint rules** chặn low-evidence patterns (no-reduce-accumulator-copy, no-object-parameters, no-unsafe-dictionary-type, type assertion cần safety comment). Chặn ở tầng lint, bổ trợ aislop (mùi nội dung) + OCR (bug thật) |
-| `open-code-review/` | alibaba/open-code-review (curated, Apache-2.0) | Reviewer reviews **code changes** — hybrid deterministic + LLM, comment đúng dòng, ruleset NPE/thread-safety/XSS/SQLi. Delegation mode không cần API key. CRITICAL → FAIL |
-| `ai-readable-codebase/` | curated (in-house) | Builder/Reviewer — code cho 2 độc giả (người + AI): tên self-descriptive, ít indirection, 1 file 1 trách nhiệm, README + ARCHITECTURE bắt buộc. Reviewer check AI-chaos indicators (≥3 → FAIL) |
-| `ai-friendly-web/` | curated (in-house) | Reviewer/DevOps task web public — web AI-ready: `llms.txt`, `robots.txt` cho AI crawlers, `sitemap.xml`, JSON-LD, OpenAPI. Thiếu → MAJOR → FAIL |
-| `m3e-canvas/` | lnkiai/m3e-canvas (curated, MIT) | Design Phase 3 (optional) — sketch M3 UI trong browser → vibe prompt, lưu `.context/design-spec.md`. Bổ trợ ui-ux-pro-max |
-| `blitzstrike/` | shinthink/blitzstrike (curated, MIT) | Reviewer STRICT task nhạy cảm (optional) — MCP pentest (BLITZ → EAGLE-EYE → STRIKE). Chỉ finding STRIKE-validated mới chặn; chưa cài → bỏ qua |
-| `security/codex-security.md` | openai/codex-security (curated, npm `@openai/codex-security`) | Reviewer task nhạy cảm (optional) — AI-driven scan/fix; **CRITICAL verified** → FAIL, ≥3 MAJOR → FAIL; chưa login/không network → ghi `N/A`, không chặn PASS |
+| `anti-slop/` | dmmulroy/anti-slop (curated, MIT) | Builder/Reviewer with TS/JS — **Oxlint rules** block low-evidence patterns (no-reduce-accumulator-copy, no-object-parameters, no-unsafe-dictionary-type, type assertion needs a safety comment). Blocks at the lint layer; complements aislop (content smell) + OCR (real bugs) |
+| `open-code-review/` | alibaba/open-code-review (curated, Apache-2.0) | Reviewer reviews **code changes** — hybrid deterministic + LLM, precise line-level comments, built-in ruleset (NPE/thread-safety/XSS/SQLi). Delegation mode needs no API key. CRITICAL → FAIL |
+| `ai-readable-codebase/` | curated (in-house) | Builder/Reviewer — code for 2 readers (human + AI): self-descriptive names, low indirection, 1 file 1 responsibility, README + ARCHITECTURE required. Reviewer checks AI-chaos indicators (≥3 → FAIL) |
+| `ai-friendly-web/` | curated (in-house) | Reviewer/DevOps for public web tasks — AI-ready web: `llms.txt`, `robots.txt` for AI crawlers, `sitemap.xml`, JSON-LD, OpenAPI. Missing → MAJOR → FAIL |
+| `m3e-canvas/` | lnkiai/m3e-canvas (curated, MIT) | Design Phase 3 (optional) — sketch M3 UI in the browser → vibe prompt, save to `.context/design-spec.md`. Complements ui-ux-pro-max |
+| `blitzstrike/` | shinthink/blitzstrike (curated, MIT) | Reviewer for sensitive STRICT tasks (optional) — MCP pentest (BLITZ → EAGLE-EYE → STRIKE). Only STRIKE-validated findings block; not installed → skip |
+| `security/codex-security.md` | openai/codex-security (curated, npm `@openai/codex-security`) | Reviewer for sensitive tasks (optional) — AI-driven scan/fix; **CRITICAL verified** → FAIL, ≥3 MAJOR → FAIL; not logged in / no network → mark `N/A`, do not block PASS |
 
 ### Mandatory Checkpoints
 
@@ -280,30 +285,30 @@ The template ships with curated workflow skills (curated from well-known open-so
 3. **When reviewing UI** (`reviewer.md`) → run craft-floor (`impeccable/SKILL.md`): contrast ≥4.5:1, refuse identical card grids / hero-metric / eyebrow / gradient text / emoji icons + **Frontend Checklist Gate** (`frontend-checklist/SKILL.md`): HTML semantics, a11y, SEO, Core Web Vitals, images, frontend security, privacy — CRITICAL items FAIL → task FAIL
 4. **When designing** (`design.md`) → generate a design system by product type (`ui-ux-pro-max/SKILL.md`), cross-check against taste-skill v2 anti-slop (prefer taste-skill on conflict); for public pages also declare SEO metadata + image strategy (`frontend-checklist/SKILL.md`)
 5. **When reviewing UI** (`reviewer.md`) → run responsive checklist gate (`responsive-web/SKILL.md`) at 375/768/1280px
-6. **When coding TS/JS** (`loop.md` / `builder`) → `anti-slop/SKILL.md`: Oxlint rules chặn low-evidence patterns; reviewer chạy `npx oxlint` cạnh `aislop scan`
+6. **When coding TS/JS** (`loop.md` / `builder`) → `anti-slop/SKILL.md`: Oxlint rules block low-evidence patterns; reviewer runs `npx oxlint` alongside `aislop scan`
 7. **When reviewing code** (`reviewer.md`) → `open-code-review/SKILL.md` (optional): `ocr` CRITICAL finding → FAIL; `ai-readable-codebase/SKILL.md`: AI-chaos indicators ≥3 → FAIL
-8. **When reviewing public web** (`reviewer.md` / DevOps) → `ai-friendly-web/SKILL.md`: thiếu `llms.txt`/`robots.txt`/`sitemap.xml` → MAJOR → FAIL
-9. **When designing a screen** (Phase 3, optional) → `m3e-canvas/SKILL.md` sketch → prompt vào `.context/design-spec.md`
-10. **When reviewing sensitive STRICT task** (optional) → `blitzstrike/SKILL.md`: chỉ finding STRIKE-validated mới chặn; chưa cài → bỏ qua
+8. **When reviewing public web** (`reviewer.md` / DevOps) → `ai-friendly-web/SKILL.md`: missing `llms.txt`/`robots.txt`/`sitemap.xml` → MAJOR → FAIL
+9. **When designing a screen** (Phase 3, optional) → `m3e-canvas/SKILL.md` sketch → prompt into `.context/design-spec.md`
+10. **When reviewing a sensitive STRICT task** (optional) → `blitzstrike/SKILL.md`: only STRIKE-validated findings block; not installed → skip
 
 ---
 
 ## How It Works
 
-> 📌 **Start dự án:** gõ **1 lần** `/start` — chuỗi **chạy LIÊN TỤC, tự chuyển bước**: đọc spec (`/spec-init` nếu chưa có) → brainstorm (clear yêu cầu + design doc + config) → design (design spec + tokens) → graph (chia layer/task) → **loop**. Chỉ **DỪNG ở checkpoint** để anh duyệt; **không phải gõ lại lệnh mỗi bước**.
-> Sau khi build xong → `/change` cho mọi thay đổi. `/brainstorm`, `/design`, `/graph` là **manual override** (chạy tay khi muốn chạy lại 1 bước).
+> 📌 **Start a project:** type **once** `/start` — the chain **runs continuously, auto-advances between steps**: read spec (`/spec-init` if missing) → brainstorm (clarify requirements + design doc + config) → design (design spec + tokens) → graph (split into layers/tasks) → **loop**. It only **STOPS at checkpoints** for approval; **you never re-type a command for each step**.
+> Once the build is done → `/change` for all changes. `/brainstorm`, `/design`, `/graph` are **manual overrides** (run them by hand when you want to re-run one step).
 
 ### Pipeline
 
 ```
-🚀 /start  (gõ 1 lần — chuỗi chạy liên tục, tự chuyển bước, chỉ dừng ở ⏸ checkpoint)
-├─ 1. Đọc spec          → có rồi thì dùng; chưa có → /spec-init (đọc code → SPECIFICATIONS.md + spec/)
-├─ 2. Brainstorm        → clear yêu cầu (design doc docs/specs/) + config .context/project-config.md   ⏸ chờ approve design
-├─ 3. Design            → design tokens + screen specs (.context/design-spec.md)                        ⏸ confirm tokens
-└─ 4. Graph             → chia layer/task (tasks/<slug>/layer-N-task-NN.md) + layer-plan diagram         ⏸ duyệt plan
+🚀 /start  (type once — the chain runs continuously, auto-advances, stops only at ⏸ checkpoints)
+├─ 1. Read spec         → use it if it exists; otherwise → /spec-init (read code → SPECIFICATIONS.md + spec/)
+├─ 2. Brainstorm        → clarify requirements (design doc docs/specs/) + config .context/project-config.md   ⏸ wait for design approval
+├─ 3. Design            → design tokens + screen specs (.context/design-spec.md)                               ⏸ confirm tokens
+└─ 4. Graph             → split into layers/tasks (tasks/<slug>/layer-N-task-NN.md) + layer-plan diagram       ⏸ approve plan
     │
-    ▼  (tự chạy tiếp sau khi anh reply "ok")
-Loop Agent — execute từng task (ReAct)
+    ▼  (auto-continues after you reply "ok")
+Loop Agent — execute each task (ReAct)
 ├─ Builder code + test
 ├─ Test FAIL → Error Analyzer → fix → retry
 └─ Test PASS → git commit (rollback point)
@@ -314,10 +319,10 @@ Review Agent (different model)
 └─ PASS → close-out
     │
     ▼
-⏸ Human Checkpoint → layer/phase tiếp theo (Layer N+1 chỉ unlock khi Layer N PASS + anh duyệt; KHÔNG cần gõ lệnh)
-   (DevOps agent: git init/CI-CD ở layer 0, auto-push/CI checks sau mỗi layer, deploy ở final layer)
+⏸ Human Checkpoint → next layer/phase (Layer N+1 only unlocks when Layer N PASSes + you approve; NO command needed)
+   (DevOps agent: git init/CI-CD at layer 0, auto-push/CI checks after each layer, deploy at the final layer)
 
-────────── Sau đó: mọi thay đổi ──────────
+────────── Afterwards: all changes ──────────
 spec/changes/<file>.md → /change → agent change-request
 ├─ classify: BUG / ADDITIVE / MODIFY / REMOVE
 ├─ spec delta + ★ Spec Publisher (spec/updates/ + spec/test-scope/current.json)
@@ -325,7 +330,7 @@ spec/changes/<file>.md → /change → agent change-request
 └─ progress + commit-first → change file archive
 ```
 
-> 💡 **Test loop chạy như lần đầu:** mọi thay đổi để lại `spec/test-scope/current.json` → bên template test `/autotest --full` (lần đầu) rồi `/test-scope`, `/regression`.
+> 💡 **The test loop runs like the first time:** every change leaves behind `spec/test-scope/current.json` → the test template runs `/autotest --full` (first time) then `/test-scope`, `/regression`.
 
 ---
 
@@ -339,104 +344,105 @@ spec/changes/<file>.md → /change → agent change-request
 | **Builder (strong)** | `.opencode/agent/builder-strong.md` | Same, for hard tasks — **opt-in only**, gated by `permission.task` |
 | **Reviewer** | `.opencode/agent/reviewer.md` | Independent review, risk level FAST/NORMAL/STRICT (`edit: deny`) |
 | **Spec Validator** | `.opencode/agent/spec-validator.md` | Cross-check spec/phase vs requirements (`edit: deny`) |
-| **Change Request** ⭐ | `.opencode/agent/change-request.md` | **Agent DUY NHẤT cho mọi thay đổi hậu-build** (feature mới + fix bug) — đọc `spec/changes/`, spec-publish + test-scope. Cửa vào: `/change`, `/bug`, `/feature` |
-| **Design** | `.opencode/agent/design.md` | Sinh design tokens + screen specs (`.context/design-spec.md`); tự động trong `/start` |
-| **Graph** | `.opencode/agent/graph.md` | Chia spec/design → layer + task (dependency order) + layer-plan diagram |
-| **Spec Init** | `.opencode/agent/spec-init.md` | Reverse-engineer spec cho project CŨ (chưa có spec) |
-| **Spec Publisher** | `.opencode/agent/spec-publisher.md` | Tự động bump spec + sinh `spec/test-scope/current.json` cho template test |
+| **Change Request** ⭐ | `.opencode/agent/change-request.md` | **The ONLY agent for all post-build changes** (new feature + bug fix) — reads `spec/changes/`, spec-publish + test-scope. Entry: `/change`, `/bug`, `/feature` |
+| **Design** | `.opencode/agent/design.md` | Produce design tokens + screen specs (`.context/design-spec.md`); automatic within `/start` |
+| **Graph** | `.opencode/agent/graph.md` | Split spec/design → layers + tasks (dependency order) + layer-plan diagram |
+| **Spec Init** | `.opencode/agent/spec-init.md` | Reverse-engineer spec for an EXISTING project (no spec yet) |
+| **Spec Publisher** | `.opencode/agent/spec-publisher.md` | Auto-bump spec + produce `spec/test-scope/current.json` for the test template |
 
 **Prompt-level agents in `.agent/`:**
 
 | Agent | File | Description |
 |-------|------|-------------|
 | **Spec Validator** | `.agent/spec-validator.md` | Cross-validates spec against code/docs; detects conflicts |
-| **Spec Init** | `.agent/spec-init.md` | Reverse-engineer spec cho project CŨ (chưa có spec) |
-| **Spec Publisher** | `.agent/spec-publish.md` | Phát hành spec + test-scope cho template test |
+| **Spec Init** | `.agent/spec-init.md` | Reverse-engineer spec for an EXISTING project (no spec yet) |
+| **Spec Publisher** | `.agent/spec-publish.md` | Publish spec + test-scope for the test template |
 | **Loop Builder** | `.agent/loop.md` | Implements tasks using ReAct (read → plan → code → test → fix) |
 | **Reviewer** | `.agent/reviewer.md` | Independent code review with a different model |
 | **Error Analyzer** | `.agent/error-analyzer.md` | Root cause analysis; builds error memory to prevent recurrence |
-| **Change Request** ⭐ | `.agent/change-request.md` | **Agent DUY NHẤT cho mọi thay đổi hậu-build** (feature + bug); wrapper subagent ở `.opencode/agent/change-request.md` |
-| **Design** | `.agent/design.md` | Design tokens + screen specs trước khi chia layer (anti-slop: taste-skill + ui-ux-pro-max) |
-| **Graph** | `.agent/graph.md` | Chia spec → layer/task theo dependency; Layer N+1 chỉ unlock khi Layer N PASS + user approve |
+| **Change Request** ⭐ | `.agent/change-request.md` | **The ONLY agent for all post-build changes** (feature + bug); wrapper subagent at `.opencode/agent/change-request.md` |
+| **Design** | `.agent/design.md` | Design tokens + screen specs before the layer split (anti-slop: taste-skill + ui-ux-pro-max) |
+| **Graph** | `.agent/graph.md` | Split spec → layers/tasks by dependency; Layer N+1 only unlocks when Layer N PASSes + user approves |
 | **DevOps** | `.agent/devops.md` | Git init, CI/CD files, deploy (staging → prod), health check |
 | **Rollback** | `.agent/rollback.md` | Git checkpoint (tag `layer-N-done`) + revert strategy |
-| **Blackboard** | `.agent/blackboard.md` | Shared state — `.context/progress.json` là source of truth |
-| **Context Manager** | `.agent/context-manager.md` | Nén context khi phình to (pin + trim) |
+| **Blackboard** | `.agent/blackboard.md` | Shared state — `.context/progress.json` is the source of truth |
+| **Context Manager** | `.agent/context-manager.md` | Compress context when it grows too large (pin + trim) |
 
 ---
 
 ## Getting Started
 
-### Quickstart (maintenance — repo đã có code) ← DEFAULT
+### Quickstart (maintenance — repo already has code) ← DEFAULT
 
 ```bash
-# 1. Clone/copy template vào máy
+# 1. Clone/copy the template to your machine
 git clone <template-repo-url> template && cd template
 
-# 2. Mở opencode
+# 2. Open opencode
 opencode
 
-# 3. Trong opencode, GÕ 1 LẦN: /start   → chuỗi chạy liên tục, tự chuyển bước:
-#    đọc spec → brainstorm (clear yêu cầu + config) → design (tokens) → graph (chia layer/task) → loop
-#    - chỉ dừng ở ⏸ checkpoint (approve design / confirm tokens / duyệt plan / sau mỗi layer)
-#    - KHÔNG cần gõ lại /brainstorm, /design, /graph mỗi bước
-#    (chạy tay /brainstorm, /design hoặc /graph khi muốn chạy lại/update 1 bước)
+# 3. In opencode, type ONCE: /start   → the chain runs continuously, auto-advancing:
+#    read spec → brainstorm (clarify requirements + config) → design (tokens) → graph (split layers/tasks) → loop
+#    - stops only at ⏸ checkpoints (approve design / confirm tokens / approve plan / after each layer)
+#    - NO need to re-type /brainstorm, /design, /graph for each step
+#    (run /brainstorm, /design or /graph by hand when you want to re-run/update one step)
 
-# 4. Khai model theo vai trong .context/project-config.md (models:) rồi BỎ COMMENT
-#    dòng `model:` trong .opencode/agent/*.md
+# 4. Declare per-role models in .context/project-config.md (models:) then UNCOMMENT
+#    the `model:` line in .opencode/agent/*.md
 
-# 5. RESTART opencode sau khi sửa .opencode/ (config KHÔNG hot-reload)
+# 5. RESTART opencode after editing .opencode/ (config is NOT hot-reloaded)
 ```
 
-| Command | Khi nào dùng |
+| Command | When to use |
 |---|---|
-| `/start` 🚀 | **Khởi tạo dự án (lần đầu)** — gõ 1 lần, chuỗi **chạy liên tục tự chuyển bước**: đọc spec (`/spec-init` nếu chưa có) → brainstorm → design → graph → loop. Chỉ dừng ở checkpoint. Build xong → dùng `/change` |
-| `/design` | **Design spec + tokens** (manual override — tự chạy trong `/start`) — sinh design tokens + `.context/design-spec.md`, confirm tokens trước khi chia layer |
-| `/brainstorm` | **Clear yêu cầu + chốt config dự án** (manual — tự động trong `/start`) — design doc + auto-detect stack, sửa profile **theo nhóm**, ghi `.context/project-config.md`, sync quyền verify command |
-| `/graph` | **Chia layer/task** cho initial build (manual — tự động trong `/start`) — sinh `tasks/<slug>/layer-{N}-task-{NN}.md` + layer-plan diagram + update `progress.json` |
-| `/bug-check <khu vực>` | Chưa rõ bug nào — soi **read-only**, liệt kê defect vào `tasks/bug-<slug>/scan.md`, dừng chờ bạn chọn |
-| `/bug <mô tả>` | **Một bug đã biết** hoặc list bug đã xác nhận — root cause → build → reviewer → progress → commit-first → push theo branch model nếu được phép |
-| `/feature <mô tả>` | Thêm/sửa/bỏ tính năng — classify → spec delta → phase/task → build/review/validate |
-| `/change` ⭐ | **Cửa vào chính cho thay đổi hậu-build** — đọc hết file pending trong `spec/changes/` → gọi agent `change-request` (feature mới + fix bug) |
-| `/spec-init` | Project CŨ đã có code nhưng **chưa có spec** (legacy/thừa kế) — reverse-engineer: scan code → dựng `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`, read-only, chạy 1 lần) |
-| `/spec-publish` | Phát hành spec cho template test (thường **tự động** sau bug/feature; dùng khi cần chạy lại/thủ công) |
-| `/resume <type>/<slug>` | Mở session mới **làm tiếp** việc đang dở — đọc Run Journal + reconcile đĩa rồi chạy bước `next` (không classify/phase-plan lại) |
+| `/start` 🚀 | **Initialize a project (first time)** — type once; the chain **runs continuously, auto-advancing**: read spec (`/spec-init` if missing) → brainstorm → design → graph → loop. Stops only at checkpoints. Once built → use `/change` |
+| `/design` | **Design spec + tokens** (manual override — runs automatically within `/start`) — produce design tokens + `.context/design-spec.md`, confirm tokens before the layer split |
+| `/brainstorm` | **Clarify requirements + set project config** (manual — automatic within `/start`) — design doc + auto-detect stack, edit the profile **by group**, write `.context/project-config.md`, sync verify-command permissions |
+| `/graph` | **Split into layers/tasks** for the initial build (manual — automatic within `/start`) — produce `tasks/<slug>/layer-{N}-task-{NN}.md` + layer-plan diagram + update `progress.json` |
+| `/bug-check <area>` | Unclear which bug — sweep **read-only**, list defects into `tasks/bug-<slug>/scan.md`, then stop and wait for you to choose |
+| `/bug <description>` | **One known bug** or a confirmed bug list — root cause → build → reviewer → progress → commit-first → push per branch model if allowed |
+| `/feature <description>` | Add/modify/remove a feature — classify → spec delta → phase/task → build/review/validate |
+| `/change` ⭐ | **Main entry for post-build changes** — read all pending files in `spec/changes/` → call the `change-request` agent (new feature + bug fix) |
+| `/spec-init` | An EXISTING project that has code but **no spec yet** (legacy/inherited) — reverse-engineer: scan code → build `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`, read-only, run once) |
+| `/spec-publish` | Publish spec for the test template (usually **automatic** after bug/feature; use when you need to re-run/manually) |
+| `/resume <type>/<slug>` | Open a new session to **continue** work in progress — read Run Journal + reconcile the disk, then run the `next` step (no re-classify/phase-plan) |
 
-Nếu repo chưa có app code/API/web/test hoặc verify command chưa cấu hình, workflow ghi `skip, no app configured`
-thay vì tự đoán `npm`, `pnpm`, package name, `apps/`, Prisma, hay test command.
+If the repo has no app code/API/web/test or verify commands are not configured, the workflow writes `skip, no app configured`
+instead of guessing `npm`, `pnpm`, package name, `apps/`, Prisma, or test command.
 
 ### Smoke Test Without App Code
 
-Checklist smoke-test cho template trống nằm ở `docs/smoke-tests/MAINTENANCE_TEMPLATE_SMOKE.md`.
+The smoke-test checklist for an empty template lives in `docs/smoke-tests/MAINTENANCE_TEMPLATE_SMOKE.md`.
 
-- `/bug-check`: tạo duy nhất `tasks/bug-settings-scan/scan.md`, không gọi Builder, `git status --short` chỉ có `scan.md`.
-- `/bug` list bug hoặc "fix tất cả defect": không gọi Builder ngay, tách bug, đề xuất thứ tự, hỏi xác nhận; chỉ auto-run nếu prompt có `auto proceed`, `khỏi hỏi lại`, hoặc `tự xử lý hết không cần hỏi`.
-- Reviewer risk level: mock text/toast nhỏ phải chọn `FAST`; mock API/shared/tenant phải chọn `STRICT`; report có `Review level`, `Reason`, `Blast radius`.
-- Guard: `builder-strong` phải ask; `git push origin main`, ref main, `git push --force`, `git reset --hard`, `git checkout --` phải deny.
-- Sau khi sửa `.opencode/*` hoặc `opencode.jsonc`, quit và restart opencode vì config/commands/agents không hot-reload.
+- `/bug-check`: creates only `tasks/bug-settings-scan/scan.md`, does not call Builder, `git status --short` shows only `scan.md`.
+- `/bug` bug list or "fix all defects": does not call Builder immediately; splits bugs, proposes an order, asks for confirmation; auto-runs only if the prompt contains `auto proceed` (or an explicit "no need to ask" opt-out phrase).
+- Reviewer risk level: small mock text/toast must pick `FAST`; mock API/shared/tenant must pick `STRICT`; report has `Review level`, `Reason`, `Blast radius`.
+- Guard: `builder-strong` must ask; `git push origin main`, ref main, `git push --force`, `git reset --hard`, `git checkout --` must deny.
+- After editing `.opencode/*` or `opencode.jsonc`, quit and restart opencode because config/commands/agents are not hot-reloaded.
 
-### Bắt đầu (dự án mới / repo đã có code)
+### Getting Started (new project / repo already has code)
 
-> Luồng: **`/start`** (TỰ ĐỘNG) — đọc spec (`/spec-init` nếu chưa có) → `/brainstorm` (clear yêu cầu + config) → `/graph` (chia layer/task) → **loop** → `/change` cho thay đổi sau đó.
+> Flow: **`/start`** (automatic) — read spec (`/spec-init` if missing) → `/brainstorm` (clarify requirements + config) → `/design` (tokens) → `/graph` (split layers/tasks) → **loop** → `/change` for subsequent changes.
 
 ```bash
-# Trong opencode:
-/start                    # 🚀 chuỗi tự động: đọc spec → brainstorm → graph (dừng ở checkpoint)
-# hoặc chạy tay từng bước:
-/spec-init                # đọc code → dựng spec + spec/ + test-scope (1 lần)
-/brainstorm               # clear yêu cầu + design doc + config → .context/project-config.md
-/graph                    # chia layer/task + layer-plan diagram
-# sau đó dùng /change (hoặc /bug, /feature) cho mọi thay đổi
+# In opencode:
+/start                    # 🚀 continuous chain: read spec → brainstorm → design → graph (stops at checkpoints)
+# or run each step by hand:
+/spec-init                # read code → build spec + spec/ + test-scope (once)
+/brainstorm               # clarify requirements + design doc + config → .context/project-config.md
+/design                   # design tokens + screen specs
+/graph                    # split into layers/tasks + layer-plan diagram
+# then use /change (or /bug, /feature) for all changes
 ```
 
 ### Resuming / Session Handoff
 
 ```
 Read AGENTS.md and resume the project
-# hoặc:  /resume feature/<slug>   /resume bug/<slug>
+# or:  /resume feature/<slug>   /resume bug/<slug>
 ```
 
-Agent đọc `.context/progress.json` (schema maintenance) + Run Journal `.context/runs/<type>-<slug>-<phaseTask>.md` và tiếp tục từ checkpoint. Run Journal được ghi **write-ahead** ở mỗi ranh giới step (`▶ START` / `✅ DONE`) nên session mới chỉ phải redo tối đa một bước; đĩa là sự thật, pointer chỉ là hint.
+The agent reads `.context/progress.json` (maintenance schema) + the Run Journal `.context/runs/<type>-<slug>-<phaseTask>.md` and continues from the checkpoint. The Run Journal is written **write-ahead** at every step boundary (`▶ START` / `✅ DONE`), so a new session only needs to redo at most one step; the disk is truth, the pointer is a hint.
 
 ---
 
@@ -460,29 +466,29 @@ The `docs/` folder is where you drop any existing project documentation. The age
 
 ```markdown
 ## Canonical
-| File | Loại | Ghi chú |
-|------|------|---------|
-| BRD.md | business_requirements | Yêu cầu nghiệp vụ |
+| File | Type | Note |
+|------|------|------|
+| BRD.md | business_requirements | Business requirements |
 | API_SPEC.md | api_spec | Overview + pointer → code |
 | ERD.md | database_schema | Overview + pointer → migration |
-| PERMISSION.md | business_rules | Roles + guard order (sync từ code) |
-| generated/ | generated | Auto-gen, không sửa tay |
+| PERMISSION.md | business_rules | Roles + guard order (synced from code) |
+| generated/ | generated | Auto-gen, do not edit by hand |
 
 ## Historical
-| File | Ghi chú |
-|------|---------|
-| diagrams/ | Diagram minh họa (archify) — verify với code |
+| File | Note |
+|------|------|
+| diagrams/ | Illustrative diagrams (archify) — verify against code |
 ```
 
-> Không nhúng code/schema tay vào canonical docs — dùng pointer + `docs/generated/`.
+> Do not hand-embed code/schema into canonical docs — use a pointer + `docs/generated/`.
 
 ### What Happens
 
-1. `/spec-init` scan code + `docs/` (nếu có)
-2. Classify từng file docs vào doc type
-3. Đối chiếu với code hiện tại
-4. Spec Validator cross-check SPEC vs code + docs
-5. Mọi thay đổi sau đó → `/change` (agent `change-request`) → spec delta → phase/task
+1. `/spec-init` scans code + `docs/` (if any)
+2. Classifies each docs file into a doc type
+3. Cross-checks against the current code
+4. Spec Validator cross-checks SPEC vs code + docs
+5. Every subsequent change → `/change` (the `change-request` agent) → spec delta → phase/task
 
 ---
 
@@ -498,8 +504,8 @@ frontmatter of each `.opencode/agent/*.md` (not in `.env.local` — opencode ign
 | Reviewer | `.opencode/agent/reviewer.md` | different provider than builder |
 | Spec Validator | `.opencode/agent/spec-validator.md` | third provider |
 
-**Set up via `/brainstorm`.** `/brainstorm` hỏi từng model, ghi `.context/project-config.md` (`models:`), và điền frontmatter các agent file. Riêng `models.change_request` cho agent hậu-build.
-`.env.local` giữ git-ignored cho git/deploy/monitor secrets.
+**Set up via `/brainstorm`.** `/brainstorm` asks for each model, writes `.context/project-config.md` (`models:`), and fills the frontmatter of the agent files. Note the separate `models.change_request` for the post-build agent.
+`.env.local` stays git-ignored for git/deploy/monitor secrets.
 
 > 🛑 After model setup you **must restart opencode** — agent/config is not hot-reloaded. Until then
 > agent files keep `model:` commented out and the subagents **inherit the primary model**
@@ -638,7 +644,7 @@ Use `/feature` for any addition/modification/removal after the project exists. T
 | **MODIFY** | "Change order status flow" |
 | **REMOVE** | "Remove Stripe payment" |
 
-Change Request workflow chi tiết: `.agent/FEATURE_WORKFLOW.md` §3. Intent docs (`BRD.md`, business rules) chỉ đổi qua Change Request + user duyệt — không tự sửa cho khớp code.
+Full Change Request workflow: `.agent/FEATURE_WORKFLOW.md` §3. Intent docs (`BRD.md`, business rules) change only via Change Request + user approval — never edited to match code.
 
 ---
 
@@ -650,24 +656,24 @@ values in `.context/project-config.md`.
 
 | Intent | Route |
 |--------|-------|
-| "soi/kiểm tra màn", "cảm giác nhiều lỗi" | **Bug discovery / sweep** → `/bug-check` (READ-ONLY) |
-| "fix bug", "lỗi", regression | **Change Request (BUG)** — root cause first, then task → builder → reviewer (`/change` · `/bug`) |
-| "thêm/sửa/bỏ tính năng" | **Change Request** → agent `change-request` — classify → spec delta → phase plan → builder → reviewer → spec-validator (`/change` · `/feature`) |
-| thay đổi đã ghi trong `spec/changes/` | **`/change`** — đọc hết file pending → agent `change-request` |
-| "project cũ chưa có spec", "dựng spec từ code", thừa kế codebase | **Spec Init (reverse-engineer)** → `/spec-init` — đọc code → dựng spec + scope (read-only, 1 lần) |
-| "implement feature" (task có sẵn) | `builder` subagent |
+| "sweep a screen", "feels like many bugs" | **Bug discovery / sweep** → `/bug-check` (READ-ONLY) |
+| "fix bug", "broken", regression | **Change Request (BUG)** — root cause first, then task → builder → reviewer (`/change` · `/bug`) |
+| "add/modify/remove a feature" | **Change Request** → agent `change-request` — classify → spec delta → phase plan → builder → reviewer → spec-validator (`/change` · `/feature`) |
+| a change already written in `spec/changes/` | **`/change`** — read all pending files → agent `change-request` |
+| "old project with no spec", "build spec from code", inherited codebase | **Spec Init (reverse-engineer)** → `/spec-init` — read code → build spec + scope (read-only, once) |
+| "implement feature" (task already exists) | `builder` subagent |
 | "review / check" | `reviewer` subagent (`edit: deny`) |
-| hỏi / điều tra | Research-only — no edits |
+| question / investigation | Research-only — no edits |
 
 **Roles are real subagents** in `.opencode/agent/` (clean context, different models,
 `edit: deny` for review roles). `builder-strong` is gated behind `opencode.jsonc`
 (`permission.task."builder-strong": "ask"`) — used **only when you ask for it explicitly**.
 
-Reviewer tự chọn risk level `FAST` / `NORMAL` / `STRICT`; `STRICT` là bắt buộc cho auth/RBAC,
+The Reviewer picks a risk level `FAST` / `NORMAL` / `STRICT`; `STRICT` is mandatory for auth/RBAC,
 tenant/org isolation, DB/schema/migration, destructive/bulk update, shared/API contract, security,
-cron/webhook, payment/subscription, root cause chưa rõ, hoặc logic quan trọng thiếu test.
+cron/webhook, payment/subscription, unclear root cause, or important logic lacking tests.
 
-Triggers: `/change` (cửa vào chính cho thay đổi hậu-build — đọc `spec/changes/`), `/bug-check <khu vực>`, `/bug <mô tả>`, `/feature <mô tả>`, `/spec-init` (project cũ chưa có spec), `/spec-publish` (phát hành spec cho template test).
+Triggers: `/change` (main entry for post-build changes — reads `spec/changes/`), `/bug-check <area>`, `/bug <description>`, `/feature <description>`, `/spec-init` (old project with no spec), `/spec-publish` (publish spec for the test template).
 
 > ⚠️ Agent/command/config changes are **not hot-reloaded** — restart opencode after editing them.
 > In auto-approve mode the `ask` gate is auto-accepted; keep manual mode to preserve it.
