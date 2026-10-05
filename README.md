@@ -96,6 +96,8 @@ project-template/
 │   │   ├── bug-check.md          ← /bug-check → read-only sweep, list defects
 │   │   ├── bug.md                ← /bug  → fix ONE known bug
 │   │   ├── feature.md            ← /feature → Change Request workflow
+│   │   ├── spec-init.md          ← /spec-init → reverse-engineer spec cho project CŨ (chưa có spec)
+│   │   ├── spec-publish.md       ← /spec-publish → phát hành spec cho template test (thường tự động)
 │   │   └── resume.md             ← /resume → continue from Run Journal (cross-session)
 │   └── plugins/loop-guard.ts     ← Doom-loop guard + usage() gate
 │
@@ -122,6 +124,8 @@ project-template/
 │   ├── references/               ← taste-skill-v2.md (anti-slop design reference)
 │   ├── brainstorm.md             ← Gather requirements (doc-aware)
 │   ├── spec-validator.md         ← Validate spec vs docs + brainstorm-log
+│   ├── spec-init.md              ← /spec-init: reverse-engineer spec cho project CŨ (code có sẵn)
+│   ├── spec-publish.md           ← /spec-publish: phát hành spec + test-scope cho template test
 │   ├── graph.md                  ← Break work into dependency layers
 │   ├── loop.md                   ← Execute tasks (ReAct pattern)
 │   ├── blackboard.md             ← Shared state tracking
@@ -436,6 +440,8 @@ opencode
 | `/bug-check <khu vực>` | Chưa rõ bug nào — soi **read-only**, liệt kê defect vào `tasks/bug-<slug>/scan.md`, dừng chờ bạn chọn |
 | `/bug <mô tả>` | **Một bug đã biết** hoặc list bug đã xác nhận — root cause → build → reviewer → progress → commit-first → push theo branch model nếu được phép |
 | `/feature <mô tả>` | Thêm/sửa/bỏ tính năng — classify → spec delta → phase/task → build/review/validate |
+| `/spec-init` | Project CŨ đã có code nhưng **chưa có spec** (legacy/thừa kế) — reverse-engineer: scan code → dựng `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`, read-only, chạy 1 lần) |
+| `/spec-publish` | Phát hành spec cho template test (thường **tự động** sau bug/feature; dùng khi cần chạy lại/thủ công) |
 | `/resume <type>/<slug>` | Mở session mới **làm tiếp** việc đang dở — đọc Run Journal + reconcile đĩa rồi chạy bước `next` (không classify/phase-plan lại) |
 
 Nếu repo chưa có app code/API/web/test hoặc verify command chưa cấu hình, workflow ghi `skip, no app configured`
@@ -689,6 +695,7 @@ values in `.agent/PROJECT_PROFILE.md`.
 | "soi/kiểm tra màn", "cảm giác nhiều lỗi" | **Bug discovery / sweep** → `/bug-check` (READ-ONLY) |
 | "fix bug", "lỗi", regression | **Bug workflow** — root cause first, then task → builder → reviewer (`/bug`) |
 | "thêm/sửa/bỏ tính năng" | **Change Request workflow** — classify → spec delta → phase plan → builder → reviewer → spec-validator (`/feature`) |
+| "project cũ chưa có spec", "dựng spec từ code", thừa kế codebase | **Spec Init (reverse-engineer)** → `/spec-init` — đọc code → dựng spec + scope (read-only, 1 lần) |
 | "implement feature" (task có sẵn) | `builder` subagent |
 | "review / check" | `reviewer` subagent (`edit: deny`) |
 | hỏi / điều tra | Research-only — no edits |
@@ -701,7 +708,7 @@ Reviewer tự chọn risk level `FAST` / `NORMAL` / `STRICT`; `STRICT` là bắt
 tenant/org isolation, DB/schema/migration, destructive/bulk update, shared/API contract, security,
 cron/webhook, payment/subscription, root cause chưa rõ, hoặc logic quan trọng thiếu test.
 
-Triggers: `/bug-check <khu vực>`, `/bug <mô tả>`, `/feature <mô tả>`.
+Triggers: `/bug-check <khu vực>`, `/bug <mô tả>`, `/feature <mô tả>`, `/spec-init` (project cũ chưa có spec), `/spec-publish` (phát hành spec cho template test).
 
 > ⚠️ Agent/command/config changes are **not hot-reloaded** — restart opencode after editing them.
 > In auto-approve mode the `ask` gate is auto-accepted; keep manual mode to preserve it.
