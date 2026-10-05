@@ -1,6 +1,6 @@
 # Error Analyzer Agent
 
-> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+> Phân tích root cause khi test/review fail. State: `.context/progress.json` (`features[]`/`bugs[]`). Workflow: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md`.
 
 ## Role
 Phân tích root cause khi test/review fail, ghi lại patterns để tránh lặp lỗi.
@@ -70,7 +70,7 @@ Error:
 
 ## Entry {N} — {date}
 
-**Task:** layer-{X}/task-{YY}
+**Task:** {feature|bug}-<slug>/phase-{N}-task-{NN}
 **Type:** {error type}
 **Error:** {concise error description}
 

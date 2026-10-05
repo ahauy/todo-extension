@@ -1,23 +1,24 @@
 # Spec Validator Agent
 
-> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+> Cross-check `SPECIFICATIONS.md` với code + docs + change request. Dùng trong `change-request` (feature) và khi `/spec-init` dựng spec xong. State: `.context/progress.json` (`features[]`/`bugs[]`).
 
 ## Role
-Validate SPECIFICATIONS.md against tất cả nguồn input có sẵn: docs/ folder, BRIEF.md/IDEA.md, và brainstorm-log. Đảm bảo không miss requirements, không có conflict giữa các doc.
+Validate `SPECIFICATIONS.md` against tất cả nguồn input có sẵn: code hiện tại, `docs/` folder, và change request (`spec/changes/`). Đảm bảo không miss requirements, không có conflict giữa các doc.
 
 ## Model
 Chạy dưới dạng subagent `.opencode/agent/spec-validator.md` (model họ thứ 3, khai ở frontmatter; xem `.agent/PROJECT_PROFILE.md`).
 
 ## Trigger
-- Brainstorm agent generate xong SPECIFICATIONS.md
-- Hoặc khi SPECIFICATIONS.md được update thủ công
+- `/spec-init` dựng xong SPECIFICATIONS.md (từ code)
+- Agent `change-request` cập nhật spec (feature ADDITIVE/MODIFY/REMOVE)
+- Khi SPECIFICATIONS.md được update thủ công
 
-## Input (dynamic — đọc tất cả những gì có)
+# Input (dynamic — đọc tất cả những gì có)
 - `SPECIFICATIONS.md` — file cần validate
-- `.context/brainstorm-log.md` — Q&A transcript
-- `.context/doc-index.json` — doc inventory từ brainstorm (nếu có)
+- `spec/changes/*.md` — change request đang chờ (nếu có)
+- Code hiện tại — nguồn hành vi thực tế
 - `docs/` folder — tất cả source docs (BRD, Design, API spec, ERD, v.v.)
-- `BRIEF.md` / `IDEA.md` — nếu không có docs/
+- `BRIEF.md` — nếu repo có
 
 ## Output
 - `.context/review-reports/spec-validation.md`
@@ -41,7 +42,7 @@ Chạy dưới dạng subagent `.opencode/agent/spec-validator.md` (model họ t
 }
 ```
 
-Nếu không có `doc-index.json` → fallback đọc `BRIEF.md` hoặc `IDEA.md`.
+Nếu không có `doc-index.json` → fallback đọc code + `BRIEF.md`.
 
 ---
 
@@ -140,12 +141,12 @@ So sánh SPECIFICATIONS.md với từng doc có sẵn:
 ```
 Validation complete
     ├── No ❌ AND no HIGH conflicts AND < 3 ⚠️
-    │     → ✅ PASS → Trigger graph.md
+    │     → ✅ PASS → tiếp tục (chia phase/task qua change-request)
     │
     └── Has ❌ OR HIGH conflict OR ≥ 3 ⚠️
           → ❌ FAIL
           → List specific gaps + conflicts
-          → Return to brainstorm for clarification
+          → Quay lại làm rõ (spec-init / change request)
           → Re-generate SPECIFICATIONS.md
           → Re-validate (max 2 rounds)
 ```
@@ -154,7 +155,7 @@ Validation complete
 
 ## Rules
 
-1. **Validate against ALL available sources** — không chỉ BRIEF.md, phải check tất cả docs/ có trong doc-index
+1. **Validate against ALL available sources** — code + tất cả docs/ có trong doc-index
 2. **Cross-document conflicts are HIGH priority** — conflict giữa BRD và Design/API spec phải flag ngay, không tự resolve
 3. **Don't add requirements** — chỉ validate, không tự thêm features
 4. **Be actionable** — nếu FAIL, chỉ rõ cần hỏi thêm gì hoặc conflict nào cần user resolve

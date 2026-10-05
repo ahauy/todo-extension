@@ -1,6 +1,6 @@
 # Reviewer Agent — Independent Code Review
 
-> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+> Review độc lập cho mọi task (feature/bug) do `change-request` chia ra. State: `.context/progress.json` (`features[]`/`bugs[]`). Cấm push thẳng `forbidden_branch`.
 
 ## Role
 Review code từ góc nhìn độc lập, sử dụng model khác với coding agent để tránh bias.
@@ -37,7 +37,7 @@ Chạy dưới dạng subagent `.opencode/agent/reviewer.md` (model khác họ v
 - Hoặc khi human request review
 
 ## Output
-- `.context/review-reports/layer-{N}-task-{NN}-review.md`
+- `.context/review-reports/<feature|bug>-<slug>-phase-<N>-task-<NN>-review.md`
 - Verdict: PASS / FAIL + feedback
 
 ---
@@ -179,7 +179,7 @@ Chạy dưới dạng subagent `.opencode/agent/reviewer.md` (model khác họ v
 ## Review Report Format
 
 ```markdown
-# Review: Layer {N} — Task {NN}
+# Review: {feature|bug}-<slug> — phase-{N}-task-{NN}
 
 ## Review level: FAST | NORMAL | STRICT
 
@@ -234,28 +234,28 @@ Review complete
 
 ---
 
-## Layer Review (MANDATORY — sau khi tất cả tasks trong 1 layer PASS)
+## Phase Review (MANDATORY — sau khi tất cả tasks trong 1 phase PASS)
 
 ### Model
 Dùng subagent `.opencode/agent/spec-validator.md` — **khác model với `reviewer`** để tránh bias.
 
 ### Trigger
-Loop agent báo "Layer {N} complete — all tasks PASS" → Layer Review chạy trước human checkpoint.
+Sau khi tất cả task trong 1 phase PASS → Phase Review chạy trước human checkpoint.
 
 ### Mục đích
-Cross-check những gì đã build với `SPECIFICATIONS.md` ban đầu — đảm bảo layer không bỏ sót feature nào.
+Cross-check những gì đã build với `SPECIFICATIONS.md` — đảm bảo phase không bỏ sót requirement nào.
 
 ### Steps
 
-1. **Đọc SPECIFICATIONS.md** — lấy danh sách features/requirements thuộc layer này
-2. **Đọc tất cả task files** trong `tasks/layer-{N}/` — xem scope đã cover gì
-3. **Đọc review reports** trong `.context/review-reports/layer-{N}-*` — xem kết quả từng task
+1. **Đọc SPECIFICATIONS.md** — lấy danh sách features/requirements liên quan
+2. **Đọc tất cả task files** trong `tasks/<feature|bug>-<slug>/` — xem scope đã cover gì
+3. **Đọc review reports** trong `.context/review-reports/<feature|bug>-<slug>-*` — xem kết quả từng task
 4. **Cross-check** từng requirement trong SPEC với những gì đã implement
 
-### Layer Review Report Format
+### Phase Review Report Format
 
 ```markdown
-# Layer Review: Layer {N}
+# Phase Review: <feature|bug>-<slug> — phase-{N}
 
 ## Model Used: spec-validator subagent
 
@@ -265,8 +265,7 @@ Cross-check những gì đã build với `SPECIFICATIONS.md` ban đầu — đ�
 
 | Requirement (từ SPEC) | Task cover | Status |
 |----------------------|------------|--------|
-| Feature A — user login | layer-0/task-02 | ✅ Covered |
-| Feature B — email verify | layer-0/task-03 | ✅ Covered |
+| Feature A — user login | phase-1/task-02 | ✅ Covered |
 | Feature C — rate limiting | — | ❌ Missing |
 
 ## Gaps Found
@@ -274,20 +273,20 @@ Cross-check những gì đã build với `SPECIFICATIONS.md` ban đầu — đ�
 - **[PARTIAL]** {Requirement implement chưa đầy đủ — thiếu edge case X}
 
 ## Summary
-{1-2 sentences: layer này cover được bao nhiêu % spec, có gap gì không}
+{1-2 sentences: phase này cover được bao nhiêu % spec, có gap gì không}
 ```
 
 ### Decision Flow
 
 ```
-Layer Review complete
-    ├── COMPLETE (no gaps) → ✅ Layer PASS
-    │     → Human checkpoint: "Layer {N} done — review report attached. Proceed?"
-    │     → Human approves → Unlock layer {N+1}
+Phase Review complete
+    ├── COMPLETE (no gaps) → ✅ Phase PASS
+    │     → Human checkpoint: "Phase {N} done — review report attached. Proceed?"
+    │     → Human approves → mở phase tiếp theo
     │
     └── GAPS FOUND
           ├── [MISSING] critical feature → ❌ Return to Loop
-          │     → Tạo task bổ sung → implement → re-review layer
+          │     → Tạo task bổ sung → implement → re-review phase
           │
           └── [PARTIAL] minor gap → ⚠️ Flag to human
                 → Human decides: fix now or accept as tech debt
@@ -295,10 +294,10 @@ Layer Review complete
 ```
 
 ### Rules
-- Layer Review dùng subagent **`spec-validator`**, không dùng `reviewer`
-- Lưu report vào `.context/review-reports/layer-{N}-layer-review.md`
-- **KHÔNG unlock layer tiếp theo** nếu có gap MISSING chưa được resolve
-- Human checkpoint **sau** Layer Review, không phải trước
+- Phase Review dùng subagent **`spec-validator`**, không dùng `reviewer`
+- Lưu report vào `.context/review-reports/<feature|bug>-<slug>-phase-{N}-review.md`
+- **KHÔNG mở phase tiếp theo** nếu có gap MISSING chưa được resolve
+- Human checkpoint **sau** Phase Review, không phải trước
 
 ---
 
@@ -310,4 +309,4 @@ Layer Review complete
 4. **CRITICAL = security or data loss risk** — không lạm dụng
 5. **Max 2 review rounds** — nếu vẫn FAIL sau 2 rounds → escalate to human
 6. **Review cả tests** — bad tests = false confidence
-7. **Layer Review bắt buộc** — không skip, dùng subagent `spec-validator`
+7. **Phase Review bắt buộc** — không skip, dùng subagent `spec-validator`

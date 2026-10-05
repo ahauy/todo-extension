@@ -1,12 +1,13 @@
 # Loop Agent — Task Execution (ReAct Pattern)
 
-> ⚠️ **Maintenance mode override:** state dùng `features[]`/`bugs[]`; **KHÔNG** ghi/đọc `currentLayer` khi ở maintenance mode; **cấm push thẳng `forbidden_branch`** (mặc định `main`); branch/push model theo `.agent/FEATURE_WORKFLOW.md` §6 (default staging-direct). Workflow hiện hành: `.agent/FEATURE_WORKFLOW.md` + `AGENTS.md` (ưu tiên). Phần greenfield dưới đây chỉ dùng khi build từ đầu.
+> Engine thực thi từng task theo ReAct: Read → Plan → Act → Observe → Repeat.
+> Điều phối: `AGENTS.md` + `.agent/FEATURE_WORKFLOW.md`. State: `.context/progress.json` (`features[]`/`bugs[]`).
 
 ## Role
 Execute từng task theo ReAct cycle: Read → Plan → Act → Observe → Repeat.
 
 ## Trigger
-- Graph agent tạo xong tasks
+- `change-request` hoặc `/change` chia xong phase/task (feature/bug)
 - Hoặc resume từ `.context/progress.json`
 
 ## Pattern
@@ -60,18 +61,18 @@ Execute từng task theo ReAct cycle: Read → Plan → Act → Observe → Repe
 TRƯỚC KHI làm bất cứ gì:
 ```
 1. Đọc task file → lấy danh sách Dependencies
-2. Đọc .context/progress.json → kiểm tra completedTasks
-3. Nếu dependency CHƯA có trong completedTasks:
+2. Đọc .context/progress.json → kiểm tra task/phase đã done chưa
+3. Nếu dependency CHƯA done:
    → STOP
    → Báo: "⚠️ Task {NN} blocked: waiting for {task-XX} to complete first"
-   → Chờ hoặc chuyển sang task khác trong cùng layer không có dependency
+   → Chờ hoặc chuyển sang task khác không có dependency
 4. Nếu ĐÃ DONE → proceed bình thường
 ```
 
 ### 1. Read Context
 ```
 Read:
-- tasks/layer-{N}/task-{NN}.md (current task)
+- Task file hiện tại (`tasks/<feature|bug>-<slug>/phase-<N>-task-<NN>.md`)
 - .context/error-memory.md (avoid past mistakes)
 - skills/react-nodejs/conventions.md (style guide)
 - skills/react-nodejs/patterns.md (implementation patterns)
@@ -163,20 +164,13 @@ Nếu command chưa cấu hình hoặc repo chưa có app code/API/web/test, ghi
 - **FAIL** → Trigger Error Analyzer → Get fix → Retry from ACT
 - **3 retries fail** → Mark task as BLOCKED → Move to next task → Notify human
 
-### 6. Context Compact Check
-Sau mỗi task PASS, kiểm tra:
+### 6. Context Hygiene
+Sau mỗi task PASS:
 ```
-completedTasks = số task đã done (đọc từ .context/progress.json)
-
-Nếu completedTasks % 3 == 0:
-  → Invoke .agent/context-manager.md (compact)
-  → Đọc .context/compressed-summary.md thay vì giữ full history
+- Giữ context gọn: chỉ pin task đang làm + .context/error-memory.md + file đang sửa
+- Task đã commit → tin git, không giữ nguyên văn trong context
+- Error patterns đã ghi vào .context/error-memory.md → không cần nhớ máy móc
 ```
-
-Sau khi mỗi **layer hoàn thành** (tất cả tasks trong layer PASS):
-  → **MANDATORY** invoke .agent/context-manager.md
-  → Compact toàn bộ layer vừa xong
-  → Tiếp tục layer tiếp theo với context đã compressed
 
 ---
 
@@ -185,7 +179,7 @@ Sau khi mỗi **layer hoàn thành** (tất cả tasks trong layer PASS):
 After task passes tests:
 ```bash
 git add {relevant files only}
-git commit -m "feat(layer-{N}): task-{NN} {short description}"
+git commit -m "feat(<feature|bug>-<slug>): phase-<N>-task-<NN> {short description}"
 ```
 
 ---
@@ -194,10 +188,11 @@ git commit -m "feat(layer-{N}): task-{NN} {short description}"
 
 After each task completes (PASS or BLOCKED):
 ```json
-// .context/progress.json
+// .context/progress.json — schema: features[] / bugs[], activeWorkItem
 {
-  "inProgressTask": null,
-  "completedTasks": [..., "layer-{N}/task-{NN}"],
+  "activeWorkItem": null,
+  "features": [ ... ],
+  "bugs": [ ... ],
   "lastUpdated": "ISO timestamp"
 }
 ```
