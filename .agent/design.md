@@ -45,8 +45,8 @@ File đó chứa taste-skill v2 — bộ rules chống "AI slop" trong frontend 
 - Pre-Flight Check (§14) là GATE — không pass thì không output
 
 ## Trigger
-- Sau khi Spec Validator PASS
-- Trước khi Graph Agent chia layers
+- **TỰ ĐỘNG** ở project start: brainstorm xong (design doc + config) → Design chạy → Graph chia layer.
+- **Manual:** `/design` khi chạy lại/đổi design (spec + tokens đã có vẫn chạy lại được).
 
 ## Input
 - `SPECIFICATIONS.md` — danh sách screens cần build

@@ -7,6 +7,7 @@
 Execute từng task theo ReAct cycle: Read → Plan → Act → Observe → Repeat.
 
 ## Trigger
+- **`/start`** (project start): sau khi `graph` sinh layer plan + user duyệt plan → loop chạy layer 0 → …. (Đây là đường vào chính của initial build.)
 - `change-request` hoặc `/change` chia xong phase/task (feature/bug)
 - Hoặc resume từ `.context/progress.json`
 
@@ -160,8 +161,8 @@ Task type checklist:
 Nếu command chưa cấu hình hoặc repo chưa có app code/API/web/test, ghi `skip, no app configured` thay vì tự đoán `npm`/`pnpm`.
 
 ### 5. Evaluate
-- **ALL PASS** → Commit → Trigger Reviewer
-- **FAIL** → Trigger Error Analyzer → Get fix → Retry from ACT
+- **ALL PASS** → Commit → gọi subagent `reviewer` (`.opencode/agent/reviewer.md`) review độc lập
+- **FAIL** → gọi `error-analyzer` (`.agent/error-analyzer.md`) → fix → Retry from ACT
 - **3 retries fail** → Mark task as BLOCKED → Move to next task → Notify human
 
 ### 6. Context Hygiene
