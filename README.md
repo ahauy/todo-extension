@@ -147,6 +147,7 @@ project-template/
 │   ├── archify/                 ← 🗺️ Architecture/workflow/sequence/dataflow diagrams → self-contained HTML (tt-a1i/archify, curated)
 │   ├── frontend-checklist/       ← ✅ Frontend quality gate: HTML/a11y/SEO/perf/images/security/privacy (curated from thedaviddias/Front-End-Checklist)
 │   ├── superpowers/             ← 🧠 Debug Iron Law + TDD (obra/superpowers)
+│   ├── brainstorming/           ← 💬 Clear yêu cầu → propose approaches → design doc trước khi code (nửa "clarify" của /brainstorm)
 │   ├── ponytail/                ← 🪶 Lazy senior dev ladder (DietrichGebert)
 │   ├── impeccable/              ← 🎨 UI craft-floor + polish (pbakaus)
 │   ├── ui-ux-pro-max/           ← 🧩 Design intelligence (nextlevelbuilder)
@@ -249,6 +250,7 @@ The template ships with curated workflow skills (curated from well-known open-so
 | Skill | Source | When used / Purpose |
 |-------|-------|---------------------|
 | `superpowers/` | obra/superpowers (270k⭐) | Every coding task — **Iron Law debug** (no fix without root cause) + **TDD test-first** |
+| `brainstorming/` | curated (in-house) | **Trước khi code** feature/thay đổi lớn — clear/clarify yêu cầu từng câu một, propose 2-3 approaches + trade-offs, present design, viết `docs/specs/*-design.md`, user approve trước khi implement (HARD-GATE). Nửa "clear yêu cầu" của `/brainstorm` |
 | `archify/` | tt-a1i/archify (curated, MIT) | **Diagrams** — architecture/workflow/sequence/dataflow/lifecycle → self-contained HTML (dark/light, export PNG/SVG). Hooked in Phase 0 (architecture gap), design (diagrams in design-spec), graph (layer-plan diagram at human checkpoint), reviewer (verify diagrams match real code) |
 | `frontend-checklist/` | thedaviddias/Front-End-Checklist (curated) | Reviewer reviews **UI/public-facing** tasks — HTML semantics, accessibility/WCAG, SEO (title/canonical/OG/structured data/sitemap), Core Web Vitals (LCP/CLS/INP), images, frontend security (CSP/SRI/cookies), privacy. Curated: only critical + high priority rules
 | `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer reviews **UI** tasks — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
