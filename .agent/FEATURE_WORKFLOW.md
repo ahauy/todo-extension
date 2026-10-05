@@ -87,15 +87,14 @@ Chỉ bỏ checkpoint nếu prompt có đúng một trong các cụm: `auto proc
 - Sau Reviewer PASS, xác định Doc Impact & Reconcile (§6) trước khi đóng bug; không impact → ghi `no doc impact`.
 - Set `done` sau khi reviewer PASS, Doc Impact/Reconcile đã xong hoặc ghi `no doc impact`, và report đúng tên tồn tại trong `.context/review-reports/` (§5). Trạng thái `done`/progress/doc-impact này phải nằm trong close-out commit; progress/task file không cần biết SHA của commit đang được tạo.
 
-### 2.7b Test scope + coverage board (handoff sang template test) — bắt buộc khi fix bug
+### 2.7b Test scope (handoff sang template test) — bắt buộc khi fix bug
 - Sau khi bug PASS review, sinh/cập nhật **`spec/test-scope/current.json`** (hợp đồng bàn giao cho template AUTOTEST — schema + version scheme trong `docs/SPEC_VERSIONING.md`):
   - `trigger: bug-fix`, `workItem`, `specRefs` (requirement liên quan), `changed.files/modules`
   - `impact.direct` (hành vi vừa sửa), `impact.dependents` (module phụ thuộc), `impact.regression` (luồng cũ cần retest)
   - `acceptance` (tiêu chí nghiệm thu), `risk` (low/medium/high)
   - **`specVersion`** (= version hiện tại của `SPECIFICATIONS.md`) + **`scopeVersion`** (tăng 1 mỗi lần sinh)
-- **Cập nhật `spec/coverage.json`**: mọi req bị ảnh hưởng → status `pending` (chờ test lại); req mới → thêm dòng status `untested`.
 - Nếu bug đổi ngữ nghĩa requirement → bump spec version + ghi delta trước (xem §3.2b).
-- Mục đích: template test đọc scope + coverage board → biết chính xác phần nào cần test, phần nào đã cover.
+- Mục đích: template test đọc scope này để biết cần test gì. **Trạng thái "đã test đến đâu" do template test tự lưu** (trong repo test) — DEV không giữ.
 
 ### 2.8 Commit / push (commit-first)
 - Sau khi task/bug/phase PASS review + close-out + cập nhật `.context/progress.json`, phải commit lên branch hiện tại theo convention bên dưới.
@@ -240,13 +239,12 @@ Classify → Spec delta → Spec Validator → Phase/Task → Human duyệt plan
 - Nếu test/check/review/spec status là `FAIL`, `BLOCKED`, hoặc unknown → không set `done`.
 - Commit/push: xem §2.8 (commit-first sau PASS; default staging-direct push `target_branch`, feature branch chỉ khi user yêu cầu).
 
-### 3.9b Test scope + coverage board (handoff sang template test) — bắt buộc khi update feature
+### 3.9b Test scope (handoff sang template test) — bắt buộc khi update feature
 - Sau khi task/phase PASS, sinh/cập nhật **`spec/test-scope/current.json`** (hợp đồng bàn giao cho template AUTOTEST):
   - `trigger: feature-update`, `workItem`, `specRefs` (spec delta), `changed.files/modules`
   - `impact.direct` / `impact.dependents` / `impact.regression`, `acceptance`, `risk`
   - **`specVersion`** (= version hiện tại của `SPECIFICATIONS.md` sau bump ở §3.2b) + **`scopeVersion`** (tăng 1 mỗi lần sinh)
-- **Cập nhật `spec/coverage.json`**: req mới → `untested`/`pending`; req đã test mà đổi behavior → `pending`.
-- Mục đích: template test chạy luồng 2 (`/test-scope`) + luồng 3 (`/regression`) đúng phạm vi, đọc coverage board để biết đã/chưa test tới đâu.
+- Mục đích: template test chạy luồng 2 (`/test-scope`) + luồng 3 (`/regression`) đúng phạm vi. **Độ phủ (đã/chưa test) do template test tự lưu** — DEV chỉ cung cấp spec + scope.
 
 ---
 
