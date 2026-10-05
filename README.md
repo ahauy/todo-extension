@@ -290,19 +290,19 @@ The template ships with curated workflow skills (curated from well-known open-so
 
 ## How It Works
 
-> 📌 **Start dự án:** `/start` (TỰ ĐỘNG) — đọc spec (`/spec-init` nếu chưa có) → `/brainstorm` (clear yêu cầu + design doc + config) → `/design` (design spec + tokens) → `/graph` (chia layer/task) → **loop**. Mỗi bước dừng ở human checkpoint. Sau khi build xong → `/change` cho mọi thay đổi.
-> `/brainstorm`, `/design`, `/graph` là lệnh **manual** — chạy tay để chạy lại/update; trong `/start` chúng tự động được gọi.
+> 📌 **Start dự án:** gõ **1 lần** `/start` — chuỗi **chạy LIÊN TỤC, tự chuyển bước**: đọc spec (`/spec-init` nếu chưa có) → brainstorm (clear yêu cầu + design doc + config) → design (design spec + tokens) → graph (chia layer/task) → **loop**. Chỉ **DỪNG ở checkpoint** để anh duyệt; **không phải gõ lại lệnh mỗi bước**.
+> Sau khi build xong → `/change` cho mọi thay đổi. `/brainstorm`, `/design`, `/graph` là **manual override** (chạy tay khi muốn chạy lại 1 bước).
 
 ### Pipeline
 
 ```
-🚀 /start  (tự động chuỗi khởi tạo)
+🚀 /start  (gõ 1 lần — chuỗi chạy liên tục, tự chuyển bước, chỉ dừng ở ⏸ checkpoint)
 ├─ 1. Đọc spec          → có rồi thì dùng; chưa có → /spec-init (đọc code → SPECIFICATIONS.md + spec/)
-├─ 2. /brainstorm       → clear yêu cầu (design doc docs/specs/) + config .context/project-config.md   ← DỪNG chờ approve design
-├─ 3. /design           → design tokens + screen specs (.context/design-spec.md)                        ← DỪNG confirm tokens
-└─ 4. /graph            → chia layer/task (tasks/<slug>/layer-N-task-NN.md) + layer-plan diagram         ← DỪNG chờ duyệt plan
+├─ 2. Brainstorm        → clear yêu cầu (design doc docs/specs/) + config .context/project-config.md   ⏸ chờ approve design
+├─ 3. Design            → design tokens + screen specs (.context/design-spec.md)                        ⏸ confirm tokens
+└─ 4. Graph             → chia layer/task (tasks/<slug>/layer-N-task-NN.md) + layer-plan diagram         ⏸ duyệt plan
     │
-    ▼
+    ▼  (tự chạy tiếp sau khi anh reply "ok")
 Loop Agent — execute từng task (ReAct)
 ├─ Builder code + test
 ├─ Test FAIL → Error Analyzer → fix → retry
@@ -314,7 +314,7 @@ Review Agent (different model)
 └─ PASS → close-out
     │
     ▼
-👀 Human Checkpoint → layer/phase tiếp theo (Layer N+1 chỉ unlock khi Layer N PASS + user approve)
+⏸ Human Checkpoint → layer/phase tiếp theo (Layer N+1 chỉ unlock khi Layer N PASS + anh duyệt; KHÔNG cần gõ lệnh)
    (DevOps agent: git init/CI-CD ở layer 0, auto-push/CI checks sau mỗi layer, deploy ở final layer)
 
 ────────── Sau đó: mọi thay đổi ──────────
@@ -376,11 +376,11 @@ git clone <template-repo-url> template && cd template
 # 2. Mở opencode
 opencode
 
-# 3. Trong opencode, chạy /start (chuỗi TỰ ĐỘNG):
-#    đọc spec → /brainstorm (clear yêu cầu + config theo nhóm) → /graph (chia layer/task)
-#    - /brainstorm: auto-detect stack → sửa config THEO NHÓM → ghi .context/project-config.md
-#    - /graph: chia layer/task + layer-plan diagram, dừng chờ anh duyệt plan
-#    (chạy tay /brainstorm hoặc /graph bất cứ lúc nào để chạy lại/update)
+# 3. Trong opencode, GÕ 1 LẦN: /start   → chuỗi chạy liên tục, tự chuyển bước:
+#    đọc spec → brainstorm (clear yêu cầu + config) → design (tokens) → graph (chia layer/task) → loop
+#    - chỉ dừng ở ⏸ checkpoint (approve design / confirm tokens / duyệt plan / sau mỗi layer)
+#    - KHÔNG cần gõ lại /brainstorm, /design, /graph mỗi bước
+#    (chạy tay /brainstorm, /design hoặc /graph khi muốn chạy lại/update 1 bước)
 
 # 4. Khai model theo vai trong .context/project-config.md (models:) rồi BỎ COMMENT
 #    dòng `model:` trong .opencode/agent/*.md
@@ -390,8 +390,8 @@ opencode
 
 | Command | Khi nào dùng |
 |---|---|
-| `/start` 🚀 | **Khởi tạo dự án (lần đầu)** — chuỗi TỰ ĐỘNG: đọc spec (`/spec-init` nếu chưa có) → `/brainstorm` → `/design` → `/graph`. Dừng ở human checkpoint mỗi bước. Build xong → dùng `/change` |
-| `/design` | **Design spec + tokens** (manual — tự động trong `/start`) — sinh design tokens + `.context/design-spec.md`, confirm tokens trước khi chia layer |
+| `/start` 🚀 | **Khởi tạo dự án (lần đầu)** — gõ 1 lần, chuỗi **chạy liên tục tự chuyển bước**: đọc spec (`/spec-init` nếu chưa có) → brainstorm → design → graph → loop. Chỉ dừng ở checkpoint. Build xong → dùng `/change` |
+| `/design` | **Design spec + tokens** (manual override — tự chạy trong `/start`) — sinh design tokens + `.context/design-spec.md`, confirm tokens trước khi chia layer |
 | `/brainstorm` | **Clear yêu cầu + chốt config dự án** (manual — tự động trong `/start`) — design doc + auto-detect stack, sửa profile **theo nhóm**, ghi `.context/project-config.md`, sync quyền verify command |
 | `/graph` | **Chia layer/task** cho initial build (manual — tự động trong `/start`) — sinh `tasks/<slug>/layer-{N}-task-{NN}.md` + layer-plan diagram + update `progress.json` |
 | `/bug-check <khu vực>` | Chưa rõ bug nào — soi **read-only**, liệt kê defect vào `tasks/bug-<slug>/scan.md`, dừng chờ bạn chọn |
