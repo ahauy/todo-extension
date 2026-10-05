@@ -3,7 +3,7 @@
 > A model-agnostic multi-agent template for **working on repos that already have code** (bug/feature/update).
 
 > 📌 **Luồng làm việc:** `/spec-init` (đọc code → dựng spec, chạy 1 lần đầu) → **loop** thực thi task → **`/change`** cho mọi thay đổi sau đó (qua agent `change-request`).
-> Setup ban đầu: `/setup-profile`.
+> Setup ban đầu: `/brainstorm`.
 >
 > ⭐ **Sau khi spec đã có, MỌI thay đổi (feature mới + fix bug) đi qua MỘT agent: `change-request`.**
 > Cửa vào: **`/change`** (đọc hết `spec/changes/*.md`) · `/bug` · `/feature`.
@@ -83,7 +83,7 @@ project-template/
 │   │   ├── reviewer.md           ← Independent review (edit: deny)
 │   │   └── spec-validator.md     ← Spec/phase cross-check (edit: deny)
 │   ├── command/
-│   │   ├── setup-profile.md      ← /setup-profile → onboarding repo thật (PROJECT_PROFILE)
+│   │   ├── brainstorm.md      ← /brainstorm → onboarding repo thật (project-config)
 │   │   ├── change.md             ← /change → change request hậu-build (đọc spec/changes/ → agent change-request)
 │   │   ├── bug-check.md          ← /bug-check → read-only sweep, list defects
 │   │   ├── bug.md                ← /bug  → fix ONE known bug (→ agent change-request)
@@ -107,12 +107,12 @@ project-template/
 │
 ├── scripts/
 │   ├── generate-inventory.mjs         ← Deterministic inventory generator
-│   ├── detect-profile.mjs             ← Detect stack → gợi ý PROJECT_PROFILE (dùng bởi /setup-profile)
+│   ├── detect-profile.mjs             ← Detect stack → gợi ý project-config (dùng bởi /brainstorm)
 │   └── apply-verify-permissions.mjs   ← Sync allow rule verify command vào reviewer/spec-validator
 │
 ├── .agent/
 │   ├── FEATURE_WORKFLOW.md       ← ✅ Workflow entry (bug/feature/update)
-│   ├── PROJECT_PROFILE.md        ← ✅ Project values (branch, pm, checks, models)
+│   ├── brainstorm.md             ← ✅ Đọc spec/code → hỏi user chốt config → ghi .context/project-config.md
 │   ├── references/               ← taste-skill-v2.md (anti-slop design reference)
 │   ├── spec-validator.md         ← Validate spec vs code/docs
 │   ├── spec-init.md              ← /spec-init: reverse-engineer spec cho project CŨ (code có sẵn)
@@ -170,6 +170,7 @@ project-template/
 │   ├── session-policy.json       ← Usage gate thresholds (loop-guard)
 │   ├── runs/                     ← Run Journal per task (cross-session resume)
 │   │   └── _TEMPLATE.md
+│   ├── project-config.md         ← ✅ Project config (branch, pm, checks, DB, models) — do /brainstorm ghi
 │   ├── decisions.md              ← Architecture decisions log
 │   ├── spec-notes.md             ← Ghi chú dựng spec (/spec-init)
 │   ├── error-memory.md           ← Errors encountered + fixes
@@ -229,7 +230,7 @@ The template ships with built-in production monitoring (uptime + runtime observa
 
 ### Keys setup in Phase 0.5
 
-Monitor keys/tokens (OTLP endpoint, service name, uptime) lưu vào `.env.local` khi `/setup-profile` (cùng git setup).
+Monitor keys/tokens (OTLP endpoint, service name, uptime) lưu vào `.env.local` khi `/brainstorm` (cùng git setup).
 
 ### 3 Mandatory Checkpoints
 
@@ -253,7 +254,7 @@ The template ships with curated workflow skills (curated from well-known open-so
 | `impeccable/` | pbakaus/impeccable (58k⭐) | Reviewer reviews **UI** tasks — craft-floor (contrast, depth, type, states, browser surfaces) + refuse-list AI slop |
 | `ui-ux-pro-max/` | nextlevelbuilder/ui-ux-pro-max (115k⭐) | Design Agent — design intelligence by product type (10 priority categories: a11y, touch, performance, style, layout…) |
 | `ponytail/` | DietrichGebert/ponytail (100k⭐) | Loop while implementing — **lazy senior dev ladder**, stop at the simplest solution, avoid over-engineering |
-| `scalability-architecture/` | curated (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Only when the user enables the Scalability Option at /setup-profile. Avoids over-engineering: do not apply microservices/sharding/K8s when not needed |
+| `scalability-architecture/` | curated (in-house) | **OPTIONAL** — scalability tiers (Standard/High-Traffic/Enterprise). Only when the user enables the Scalability Option at /brainstorm. Avoids over-engineering: do not apply microservices/sharding/K8s when not needed |
 | `karpathy-guidelines/` | andrej-karpathy-skills (curated) | Loop when editing old code — **surgical changes** (touch only what's needed, no drive-by refactor) + Reviewer when reviewing diffs — **assumption check** (state assumptions, don't silently choose). Complements ponytail (simplicity) + superpowers (goal-driven) |
 | `aislop/` | scanaislop/aislop (curated, MIT) | Reviewer reviews **code changes** — deterministic AI-slop scan (narrative comments, swallowed errors, hidden fallbacks, `as any`, duplication, dead code, todo stubs), score 0-100 ≥80 gate, `fix --safe` mechanical, offline no API key |
 | `anti-slop/` | dmmulroy/anti-slop (curated, MIT) | Builder/Reviewer with TS/JS — **Oxlint rules** chặn low-evidence patterns (no-reduce-accumulator-copy, no-object-parameters, no-unsafe-dictionary-type, type assertion cần safety comment). Chặn ở tầng lint, bổ trợ aislop (mùi nội dung) + OCR (bug thật) |
@@ -281,7 +282,7 @@ The template ships with curated workflow skills (curated from well-known open-so
 
 ## How It Works
 
-> 📌 **Bắt đầu ở đâu:** repo đã có code → `/setup-profile` (cấu hình) → **`/spec-init`** (đọc code → dựng spec, chạy 1 lần) → **loop** thực thi task → **`/change`** cho mọi thay đổi sau đó (agent `change-request`).
+> 📌 **Bắt đầu ở đâu:** repo đã có code → `/brainstorm` (cấu hình) → **`/spec-init`** (đọc code → dựng spec, chạy 1 lần) → **loop** thực thi task → **`/change`** cho mọi thay đổi sau đó (agent `change-request`).
 
 ### Pipeline
 
@@ -353,14 +354,14 @@ git clone <template-repo-url> template && cd template
 # 2. Mở opencode
 opencode
 
-# 3. Trong opencode, chạy /setup-profile để auto-detect stack rồi sửa profile THEO NHÓM
+# 3. Trong opencode, chạy /brainstorm để auto-detect stack rồi sửa profile THEO NHÓM
 #    (Git & branch / Stack & source / Verify commands / Database & migration):
-#    chọn nhóm → sửa cả nhóm → chọn tiếp hoặc dừng, ghi .agent/PROJECT_PROFILE.md
+#    chọn nhóm → sửa cả nhóm → chọn tiếp hoặc dừng, ghi .context/project-config.md
 #    và sync quyền verify command khi chọn "Xong".
 #    Hoặc điền tay: target_branch, forbidden_branch, auto_push_after_pass,
 #    package_manager, verify commands, db_tool, migration_required.
 
-# 4. Khai model theo vai trong .agent/PROJECT_PROFILE.md (models:) rồi BỎ COMMENT
+# 4. Khai model theo vai trong .context/project-config.md (models:) rồi BỎ COMMENT
 #    dòng `model:` trong .opencode/agent/*.md
 
 # 5. RESTART opencode sau khi sửa .opencode/ (config KHÔNG hot-reload)
@@ -368,7 +369,7 @@ opencode
 
 | Command | Khi nào dùng |
 |---|---|
-| `/setup-profile` | Onboarding repo thật — auto-detect stack, sửa profile **theo nhóm** (chọn nhóm → sửa cả nhóm → chọn tiếp/dừng), ghi `.agent/PROJECT_PROFILE.md`, sync quyền verify command |
+| `/brainstorm` | Onboarding repo thật — auto-detect stack, sửa profile **theo nhóm** (chọn nhóm → sửa cả nhóm → chọn tiếp/dừng), ghi `.context/project-config.md`, sync quyền verify command |
 | `/bug-check <khu vực>` | Chưa rõ bug nào — soi **read-only**, liệt kê defect vào `tasks/bug-<slug>/scan.md`, dừng chờ bạn chọn |
 | `/bug <mô tả>` | **Một bug đã biết** hoặc list bug đã xác nhận — root cause → build → reviewer → progress → commit-first → push theo branch model nếu được phép |
 | `/feature <mô tả>` | Thêm/sửa/bỏ tính năng — classify → spec delta → phase/task → build/review/validate |
@@ -392,11 +393,11 @@ Checklist smoke-test cho template trống nằm ở `docs/smoke-tests/MAINTENANC
 
 ### Bắt đầu (repo đã có code)
 
-> Luồng: `/setup-profile` (cấu hình) → **`/spec-init`** (đọc code → dựng `SPECIFICATIONS.md` + `spec/`, chạy 1 lần) → **loop** thực thi task → **`/change`** cho thay đổi sau đó.
+> Luồng: `/brainstorm` (cấu hình) → **`/spec-init`** (đọc code → dựng `SPECIFICATIONS.md` + `spec/`, chạy 1 lần) → **loop** thực thi task → **`/change`** cho thay đổi sau đó.
 
 ```bash
 # Trong opencode:
-/setup-profile        # onboarding: auto-detect stack → .agent/PROJECT_PROFILE.md
+/brainstorm        # onboarding: auto-detect stack → .context/project-config.md
 /spec-init            # đọc code → dựng spec + spec/ + test-scope (1 lần)
 # sau đó dùng /change (hoặc /bug, /feature) cho mọi thay đổi
 ```
@@ -470,7 +471,7 @@ frontmatter of each `.opencode/agent/*.md` (not in `.env.local` — opencode ign
 | Reviewer | `.opencode/agent/reviewer.md` | different provider than builder |
 | Spec Validator | `.opencode/agent/spec-validator.md` | third provider |
 
-**Set up via `/setup-profile`.** `/setup-profile` hỏi từng model, ghi `.agent/PROJECT_PROFILE.md` (`models:`), và điền frontmatter các agent file. Riêng `models.change_request` cho agent hậu-build.
+**Set up via `/brainstorm`.** `/brainstorm` hỏi từng model, ghi `.context/project-config.md` (`models:`), và điền frontmatter các agent file. Riêng `models.change_request` cho agent hậu-build.
 `.env.local` giữ git-ignored cho git/deploy/monitor secrets.
 
 > 🛑 After model setup you **must restart opencode** — agent/config is not hot-reloaded. Until then
@@ -618,7 +619,7 @@ Change Request workflow chi tiết: `.agent/FEATURE_WORKFLOW.md` §3. Intent doc
 
 Once the project exists, `AGENTS.md` (always loaded) routes every request before any code
 is written. The maintenance workflow lives in `.agent/FEATURE_WORKFLOW.md`, and project
-values in `.agent/PROJECT_PROFILE.md`.
+values in `.context/project-config.md`.
 
 | Intent | Route |
 |--------|-------|

@@ -7,10 +7,10 @@ Template cho platform không nằm trong danh sách cụ thể. Áp dụng best 
 
 ```bash
 # Install dependencies
-<install_command from PROJECT_PROFILE>
+<install_command from project-config>
 
 # Build
-<build_command from PROJECT_PROFILE>
+<build_command from project-config>
 
 # Output: dist/
 #   dist/client/  → Static frontend files
@@ -45,7 +45,7 @@ Response: { "status": "ok", "timestamp": "2024-01-01T00:00:00.000Z" }
 - [ ] All tests pass locally
 - [ ] Build succeeds without errors
 - [ ] Environment variables configured on platform
-- [ ] Migration: `<migration_command from PROJECT_PROFILE if migration_required=true>`; if `db_tool: none`, skip
+- [ ] Migration: `<migration_command from project-config if migration_required=true>`; if `db_tool: none`, skip
 - [ ] Health check responds after deploy
 - [ ] Frontend loads and can call backend APIs
 - [ ] SSL/HTTPS configured

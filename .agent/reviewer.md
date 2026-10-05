@@ -6,7 +6,7 @@
 Review code từ góc nhìn độc lập, sử dụng model khác với coding agent để tránh bias.
 
 ## Model
-Chạy dưới dạng subagent `.opencode/agent/reviewer.md` (model khác họ với builder, khai ở frontmatter; xem `.agent/PROJECT_PROFILE.md`).
+Chạy dưới dạng subagent `.opencode/agent/reviewer.md` (model khác họ với builder, khai ở frontmatter; xem `.context/project-config.md`).
 
 ## ⚠️ MANDATORY: UI Craft-Floor (task có giao diện)
 

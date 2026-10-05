@@ -139,22 +139,22 @@ Task type checklist:
 
 - Viết code theo conventions
 - Viết tests theo checklist trên
-- Chạy `<install_command from PROJECT_PROFILE>` nếu cần package mới; nếu chưa cấu hình/chưa có app code → `skip, no app configured`
-- Follow patterns theo stack trong `.agent/PROJECT_PROFILE.md`; không áp dụng React/Node/Prisma nếu profile không khớp
+- Chạy `<install_command from project-config>` nếu cần package mới; nếu chưa cấu hình/chưa có app code → `skip, no app configured`
+- Follow patterns theo stack trong `.context/project-config.md`; không áp dụng React/Node/Prisma nếu profile không khớp
 
 ### 4. Observe
 ```bash
 # Run tests
-<test_command from PROJECT_PROFILE>
+<test_command from project-config>
 
 # Lint
-<lint_command from PROJECT_PROFILE>
+<lint_command from project-config>
 
 # Type check (if TypeScript)
-<typecheck_command from PROJECT_PROFILE>
+<typecheck_command from project-config>
 
 # Build check
-<build_command from PROJECT_PROFILE>
+<build_command from project-config>
 ```
 
 Nếu command chưa cấu hình hoặc repo chưa có app code/API/web/test, ghi `skip, no app configured` thay vì tự đoán `npm`/`pnpm`.

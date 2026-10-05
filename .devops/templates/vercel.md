@@ -24,7 +24,7 @@ vercel env add FRONTEND_URL production
 ```json
 // vercel.json
 {
-  "buildCommand": "<build_command from PROJECT_PROFILE>",
+  "buildCommand": "<build_command from project-config>",
   "outputDirectory": "dist/client",
   "framework": "vite",
   "rewrites": [
