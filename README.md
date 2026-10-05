@@ -36,80 +36,52 @@
 
 ## Getting Started
 
-### Quickstart (maintenance — repo already has code) ← DEFAULT
+### New project
 
 ```bash
-# 1. Clone/copy the template to your machine
-git clone <template-repo-url> template && cd template
+# 1. Copy the template into your project folder
+git clone <template-repo-url> my-app && cd my-app
 
 # 2. Open opencode
 opencode
 
-# 3. In opencode, type ONCE: /start   → the chain runs continuously, auto-advancing:
-#    read spec → brainstorm (clarify requirements + config) → design (tokens) → graph (split layers/tasks) → loop
-#    - stops only at ⏸ checkpoints (approve design / confirm tokens / approve plan / after each layer)
-#    - NO need to re-type /brainstorm, /design, /graph for each step
-#    (run /brainstorm, /design or /graph by hand when you want to re-run/update one step)
+# 3. (Recommended) Set per-role models:
+#    edit .context/project-config.md → models:, then uncomment the `model:` line in .opencode/agent/*.md
 
-# 4. Declare per-role models in .context/project-config.md (models:) then UNCOMMENT
-#    the `model:` line in .opencode/agent/*.md
-
-# 5. RESTART opencode after editing .opencode/ (config is NOT hot-reloaded)
+# 4. Start the project
+/start
 ```
+
+`/start` runs the whole init chain and stops only at checkpoints:
+
+```
+read spec → brainstorm → design → graph → loop (build)
+```
+
+Type `/start` **once** — the chain advances on its own. Reply **"ok"** at each checkpoint to continue.
+Once the build is done, use **`/change`** for every change (new feature or bug fix).
+
+> ⚠️ After editing `.opencode/` or `opencode.jsonc`, restart opencode (config is not hot-reloaded).
+
+### Commands
 
 | Command | When to use |
 |---|---|
-| `/start` 🚀 | **Initialize a project (first time)** — type once; the chain **runs continuously, auto-advancing**: read spec (`/spec-init` if missing) → brainstorm → design → graph → loop. Stops only at checkpoints. Once built → use `/change` |
-| `/design` | **Design spec + tokens** (manual override — runs automatically within `/start`) — produce design tokens + `.context/design-spec.md`, confirm tokens before the layer split |
-| `/brainstorm` | **Clarify requirements + set project config** (manual — automatic within `/start`) — design doc + auto-detect stack, edit the profile **by group**, write `.context/project-config.md`, sync verify-command permissions |
-| `/graph` | **Split into layers/tasks** for the initial build (manual — automatic within `/start`) — produce `tasks/<slug>/layer-{N}-task-{NN}.md` + layer-plan diagram + update `progress.json` |
-| `/bug-check <area>` | Unclear which bug — sweep **read-only**, list defects into `tasks/bug-<slug>/scan.md`, then stop and wait for you to choose |
-| `/bug <description>` | **One known bug** or a confirmed bug list — root cause → build → reviewer → progress → commit-first → push per branch model if allowed |
-| `/feature <description>` | Add/modify/remove a feature — classify → spec delta → phase/task → build/review/validate |
-| `/change` ⭐ | **Main entry for post-build changes** — read all pending files in `spec/changes/` → call the `change-request` agent (new feature + bug fix) |
-| `/spec-init` | An EXISTING project that has code but **no spec yet** (legacy/inherited) — reverse-engineer: scan code → build `SPECIFICATIONS.md` + `spec/` + `spec/test-scope/current.json` (risk `high`, read-only, run once) |
-| `/spec-publish` | Publish spec for the test template (usually **automatic** after bug/feature; use when you need to re-run/manually) |
-| `/resume <type>/<slug>` | Open a new session to **continue** work in progress — read Run Journal + reconcile the disk, then run the `next` step (no re-classify/phase-plan) |
+| `/start` 🚀 | Start a project (once) — runs read spec → brainstorm → design → graph → loop |
+| `/change` ⭐ | Change something after the build (feature + bug) |
+| `/bug-check <area>` | Sweep an area read-only and list defects |
+| `/resume <type>/<slug>` | Continue an unfinished session |
 
-If the repo has no app code/API/web/test or verify commands are not configured, the workflow writes `skip, no app configured`
-instead of guessing `npm`, `pnpm`, package name, `apps/`, Prisma, or test command.
+> Smoke test for the empty template → `docs/smoke-tests/MAINTENANCE_TEMPLATE_SMOKE.md`.
 
-### Smoke Test Without App Code
-
-The smoke-test checklist for an empty template lives in `docs/smoke-tests/MAINTENANCE_TEMPLATE_SMOKE.md`.
-
-- `/bug-check`: creates only `tasks/bug-settings-scan/scan.md`, does not call Builder, `git status --short` shows only `scan.md`.
-- `/bug` bug list or "fix all defects": does not call Builder immediately; splits bugs, proposes an order, asks for confirmation; auto-runs only if the prompt contains `auto proceed` (or an explicit "no need to ask" opt-out phrase).
-- Reviewer risk level: small mock text/toast must pick `FAST`; mock API/shared/tenant must pick `STRICT`; report has `Review level`, `Reason`, `Blast radius`.
-- Guard: `builder-strong` must ask; `git push origin main`, ref main, `git push --force`, `git reset --hard`, `git checkout --` must deny.
-- After editing `.opencode/*` or `opencode.jsonc`, quit and restart opencode because config/commands/agents are not hot-reloaded.
-
-### Getting Started (new project / repo already has code)
-
-> Flow: **`/start`** (automatic) — read spec (`/spec-init` if missing) → `/brainstorm` (clarify requirements + config) → `/design` (tokens) → `/graph` (split layers/tasks) → **loop** → `/change` for subsequent changes.
-
-```bash
-# In opencode:
-/start                    # 🚀 continuous chain: read spec → brainstorm → design → graph (stops at checkpoints)
-# or run each step by hand:
-/spec-init                # read code → build spec + spec/ + test-scope (once)
-/brainstorm               # clarify requirements + design doc + config → .context/project-config.md
-/design                   # design tokens + screen specs
-/graph                    # split into layers/tasks + layer-plan diagram
-# then use /change (or /bug, /feature) for all changes
-```
-
-### Resuming / Session Handoff
+### Resuming a session
 
 ```
 Read AGENTS.md and resume the project
 # or:  /resume feature/<slug>   /resume bug/<slug>
 ```
 
-The agent reads `.context/progress.json` (maintenance schema) + the Run Journal `.context/runs/<type>-<slug>-<phaseTask>.md` and continues from the checkpoint. The Run Journal is written **write-ahead** at every step boundary (`▶ START` / `✅ DONE`), so a new session only needs to redo at most one step; the disk is truth, the pointer is a hint.
-
----
-
+The agent reads `.context/progress.json` + the Run Journal `.context/runs/<type>-<slug>-<phaseTask>.md` and continues from the last checkpoint.
 
 ## Overview
 
