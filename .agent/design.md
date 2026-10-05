@@ -258,5 +258,5 @@ Cho từng screen trong SPECIFICATIONS.md, tạo layout spec:
 
 1. Lưu `.context/design-spec.md`
 2. Update `skills/react-nodejs/design-tokens.md`
-3. Nếu project có kiến trúc/flow đáng vẽ (nhiều service, auth flow, data pipeline, CI/CD…) → **ĐỌC `skills/archify/SKILL.md`**, dựng `architecture` (topology) + `workflow` (process/flow chính), lưu `docs/diagrams/`, tham chiếu trong design-spec mục `Architecture & Infrastructure` / screen specs. Confirm diagram với user trước khi sang Graph.
+3. (BEST-EFFORT) Nếu project có kiến trúc/flow đáng vẽ (nhiều service, auth flow, data pipeline, CI/CD…) → ĐỌC `skills/archify/SKILL.md`, dựng `architecture` + `workflow`, lưu `docs/diagrams/`. Nếu archify chưa cài / bị chặn `external_directory` / lỗi → **ghi blocker rồi bỏ qua**, KHÔNG fail bước design (design-spec + tokens vẫn phải xong).
 4. Trigger `.agent/graph.md`
