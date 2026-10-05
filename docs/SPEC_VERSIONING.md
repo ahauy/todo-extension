@@ -12,6 +12,7 @@ spec/
 │   └── YYYY-MM-DD-<slug>.md
 ├── archive/                 ← bản spec đóng băng theo mốc release
 │   └── SPECIFICATIONS-<version>.md
+├── coverage.json            ← BẢNG ĐỘ PHỦ: req nào đã/chưa test (DEV set, TEST đọc)
 └── test-scope/              ← hợp đồng bàn giao cho template TEST
     ├── current.json         ← scope mới nhất (kèm specVersion)
     └── archive/
@@ -63,7 +64,9 @@ updated_at: 2026-10-05
 }
 ```
 
-## Test biết "cần test đến đâu"
+## Test biết "cần test đến đâu" — 2 lớp
+
+### Lớp 1 — version (đã cover đến version nào)
 
 Template TEST ghi `.context/test-status.json`:
 ```jsonc
@@ -75,7 +78,34 @@ Template TEST ghi `.context/test-status.json`:
 }
 ```
 
-**Quy tắc:** nếu `SPECIFICATIONS.md` (current version) **lớn hơn** `specVersionCovered` → test còn phần mới chưa cover → chạy luồng bổ sung (`/test-scope` nếu có scope, hoặc `/autotest --full` nếu là mốc lớn).
+**Quy tắc:** nếu `SPECIFICATIONS.md` (current version) **lớn hơn** `specVersionCovered` → test còn phần mới chưa cover → chạy luồng bổ sung.
+
+### Lớp 2 — coverage board (từng req đã/chưa test) 🎯
+
+`spec/coverage.json` (DEV set trạng thái, TEST đọc):
+```jsonc
+{
+  "specVersion": "1.5.0",
+  "scopeVersion": 4,
+  "updatedAt": "2026-10-05T14:00:00+07:00",
+  "requirements": [
+    { "id": "R-01", "title": "đăng ký tài khoản", "status": "covered",
+      "specVersionAdded": "1.0.0", "testRef": "tests/auth.test.ts",
+      "lastRunAt": "2026-10-05T14:05:00+07:00", "notes": "" }
+  ]
+}
+```
+
+| Status | Nghĩa | Ai set |
+|---|---|---|
+| `untested` | Chưa có test | DEV (khi thêm req) |
+| `pending` | Req mới/đổi, chờ test | **DEV** (khi sinh test-scope) |
+| `covered` | Đã test, pass | TEST báo → DEV ghi |
+| `failing` | Test fail | TEST báo → DEV ghi |
+| `n/a` | Không cần test | DEV + lý do |
+
+**Test đọc board:** req nào `pending`/`untested` → cần test; `covered` → bỏ qua.
+**Test báo về:** `.context/coverage-report.json` (status mới + testRef + lastRunAt) → DEV cập nhật board.
 
 ## Ai ghi gì
 
@@ -84,4 +114,6 @@ Template TEST ghi `.context/test-status.json`:
 | `SPECIFICATIONS.md` (version) | DEV (brainstorm/spec-validator) | mỗi lần đổi spec |
 | `spec/updates/*` + `CHANGELOG` | DEV | mỗi lần đổi spec |
 | `spec/test-scope/current.json` | **DEV** | sau mỗi bug-fix / feature-update |
+| `spec/coverage.json` | **DEV** (set `pending`) · cập nhật `covered` theo report của TEST | khi thêm/đổi req + sau report |
 | `.context/test-status.json` | **TEST** | sau mỗi lần chạy test |
+| `.context/coverage-report.json` | **TEST** | sau mỗi lần test (báo độ phủ về DEV) |
