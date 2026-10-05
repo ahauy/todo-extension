@@ -87,6 +87,13 @@ Chỉ bỏ checkpoint nếu prompt có đúng một trong các cụm: `auto proc
 - Sau Reviewer PASS, xác định Doc Impact & Reconcile (§6) trước khi đóng bug; không impact → ghi `no doc impact`.
 - Set `done` sau khi reviewer PASS, Doc Impact/Reconcile đã xong hoặc ghi `no doc impact`, và report đúng tên tồn tại trong `.context/review-reports/` (§5). Trạng thái `done`/progress/doc-impact này phải nằm trong close-out commit; progress/task file không cần biết SHA của commit đang được tạo.
 
+### 2.7b Test scope (handoff sang template test) — bắt buộc khi fix bug
+- Sau khi bug PASS review, sinh/cập nhật `.context/test-scope.json` (hợp đồng bàn giao cho template AUTOTEST — schema trong `docs/FLOWS.md` của autotest template):
+  - `trigger: bug-fix`, `workItem`, `specRefs` (requirement liên quan), `changed.files/modules`
+  - `impact.direct` (hành vi vừa sửa), `impact.dependents` (module phụ thuộc), `impact.regression` (luồng cũ cần retest)
+  - `acceptance` (tiêu chí nghiệm thu), `risk` (low/medium/high)
+- Mục đích: template test đọc scope này test đúng phạm vi, không phải tự mò.
+
 ### 2.8 Commit / push (commit-first)
 - Sau khi task/bug/phase PASS review + close-out + cập nhật `.context/progress.json`, phải commit lên branch hiện tại theo convention bên dưới.
 - **1 task = 1 commit**, trừ khi có lý do rõ ràng như shared file interleave nhiều scope; ghi lý do trong commit body hoặc report.
@@ -226,6 +233,12 @@ Classify → Spec delta → Spec Validator → Phase/Task → Human duyệt plan
   Trạng thái `done`/progress/doc-impact này phải nằm trong close-out commit; progress/task file không cần biết SHA của commit đang được tạo.
 - Nếu test/check/review/spec status là `FAIL`, `BLOCKED`, hoặc unknown → không set `done`.
 - Commit/push: xem §2.8 (commit-first sau PASS; default staging-direct push `target_branch`, feature branch chỉ khi user yêu cầu).
+
+### 3.9b Test scope (handoff sang template test) — bắt buộc khi update feature
+- Sau khi task/phase PASS, sinh/cập nhật `.context/test-scope.json` (hợp đồng bàn giao cho template AUTOTEST):
+  - `trigger: feature-update`, `workItem`, `specRefs` (spec delta), `changed.files/modules`
+  - `impact.direct` / `impact.dependents` / `impact.regression`, `acceptance`, `risk`
+- Mục đích: template test chạy luồng 2 (`/test-scope`) + luồng 3 (`/regression`) đúng phạm vi.
 
 ---
 
