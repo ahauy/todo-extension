@@ -32,7 +32,7 @@ Sau khi bug PASS review, **tự động** chạy `.agent/spec-publish.md`:
 1. Nếu bug đổi ngữ nghĩa requirement → bump `spec_version` + `spec/updates/` + `spec/CHANGELOG.md`.
 2. **Luôn** sinh/cập nhật `spec/test-scope/current.json` (`trigger: bug-fix`, tăng `scopeVersion`) — để template test nắm vùng vừa sửa mà test lại.
 3. Close-out commit gồm code + `spec/test-scope/current.json` (+ `spec/updates/` nếu có).
-4. Báo 1 dòng: "scope v{N} đã phát hành cho bug <slug> — bên test `/test-scope` là chạy được."
+4. Báo 1 dòng: "scope v{N} đã phát hành cho bug <slug> — bên test `/autotest` là chạy được."
 
 > Bước này tự động, tương tự Spec Publisher của `/feature` — xem `.opencode/agent/spec-publisher.md`.
 
