@@ -23,7 +23,7 @@ Quy tắc bắt buộc:
    - `builder` / `awaiting` → **chạy reviewer**.
    - `reviewer` / `running` → **rerun reviewer** (dọn report dở trước).
    - `reviewer` / `awaiting` → `fix` | `spec_validator` | close-out.
-   - `fix` / `spec_validator` / `closeout` → xem matrix mở rộng trong FEATURE_WORKFLOW § Session handoff & resume.
+   - `fix` / `spec_validator` / `closeout` → xem matrix mở rộng trong `.agent/FEATURE_WORKFLOW.md` § Session handoff & resume.
    - `done` → sang phase/task kế.
 6. **KHÔNG** chạy lại change-request classify / phase plan. Nếu state mơ hồ (pointer lệch đĩa nhiều, không rõ step) → **hỏi user** trước khi làm.
 7. **Write-ahead checkpoint:** trước khi gọi subagent ghi journal `status=running` + in `▶ START`; sau khi subagent trả về ghi `status=awaiting` + `evidence` + `next`, **rồi mới** in `✅ DONE`.
