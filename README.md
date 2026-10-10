@@ -668,6 +668,16 @@ Use `/feature` for any addition/modification/removal after the project exists. T
 
 Full Change Request workflow: `.agent/workflows/change.md` (§3: classify → spec delta → validator → phase/task → build → phase review). Intent docs (`BRD.md`, business rules) change only via Change Request + user approval — never edited to match code.
 
+### Auto-intake backlog (after the initial build)
+
+Once all layers are built (`mode: maintenance`), **requirements and bugs that you type in chat are captured automatically** — no need to create change files by hand:
+
+1. The agent writes a line into `spec/changes/BACKLOG.md` (`pending`) and creates the change doc `spec/changes/YYYY-MM-DD-<slug>.md` from what you said (asks once if info is missing, never invents requirements).
+2. It replies **"✅ logged to backlog — type `/change` to process"** and does **not** code yet.
+3. You type `/change` (or `/change <slug>`) → the `change-request` agent processes it as before → sets the change `done` + archives it → updates the backlog row to `done` with the date.
+
+`/change --list` shows what is done vs pending (`pending` → `in_progress` → `done` | `blocked`). Every row in `BACKLOG.md` maps 1-to-1 to a change doc under `spec/changes/`; rows that are `done` are kept for history.
+
 ---
 
 ## Workflow Router (maintenance)
