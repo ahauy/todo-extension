@@ -177,10 +177,15 @@ project-template/
 ├── scripts/
 │   ├── generate-inventory.mjs         ← Deterministic inventory generator
 │   ├── detect-profile.mjs             ← Detect stack → suggest project-config (used by /brainstorm)
-│   └── apply-verify-permissions.mjs   ← Sync verify-command allow rules into reviewer/spec-validator
+│   ├── apply-verify-permissions.mjs   ← Sync verify-command allow rules into reviewer/spec-validator
+│   └── template-sync.mjs              ← One-command sync of template-owned files into a project (see Getting Started → Syncing)
 │
 ├── .agent/
-│   ├── FEATURE_WORKFLOW.md       ← ✅ Workflow entry (bug/feature/update)
+│   ├── FEATURE_WORKFLOW.md       ← ✅ Workflow entry (bug/feature/update) — minimal; details in workflows/
+│   ├── workflows/                ← Detailed per-workflow files (loaded on demand, not every turn)
+│   │   ├── bug.md                ← §2 Bug workflow + §2b bug discovery sweep
+│   │   ├── change.md             ← §3 Change Request workflow (feature / update)
+│   │   └── state-commit.md       ← §2.8 commit-first + §5 state/paths + §7 model mapping
 │   ├── brainstorm.md             ← ✅ Read spec/code → clarify requirements + set config → .context/project-config.md
 │   ├── design.md                 ← Design Agent: design tokens + screen specs (before layer split)
 │   ├── graph.md                  ← Split spec/design → layers + tasks (dependency order)
@@ -407,7 +412,7 @@ spec/changes/<file>.md → /change → agent change-request
 | **5b** | Observe: test / lint / typecheck / build | — | `.agent/loop.md` | — | verify results (commands from `project-config`) | FAIL → 5c |
 | **5c** | Root cause + fix | (`error-analyzer`) | `.agent/error-analyzer.md` | `superpowers/systematic-debugging` | `.context/error-memory.md` | retry max 3 → `BLOCKED` |
 | **5d** | Independent review | **`reviewer`** | `.agent/reviewer.md` | `aislop`, `anti-slop`, `open-code-review`, `impeccable`, `frontend-checklist` | `.context/review-reports/<feature\|bug>-<slug>-phase-<N>-task-<NN>-round-<R>-review.md` | PASS → 5e · FAIL → back to 5a (max 2 rounds) |
-| **5e** | Close-out task | — | `.agent/loop.md`, `.agent/FEATURE_WORKFLOW.md` §5/§6 | — | Doc Impact/Reconcile → `progress.json` → **commit** (1 task = 1 commit) | — |
+| **5e** | Close-out task | — | `.agent/loop.md`, `.agent/FEATURE_WORKFLOW.md` §6 + `.agent/workflows/state-commit.md` §2.8/§5 | — | Doc Impact/Reconcile → `progress.json` → **commit** (1 task = 1 commit) | — |
 | **5f** | Compact context | — | `.agent/context-manager.md` | — | `.context/compressed-summary.md` | every 3 tasks + end of layer |
 | **5g** | End of layer → phase review | **`spec-validator`** | `.agent/spec-validator.md` | — | phase report | ⏸ **checkpoint after each layer** — Layer N+1 unlocks only when Layer N PASSes + you approve |
 | **6** | Git init / CI-CD / deploy | — | `.agent/devops.md` (+ `.devops/templates/*`) | `ai-friendly-web` | git repo, `.github/workflows/*` (generated **before** push), deploy staging→prod | ⏸ **approve production deploy** |
@@ -661,14 +666,14 @@ Use `/feature` for any addition/modification/removal after the project exists. T
 | **MODIFY** | "Change order status flow" |
 | **REMOVE** | "Remove Stripe payment" |
 
-Full Change Request workflow: `.agent/FEATURE_WORKFLOW.md` §3. Intent docs (`BRD.md`, business rules) change only via Change Request + user approval — never edited to match code.
+Full Change Request workflow: `.agent/workflows/change.md` (§3: classify → spec delta → validator → phase/task → build → phase review). Intent docs (`BRD.md`, business rules) change only via Change Request + user approval — never edited to match code.
 
 ---
 
 ## Workflow Router (maintenance)
 
 Once the project exists, `AGENTS.md` (always loaded) routes every request before any code
-is written. The maintenance workflow lives in `.agent/FEATURE_WORKFLOW.md`, and project
+is written. The maintenance workflow lives in `.agent/FEATURE_WORKFLOW.md` (entry point; per-workflow details in `.agent/workflows/`), and project
 values in `.context/project-config.md`.
 
 | Intent | Route |
