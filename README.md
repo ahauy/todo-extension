@@ -100,7 +100,7 @@ node /path/to/template/scripts/template-sync.mjs --project /path/to/project
 
 ## Overview
 
-This template provides a **multi-agent workflow** for **repos that already have code** (bug / feature / update). Start with `/spec-init` (read code → spec) → loop executes tasks → `/change` for all subsequent changes (the `change-request` agent). `AGENTS.md` routes every request; specialized subagents handle build, independent review, spec validation, and close-out.
+This template provides a **multi-agent workflow** for **repos that already have code** (bug / feature / update). Start with `/spec-init` (read code → spec) → loop executes independent tasks **in parallel** (worktree-per-task + merger) → `/change` for all subsequent changes (the `change-request` agent). `AGENTS.md` routes every request; specialized subagents handle build, independent review, spec validation, and close-out.
 
 **Key features:**
 - 🧭 **Intent router** — `AGENTS.md` classifies every request (bug / sweep / feature / review / research) before any code is touched
@@ -121,7 +121,8 @@ This template provides a **multi-agent workflow** for **repos that already have 
 |------|------|------|
 | **Router** | `AGENTS.md` | Classify intent → `/spec-init` · `/change` · `/bug-check` · `/bug` · `/feature` · review · research |
 | **Workflow** | `.agent/FEATURE_WORKFLOW.md` | Bug fix-loop, Change Request flow, Phase model 1–5, gates, commit-first |
-| **Loop engine** | `.agent/loop.md` | Execute each task (ReAct: Read → Plan → Act → Observe → Repeat) |
+| **Loop engine** | `.agent/loop.md` | Execute tasks in **parallel** (ReAct per task) — independent tasks in a layer/phase each run in their own **git worktree**, then a **merger** integrates them |
+| **Parallel dispatch** | `scripts/parallel-dispatch.mjs` | `plan` (split into parallel waves by file independence) / `setup` (worktree+branch per task) / `merge` (integrate into layer/phase branch) / `cleanup` / `status` |
 | **Change agent** | `.agent/change-request.md` | The ONLY agent for all changes (feature + bug) once a spec exists |
 | **State** | `.context/progress.json` + `.context/runs/` | Work-item status + Run Journal for cross-session resume |
 
@@ -189,7 +190,7 @@ project-template/
 │   ├── brainstorm.md             ← ✅ Read spec/code → clarify requirements + set config → .context/project-config.md
 │   ├── design.md                 ← Design Agent: design tokens + screen specs (before layer split)
 │   ├── graph.md                  ← Split spec/design → layers + tasks (dependency order)
-│   ├── loop.md                   ← Execute tasks (ReAct pattern)
+│   ├── loop.md                   ← Execute tasks in parallel (ReAct, worktree-per-task + merger)
 │   ├── devops.md                 ← Git init, CI/CD, deploy (layer 0 + after each layer + final)
 │   ├── rollback.md               ← Git checkpoint + revert strategy
 │   ├── blackboard.md             ← Shared state (.context/progress.json is the source of truth)
@@ -377,12 +378,15 @@ The template ships with curated workflow skills (curated from well-known open-so
 └─ 4. Graph        → tasks/<slug>/layer-N-task-NN.md + layer-plan diagram                ⏸ approve plan
     │
     ▼  (auto-continues after you reply "ok")
-Loop Agent — execute each task (ReAct)
-├─ 5a Builder   code + test (TDD)
-├─ 5b Observe   test / lint / typecheck / build
-├─ 5c Error Analyzer → fix → retry (max 3)
-├─ 5d Reviewer  independent review (different model)
-└─ 5e Close-out doc reconcile → progress → commit
+Loop Agent — execute tasks in PARALLEL (ReAct per task, worktree-per-task)
+├─ Dispatcher  plan --layer N → split into parallel waves (by file independence)
+├─ per task (SPAWNED IN PARALLEL, each in its own git worktree):
+│    ├─ 5a Builder   code + test (TDD)
+│    ├─ 5b Observe   test / lint / typecheck / build
+│    ├─ 5c Error Analyzer → fix → retry (max 3)
+│    ├─ 5d Reviewer  independent review (different model)
+│    └─ commit inside worktree
+└─ 5e Merger    merge all task branches → verify whole layer → write progress.json once → cleanup
     │
     ▼
 ⏸ Human Checkpoint → next layer (Layer N+1 only unlocks when Layer N PASSes + you approve)
@@ -408,7 +412,7 @@ spec/changes/<file>.md → /change → agent change-request
 | **2** | Clarify requirements + set config | — | `.agent/brainstorm.md` | `brainstorming` | design doc `docs/specs/*.md` + `.context/project-config.md` (+ secrets → `.env.local`) | ⏸ **approve design** — HARD-GATE: no code before approval |
 | **3** | Design tokens + screen specs (if UI) | **`design`** | `.agent/design.md` | `impeccable`, `taste-skill-v2`, `ui-ux-pro-max` | `skills/react-nodejs/design-tokens.md` + `.context/design-spec.md` (+ archify diagram) | ⏸ **confirm tokens** |
 | **4** | Split into layers + tasks (dependency order) | **`graph`** | `.agent/graph.md` | `archify` | `tasks/<slug>/layer-{N}-task-{NN}.md` + `docs/diagrams/layer-plan.html` + `progress.json` | ⏸ **approve plan** |
-| **5a** | Implement one task (+ tests, TDD) | **`builder`** (hard: `builder-strong`, opt-in) | `.agent/loop.md` | `superpowers`, `ponytail`, `karpathy-guidelines`, `security`, `monitoring` | code + tests | — |
+| **5a** | Implement independent tasks (+ tests, TDD) **IN PARALLEL** — each task in its own **git worktree**, each `builder` runs the full loop | **`builder`** ×N (hard: `builder-strong`, opt-in) | `.agent/loop.md` (Parallel Execution Model) + `scripts/parallel-dispatch.mjs` | `superpowers`, `ponytail`, `karpathy-guidelines`, `security`, `monitoring` | code + tests (committed in worktree) | — |
 | **5b** | Observe: test / lint / typecheck / build | — | `.agent/loop.md` | — | verify results (commands from `project-config`) | FAIL → 5c |
 | **5c** | Root cause + fix | (`error-analyzer`) | `.agent/error-analyzer.md` | `superpowers/systematic-debugging` | `.context/error-memory.md` | retry max 3 → `BLOCKED` |
 | **5d** | Independent review | **`reviewer`** | `.agent/reviewer.md` | `aislop`, `anti-slop`, `open-code-review`, `impeccable`, `frontend-checklist` | `.context/review-reports/<feature\|bug>-<slug>-phase-<N>-task-<NN>-round-<R>-review.md` | PASS → 5e · FAIL → back to 5a (max 2 rounds) |
@@ -438,7 +442,7 @@ spec/changes/<file>.md → /change → agent change-request
 
 | Agent | File | Description |
 |-------|------|-------------|
-| **Builder** | `.opencode/agent/builder.md` | Implement exactly one task + tests; no scope creep; never commits/pushes |
+| **Builder** | `.opencode/agent/builder.md` | Implement one task + tests in its own git worktree; no scope creep; commits in-worktree only; never pushes/merges |
 | **Builder (strong)** | `.opencode/agent/builder-strong.md` | Same, for hard tasks — **opt-in only**, gated by `permission.task` |
 | **Reviewer** | `.opencode/agent/reviewer.md` | Independent review, risk level FAST/NORMAL/STRICT (`edit: deny`) |
 | **Spec Validator** | `.opencode/agent/spec-validator.md` | Cross-check spec/phase vs requirements (`edit: deny`) |
