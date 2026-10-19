@@ -100,7 +100,7 @@ node /path/to/template/scripts/template-sync.mjs --project /path/to/project
 
 ## Overview
 
-This template provides a **multi-agent workflow** for **repos that already have code** (bug / feature / update). Start with `/spec-init` (read code → spec) → loop executes independent tasks **in parallel** (worktree-per-task + merger) → `/change` for all subsequent changes (the `change-request` agent). `AGENTS.md` routes every request; specialized subagents handle build, independent review, spec validation, and close-out.
+This template provides a **multi-agent workflow** for **repos that already have code** (bug / feature / update). Start with `/spec-init` (read code → spec) → loop executes independent tasks **in parallel** (worktree-per-task, then the dispatcher merges) → `/change` for all subsequent changes (the `change-request` agent). `AGENTS.md` routes every request; specialized subagents handle build, independent review, spec validation, and close-out.
 
 **Key features:**
 - 🧭 **Intent router** — `AGENTS.md` classifies every request (bug / sweep / feature / review / research) before any code is touched
@@ -121,7 +121,7 @@ This template provides a **multi-agent workflow** for **repos that already have 
 |------|------|------|
 | **Router** | `AGENTS.md` | Classify intent → `/spec-init` · `/change` · `/bug-check` · `/bug` · `/feature` · review · research |
 | **Workflow** | `.agent/FEATURE_WORKFLOW.md` | Bug fix-loop, Change Request flow, Phase model 1–5, gates, commit-first |
-| **Loop engine** | `.agent/loop.md` | Execute tasks in **parallel** (ReAct per task) — independent tasks in a layer/phase each run in their own **git worktree**, then a **merger** integrates them |
+| **Loop engine** | `.agent/loop.md` | Execute tasks in **parallel** (ReAct per task) — independent tasks in a layer/phase each run in their own **git worktree**, then the **dispatcher** integrates them (`merge` + `cleanup`, no subagent) |
 | **Parallel dispatch** | `scripts/parallel-dispatch.mjs` | `plan` (split into parallel waves by file independence) / `setup` (worktree+branch per task) / `merge` (integrate into layer/phase branch) / `cleanup` / `status` |
 | **Change agent** | `.agent/change-request.md` | The ONLY agent for all changes (feature + bug) once a spec exists |
 | **State** | `.context/progress.json` + `.context/runs/` | Work-item status + Run Journal for cross-session resume |
@@ -190,7 +190,7 @@ project-template/
 │   ├── brainstorm.md             ← ✅ Read spec/code → clarify requirements + set config → .context/project-config.md
 │   ├── design.md                 ← Design Agent: design tokens + screen specs (before layer split)
 │   ├── graph.md                  ← Split spec/design → layers + tasks (dependency order)
-│   ├── loop.md                   ← Execute tasks in parallel (ReAct, worktree-per-task + merger)
+│   ├── loop.md                   ← Execute tasks in parallel (ReAct, worktree-per-task, dispatcher merges)
 │   ├── devops.md                 ← Git init, CI/CD, deploy (layer 0 + after each layer + final)
 │   ├── rollback.md               ← Git checkpoint + revert strategy
 │   ├── blackboard.md             ← Shared state (.context/progress.json is the source of truth)
@@ -386,7 +386,7 @@ Loop Agent — execute tasks in PARALLEL (ReAct per task, worktree-per-task)
 │    ├─ 5c Error Analyzer → fix → retry (max 3)
 │    ├─ 5d Reviewer  independent review (different model)
 │    └─ commit inside worktree
-└─ 5e Merger    merge all task branches → verify whole layer → write progress.json once → cleanup
+└─ 5e Merge     dispatcher merges all task branches → verify whole layer → write progress.json once → cleanup
     │
     ▼
 ⏸ Human Checkpoint → next layer (Layer N+1 only unlocks when Layer N PASSes + you approve)
