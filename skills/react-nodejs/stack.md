@@ -98,3 +98,30 @@ Always pin exact versions in `package.json`:
 }
 // NOT "^18.2.0" or "~18.2.0"
 ```
+
+## Optional upgrade path — Vite+ (`vp` CLI)
+
+> ⚠️ **Optional, KHÔNG bắt buộc.** Không phải dependency hiện tại của template. Chỉ cân nhắc khi
+> muốn gộp toolchain; template vẫn chạy tốt với Vite 8 + Vitest 5 + ESLint + Prettier như bảng trên.
+
+**Vite+ 1.x** (1.0 ra 9/2026; tại 10/2026 đã 1.4.0) gộp nhiều tool vào 1 dependency: Vite 8 + Vitest 5 + **Rolldown** +
+**Oxlint** + **Oxfmt** + **tsdown** (+ Vite Task). Binary `vp`.
+
+Điểm đáng cân nhắc nhất:
+
+- `vp check` — format + lint + **type-check** trong 1 lượt (thay chuỗi ESLint → Prettier → `tsc --noEmit`).
+- `vp dev` / `vp test` / `vp build` — build qua **Rolldown** (thay Rollup).
+- `vp migrate` — gộp config rời (`.oxlintrc*`, `.oxfmtrc*`, lint-staged) vào 1 `vite.config.ts`.
+- `vp env` — quản lý luôn Node + package manager.
+
+**Đối chiếu với template hiện tại:** bảng DevOps ở trên khai **ESLint + Prettier**; Oxlint chỉ xuất
+hiện lẻ tẻ (README, `anti-slop`) và template **chưa có Oxfmt** → nếu đi Vite+ thì đó chính là phần
+toolchain còn thiếu, gộp lại sẽ bớt 3–4 config file rời.
+
+**Engine:** `vite-plus` yêu cầu `node ^22.18.0 || ^24.11.0 || >=26.0.0` — khớp baseline
+**Node 24 LTS** ở bảng Core (Node 26 cũng nằm trong dải hỗ trợ).
+
+**Khi nào KHÔNG nên đi:** project đã ổn định với ESLint/Prettier + plugin ESLint riêng, hoặc cần
+rule ESLint đặc thù chưa có bản Oxlint tương đương.
+
+Verify lại version trước khi dùng: `npm view vite-plus version` (tại 10/2026 = 1.4.0).
