@@ -92,11 +92,14 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['24', '26']   # 24 = default/baseline, 26 = forward-compat test only
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm ci
       - run: npm run lint
@@ -170,7 +173,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
       - run: npm ci
       - run: npx vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
 ```
@@ -192,7 +195,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
       - run: npm i -g @railway/cli
       - run: railway up --environment production
         env:
@@ -218,7 +221,7 @@ cache:
 
 ci:
   stage: ci
-  image: node:20-alpine
+  image: node:24-alpine
   script:
     - npm ci
     - npm run lint

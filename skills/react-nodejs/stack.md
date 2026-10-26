@@ -9,7 +9,7 @@
 | Category | Technology | Version |
 |----------|-----------|---------|
 | Language | TypeScript | 7.0.2 (pin exact — Rust-based `tsc`, ~10x nhanh) |
-| Runtime | Node.js | 22 LTS |
+| Runtime | Node.js | 24 LTS (minimum — active LTS); CI matrix test thêm Node 26 LTS, không phải default |
 | Frontend | React | 19.3.1 (pin exact) |
 | Bundler | Vite | 8.3.4 (pin exact) |
 | React Compiler | oxc-transform-react (native Rust) | latest |
