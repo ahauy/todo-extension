@@ -2,6 +2,9 @@
  * Background service worker (L3-T09, thay stub L1-T01).
  * Service worker MV3: alarm → notification, resync, storage.onChanged.
  * Không content script, không host_permissions, không network request (R-17).
+ *
+ * WXT yêu cầu entrypoint background có default export là `defineBackground(...)`.
+ * Hàm wrapper local này sẽ được WXT nhận diện và gọi khi SW load.
  */
 
 import { syncAlarms, scheduleTask, clearTaskAlarm, alarmName } from '../lib/alarms/scheduler';
@@ -55,53 +58,57 @@ async function applyTheme(settings: Settings): Promise<void> {
   }
 }
 
-/** onAlarm → hiện notification */
-chrome.alarms.onAlarm.addListener((alarm) => {
-  try {
-    const id = alarm.name.slice('due:'.length);
-    loadAll().then((tasks) => {
-      const task = tasks.find((t) => t.id === id);
-      if (task && !task.done && task.dueAt) {
-        notifyTask(task);
-      }
-    });
-  } catch (err) {
-    console.error('[todo-extension] onAlarm failed:', err);
-  }
-});
+import { defineBackground } from 'wxt/utils/define-background';
 
-/** onInstalled / onStartup → resync toàn bộ alarm */
-chrome.runtime.onInstalled.addListener(() => {
-  void resyncAlarmsFromStorage();
-});
+export default defineBackground(() => {
+  /** onAlarm → hiện notification */
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    try {
+      const id = alarm.name.slice('due:'.length);
+      void loadAll().then((tasks) => {
+        const task = tasks.find((t) => t.id === id);
+        if (task && !task.done && task.dueAt) {
+          notifyTask(task);
+        }
+      });
+    } catch (err) {
+      console.error('[todo-extension] onAlarm failed:', err);
+    }
+  });
 
-chrome.runtime.onStartup.addListener(() => {
-  void resyncAlarmsFromStorage();
-});
+  /** onInstalled / onStartup → resync toàn bộ alarm */
+  chrome.runtime.onInstalled.addListener(() => {
+    void resyncAlarmsFromStorage();
+  });
 
-/** storage.onChanged → reschedule alarm khi task thay đổi; áp theme khi settings đổi */
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== 'sync') return;
+  chrome.runtime.onStartup.addListener(() => {
+    void resyncAlarmsFromStorage();
+  });
 
-  void (async () => {
-    for (const [key, change] of Object.entries(changes)) {
-      if (key === 'settings') {
-        const settings = change.newValue as Settings | undefined;
-        if (settings) await applyTheme(settings);
-        continue;
-      }
+  /** storage.onChanged → reschedule alarm khi task thay đổi; áp theme khi settings đổi */
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'sync') return;
 
-      if (typeof key === 'string' && key.startsWith('t:')) {
-        const id = key.slice('t:'.length);
-        if (change.newValue === null || change.newValue === undefined) {
-          // Task bị xoá → clear alarm
-          clearTaskAlarm(id);
-        } else {
-          // Task thay đổi → reschedule alarm
-          const task = change.newValue as Task;
-          scheduleTask(task);
+    void (async () => {
+      for (const [key, change] of Object.entries(changes)) {
+        if (key === 'settings') {
+          const settings = change.newValue as Settings | undefined;
+          if (settings) await applyTheme(settings);
+          continue;
+        }
+
+        if (typeof key === 'string' && key.startsWith('t:')) {
+          const id = key.slice('t:'.length);
+          if (change.newValue === null || change.newValue === undefined) {
+            // Task bị xoá → clear alarm
+            clearTaskAlarm(id);
+          } else {
+            // Task thay đổi → reschedule alarm
+            const task = change.newValue as Task;
+            scheduleTask(task);
+          }
         }
       }
-    }
-  })();
+    })();
+  });
 });
