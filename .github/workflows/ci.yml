@@ -6,29 +6,45 @@ on:
   pull_request:
     branches: [staging]
 
+permissions:
+  contents: read
+
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 11
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm exec tsc --noEmit
-      - run: pnpm exec eslint .
-      - run: pnpm exec vitest run
-      - run: pnpm exec wxt build
+      - name: Typecheck (tsc --noEmit)
+        run: pnpm exec tsc --noEmit
 
-      - uses: actions/upload-artifact@v4
+      - name: Lint (eslint)
+        run: pnpm exec eslint .
+
+      - name: Test (vitest)
+        run: pnpm exec vitest run
+
+      - name: Build Chrome extension (wxt build)
+        run: pnpm exec wxt build
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
         with:
           name: chrome-extension-zip
           path: .output/chrome-mv3/**
+          retention-days: 7

@@ -1,0 +1,59 @@
+{
+  "name": "Branch protection — staging",
+  "target_branch": "staging",
+  "enforcement": "active",
+  "rules": [
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict": true,
+        "checks": [
+          { "context": "CI / ci" }
+        ]
+      }
+    },
+    {
+      "type": "linear_history",
+      "parameters": {
+        "enforce_admins": false
+      }
+    },
+    {
+      "type": "required_conversation_resolution",
+      "parameters": {}
+    },
+    {
+      "type": "restrict_deletions",
+      "parameters": {}
+    },
+    {
+      "type": "restrict_required_pushes",
+      "parameters": {
+        "apps": [],
+        "teams": [],
+        "users": []
+      }
+    },
+    {
+      "type": "block_force_pushes",
+      "parameters": {}
+    }
+  ],
+  "bypass_actors": [],
+  "include": [
+    {
+      "ref_name": "staging",
+      "ref_type": "branch"
+    }
+  ],
+  "exclude": []
+}
