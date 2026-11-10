@@ -1,28 +1,27 @@
 # Project Brief
-
+ 
 ## Project Name
-<!-- Tên project của bạn -->
-
-
+Todo Extension
+ 
 ## Description
-<!-- Mô tả ngắn gọn project làm gì, giải quyết vấn đề gì -->
-
-
+Todo list dạng Chrome extension (Manifest V3): popup quản lý task,
+lưu chrome.storage.sync, nhắc việc qua chrome.alarms/notification.
+KHÔNG backend — toàn bộ dữ liệu nằm trong trình duyệt.
+ 
 ## Target Users
-<!-- Ai sẽ dùng sản phẩm này? -->
-
-
+Người dùng cá nhân cần to-do nhanh ngay trong trình duyệt.
+ 
 ## Core Features
-<!-- Liệt kê các tính năng chính (mỗi dòng 1 feature) -->
-- 
-- 
-- 
-
+- Thêm / sửa / xóa / tick hoàn thành task
+- Lưu đồng bộ qua chrome.storage.sync
+- Due date + nhắc qua chrome.alarms + chrome.notifications
+- Dark mode
+ 
 ## Non-functional Requirements
-<!-- Performance, security, scale, etc. -->
-- 
-- 
-
+- Mở popup < 100ms, không ảnh hưởng trang web đang mở
+- Quyền manifest tối thiểu: storage, alarms, notifications
+ 
 ## Notes
-<!-- Ghi chú thêm: preferences, constraints, references -->
-
+- Stack: React + TypeScript + WXT (hoặc CRXJS)
+- Deploy: Chrome Web Store (zip + upload) — không dùng Vercel/Railway
+- **KHÔNG server / DB**

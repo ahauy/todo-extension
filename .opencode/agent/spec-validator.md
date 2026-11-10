@@ -3,7 +3,7 @@ description: Spec Validator độc lập — cross-check spec/phase với requir
 mode: subagent
 # model set ở /brainstorm (project-config.md models:) → models.spec_validator (họ thứ 3).
 # Để comment = kế thừa model chính.
-# model: <provider>/<model-ho-thu-3>
+model: opencode/nemotron-3.5-super-vl-free
 temperature: 0.1
 steps: 20
 permission:
@@ -13,6 +13,11 @@ permission:
   bash:
     "*": deny
     # verify-commands:start — auto-generated từ .context/project-config.md (scripts/apply-verify-permissions.mjs)
+    "pnpm exec tsc --noEmit": allow
+    "pnpm exec eslint .": allow
+    "pnpm exec vitest run": allow
+    "pnpm install": allow
+    "pnpm exec wxt build": allow
     # verify-commands:end
     "pnpm *typecheck*": allow
     "pnpm *lint*": allow
