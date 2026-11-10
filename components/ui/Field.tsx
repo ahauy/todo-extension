@@ -12,11 +12,11 @@ interface FieldProps {
 }
 
 export default function Field({ label, helper, error, children }: FieldProps) {
+  if (!children) return null;
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-meta text-fg-secondary">{label}</label>
-      {React.cloneElement(children, {
-        className: (children.props.className ?? '') + ' border-border-control bg-surface rounded-control',
+      {React.cloneElement(children as any, {
         'aria-describedby': error ? 'field-error' : helper ? 'field-helper' : undefined,
         'aria-invalid': error ? true : undefined,
       })}

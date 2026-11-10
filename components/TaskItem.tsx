@@ -8,7 +8,7 @@ import Checkbox from './ui/Checkbox';
 import PriorityGlyph from './ui/PriorityGlyph';
 import SubtaskProgress from './ui/SubtaskProgress';
 import TagChip from './ui/TagChip';
-import type { Task } from './lib/tasks/types';
+import type { Task } from '../lib/tasks/types';
 
 interface TaskItemProps {
   task: Task;

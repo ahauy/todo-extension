@@ -8,8 +8,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Button from './ui/Button';
 import Field from './ui/Field';
 import IconButton from './ui/IconButton';
-import { loadSettings, putSettings } from './lib/storage/adapter';
-import type { Settings } from './lib/tasks/types';
+import { loadSettings, putSettings } from '../lib/storage/adapter';
+import type { Settings } from '../lib/tasks/types';
 
 interface SettingsProps {
   onBack: () => void;
@@ -57,7 +57,6 @@ export default function Settings({ onBack }: SettingsProps) {
 
   const handleLoadStorageUsage = useCallback(async () => {
     try {
-      // @ts-expect-error getBytesInUse là optional (design-spec O2)
       const bytes = await chrome.storage.sync.getBytesInUse?.();
       const total = 100 * 1024; // 100 KB
       setStorageUsage({ used: bytes ?? 0, total });
@@ -71,6 +70,12 @@ export default function Settings({ onBack }: SettingsProps) {
   }, [handleLoadStorageUsage]);
 
   if (!settings) return null;
+
+  const themeOptions = [
+    { value: 'system', label: 'Theo hệ thống' },
+    { value: 'light', label: 'Sáng' },
+    { value: 'dark', label: 'Tối' },
+  ] as const;
 
   return (
     <div className="h-[600px] flex flex-col bg-bg">
@@ -86,11 +91,7 @@ export default function Settings({ onBack }: SettingsProps) {
         {/* Theme */}
         <Field label="Giao diện" helper="Chọn chế độ hiển thị">
           <div className="flex items-center gap-3">
-            {[
-              { value: 'system', label: 'Theo hệ thống' },
-              { value: 'light', label: 'Sáng' },
-              { value: 'dark', label: 'Tối' },
-            ] as const}.map((opt) => (
+            {themeOptions.map((opt) => (
               <button
                 key={opt.value}
                 type="button"

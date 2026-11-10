@@ -18,7 +18,13 @@
  * (giới hạn 120 write/phút).
  * Lỗi quota ném từ adapter → không swallow.
  */
-import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   alarmName,
   clearTaskAlarm,
@@ -60,7 +66,7 @@ let listeners: (() => void)[] = [];
 let unsubscribeStorage: (() => void) | null = null;
 
 export function useTasks() {
-  const [, forceUpdate] = React.useState<{}>({});
+  const [, forceUpdate] = useState<{}>({});
 
   const notify = useCallback(() => {
     forceUpdate({});

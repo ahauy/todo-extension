@@ -11,7 +11,7 @@ import Field from './ui/Field';
 import IconButton from './ui/IconButton';
 import Segmented from './ui/Segmented';
 import TagChip from './ui/TagChip';
-import type { RecurrenceRule, Task } from './lib/tasks/types';
+import type { RecurrenceRule, Task } from '../lib/tasks/types';
 
 const MAX_TITLE = 200;
 const MAX_TAGS = 5;
@@ -37,6 +37,16 @@ export default function TaskComposer({
   const [recurrence, setRecurrence] = useState<RecurrenceRule>({
     kind: 'none',
   });
+
+  const handleRecurrenceChange = useCallback(
+    (v: string) => {
+      setRecurrence((prev) => ({
+        ...prev,
+        kind: v as RecurrenceRule['kind'],
+      }) as RecurrenceRule);
+    },
+    []
+  );
   const [tags, setTags] = useState<string[]>(initial.tags ?? []);
   const [subtasks, setSubtasks] = useState<{ id: string; title: string; done: boolean }[]>(
     initial.subtasks ?? []
@@ -79,6 +89,7 @@ export default function TaskComposer({
       recurrence,
       tags: trimmedTags.slice(0, MAX_TAGS),
       subtasks: subtasks.map((s) => ({ ...s, done: false })),
+      done: false,
     });
   }, [title, note, priority, dueAt, recurrence, tags, subtasks, isValid, onSubmit]);
 
@@ -137,7 +148,7 @@ export default function TaskComposer({
                 { value: 'high', label: 'Cao' },
               ]}
               value={priority}
-              onChange={setPriority}
+              onChange={(v) => setPriority(v as 'low' | 'medium' | 'high')}
             />
           </div>
 
@@ -168,7 +179,7 @@ export default function TaskComposer({
                 { value: 'monthly', label: 'Hàng tháng' },
               ]}
               value={recurrence.kind}
-              onChange={(v) => setRecurrence({ kind: v as RecurrenceRule['kind'] })}
+              onChange={handleRecurrenceChange}
             />
             {recurrence.kind !== 'none' && (
               <div className="text-meta text-fg-muted">

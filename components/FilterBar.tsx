@@ -5,6 +5,7 @@ import React, { useCallback, useState } from 'react';
 import Segmented from './ui/Segmented';
 import Menu from './ui/Menu';
 import IconButton from './ui/IconButton';
+import TagChip from './ui/TagChip';
 
 interface FilterBarProps {
   tab: 'all' | 'active' | 'done';

@@ -6,7 +6,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Button from './ui/Button';
 import TaskItem from './TaskItem';
 import Divider from './ui/Divider';
-import type { Task } from './lib/tasks/types';
+import type { Task } from '../lib/tasks/types';
 import FilterBar from './FilterBar';
 
 interface TaskListProps {

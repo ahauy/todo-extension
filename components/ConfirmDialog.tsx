@@ -35,7 +35,7 @@ export default function ConfirmDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    previousFocus.current = returnTo ?? document.activeElement;
+    previousFocus.current = (returnTo ?? (document.activeElement as HTMLElement)) ?? null;
     // Focus nút an toàn (cancel) theo acceptance criteria
     setTimeout(() => confirmRef.current?.focus(), 50);
     document.addEventListener('keydown', handleKeydown);

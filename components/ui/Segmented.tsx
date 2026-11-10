@@ -17,12 +17,16 @@ export default function Segmented({ options, value, onChange }: SegmentedProps) 
     (e: React.KeyboardEvent, index: number) => {
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setFocusIndex((i) => (i + 1) % options.length);
-        onChange(options[(i + 1) % options.length].value);
+        setFocusIndex((i) => {
+          onChange(options[(i + 1) % options.length].value);
+          return (i + 1) % options.length;
+        });
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setFocusIndex((i) => (i - 1 + options.length) % options.length);
-        onChange(options[(i - 1 + options.length) % options.length].value);
+        setFocusIndex((i) => {
+          onChange(options[(i - 1 + options.length) % options.length].value);
+          return (i - 1 + options.length) % options.length;
+        });
       }
     },
     [options, onChange]
