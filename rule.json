@@ -1,14 +1,21 @@
 {
   "name": "Branch protection — staging",
-  "target_branch": "staging",
+  "target": "branch",
   "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {
+      "include": ["staging"],
+      "exclude": []
+    }
+  },
   "rules": [
     {
-      "type": "pull_request",
+      "type": "required_number_of_approving_reviews",
       "parameters": {
         "required_approving_review_count": 1,
         "dismiss_stale_reviews_on_push": true,
-        "require_code_owner_review": false,
+        "require_code_owner_reviews": false,
         "require_last_push_approval": false
       }
     },
@@ -22,10 +29,8 @@
       }
     },
     {
-      "type": "linear_history",
-      "parameters": {
-        "enforce_admins": false
-      }
+      "type": "required_linear_history",
+      "parameters": {}
     },
     {
       "type": "required_conversation_resolution",
@@ -36,24 +41,16 @@
       "parameters": {}
     },
     {
+      "type": "block_force_pushes",
+      "parameters": {}
+    },
+    {
       "type": "restrict_required_pushes",
       "parameters": {
         "apps": [],
         "teams": [],
         "users": []
       }
-    },
-    {
-      "type": "block_force_pushes",
-      "parameters": {}
     }
-  ],
-  "bypass_actors": [],
-  "include": [
-    {
-      "ref_name": "staging",
-      "ref_type": "branch"
-    }
-  ],
-  "exclude": []
+  ]
 }
