@@ -3,7 +3,13 @@ node_modules/
 dist/
 build/
 .DS_Store
+.output/
+.wxt/
+generate-types/
+.code-review-graph/
 
 # runtime state (loop ghi, không commit)
 .context/agents-live.json
 .context/agents-live.json.lock
+.context/runs/
+.context/review-reports/
