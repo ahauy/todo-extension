@@ -11,8 +11,8 @@ import Field from './ui/Field';
 import IconButton from './ui/IconButton';
 import Segmented from './ui/Segmented';
 import TagChip from './ui/TagChip';
-import type { RecurrenceRule, Subtask, Task } from './lib/tasks/types';
-import { loadAll, put, remove } from './lib/storage/adapter';
+import type { RecurrenceRule, Subtask, Task } from '../lib/tasks/types';
+import { loadAll, put, remove } from '../lib/storage/adapter';
 
 const MAX_NOTE = 1000;
 const SAVING_DISABLE_MS = 3000;
@@ -89,9 +89,9 @@ export default function TaskDetail({
   );
 
   const handleDueChange = useCallback(
-    (value: string) => {
+    (value: string | null) => {
       if (!localTask) return;
-      setTask({ ...localTask, dueAt: value || null });
+      setTask({ ...localTask, dueAt: value });
       setDirty(true);
       setSaveError(null);
     },
@@ -103,7 +103,7 @@ export default function TaskDetail({
       if (!localTask) return;
       setTask({
         ...localTask,
-        recurrence: { kind: value as RecurrenceRule['kind'] },
+        recurrence: { kind: value as RecurrenceRule['kind'] } as RecurrenceRule,
       });
       setDirty(true);
       setSaveError(null);
