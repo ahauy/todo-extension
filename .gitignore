@@ -1,15 +1,21 @@
-.env.local
+# deps & build
 node_modules/
 dist/
 build/
-.DS_Store
 .output/
 .wxt/
 generate-types/
+
+# local env & OS
+.env.local
+.DS_Store
+
+# tool state
 .code-review-graph/
 
-# runtime state (loop ghi, không commit)
-.context/agents-live.json
-.context/agents-live.json.lock
-.context/runs/
-.context/review-reports/
+# workflow state (template opencode — chỉ dùng local, không commit)
+.context/
+tasks/
+docs/specs/
+docs/diagrams/
+spec/updates/
