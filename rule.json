@@ -1,5 +1,5 @@
 {
-  "name": "Branch protection — staging",
+  "name": "Branch protection — staging (enterprise)",
   "target": "branch",
   "enforcement": "active",
   "bypass_actors": [],
@@ -13,10 +13,11 @@
     {
       "type": "required_number_of_approving_reviews",
       "parameters": {
-        "required_approving_review_count": 1,
+        "required_approving_review_count": 2,
         "dismiss_stale_reviews_on_push": true,
-        "require_code_owner_reviews": false,
-        "require_last_push_approval": false
+        "require_code_owner_reviews": true,
+        "require_last_push_approval": true,
+        "require_review_from_code_owners": true
       }
     },
     {
@@ -24,7 +25,12 @@
       "parameters": {
         "strict": true,
         "checks": [
-          { "context": "CI / ci" }
+          { "context": "CI / ci" },
+          { "context": "lint" },
+          { "context": "test" },
+          { "context": "build" },
+          { "context": "security-scan" },
+          { "context": "dependency-review" }
         ]
       }
     },
@@ -34,6 +40,10 @@
     },
     {
       "type": "required_conversation_resolution",
+      "parameters": {}
+    },
+    {
+      "type": "required_signed_commits",
       "parameters": {}
     },
     {
@@ -50,6 +60,13 @@
         "apps": [],
         "teams": [],
         "users": []
+      }
+    },
+    {
+      "type": "required_first_pull_request_review",
+      "parameters": {
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_reviews": true
       }
     }
   ]
