@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#F5F6F7, #14171A);
+  --surface: light-dark(#FFFFFF, #1C2024);
+  --surface-raised: light-dark(#FFFFFF, #22282E);
+  --surface-sunken: light-dark(#EEF0F2, #232930);
+  --surface-hover: light-dark(#F4F6F7, #262C32);
+
+  --border-subtle: light-dark(#E9ECEF, #262C32);
+  --border: light-dark(#DFE3E6, #2E343A);
+  --border-control: light-dark(#828C95, #6B757E);
+
+  --fg: light-dark(#16191C, #ECEEF0);
+  --fg-secondary: light-dark(#4A5157, #B4BBC1);
+  --fg-muted: light-dark(#676F76, #8B9399);
+  --fg-disabled: light-dark(#9AA1A8, #6B7378);
+
+  --accent: light-dark(#2C5FD4, #3D6FE0);
+  --accent-hover: light-dark(#2551B8, #3564D2);
+  --accent-active: light-dark(#1F47A0, #2E57BC);
+  --on-accent: #FFFFFF;
+  --accent-text: light-dark(#1F4BB0, #8FB0F7);
+  --accent-soft: light-dark(#E6EDFC, #1E2A3D);
+  --accent-border: light-dark(#B9CCF8, #3A4E75);
+  --focus-ring: light-dark(#2C5FD4, #8FB0F7);
+
+  --priority-low: light-dark(#5A6672, #9AA7B4);
+  --priority-medium: light-dark(#8F5A00, #E0A94B);
+  --priority-high: light-dark(#B4232A, #F08A8A);
+  --priority-low-soft: light-dark(#EDF0F2, #23292E);
+  --priority-medium-soft: light-dark(#FFF4E0, #2E2416);
+  --priority-high-soft: light-dark(#FBEAEA, #38201F);
+
+  --success: light-dark(#1D7A4C, #5FD3A0);
+  --success-soft: light-dark(#F0FAF4, #1A2B24);
+  --warning: light-dark(#9A6300, #E8B45C);
+  --warning-soft: light-dark(#FFF8EC, #2E2416);
+  --danger: light-dark(#B4232A, #F08A8A);
+  --danger-fill: light-dark(#B4232A, #F08A8A);
+  --on-danger: light-dark(#FFFFFF, #0E1114);
+  --danger-border: light-dark(#F0C9C4, #5A3230);
+  --overdue: light-dark(#A62B1F, #FF9B8A);
+  --overdue-soft: light-dark(#FBEAEA, #38201F);
+
+  --skeleton: light-dark(#E7EAED, #252B31);
+  --scrim: light-dark(rgba(16, 24, 32, 0.32), rgba(0, 0, 0, 0.56));
+
+  /* Shadow không dùng light-dark() được (light-dark chỉ nhận <color>) */
+  --elev-1: 0 1px 2px rgba(16, 24, 32, 0.06);
+  --elev-2: 0 4px 12px rgba(16, 24, 32, 0.08), 0 1px 2px rgba(16, 24, 32, 0.04);
+  --elev-3: 0 12px 32px rgba(16, 24, 32, 0.14), 0 1px 2px rgba(16, 24, 32, 0.06);
+
+  /* Motion durations (prefers-reduced-motion override ở dưới) */
+  --dur-instant: 90ms;
+  --dur-fast: 120ms;
+  --dur-base: 160ms;
+  --dur-panel: 200ms;
+}
+
+/* Theme chọn tay ghi đè system (R-14) */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* Dark shadow: tối hơn + hairline sáng để card không dính nền */
+:root[data-theme="dark"] {
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.50);
+  --elev-2: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --elev-3: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --elev-1: 0 1px 2px rgba(0, 0, 0, 0.50);
+    --elev-2: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --elev-3: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* Reduced motion: mọi duration về 0.01ms, tắt translate/scale */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0.01ms;
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-panel: 0.01ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0.01ms !important;
+  }
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+  --color-border-subtle: var(--border-subtle);
+  --color-border: var(--border);
+  --color-border-control: var(--border-control);
+
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-disabled: var(--fg-disabled);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-on-accent: var(--on-accent);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+
+  --color-priority-low: var(--priority-low);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-high: var(--priority-high);
+  --color-priority-low-soft: var(--priority-low-soft);
+  --color-priority-medium-soft: var(--priority-medium-soft);
+  --color-priority-high-soft: var(--priority-high-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-fill: var(--danger-fill);
+  --color-on-danger: var(--on-danger);
+  --color-danger-border: var(--danger-border);
+  --color-overdue: var(--overdue);
+  --color-overdue-soft: var(--overdue-soft);
+
+  --text-meta: 12px;
+  --text-meta--line-height: 16px;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-title: 16px;
+  --text-title--line-height: 22px;
+  --text-heading: 20px;
+  --text-heading--line-height: 26px;
+  --text-display: 24px;
+  --text-display--line-height: 30px;
+
+  --radius-control: 6px;
+  --radius-container: 10px;
+  --radius-checkbox: 5px;
+  --radius-chip: 9999px;
+  --radius-bar: 9999px;
+
+  --shadow-e1: var(--elev-1);
+  --shadow-e2: var(--elev-2);
+  --shadow-e3: var(--elev-3);
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
