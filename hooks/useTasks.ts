@@ -1,0 +1,248 @@
+/**
+ * useTasks hook (L6-T18). Nguồn state popup qua useSyncExternalStore trên
+ * storage adapter — { tasks, add, update, remove, toggle }.
+ *
+ * Logic:
+ * - add: validate title 1-200 trim, id = crypto.randomUUID(), done=false,
+ *   priority medium, tags=[], subtasks=[], recurrence none,
+ *   createdAt=updatedAt=now → put (1 key/task).
+ * - toggle done: task thường → done=true + clear alarm; task lặp →
+ *   nextDueAt/nextFutureDue catch-up (max 1000), done=false, dueAt=next,
+ *   updatedAt=now, tạo alarm mới (R-11).
+ * - remove: xoá key + clear alarm.
+ * - update: updatedAt now → put.
+ * - chrome.storage.onChanged: key t:<id> đổi → merge theo updatedAt lớn hơn
+ *   thắng (last-write-wins), cập nhật UI + reschedule alarm; key bị xoá →
+ *   xoá local + clear alarm; key settings → áp theme.
+ * Ghi 1 key/task (không ghi cả danh sách), không autosave keystroke
+ * (giới hạn 120 write/phút).
+ * Lỗi quota ném từ adapter → không swallow.
+ */
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
+import {
+  alarmName,
+  clearTaskAlarm,
+  scheduleTask,
+  syncAlarms,
+  taskIdFromAlarm,
+} from '../lib/alarms/scheduler';
+import { loadAll, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
+import { nextFutureDue } from '../lib/tasks/recurrence';
+import type { RecurrenceRule, Task } from '../lib/tasks/types';
+
+const MAX_TITLE = 200;
+
+function nowISO(): string {
+  return new Date().toISOString();
+}
+
+function createTask(title: string): Task {
+  return {
+    id: crypto.randomUUID(),
+    title: title.trim(),
+    note: '',
+    priority: 'medium',
+    dueAt: null,
+    recurrence: { kind: 'none' },
+    tags: [],
+    subtasks: [],
+    done: false,
+    createdAt: nowISO(),
+    updatedAt: nowISO(),
+  };
+}
+
+/** Snapshot mutable để useSyncExternalStore đọc đồng bộ */
+const snapshotRef = useRef<Task[]>([]);
+
+/** Callback listeners cho React re-render */
+let listeners: (() => void)[] = [];
+let unsubscribeStorage: (() => void) | null = null;
+
+export function useTasks() {
+  const [, forceUpdate] = React.useState<{}>({});
+
+  const notify = useCallback(() => {
+    forceUpdate({});
+    listeners.forEach((cb) => cb());
+  }, []);
+
+  const tasks = useSyncExternalStore(
+    (cb) => {
+      listeners.push(cb);
+      if (!unsubscribeStorage) {
+        unsubscribeStorage = subscribe(async (changedKeys) => {
+          await handleStorageChanged(changedKeys);
+          notify();
+        });
+      }
+      return () => {
+        listeners = listeners.filter((l) => l !== cb);
+        if (listeners.length === 0 && unsubscribeStorage) {
+          unsubscribeStorage();
+          unsubscribeStorage = null;
+        }
+      };
+    },
+    () => snapshotRef.current,
+    () => []
+  );
+
+  const setSnapshot = useCallback((next: Task[]) => {
+    snapshotRef.current = next;
+    notify();
+  }, [notify]);
+
+  const add = useCallback(
+    async (title: string) => {
+      if (!title.trim() || title.trim().length > MAX_TITLE) return;
+      const task = createTask(title);
+      try {
+        await put(task);
+        setSnapshot([...snapshotRef.current, task]);
+        syncAlarms(snapshotRef.current);
+      } catch (err) {
+        throw err;
+      }
+    },
+    []
+  );
+
+  const update = useCallback(
+    async (task: Task) => {
+      try {
+        await put({ ...task, updatedAt: nowISO() });
+        setSnapshot(
+          snapshotRef.current.map((t) =>
+            t.id === task.id ? { ...task, updatedAt: nowISO() } : t
+          )
+        );
+      } catch (err) {
+        throw err;
+      }
+    },
+    []
+  );
+
+  const remove = useCallback(
+    async (id: string) => {
+      try {
+        await storageRemove(id);
+        clearTaskAlarm(id);
+        setSnapshot(snapshotRef.current.filter((t) => t.id !== id));
+      } catch (err) {
+        throw err;
+      }
+    },
+    []
+  );
+
+  const toggle = useCallback(
+    async (id: string) => {
+      const task = snapshotRef.current.find((t) => t.id === id);
+      if (!task) return;
+
+      const now = new Date();
+
+      if (task.done) {
+        // Un-toggle: done = false, giữ dueAt cũ, reschedule
+        clearTaskAlarm(id);
+        const next = { ...task, done: false, updatedAt: nowISO() };
+        try {
+          await put(next);
+          setSnapshot(
+            snapshotRef.current.map((t) => (t.id === id ? next : t))
+          );
+          scheduleTask(next);
+        } catch (err) {
+          throw err;
+        }
+        return;
+      }
+
+      if (task.recurrence.kind === 'none') {
+        // Task thường: done = true, clear alarm
+        clearTaskAlarm(id);
+        const next = { ...task, done: true, updatedAt: nowISO() };
+        try {
+          await put(next);
+          setSnapshot(
+            snapshotRef.current.map((t) => (t.id === id ? next : t))
+          );
+        } catch (err) {
+          throw err;
+        }
+        return;
+      }
+
+      // Task lặp: catch-up nextDueAt > now
+      try {
+        const nextDue = nextFutureDue(task.dueAt ?? nowISO(), task.recurrence, now);
+        if (nextDue === null) {
+          // Không lặp nữa → done, clear alarm
+          clearTaskAlarm(id);
+          const next = { ...task, done: true, updatedAt: nowISO() };
+          await put(next);
+          setSnapshot(
+            snapshotRef.current.map((t) => (t.id === id ? next : t))
+          );
+          return;
+        }
+        const nextTask: Task = {
+          ...task,
+          done: false,
+          dueAt: nextDue,
+          updatedAt: nowISO(),
+        };
+        try {
+          await put(nextTask);
+          setSnapshot(
+            snapshotRef.current.map((t) => (t.id === id ? nextTask : t))
+          );
+          scheduleTask(nextTask);
+        } catch (err) {
+          throw err;
+        }
+      } catch (err) {
+        throw err;
+      }
+    },
+    []
+  );
+
+  const handleStorageChanged = useCallback(async (changedKeys: string[]) => {
+    const current = await loadAll();
+    setSnapshot(current);
+
+    for (const key of changedKeys) {
+      if (key.startsWith('t:')) {
+        const id = key.slice('t:'.length);
+        const task = current.find((t) => t.id === id);
+        if (!task) {
+          clearTaskAlarm(id);
+        } else {
+          scheduleTask(task);
+        }
+      }
+    }
+
+    if (changedKeys.includes('settings')) {
+      try {
+        syncAlarms(current);
+      } catch {
+        // không throw trong onChanged listener
+      }
+    }
+  }, []);
+
+  // Sync lần đầu khi mount
+  useEffect(() => {
+    void (async () => {
+      const current = await loadAll();
+      setSnapshot(current);
+      syncAlarms(current);
+    })();
+  }, []);
+
+  return { tasks, add, update, remove, toggle };
+}
