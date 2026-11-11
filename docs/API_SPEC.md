@@ -114,10 +114,12 @@ Monthly clamp ngày không tồn tại về ngày cuối tháng (`daysInMonth`, 
 |---|---|---|
 | `filterTasks` | `(tasks, tab: 'all'\|'active'\|'done') => Task[]` | Lọc theo tab |
 | `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive |
-| `sortTasks` | `(tasks, criterion?, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) |
+| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) |
 | `sortDoneTasks` | `(tasks) => Task[]` | Tab Đã xong: updatedAt desc |
 
-Sort precedence deterministic (R-15) — `sortTasks`, dòng 62-99. Task không `dueAt` xếp cuối.
+Sort precedence deterministic (R-15) — `sortTasks`, dòng 62-98. Task không `dueAt` xếp cuối.
+UI list hiện sort theo tiêu chí default/priority/created ở `TaskList`; `sortTasks` là domain helper
+chưa được nối (gap G4).
 
 ### 3.4 Alarm scheduler — `lib/alarms/scheduler.ts`
 

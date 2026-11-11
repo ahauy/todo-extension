@@ -61,7 +61,6 @@ function priorityRank(p: Task['priority']): number {
  */
 export function sortTasks(
   tasks: Task[],
-  _criterion: SortCriterion = 'default',
   now: Date = new Date()
 ): Task[] {
   return [...tasks].sort((a, b) => {

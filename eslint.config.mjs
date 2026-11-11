@@ -1,26 +1,25 @@
 import tseslint from 'typescript-eslint';
 
-const recommended = tseslint.configs.recommended;
-const tsRecommended = recommended.find(
-  (c) => c.files && Array.isArray(c.files) && c.files.includes('**/*.ts')
-);
+// Toàn bộ source runtime + test phải được lint (defect #3) và rule recommended
+// phải thật sự active (defect #23) — trước đây .find() khớp nhầm entry chỉ tắt rule.
+const includeFiles = [
+  'entrypoints/**/*.{ts,tsx}',
+  'src/**/*.{ts,tsx}',
+  'components/**/*.{ts,tsx}',
+  'hooks/**/*.ts',
+  'lib/**/*.ts',
+];
 
 export default [
+  ...tseslint.configs.recommended.map((entry) => ({
+    ...entry,
+    files: includeFiles,
+  })),
   {
-    ...tsRecommended,
-    files: [
-      'entrypoints/**/*.{ts,tsx}',
-      'src/**/*.{ts,tsx}',
-      'components/**/*.{ts,tsx}',
-      'hooks/**/*.ts',
-      'lib/**/*.ts',
-    ],
+    files: includeFiles,
     languageOptions: {
       parser: tseslint.parser,
-      parserOptions: {
-        jsx: true,
-        ...(tsRecommended.languageOptions?.parserOptions || {}),
-      },
+      parserOptions: { jsx: true },
     },
   },
 ];

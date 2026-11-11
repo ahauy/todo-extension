@@ -1,16 +1,19 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 16,
-  "generatedAt": "2026-11-11T12:35:00+07:00",
+  "scopeVersion": 17,
+  "generatedAt": "2026-11-11T12:42:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-13", "R-18"],
-  "changed": {"files": ["hooks/useTasks.ts", "src/__tests__/helpers/chrome-stub.ts", "src/__tests__/useTasks.test.tsx"], "modules": ["tasks-hook", "test-infra"]},
-  "impact": {
-    "direct": ["useTasks subscribe/getSnapshot/getServerSnapshot ổn định identity — không resubscribe mỗi render, server snapshot cùng tham chiếu"],
-    "dependents": ["storage.onChanged listener", "popup re-render"],
-    "regression": ["logic sync task/settings/alarm giữ nguyên; add/remove/toggle tests xanh"]
+  "specRefs": ["R-01", "R-15"],
+  "changed": {
+    "files": ["eslint.config.mjs", "tsconfig.json", "src/mjs-modules.d.ts", "src/__tests__/eslint-config.test.ts", "components/Settings.tsx", "components/TaskComposer.tsx", "components/TaskDetail.tsx", "components/TaskList.tsx", "components/Toast.tsx", "lib/tasks/query.ts", "docs/API_SPEC.md"],
+    "modules": ["dev-tooling", "typecheck", "lint", "components"]
   },
-  "acceptance": ["subscribeCalls=1 sau mount + 2 lần add", "vitest 18 file / 92 test PASS (gồm lint guard mới)"],
-  "risk": "low"
+  "impact": {
+    "direct": ["ESLint recommended rules active thật (trước đây 0 rule); 19 vi phạm pre-existing đã dọn; lint gate bắt được any/unused", "tsc include src/** -> test files được typecheck; ambient module .mjs"],
+    "dependents": ["CI lint/typecheck job", "toàn bộ components/hooks/lib/src"],
+    "regression": ["runtime build không đổi (popup 265.92 kB); component tests xanh; sortTasks bỏ param chưa dùng (không caller)"]
+  },
+  "acceptance": ["eslint . exit 0 với rule active; guard test 2 case", "tsc PASS với src; vitest 18 file / 92 test PASS; wxt build PASS"],
+  "risk": "medium"
 }

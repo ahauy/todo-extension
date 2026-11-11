@@ -13,6 +13,6 @@
     "isolatedModules": true,
     "types": ["chrome", "vite/client"]
   },
-  "include": ["entrypoints/**/*", "components/**/*", "hooks/**/*", "lib/**/*", "wxt.config.ts"],
+  "include": ["entrypoints/**/*", "src/**/*", "components/**/*", "hooks/**/*", "lib/**/*", "wxt.config.ts"],
   "exclude": ["node_modules", ".output"]
 }

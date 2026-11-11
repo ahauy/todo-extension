@@ -6,17 +6,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Button from './ui/Button';
 import Checkbox from './ui/Checkbox';
-import Divider from './ui/Divider';
 import Field from './ui/Field';
-import IconButton from './ui/IconButton';
 import Segmented from './ui/Segmented';
 import TagChip from './ui/TagChip';
-import type { Subtask, Task } from '../lib/tasks/types';
+import type { Task } from '../lib/tasks/types';
 import { recurrenceForKind } from '../lib/tasks/recurrence';
 import { loadAll } from '../lib/storage/adapter';
 
 const MAX_NOTE = 1000;
-const SAVING_DISABLE_MS = 3000;
 
 interface TaskDetailProps {
   taskId: string;

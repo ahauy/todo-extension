@@ -8,7 +8,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Button from './ui/Button';
 import Checkbox from './ui/Checkbox';
 import Field from './ui/Field';
-import IconButton from './ui/IconButton';
 import { loadSettings, putSettings } from '../lib/storage/adapter';
 import { applyTheme } from '../lib/theme';
 import type { Settings } from '../lib/tasks/types';
@@ -47,7 +46,7 @@ export default function Settings({ onBack }: SettingsProps) {
       applyTheme(theme);
       try {
         await putSettings(next);
-      } catch (err) {
+      } catch {
         // Lưu thất bại không chặn UI (đã áp ngay)
       }
     },

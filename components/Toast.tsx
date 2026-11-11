@@ -2,7 +2,7 @@
  * Toast (L5-T17). role="status" aria-live="polite", bottom center.
  * "Đã xoá việc" + "Hoàn tác" (6 giây) — P2 theo design-spec O1.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from './ui/Button';
 
 interface ToastProps {

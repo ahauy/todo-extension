@@ -2,10 +2,9 @@
  * TaskList (L4-T13). S1 danh sách chính (FilterBar render ở App shell).
  * Sort theo R-15, empty states 5 biến thể, skeleton 4 row, quota banner.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import Button from './ui/Button';
 import TaskItem from './TaskItem';
-import Divider from './ui/Divider';
 import type { Task } from '../lib/tasks/types';
 
 interface TaskListProps {

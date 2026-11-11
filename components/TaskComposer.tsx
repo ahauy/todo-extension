@@ -8,7 +8,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Button from './ui/Button';
 import Checkbox from './ui/Checkbox';
 import Field from './ui/Field';
-import IconButton from './ui/IconButton';
 import Segmented from './ui/Segmented';
 import TagChip from './ui/TagChip';
 import type { RecurrenceRule, Task } from '../lib/tasks/types';
@@ -21,14 +20,12 @@ const MAX_SUBTASKS = 50;
 
 interface TaskComposerProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  onCancel?: () => void;
   initial?: Partial<Task>;
   expandSignal?: number;
 }
 
 export default function TaskComposer({
   onSubmit,
-  onCancel,
   initial = {},
   expandSignal,
 }: TaskComposerProps) {
@@ -48,7 +45,7 @@ export default function TaskComposer({
     if (expanded) titleInputRef.current?.focus();
   }, [expanded]);
   const [title, setTitle] = useState(initial.title ?? '');
-  const [note, setNote] = useState(initial.note ?? '');
+  const note = initial.note ?? '';
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [dueAt, setDueAt] = useState<string | null>(initial.dueAt ?? null);
   const [recurrence, setRecurrence] = useState<RecurrenceRule>({
@@ -232,9 +229,7 @@ export default function TaskComposer({
               <input
                 type="text"
                 value=""
-                onChange={(e) => {
-                  // handled by keydown
-                }}
+                onChange={() => {}}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
