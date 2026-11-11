@@ -1,39 +1,41 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 2,
-  "generatedAt": "2026-11-11T09:55:00+07:00",
+  "scopeVersion": 3,
+  "generatedAt": "2026-11-11T10:20:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01", "R-11", "R-16"],
+  "specRefs": ["R-14", "R-16"],
   "changed": {
     "files": [
-      "hooks/useTasks.ts",
-      "entrypoints/popup/popup-mount.test.tsx"
+      "entrypoints/popup/index.html",
+      "entrypoints/popup/style.css",
+      "entrypoints/popup/main.tsx",
+      "components/ErrorBoundary.tsx",
+      "entrypoints/popup/popup-fallback.test.tsx"
     ],
-    "modules": ["hooks", "popup-shell"]
+    "modules": ["popup-shell", "ui"]
   },
   "impact": {
     "direct": [
-      "todo-extension.ui: popup mount lại render được — useTasks không còn ném TypeError khi module evaluate (bỏ hook call ở module scope, snapshot chuyển sang module-level mutable store)",
-      "todo-extension.core: public API { tasks, add, update, remove, toggle } và hành vi (put/remove/alarm sync/last-write-wins/quota throw) giữ nguyên"
+      "popup-shell: html/body/#root luôn có nền theo token --bg (light #F5F6F7 / dark #14171A), kể cả khi bundle JS chết -> không còn canvas đen tuyệt đối",
+      "popup-shell: lỗi render được ErrorBoundary bắt và hiển thị fallback đọc được (role=alert, text 'Có lỗi khi tải popup', nút 'Thử lại' -> location.reload()) thay vì màn trống"
     ],
     "dependents": [
-      "entrypoints/popup/App.tsx (consumer duy nhất của useTasks)",
-      "entrypoints/popup/main.tsx (createRoot render giờ chạy được)"
+      "entrypoints/popup/main.tsx (mount App qua ErrorBoundary)",
+      "components/ErrorBoundary.tsx (dùng Button + token bg-bg/text-fg)"
     ],
     "regression": [
-      "popup mount lần đầu (render Header + FilterBar + Composer + TaskList empty state)",
-      "thêm / toggle / sửa / xoá task qua useTasks",
-      "chrome.storage.onChanged → merge + reschedule alarm",
-      "task lặp tick-done catch-up (R-11)"
+      "popup mount lần đầu render Header + FilterBar + Composer + TaskList empty state (task-01 / commit beb0def)",
+      "theme light/dark: nền popup đổi theo prefers-color-scheme và data-theme, không bị nền tĩnh ghi đè",
+      "lỗi render bất kỳ trong App -> fallback ErrorBoundary, KHÔNG unmount trắng cây"
     ]
   },
   "acceptance": [
-    "import hooks/useTasks không ném lỗi khi module evaluate",
-    "popup render vào #root có nội dung: Header 'Việc' + empty state 'Chưa có việc nào.'",
-    "regression test entrypoints/popup/popup-mount.test.tsx PASS",
-    "replay bundle build trong jsdom: #root.innerHTML khác rỗng, không TypeError",
-    "tsc --noEmit / eslint . / vitest run / wxt build PASS"
+    "index.html build giữ nền tĩnh html/body (light #f5f6f7) + @media (prefers-color-scheme: dark) (#14171a)",
+    "CSS build có rule html,body,#root { background-color: var(--bg); color: var(--fg) }",
+    "ErrorBoundary bắt lỗi render, render fallback role=alert có text đọc được + nút Thử lại",
+    "main.tsx mount App bên trong ErrorBoundary",
+    "vitest/tsc/eslint/wxt build PASS"
   ],
   "risk": "low"
 }
