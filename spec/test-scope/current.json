@@ -1,45 +1,35 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 4,
-  "generatedAt": "2026-11-11T11:28:00+07:00",
+  "scopeVersion": 5,
+  "generatedAt": "2026-11-11T11:34:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01", "R-03", "R-15"],
+  "specRefs": ["R-14"],
   "changed": {
     "files": [
+      "lib/theme.ts",
       "hooks/useTasks.ts",
-      "entrypoints/popup/App.tsx",
-      "components/FilterBar.tsx",
-      "components/TaskList.tsx",
-      "components/TaskDetail.tsx",
-      "components/TaskComposer.tsx",
-      "entrypoints/popup/App.wiring.test.tsx"
+      "components/Settings.tsx",
+      "src/__tests__/useTasks.test.tsx"
     ],
-    "modules": ["popup-app", "tasks-hook", "filter", "composer"]
+    "modules": ["popup-app", "theme"]
   },
   "impact": {
     "direct": [
-      "composer: task lưu đủ title/note/priority/dueAt/recurrence/tags/subtasks (trước chỉ lưu title)",
-      "list: tab all/active/done + search + tag + sort default|priority|created hoạt động; chỉ còn 1 FilterBar",
-      "detail: dirty được báo lên App -> bấm Quay lại hiện dialog 'Bỏ thay đổi?', xác nhận mới thoát",
-      "delete: toast có nút 'Hoàn tác' -> khôi phục task đã xoá (giữ id/createdAt)",
-      "keyboard: 'n' mở composer expanded + focus ô tên; '/' mở search + focus"
+      "popup mở lại áp đúng theme đã lưu (data-theme light/dark), settings 'system' hoặc bị xoá -> về theo OS"
     ],
     "dependents": [
-      "hooks/useTasks expose thêm create(draft)/restore(task); add(title) vẫn là wrapper quick-add",
-      "FilterBar nhận searchOpen/onSearchOpenChange controlled + availableTags cho menu thẻ",
-      "TaskList nhận sortCriterion union và tự sort (không còn render FilterBar bên trong)"
+      "useTasks mount + storage.onChanged('settings') gọi applyTheme",
+      "components/Settings.tsx dùng chung helper applyTheme khi click"
     ],
     "regression": [
-      "quick add add(title) giữ default cũ (medium, không due/tag) — dùng cho test/CLI cũ",
-      "TaskItem toggle/priority/subtask, alarm sync qua syncAlarms không đổi",
-      "undo dùng restore(updatedAt cũ) — last-write-wins khi sync với thiết bị khác vẫn theo updatedAt"
+      "theme click trong Settings áp ngay như cũ",
+      "storage sync settings giữa 2 thiết bị đổi theme trực tiếp không cần reload"
     ]
   },
   "acceptance": [
-    "App.wiring.test.tsx (10 test) PASS: tab/search/sort/1 FilterBar/n//dirty-confirm/undo/create-full-draft",
-    "useTasks create lưu đủ field; restore giữ id/createdAt và không duplicate",
-    "vitest 9 file / 49 test PASS; tsc --noEmit, eslint ., wxt build PASS"
+    "4 test theme: dark mount, system mount, settings null->system, onChanged settings",
+    "vitest 9 file / 53 test PASS; tsc/eslint/wxt build PASS"
   ],
-  "risk": "medium"
+  "risk": "low"
 }

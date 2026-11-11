@@ -32,7 +32,8 @@ import {
   syncAlarms,
   taskIdFromAlarm,
 } from '../lib/alarms/scheduler';
-import { loadAll, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
+import { loadAll, loadSettings, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
+import { applyTheme } from '../lib/theme';
 import { nextFutureDue } from '../lib/tasks/recurrence';
 import type { RecurrenceRule, Task } from '../lib/tasks/types';
 
@@ -266,6 +267,12 @@ export function useTasks() {
       } catch {
         // không throw trong onChanged listener
       }
+      try {
+        const settings = await loadSettings();
+        applyTheme(settings?.theme ?? 'system');
+      } catch {
+        // theme lỗi không được làm hỏng listener
+      }
     }
   }, []);
 
@@ -275,6 +282,12 @@ export function useTasks() {
       const current = await loadAll();
       setSnapshot(current);
       syncAlarms(current);
+      try {
+        const settings = await loadSettings();
+        applyTheme(settings?.theme ?? 'system');
+      } catch {
+        // không chặn mount nếu đọc settings lỗi
+      }
     })();
   }, []);
 

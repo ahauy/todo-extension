@@ -9,6 +9,7 @@ import Button from './ui/Button';
 import Field from './ui/Field';
 import IconButton from './ui/IconButton';
 import { loadSettings, putSettings } from '../lib/storage/adapter';
+import { applyTheme } from '../lib/theme';
 import type { Settings } from '../lib/tasks/types';
 
 interface SettingsProps {
@@ -34,12 +35,7 @@ export default function Settings({ onBack }: SettingsProps) {
       if (!settings) return;
       const next = { ...settings, theme };
       setSettings(next);
-      // Áp ngay
-      if (theme === 'system') {
-        document.documentElement.removeAttribute('data-theme');
-      } else {
-        document.documentElement.dataset.theme = theme;
-      }
+      applyTheme(theme);
       try {
         await putSettings(next);
       } catch (err) {

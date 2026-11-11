@@ -110,6 +110,7 @@ afterEach(async () => {
   cleanup = null;
   await flush();
   document.body.innerHTML = '';
+  delete document.documentElement.dataset.theme;
 });
 
 describe('useTasks — load & add', () => {
@@ -287,6 +288,39 @@ describe('useTasks — toggle', () => {
     expect(new Date(saved.dueAt!).getTime()).toBeGreaterThan(Date.now());
     expect(stub.alarms.has('due:a')).toBe(true);
     expect(stub.alarms.get('due:a')!.delayInMinutes).toBeGreaterThan(0);
+  });
+});
+
+describe('useTasks — theme (#7)', () => {
+  it('áp theme dark đã lưu khi mount', async () => {
+    stub.seed({ settings: { theme: 'dark', notificationsEnabled: true } });
+    await mountHook();
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+
+  it('theme system xoá data-theme khi mount', async () => {
+    document.documentElement.dataset.theme = 'dark';
+    stub.seed({ settings: { theme: 'system', notificationsEnabled: true } });
+    await mountHook();
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+  });
+
+  it('không có settings thì về system (xoá data-theme cũ)', async () => {
+    document.documentElement.dataset.theme = 'dark';
+    await mountHook();
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+  });
+
+  it('storage.onChanged settings áp theme mới ngay', async () => {
+    await mountHook();
+
+    await act(async () => {
+      stub.store.set('settings', { theme: 'dark', notificationsEnabled: true });
+      stub.emitChange(['settings']);
+      await flush();
+    });
+
+    expect(document.documentElement.dataset.theme).toBe('dark');
   });
 });
 
