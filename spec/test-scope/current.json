@@ -1,16 +1,16 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 14,
-  "generatedAt": "2026-11-11T12:24:00+07:00",
+  "scopeVersion": 15,
+  "generatedAt": "2026-11-11T12:28:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01", "R-15"],
-  "changed": {"files": ["components/ui/Segmented.tsx", "src/__tests__/Segmented.test.tsx"], "modules": ["ui"]},
+  "specRefs": ["R-01"],
+  "changed": {"files": ["components/TaskComposer.tsx", "src/__tests__/TaskComposer.test.tsx"], "modules": ["composer"]},
   "impact": {
-    "direct": ["ArrowLeft/Right trên Segmented gọi onChange đúng 1 lần (không double dưới StrictMode), nhảy 1 bước"],
-    "dependents": ["TaskComposer priority/recurrence", "TaskDetail", "FilterBar tabs"],
-    "regression": ["click chọn tab/priority giữ nguyên; focusIndex state giữ"]
+    "direct": ["composer validate thuần trong render (không setState khi render), bỏ state errors chết + handleAddTag"],
+    "dependents": ["nút Lưu composer"],
+    "regression": ["6 rule validation giữ nguyên; monthly rule vẫn set đủ; title>200 vẫn chặn"]
   },
-  "acceptance": ["Segmented 2 test StrictMode", "vitest 17 file / 89 test PASS"],
+  "acceptance": ["composer 7 test (bao gồm title>200)", "vitest 17 file / 89 test PASS"],
   "risk": "low"
 }

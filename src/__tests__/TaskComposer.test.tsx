@@ -1,6 +1,6 @@
 /**
- * Test cho TaskComposer (defect #4 trong scan.md).
- * Chỉ test contract ở tầng composer (validate + payload onSubmit).
+ * Test cho TaskComposer (defect #4, #9, #19 trong scan.md).
+ * Test contract ở tầng composer: validation (title/hạn lặp) + payload onSubmit + monthly rule.
  * KHÔNG test việc App bỏ mất field khi lưu (defect #5) hay setErrors trong
  * useMemo (defect #19) — các lỗi đó ngoài scope task này.
  */
@@ -66,6 +66,19 @@ afterEach(() => {
 });
 
 describe('TaskComposer', () => {
+  it('title > 200 ký tự: Lưu disabled', () => {
+    const onSubmit = vi.fn();
+    const container = renderComposer(onSubmit);
+    const input = expand(container);
+    typeTitle(input, 'x'.repeat(201));
+
+    expect(findButton(container, 'Lưu').disabled).toBe(true);
+    act(() => {
+      findButton(container, 'Lưu').click();
+    });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('collapsed hiện "Thêm việc"; bấm + thì mở form', () => {
     const container = renderComposer(vi.fn());
 

@@ -75,30 +75,18 @@ export default function TaskComposer({
     initial.subtasks ?? []
   );
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
+  // Validate thuần trong render — không setState (defect #19); chỉ dùng để chặn Lưu.
   const isValid = useMemo(() => {
-    const next: Record<string, string> = {};
-    if (!title.trim()) next.title = 'Nhập tên việc trước khi thêm.';
-    else if (title.length > MAX_TITLE)
-      next.title = 'Tên việc tối đa 200 ký tự.';
-    if (
-      recurrence.kind !== 'none' &&
-      (!dueAt || new Date(dueAt) <= new Date())
-    )
-      next.dueAt = 'Cần đặt hạn trước khi chọn lặp lại.';
+    if (!title.trim() || title.length > MAX_TITLE) return false;
+    if (recurrence.kind !== 'none' && (!dueAt || new Date(dueAt) <= new Date()))
+      return false;
     const trimmedTags = tags.filter(Boolean);
-    if (trimmedTags.length > MAX_TAGS)
-      next.tags = `Tối đa ${MAX_TAGS} thẻ.`;
+    if (trimmedTags.length > MAX_TAGS) return false;
     for (const tag of trimmedTags) {
-      if (tag.length < 1 || tag.length > MAX_TAG_LEN)
-        next.tags = `Mỗi thẻ từ 1-${MAX_TAG_LEN} ký tự.`;
+      if (tag.length < 1 || tag.length > MAX_TAG_LEN) return false;
     }
     const uniqueTags = new Set(trimmedTags);
-    if (uniqueTags.size !== trimmedTags.length)
-      next.tags = 'Không được trùng thẻ.';
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    return uniqueTags.size === trimmedTags.length;
   }, [title, dueAt, recurrence, tags]);
 
   const handleSubmit = useCallback(() => {
@@ -115,10 +103,6 @@ export default function TaskComposer({
       done: false,
     });
   }, [title, note, priority, dueAt, recurrence, tags, subtasks, isValid, onSubmit]);
-
-  const handleAddTag = useCallback(() => {
-    // handled via input below
-  }, []);
 
   return (
     <div
