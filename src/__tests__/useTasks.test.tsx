@@ -312,6 +312,23 @@ describe('useTasks — toggle', () => {
   });
 });
 
+describe('useTasks — subscription ổn định (#22)', () => {
+  it('mount subscribe 1 lần; add/re-render không resubscribe', async () => {
+    await mountHook();
+    expect(stub.subscribeCalls).toBe(1);
+
+    await act(async () => {
+      await api.add('Việc mới');
+    });
+    expect(stub.subscribeCalls).toBe(1);
+
+    await act(async () => {
+      await api.add('Việc thứ hai');
+    });
+    expect(stub.subscribeCalls).toBe(1);
+  });
+});
+
 describe('useTasks — theme (#7)', () => {
   it('áp theme dark đã lưu khi mount', async () => {
     stub.seed({ settings: { theme: 'dark', notificationsEnabled: true } });

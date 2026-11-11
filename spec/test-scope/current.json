@@ -1,16 +1,16 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 15,
-  "generatedAt": "2026-11-11T12:28:00+07:00",
+  "scopeVersion": 16,
+  "generatedAt": "2026-11-11T12:35:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01"],
-  "changed": {"files": ["components/TaskComposer.tsx", "src/__tests__/TaskComposer.test.tsx"], "modules": ["composer"]},
+  "specRefs": ["R-13", "R-18"],
+  "changed": {"files": ["hooks/useTasks.ts", "src/__tests__/helpers/chrome-stub.ts", "src/__tests__/useTasks.test.tsx"], "modules": ["tasks-hook", "test-infra"]},
   "impact": {
-    "direct": ["composer validate thuần trong render (không setState khi render), bỏ state errors chết + handleAddTag"],
-    "dependents": ["nút Lưu composer"],
-    "regression": ["6 rule validation giữ nguyên; monthly rule vẫn set đủ; title>200 vẫn chặn"]
+    "direct": ["useTasks subscribe/getSnapshot/getServerSnapshot ổn định identity — không resubscribe mỗi render, server snapshot cùng tham chiếu"],
+    "dependents": ["storage.onChanged listener", "popup re-render"],
+    "regression": ["logic sync task/settings/alarm giữ nguyên; add/remove/toggle tests xanh"]
   },
-  "acceptance": ["composer 7 test (bao gồm title>200)", "vitest 17 file / 89 test PASS"],
+  "acceptance": ["subscribeCalls=1 sau mount + 2 lần add", "vitest 18 file / 92 test PASS (gồm lint guard mới)"],
   "risk": "low"
 }

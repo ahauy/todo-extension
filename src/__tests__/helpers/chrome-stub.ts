@@ -25,6 +25,8 @@ export interface ChromeStub {
   alarms: Map<string, AlarmRecord>;
   /** Listener của chrome.storage.onChanged */
   listeners: Set<StorageChangeListener>;
+  /** Số lần addListener được gọi (đo resubscribe — defect #22) */
+  subscribeCalls: number;
   /** Mức quyền thông báo trả về từ chrome.notifications.getPermissionLevel */
   notificationLevel: 'granted' | 'denied';
   /** Ghi trực tiếp nhiều key (không phát onChanged — dùng trước khi mount) */
@@ -67,6 +69,7 @@ export function createChromeStub(): ChromeStub {
   const notificationState: { level: 'granted' | 'denied' } = {
     level: 'granted',
   };
+  const subscribeCallsState = { calls: 0 };
 
   const stub = {
     storage: {
@@ -88,6 +91,7 @@ export function createChromeStub(): ChromeStub {
       },
       onChanged: {
         addListener(cb: StorageChangeListener) {
+          subscribeCallsState.calls += 1;
           listeners.add(cb);
         },
         removeListener(cb: StorageChangeListener) {
@@ -120,6 +124,9 @@ export function createChromeStub(): ChromeStub {
     store,
     alarms,
     listeners,
+    get subscribeCalls() {
+      return subscribeCallsState.calls;
+    },
     get notificationLevel() {
       return notificationState.level;
     },
@@ -138,6 +145,7 @@ export function createChromeStub(): ChromeStub {
       store.clear();
       alarms.clear();
       listeners.clear();
+      subscribeCallsState.calls = 0;
     },
     install() {
       (globalThis as typeof globalThis & { chrome: typeof chrome }).chrome =

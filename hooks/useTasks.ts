@@ -22,20 +22,19 @@
 import {
   useCallback,
   useEffect,
+  useReducer,
   useState,
   useSyncExternalStore,
 } from 'react';
 import {
-  alarmName,
   clearTaskAlarm,
   scheduleTask,
   syncAlarms,
-  taskIdFromAlarm,
 } from '../lib/alarms/scheduler';
 import { loadAll, loadSettings, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
 import { applyTheme } from '../lib/theme';
 import { nextFutureDue } from '../lib/tasks/recurrence';
-import type { RecurrenceRule, Task } from '../lib/tasks/types';
+import type { Task } from '../lib/tasks/types';
 
 const MAX_TITLE = 200;
 
@@ -76,17 +75,66 @@ const snapshotStore: { tasks: Task[] } = { tasks: [] };
 let listeners: (() => void)[] = [];
 let unsubscribeStorage: (() => void) | null = null;
 
+/** getServerSnapshot trả cùng 1 tham chiếu — tránh render dư (defect #22). */
+const EMPTY_TASKS: Task[] = [];
+function getSnapshot(): Task[] {
+  return snapshotStore.tasks;
+}
+function getServerSnapshot(): Task[] {
+  return EMPTY_TASKS;
+}
+
 export function useTasks() {
-  const [, forceUpdate] = useState<{}>({});
+  const [, forceUpdate] = useReducer((count: number) => count + 1, 0);
   const [loading, setLoading] = useState(true);
 
   const notify = useCallback(() => {
-    forceUpdate({});
+    forceUpdate();
     listeners.forEach((cb) => cb());
   }, []);
 
-  const tasks = useSyncExternalStore(
-    (cb) => {
+  const setSnapshot = useCallback((next: Task[]) => {
+    snapshotStore.tasks = next;
+    notify();
+  }, [notify]);
+
+  const handleStorageChanged = useCallback(
+    async (changedKeys: string[]) => {
+      const current = await loadAll();
+      setSnapshot(current);
+
+      for (const key of changedKeys) {
+        if (key.startsWith('t:')) {
+          const id = key.slice('t:'.length);
+          const task = current.find((t) => t.id === id);
+          if (!task) {
+            clearTaskAlarm(id);
+          } else {
+            scheduleTask(task);
+          }
+        }
+      }
+
+      if (changedKeys.includes('settings')) {
+        try {
+          syncAlarms(current);
+        } catch {
+          // không throw trong onChanged listener
+        }
+        try {
+          const settings = await loadSettings();
+          applyTheme(settings?.theme ?? 'system');
+        } catch {
+          // theme lỗi không được làm hỏng listener
+        }
+      }
+    },
+    [setSnapshot]
+  );
+
+  // subscribe ổn định identity — không resubscribe mỗi render (defect #22).
+  const subscribeStore = useCallback(
+    (cb: () => void) => {
       listeners.push(cb);
       if (!unsubscribeStorage) {
         unsubscribeStorage = subscribe(async (changedKeys) => {
@@ -102,14 +150,10 @@ export function useTasks() {
         }
       };
     },
-    () => snapshotStore.tasks,
-    () => []
+    [handleStorageChanged, notify]
   );
 
-  const setSnapshot = useCallback((next: Task[]) => {
-    snapshotStore.tasks = next;
-    notify();
-  }, [notify]);
+  const tasks = useSyncExternalStore(subscribeStore, getSnapshot, getServerSnapshot);
 
   const create = useCallback(
     async (draft: TaskDraft) => {
@@ -240,37 +284,6 @@ export function useTasks() {
     },
     []
   );
-
-  const handleStorageChanged = useCallback(async (changedKeys: string[]) => {
-    const current = await loadAll();
-    setSnapshot(current);
-
-    for (const key of changedKeys) {
-      if (key.startsWith('t:')) {
-        const id = key.slice('t:'.length);
-        const task = current.find((t) => t.id === id);
-        if (!task) {
-          clearTaskAlarm(id);
-        } else {
-          scheduleTask(task);
-        }
-      }
-    }
-
-    if (changedKeys.includes('settings')) {
-      try {
-        syncAlarms(current);
-      } catch {
-        // không throw trong onChanged listener
-      }
-      try {
-        const settings = await loadSettings();
-        applyTheme(settings?.theme ?? 'system');
-      } catch {
-        // theme lỗi không được làm hỏng listener
-      }
-    }
-  }, []);
 
   // Sync lần đầu khi mount
   useEffect(() => {
