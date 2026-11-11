@@ -1,6 +1,6 @@
 /**
  * useTasks hook (L6-T18). Nguồn state popup qua useSyncExternalStore trên
- * storage adapter — { tasks, add, create, update, remove, toggle, restore }.
+ * storage adapter — { tasks, add, create, update, remove, toggle, restore, loading }.
  *
  * Logic:
  * - add(title): quick-add chỉ title → create(default draft).
@@ -78,6 +78,7 @@ let unsubscribeStorage: (() => void) | null = null;
 
 export function useTasks() {
   const [, forceUpdate] = useState<{}>({});
+  const [loading, setLoading] = useState(true);
 
   const notify = useCallback(() => {
     forceUpdate({});
@@ -274,9 +275,15 @@ export function useTasks() {
   // Sync lần đầu khi mount
   useEffect(() => {
     void (async () => {
-      const current = await loadAll();
-      setSnapshot(current);
-      syncAlarms(current);
+      try {
+        const current = await loadAll();
+        setSnapshot(current);
+        syncAlarms(current);
+      } catch {
+        // load lỗi: giữ snapshot rỗng, hết loading, không unhandled rejection
+      } finally {
+        setLoading(false);
+      }
       try {
         const settings = await loadSettings();
         applyTheme(settings?.theme ?? 'system');
@@ -286,5 +293,5 @@ export function useTasks() {
     })();
   }, []);
 
-  return { tasks, add, create, update, remove, toggle, restore };
+  return { tasks, add, create, update, remove, toggle, restore, loading };
 }

@@ -33,7 +33,7 @@ const SORT_LABELS: Record<SortCriterion, string> = {
 };
 
 export default function App() {
-  const { tasks, create, update, remove, toggle, restore } = useTasks();
+  const { tasks, create, update, remove, toggle, restore, loading } = useTasks();
   const [view, setView] = useState<View>('list');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('all');
@@ -226,6 +226,7 @@ export default function App() {
               searchQuery={searchQuery}
               sortCriterion={sortCriterion}
               selectedTags={selectedTags}
+              loading={loading}
               onToggle={toggle}
               onOpenDetail={openDetail}
               onQuotaRetry={() => {}}

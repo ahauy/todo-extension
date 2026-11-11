@@ -22,6 +22,7 @@ interface UseTasksApi {
   remove: (id: string) => Promise<void>;
   toggle: (id: string) => Promise<void>;
   restore: (task: Task) => Promise<void>;
+  loading: boolean;
 }
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -120,6 +121,7 @@ describe('useTasks — load & add', () => {
 
     expect(container.textContent).toContain('Việc cũ');
     expect(api.tasks).toHaveLength(1);
+    expect(api.loading).toBe(false);
   });
 
   it('add ghi đúng 1 key với default và title đã trim', async () => {

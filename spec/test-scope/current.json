@@ -1,29 +1,19 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 8,
-  "generatedAt": "2026-11-11T11:49:00+07:00",
+  "scopeVersion": 9,
+  "generatedAt": "2026-11-11T11:55:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-02", "R-13"],
+  "specRefs": ["R-16"],
   "changed": {
-    "files": [
-      "components/TaskDetail.tsx",
-      "entrypoints/popup/App.tsx",
-      "hooks/useTasks.ts",
-      "entrypoints/popup/App.wiring.test.tsx"
-    ],
-    "modules": ["detail", "tasks-hook"]
+    "files": ["hooks/useTasks.ts", "entrypoints/popup/App.tsx", "components/TaskList.tsx", "src/__tests__/TaskList.test.tsx", "entrypoints/popup/App.wiring.test.tsx"],
+    "modules": ["list", "tasks-hook"]
   },
   "impact": {
-    "direct": [
-      "lưu task trong detail và toggle subtask đều bump updatedAt qua useTasks.update -> last-write-wins đúng R-13"
-    ],
-    "dependents": ["TaskDetail onUpdateTask prop", "App truyền update", "storage.onChanged reschedule alarm"],
-    "regression": ["dirty/back-confirm giữ nguyên", "lỗi quota vẫn báo", "snapshot hook cập nhật ngay sau update"]
+    "direct": ["skeleton chỉ hiện khi đang tải; empty state không còn đi kèm 4 thanh xám", "useTasks expose loading"],
+    "dependents": ["App truyền loading", "TaskList prop loading/quotaError default"],
+    "regression": ["list có task render như cũ", "quota banner giữ nguyên", "popup-mount empty vẫn xanh"]
   },
-  "acceptance": [
-    "2 integration test: save detail bump updatedAt, toggle subtask bump",
-    "vitest 11 file / 68 test PASS; tsc/eslint/wxt build PASS"
-  ],
-  "risk": "medium"
+  "acceptance": ["TaskList 2 test loading/empty", "App empty không skeleton", "vitest 12 file / 71 test PASS"],
+  "risk": "low"
 }

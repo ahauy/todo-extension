@@ -104,6 +104,14 @@ afterEach(async () => {
   document.body.innerHTML = '';
 });
 
+describe('App wiring — empty & loading state (#12)', () => {
+  it('storage rỗng: chỉ empty state, không còn skeleton', async () => {
+    const container = await renderApp();
+    expect(container.textContent).toContain('Chưa có việc nào.');
+    expect(container.querySelector('.bg-skeleton')).toBeNull();
+  });
+});
+
 describe('App wiring — tab / search / sort (#6)', () => {
   it('tab "Đang làm" ẩn task đã xong', async () => {
     stub.seed({

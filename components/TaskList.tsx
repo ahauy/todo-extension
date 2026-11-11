@@ -14,6 +14,7 @@ interface TaskListProps {
   searchQuery: string;
   sortCriterion: 'default' | 'priority' | 'created';
   selectedTags: string[];
+  loading?: boolean;
   onToggle: (id: string) => void;
   onOpenDetail: (id: string) => void;
   onQuotaRetry?: () => void;
@@ -26,10 +27,11 @@ export default function TaskList({
   searchQuery,
   sortCriterion,
   selectedTags,
+  loading = false,
   onToggle,
   onOpenDetail,
   onQuotaRetry,
-  quotaError,
+  quotaError = null,
 }: TaskListProps) {
   const now = new Date();
 
@@ -136,7 +138,7 @@ export default function TaskList({
       )}
 
       <div className="px-3 py-2 space-y-1">
-        {isEmpty && quotaError === null && (
+        {loading && quotaError === null && (
           <div className="opacity-50">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-[56px] rounded-control bg-skeleton mb-1" />
@@ -144,7 +146,7 @@ export default function TaskList({
           </div>
         )}
 
-        {isEmpty && quotaError === null && (
+        {!loading && isEmpty && quotaError === null && (
           <div className="px-3 py-8 text-center">
             <div className="text-meta text-fg-muted">
               {emptyVariant === 'noTasks'
