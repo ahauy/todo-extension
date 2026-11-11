@@ -14,22 +14,17 @@ export default function Segmented({ options, value, onChange }: SegmentedProps) 
   const [focusIndex, setFocusIndex] = useState(options.findIndex((o) => o.value === value));
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent, index: number) => {
-      if (e.key === 'ArrowRight') {
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
-        setFocusIndex((i) => {
-          onChange(options[(i + 1) % options.length].value);
-          return (i + 1) % options.length;
-        });
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setFocusIndex((i) => {
-          onChange(options[(i - 1 + options.length) % options.length].value);
-          return (i - 1 + options.length) % options.length;
-        });
+        const step = e.key === 'ArrowRight' ? 1 : -1;
+        const next = (focusIndex + step + options.length) % options.length;
+        setFocusIndex(next);
+        // Gọi onChange ngoài updater — StrictMode không gọi 2 lần (defect #21).
+        onChange(options[next].value);
       }
     },
-    [options, onChange]
+    [options, onChange, focusIndex]
   );
 
   return (
@@ -38,14 +33,14 @@ export default function Segmented({ options, value, onChange }: SegmentedProps) 
       aria-label="segmented control"
       className="rounded-control bg-surface-sunken p-0.5 border border-border-subtle flex"
     >
-      {options.map((option, index) => (
+      {options.map((option) => (
         <button
           key={option.value}
           type="button"
           role="radio"
           aria-checked={option.value === value}
           onClick={() => onChange(option.value)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
+          onKeyDown={handleKeyDown}
           className={`h-11 px-3 text-body rounded-control transition-colors ${
             option.value === value
               ? 'bg-accent-soft text-accent-text font-medium border border-accent-border'

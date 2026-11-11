@@ -1,19 +1,16 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 13,
-  "generatedAt": "2026-11-11T12:19:00+07:00",
+  "scopeVersion": 14,
+  "generatedAt": "2026-11-11T12:24:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01", "R-02"],
-  "changed": {
-    "files": ["components/ui/Field.tsx", "src/__tests__/Field.test.tsx"],
-    "modules": ["ui", "a11y"]
-  },
+  "specRefs": ["R-01", "R-15"],
+  "changed": {"files": ["components/ui/Segmented.tsx", "src/__tests__/Segmented.test.tsx"], "modules": ["ui"]},
   "impact": {
-    "direct": ["mỗi Field có id helper/error riêng (useId); aria-describedby/aria-invalid gắn đúng input/textarea/select kể cả trong wrapper div"],
-    "dependents": ["TaskComposer/TaskDetail/Settings fields"],
-    "regression": ["D24 array-children vẫn render; single child giữ aria; aria của consumer không bị overwrite"]
+    "direct": ["ArrowLeft/Right trên Segmented gọi onChange đúng 1 lần (không double dưới StrictMode), nhảy 1 bước"],
+    "dependents": ["TaskComposer priority/recurrence", "TaskDetail", "FilterBar tabs"],
+    "regression": ["click chọn tab/priority giữ nguyên; focusIndex state giữ"]
   },
-  "acceptance": ["Field 6 test (array/single/wrapper/textarea/error/2-field)", "vitest 16 file / 86 test PASS"],
+  "acceptance": ["Segmented 2 test StrictMode", "vitest 17 file / 89 test PASS"],
   "risk": "low"
 }
