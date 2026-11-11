@@ -1,35 +1,35 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 5,
-  "generatedAt": "2026-11-11T11:34:00+07:00",
+  "scopeVersion": 6,
+  "generatedAt": "2026-11-11T11:39:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-14"],
+  "specRefs": ["R-12", "R-17"],
   "changed": {
     "files": [
-      "lib/theme.ts",
-      "hooks/useTasks.ts",
-      "components/Settings.tsx",
-      "src/__tests__/useTasks.test.tsx"
+      "entrypoints/background.ts",
+      "wxt.config.ts",
+      "public/icon/16.png",
+      "public/icon/48.png",
+      "public/icon/128.png",
+      "src/__tests__/notification-icon.test.ts",
+      "docs/API_SPEC.md",
+      "docs/PERMISSION.md"
     ],
-    "modules": ["popup-app", "theme"]
+    "modules": ["background", "manifest", "assets"]
   },
   "impact": {
     "direct": [
-      "popup mở lại áp đúng theme đã lưu (data-theme light/dark), settings 'system' hoặc bị xoá -> về theo OS"
+      "notification dùng icon thật qua chrome.runtime.getURL('icon/48.png'); không còn lỗi 'Unable to download all specified images'",
+      "manifest có icons 16/48/128 để Chrome/Web Store nhận diện extension"
     ],
-    "dependents": [
-      "useTasks mount + storage.onChanged('settings') gọi applyTheme",
-      "components/Settings.tsx dùng chung helper applyTheme khi click"
-    ],
-    "regression": [
-      "theme click trong Settings áp ngay như cũ",
-      "storage sync settings giữa 2 thiết bị đổi theme trực tiếp không cần reload"
-    ]
+    "dependents": ["chrome.notifications.create", "wxt build output icons", "docs gap G5"],
+    "regression": ["permissions vẫn storage/alarms/notifications", "popup bundle không đổi logic"]
   },
   "acceptance": [
-    "4 test theme: dark mount, system mount, settings null->system, onChanged settings",
-    "vitest 9 file / 53 test PASS; tsc/eslint/wxt build PASS"
+    "guard test notification-icon.test.ts PASS (file + background getURL + manifest icons)",
+    "wxt build manifest.json có icons 16/48/128; output có 3 PNG",
+    "vitest 10 file / 56 test PASS; tsc/eslint PASS"
   ],
   "risk": "low"
 }

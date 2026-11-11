@@ -66,8 +66,9 @@ Alarm bền hơn `setTimeout` trong service worker MV3 (SW bị kill giữa ch�
 |---|---|---|
 | `notifications.create(id, opts)` | `background.ts:31` (`notifyTask`) | Hiện nhắc việc: title task + note rút gọn (≤60 ký tự) + hạn |
 
-Notification **không** tự đổi trạng thái task (R-12). `iconUrl: 'icons/icon-48.png'`
-(`background.ts:33`) — ⚠️ file icon chưa tồn tại, xem mục 5 (gap G5).
+Notification **không** tự đổi trạng thái task (R-12). `iconUrl: chrome.runtime.getURL('icon/48.png')`
+(`background.ts:33`) — icon 16/48/128 nằm trong `public/icon/`, manifest khai `icons`
+(gap G5 đã đóng 2026-11-11, guard test `src/__tests__/notification-icon.test.ts`).
 
 ### 2.4 `chrome.runtime`
 
@@ -158,7 +159,7 @@ tạo (Chrome fire ngay), task hiển thị overdue (R-12).
 | G2 | `settings = { theme }` | `types.ts:51-54`: thêm `notificationsEnabled: boolean` | Settings có 2 field |
 | G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:68-72`: weekly chỉ **+7 ngày**, không dùng `weekdays` | Weekly lặp đúng 7 ngày, bỏ qua thứ đã chọn |
 | G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:16`: `SortCriterion = 'default'` duy nhất | Chỉ có sort mặc định |
-| G5 | R-12 notification có icon | `background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons` | Notification thiếu icon; cần bổ sung trước Web Store |
+| G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 
 ## 6. Versioning
 

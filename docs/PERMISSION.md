@@ -58,8 +58,8 @@ không rate-limit phía server. Giới hạn ghi (120 write/phút) là **giới 
 
 ## 4. Lưu ý trước khi đăng Web Store
 
-- ⚠️ **Icon còn thiếu:** manifest chưa khai `icons`, `background.ts:33` tham chiếu
-  `icons/icon-48.png` không tồn tại → cần bổ sung icon (16/32/48/128) trước khi upload
-  (gap G5, [`API_SPEC.md`](API_SPEC.md) §5).
+- **Icon:** đã có `public/icon/{16,48,128}.png`, manifest khai `icons`; notification dùng
+  `chrome.runtime.getURL('icon/48.png')`. Gap G5 đã đóng 2026-11-11 (trước Web Store có thể bổ sung
+  32px nếu muốn theo khuyến nghị listing).
 - Tab Privacy: dán justification mục 1 + data handling mục 2.
 - Không cần khai báo data collection vì không truyền dữ liệu ra ngoài trình duyệt.

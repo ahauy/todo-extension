@@ -30,7 +30,7 @@ function notePreview(task: Task): string {
 function notifyTask(task: Task): void {
   chrome.notifications.create(alarmName(task.id), {
     type: 'basic',
-    iconUrl: 'icons/icon-48.png',
+    iconUrl: chrome.runtime.getURL('icon/48.png'),
     title: taskTitle(task),
     message: notePreview(task) || `Hạn: ${task.dueAt || 'không có hạn'}`,
     priority: task.priority === 'high' ? 2 : 0,
