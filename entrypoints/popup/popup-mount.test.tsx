@@ -106,4 +106,31 @@ describe('popup mount (regression bug/popup-blank-black)', () => {
     expect(html).toContain('Chưa có việc nào.');
     root.unmount();
   });
+
+  it('(c) expand composer hiện form, không rơi vào fallback lỗi (D24)', async () => {
+    document.body.innerHTML = '<div id="root"></div>';
+    const { default: App } = await import('./App');
+
+    const root = createRoot(document.getElementById('root')!);
+    await act(async () => {
+      root.render(React.createElement(App));
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    const plus = [...document.querySelectorAll('button')].find(
+      (button) => button.textContent === '+'
+    );
+    expect(plus).toBeDefined();
+    await act(async () => {
+      plus!.click();
+    });
+
+    expect(
+      document.querySelector('input[placeholder="Ví dụ: Mua sắm tuần"]')
+    ).not.toBeNull();
+    expect(document.body.textContent).not.toContain('Có lỗi khi tải popup');
+    root.unmount();
+  });
 });

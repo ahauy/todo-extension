@@ -13,13 +13,21 @@ interface FieldProps {
 
 export default function Field({ label, helper, error, children }: FieldProps) {
   if (!children) return null;
+  const describedBy = error ? 'field-error' : helper ? 'field-helper' : undefined;
+  // Children có thể là array (vd input + conditional helper) — cloneElement(array)
+  // tạo element type undefined → crash. Clone từng element hợp lệ, giữ nguyên child khác.
+  const injected = React.Children.map(children, (child) =>
+    React.isValidElement(child)
+      ? React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+          'aria-describedby': describedBy,
+          'aria-invalid': error ? true : undefined,
+        })
+      : child
+  );
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-meta text-fg-secondary">{label}</label>
-      {React.cloneElement(children as any, {
-        'aria-describedby': error ? 'field-error' : helper ? 'field-helper' : undefined,
-        'aria-invalid': error ? true : undefined,
-      })}
+      {injected}
       {error ? (
         <p id="field-error" className="text-meta text-danger" role="alert">
           {error}
