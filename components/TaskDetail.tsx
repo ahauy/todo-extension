@@ -13,7 +13,7 @@ import Segmented from './ui/Segmented';
 import TagChip from './ui/TagChip';
 import type { Subtask, Task } from '../lib/tasks/types';
 import { recurrenceForKind } from '../lib/tasks/recurrence';
-import { loadAll, put, remove } from '../lib/storage/adapter';
+import { loadAll } from '../lib/storage/adapter';
 
 const MAX_NOTE = 1000;
 const SAVING_DISABLE_MS = 3000;
@@ -23,6 +23,7 @@ interface TaskDetailProps {
   onSave: () => void;
   onDelete: () => void;
   onBack: () => void;
+  onUpdateTask: (task: Task) => Promise<void>;
   onQuotaError?: (message: string) => void;
   onDirtyChange?: (dirty: boolean) => void;
 }
@@ -32,6 +33,7 @@ export default function TaskDetail({
   onSave,
   onDelete,
   onBack,
+  onUpdateTask,
   onQuotaError,
   onDirtyChange,
 }: TaskDetailProps) {
@@ -134,14 +136,14 @@ export default function TaskDetail({
       };
       setTask(next);
       try {
-        await put(next);
+        await onUpdateTask(next);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setSaveError(msg);
         if (onQuotaError) onQuotaError(msg);
       }
     },
-    [localTask, onQuotaError]
+    [localTask, onQuotaError, onUpdateTask]
   );
 
   const handleSave = useCallback(async () => {
@@ -149,7 +151,7 @@ export default function TaskDetail({
     setSaving(true);
     setSaveError(null);
     try {
-      await put(localTask);
+      await onUpdateTask(localTask);
       setDirty(false);
       setSaving(false);
       onSave();
@@ -159,7 +161,7 @@ export default function TaskDetail({
       setSaving(false);
       if (onQuotaError) onQuotaError(msg);
     }
-  }, [localTask, dirty, onSave, onQuotaError]);
+  }, [localTask, dirty, onSave, onQuotaError, onUpdateTask]);
 
   const handleDelete = useCallback(() => {
     onDelete();

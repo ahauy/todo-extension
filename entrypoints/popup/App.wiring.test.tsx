@@ -274,6 +274,65 @@ describe('App wiring — composer & keyboard (#5, #20)', () => {
   });
 });
 
+describe('App wiring — detail persistence (#11)', () => {
+  it('lưu detail bump updatedAt', async () => {
+    const original = fixture({
+      id: 'a',
+      title: 'Việc A',
+      updatedAt: '2020-01-01T00:00:00.000Z',
+    });
+    stub.seed({ 't:a': original });
+    const container = await renderApp();
+
+    await act(async () => {
+      findButton(container, 'Việc A').click();
+    });
+    const titleInput = container.querySelector(
+      'input[type="text"]'
+    ) as HTMLInputElement;
+    await act(async () => {
+      setInputValue(titleInput, 'Việc A mới');
+    });
+    await act(async () => {
+      findButton(container, 'Lưu').click();
+    });
+
+    const saved = stub.store.get('t:a') as Task;
+    expect(saved.title).toBe('Việc A mới');
+    expect(new Date(saved.updatedAt).getTime()).toBeGreaterThan(
+      new Date(original.updatedAt).getTime()
+    );
+  });
+
+  it('toggle subtask trong detail bump updatedAt', async () => {
+    const original = fixture({
+      id: 'a',
+      title: 'Việc A',
+      updatedAt: '2020-01-01T00:00:00.000Z',
+      subtasks: [{ id: 's1', title: 'Bước 1', done: false }],
+    });
+    stub.seed({ 't:a': original });
+    const container = await renderApp();
+
+    await act(async () => {
+      findButton(container, 'Việc A').click();
+    });
+    const subtask = document.querySelector(
+      'input[aria-label="Đánh dấu subtask: Bước 1"]'
+    ) as HTMLInputElement;
+    expect(subtask).not.toBeNull();
+    await act(async () => {
+      subtask.click();
+    });
+
+    const saved = stub.store.get('t:a') as Task;
+    expect(saved.subtasks[0].done).toBe(true);
+    expect(new Date(saved.updatedAt).getTime()).toBeGreaterThan(
+      new Date(original.updatedAt).getTime()
+    );
+  });
+});
+
 describe('App wiring — dirty confirm & undo (#10, #15)', () => {
   it('sửa title rồi Quay lại hiện dialog "Bỏ thay đổi?"', async () => {
     stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });

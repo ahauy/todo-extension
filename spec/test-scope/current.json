@@ -1,34 +1,29 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 7,
-  "generatedAt": "2026-11-11T11:44:00+07:00",
+  "scopeVersion": 8,
+  "generatedAt": "2026-11-11T11:49:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-10", "R-11"],
+  "specRefs": ["R-02", "R-13"],
   "changed": {
     "files": [
-      "lib/tasks/recurrence.ts",
-      "components/TaskComposer.tsx",
       "components/TaskDetail.tsx",
-      "src/__tests__/recurrence.test.ts",
-      "src/__tests__/TaskComposer.test.tsx",
-      "src/__tests__/useTasks.test.tsx"
+      "entrypoints/popup/App.tsx",
+      "hooks/useTasks.ts",
+      "entrypoints/popup/App.wiring.test.tsx"
     ],
-    "modules": ["recurrence", "composer", "detail"]
+    "modules": ["detail", "tasks-hook"]
   },
   "impact": {
     "direct": [
-      "chọn lặp Hàng tháng/Hàng tuần tạo rule đầy đủ (day/weekday lấy từ hạn) -> tick done không còn TypeError",
-      "đổi hạn sau khi chọn lặp sẽ cập nhật lại rule theo hạn mới",
-      "task legacy thiếu rule.day không crash khi tick done (fallback ngày của hạn cũ)"
+      "lưu task trong detail và toggle subtask đều bump updatedAt qua useTasks.update -> last-write-wins đúng R-13"
     ],
-    "dependents": ["useTasks.toggle -> nextFutureDue", "TaskComposer/TaskDetail onChange recurrence"],
-    "regression": ["daily/weekly vẫn cộng ngày; validation 'lặp cần hạn' giữ nguyên", "monthly clamp ngày cuối tháng"]
+    "dependents": ["TaskDetail onUpdateTask prop", "App truyền update", "storage.onChanged reschedule alarm"],
+    "regression": ["dirty/back-confirm giữ nguyên", "lỗi quota vẫn báo", "snapshot hook cập nhật ngay sau update"]
   },
   "acceptance": [
-    "7 test recurrence (helper, clamp 31, legacy thiếu rule, catch-up)",
-    "composer lưu rule.day=15 và resync 15->20; useTasks toggle monthly không crash, dueAt > now",
-    "vitest 11 file / 66 test PASS; tsc/eslint/wxt build PASS"
+    "2 integration test: save detail bump updatedAt, toggle subtask bump",
+    "vitest 11 file / 68 test PASS; tsc/eslint/wxt build PASS"
   ],
   "risk": "medium"
 }

@@ -33,7 +33,7 @@ const SORT_LABELS: Record<SortCriterion, string> = {
 };
 
 export default function App() {
-  const { tasks, create, remove, toggle, restore } = useTasks();
+  const { tasks, create, update, remove, toggle, restore } = useTasks();
   const [view, setView] = useState<View>('list');
   const [detailId, setDetailId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('all');
@@ -239,6 +239,7 @@ export default function App() {
             onSave={handleSave}
             onDelete={() => setDeleteConfirmId(detailId)}
             onBack={closeDetail}
+            onUpdateTask={update}
             onQuotaError={handleQuotaError}
             onDirtyChange={handleToggleDirty}
           />

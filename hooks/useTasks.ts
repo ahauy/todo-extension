@@ -145,18 +145,13 @@ export function useTasks() {
 
   const update = useCallback(
     async (task: Task) => {
-      try {
-        await put({ ...task, updatedAt: nowISO() });
-        setSnapshot(
-          snapshotStore.tasks.map((t) =>
-            t.id === task.id ? { ...task, updatedAt: nowISO() } : t
-          )
-        );
-      } catch (err) {
-        throw err;
-      }
+      const next = { ...task, updatedAt: nowISO() };
+      await put(next);
+      setSnapshot(
+        snapshotStore.tasks.map((t) => (t.id === task.id ? next : t))
+      );
     },
-    []
+    [setSnapshot]
   );
 
   const remove = useCallback(
