@@ -8,7 +8,13 @@ const tsRecommended = recommended.find(
 export default [
   {
     ...tsRecommended,
-    files: ['entrypoints/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}'],
+    files: [
+      'entrypoints/**/*.{ts,tsx}',
+      'src/**/*.{ts,tsx}',
+      'components/**/*.{ts,tsx}',
+      'hooks/**/*.ts',
+      'lib/**/*.ts',
+    ],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
