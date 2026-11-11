@@ -1,4 +1,5 @@
 import { defineConfig } from 'wxt';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   // Chromium Manifest V3
@@ -8,4 +9,7 @@ export default defineConfig({
     permissions: ['storage', 'alarms', 'notifications'],
   },
   srcDir: '.',
+  vite: () => ({
+    plugins: [tailwindcss()],
+  }),
 });

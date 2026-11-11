@@ -8,7 +8,7 @@
 
 | ID | Tiêu đề | Loại | Trạng thái | Change file | Tạo | Xong |
 |----|---------|------|-----------|-------------|-----|------|
-| _(chưa có — auto-intake sẽ thêm dòng đầu tiên)_ |
+| BUG-001 | Popup thiếu entrypoint + tailwind chưa cài — extension không bấm được | BUG | done | [2026-11-11-popup-missing-entrypoint.md](2026-11-11-popup-missing-entrypoint.md) | 2026-11-11 | 2026-11-11 |
 
 ## Quy tắc tracking
 
