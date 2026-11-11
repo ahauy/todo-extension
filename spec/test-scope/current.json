@@ -1,35 +1,39 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 1,
-  "generatedAt": "2026-11-10T01:50:00+07:00",
-  "trigger": "initial-build",
-  "workItem": "start/todo-extension",
-  "specRefs": ["R-01", "R-02", "R-03", "R-04", "R-05", "R-06", "R-07", "R-08", "R-09", "R-10", "R-11", "R-12", "R-13", "R-14", "R-15", "R-16", "R-17", "R-18"],
+  "scopeVersion": 2,
+  "generatedAt": "2026-11-11T09:55:00+07:00",
+  "trigger": "bug-fix",
+  "workItem": "bug/popup-blank-black",
+  "specRefs": ["R-01", "R-11", "R-16"],
   "changed": {
     "files": [
-      "package.json", "pnpm-lock.yaml", "wxt.config.ts", "tsconfig.json", "vite.config.ts",
-      "entrypoints/popup/App.tsx", "entrypoints/popup/style.css", "entrypoints/background.ts",
-      "lib/tasks/types.ts", "lib/storage/adapter.ts", "lib/tasks/recurrence.ts", "lib/tasks/query.ts",
-      "lib/alarms/scheduler.ts", "hooks/useTasks.ts",
-      "components/ui/Button.tsx", "components/ui/Checkbox.tsx", "components/ui/Divider.tsx",
-      "components/ui/Field.tsx", "components/ui/IconButton.tsx", "components/ui/Menu.tsx",
-      "components/ui/PriorityGlyph.tsx", "components/ui/Segmented.tsx", "components/ui/SubtaskProgress.tsx",
-      "components/ui/TagChip.tsx", "components/TaskComposer.tsx", "components/TaskDetail.tsx",
-      "components/TaskItem.tsx", "components/TaskList.tsx", "components/FilterBar.tsx",
-      "components/Header.tsx", "components/Settings.tsx", "components/ConfirmDialog.tsx",
-      "components/Toast.tsx",
-      ".github/workflows/ci.yml",
-      ".context/project-config.md", ".context/design-spec.md", "skills/react-nodejs/design-tokens.md",
-      "docs/specs/2026-11-10-todo-extension-design.md", "docs/diagrams/layer-plan.html",
-      "tasks/todo-extension/layer-{1..7}-task-{01..21}.md"
+      "hooks/useTasks.ts",
+      "entrypoints/popup/popup-mount.test.tsx"
     ],
-    "modules": ["storage", "domain", "alarms", "background", "ui", "shell", "ci"]
+    "modules": ["hooks", "popup-shell"]
   },
   "impact": {
-    "direct": ["todo-extension.core", "todo-extension.storage", "todo-extension.alarms", "todo-extension.ui"],
-    "dependents": [],
-    "regression": []
+    "direct": [
+      "todo-extension.ui: popup mount lại render được — useTasks không còn ném TypeError khi module evaluate (bỏ hook call ở module scope, snapshot chuyển sang module-level mutable store)",
+      "todo-extension.core: public API { tasks, add, update, remove, toggle } và hành vi (put/remove/alarm sync/last-write-wins/quota throw) giữ nguyên"
+    ],
+    "dependents": [
+      "entrypoints/popup/App.tsx (consumer duy nhất của useTasks)",
+      "entrypoints/popup/main.tsx (createRoot render giờ chạy được)"
+    ],
+    "regression": [
+      "popup mount lần đầu (render Header + FilterBar + Composer + TaskList empty state)",
+      "thêm / toggle / sửa / xoá task qua useTasks",
+      "chrome.storage.onChanged → merge + reschedule alarm",
+      "task lặp tick-done catch-up (R-11)"
+    ]
   },
-  "acceptance": ["popup < 100ms", "50 task"],
+  "acceptance": [
+    "import hooks/useTasks không ném lỗi khi module evaluate",
+    "popup render vào #root có nội dung: Header 'Việc' + empty state 'Chưa có việc nào.'",
+    "regression test entrypoints/popup/popup-mount.test.tsx PASS",
+    "replay bundle build trong jsdom: #root.innerHTML khác rỗng, không TypeError",
+    "tsc --noEmit / eslint . / vitest run / wxt build PASS"
+  ],
   "risk": "low"
 }

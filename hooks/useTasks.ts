@@ -21,7 +21,6 @@
 import {
   useCallback,
   useEffect,
-  useRef,
   useState,
   useSyncExternalStore,
 } from 'react';
@@ -58,8 +57,9 @@ function createTask(title: string): Task {
   };
 }
 
-/** Snapshot mutable để useSyncExternalStore đọc đồng bộ */
-const snapshotRef = useRef<Task[]>([]);
+/** Snapshot mutable để useSyncExternalStore đọc đồng bộ (module-level mutable
+ * object — KHÔNG dùng useRef ở module scope, vi phạm Rules of Hooks). */
+const snapshotStore: { tasks: Task[] } = { tasks: [] };
 
 /** Callback listeners cho React re-render */
 let listeners: (() => void)[] = [];
@@ -90,12 +90,12 @@ export function useTasks() {
         }
       };
     },
-    () => snapshotRef.current,
+    () => snapshotStore.tasks,
     () => []
   );
 
   const setSnapshot = useCallback((next: Task[]) => {
-    snapshotRef.current = next;
+    snapshotStore.tasks = next;
     notify();
   }, [notify]);
 
@@ -105,8 +105,8 @@ export function useTasks() {
       const task = createTask(title);
       try {
         await put(task);
-        setSnapshot([...snapshotRef.current, task]);
-        syncAlarms(snapshotRef.current);
+        setSnapshot([...snapshotStore.tasks, task]);
+        syncAlarms(snapshotStore.tasks);
       } catch (err) {
         throw err;
       }
@@ -119,7 +119,7 @@ export function useTasks() {
       try {
         await put({ ...task, updatedAt: nowISO() });
         setSnapshot(
-          snapshotRef.current.map((t) =>
+          snapshotStore.tasks.map((t) =>
             t.id === task.id ? { ...task, updatedAt: nowISO() } : t
           )
         );
@@ -135,7 +135,7 @@ export function useTasks() {
       try {
         await storageRemove(id);
         clearTaskAlarm(id);
-        setSnapshot(snapshotRef.current.filter((t) => t.id !== id));
+        setSnapshot(snapshotStore.tasks.filter((t) => t.id !== id));
       } catch (err) {
         throw err;
       }
@@ -145,7 +145,7 @@ export function useTasks() {
 
   const toggle = useCallback(
     async (id: string) => {
-      const task = snapshotRef.current.find((t) => t.id === id);
+      const task = snapshotStore.tasks.find((t) => t.id === id);
       if (!task) return;
 
       const now = new Date();
@@ -157,7 +157,7 @@ export function useTasks() {
         try {
           await put(next);
           setSnapshot(
-            snapshotRef.current.map((t) => (t.id === id ? next : t))
+            snapshotStore.tasks.map((t) => (t.id === id ? next : t))
           );
           scheduleTask(next);
         } catch (err) {
@@ -173,7 +173,7 @@ export function useTasks() {
         try {
           await put(next);
           setSnapshot(
-            snapshotRef.current.map((t) => (t.id === id ? next : t))
+            snapshotStore.tasks.map((t) => (t.id === id ? next : t))
           );
         } catch (err) {
           throw err;
@@ -190,7 +190,7 @@ export function useTasks() {
           const next = { ...task, done: true, updatedAt: nowISO() };
           await put(next);
           setSnapshot(
-            snapshotRef.current.map((t) => (t.id === id ? next : t))
+            snapshotStore.tasks.map((t) => (t.id === id ? next : t))
           );
           return;
         }
@@ -203,7 +203,7 @@ export function useTasks() {
         try {
           await put(nextTask);
           setSnapshot(
-            snapshotRef.current.map((t) => (t.id === id ? nextTask : t))
+            snapshotStore.tasks.map((t) => (t.id === id ? nextTask : t))
           );
           scheduleTask(nextTask);
         } catch (err) {
