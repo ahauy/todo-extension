@@ -1,39 +1,65 @@
-# PERMISSION.md — Roles & Guard Order
+# Permissions & Data Handling — Todo Extension
 
-> ⚠️ Phải **sync với code thật** (model `Role` + seed + middleware guard). Nếu lệch → code thắng.
-> Cách sync: đọc seed/quyền trong code + chạy `check_commands.docs_inventory`, rồi cập nhật file này.
-> Source of truth: model/enum Role, seed data, và middleware guard trong `source_roots`.
+> **As-built doc.** Project **không có hệ thống role/guard phía server** (không backend — xem
+> [`BRD.md`](BRD.md)). File này thay cho template "Roles & Guard Order" gốc: mô tả **quyền Chrome
+> extension** + **cách xử lý dữ liệu**, dùng trực tiếp cho tab **Privacy** khi đăng Chrome Web Store.
+> Nguồn sự thật: `wxt.config.ts` (manifest permissions) + code gọi API. Nếu lệch → code thắng.
 
-## Roles
+## 0. Tuyên bố quyền (manifest)
 
-| Role | Mô tả | Nguồn (code) |
-|------|-------|--------------|
-| `USER` | Người dùng thường | `<seed/enum path>` |
-| `ADMIN` | Quản trị | `<seed/enum path>` |
-| ... | ... | ... |
+```jsonc
+// wxt.config.ts → manifest
+{
+  "permissions": ["storage", "alarms", "notifications"]
+}
+```
 
-## Guard order (thứ tự middleware trên route)
+- **Không** `host_permissions` → không truy cập nội dung trang web.
+- **Không** content script → không inject/chạy code trên trang đang mở (R-17, R-18).
+- **Không** `tabs`, `webRequest`, `cookies`, `identity`, hay quyền network nào.
+- **Không** remote code, không eval, không tải script ngoài.
 
-> Thứ tự quan trọng: auth → role → ownership → rate-limit → handler.
+## 1. Justification từng quyền (cho Chrome Web Store)
 
-1. `authenticate` — verify token, gắn `req.user` (401 nếu thiếu/sai).
-2. `authorize(role)` — check role (403 nếu thiếu quyền).
-3. `checkOwnership` — BOLA/IDOR: `:id` phải thuộc `req.user` (hoặc admin) — `skills/security/bola-idor.md`.
-4. `rateLimit` — login/resource-heavy endpoints.
-5. handler — validate input (schema) trước business logic.
+| Quyền | Dùng để làm gì | Bằng chứng code | Vì sao cần |
+|-------|----------------|-----------------|-----------|
+| `storage` | Lưu task + settings trong `chrome.storage.sync`, đồng bộ theo tài khoản Chrome | `lib/storage/adapter.ts` (get/set/remove/onChanged) | Lưu trữ dữ liệu todo cục bộ + đồng bộ đa thiết bị; không có backend thay thế |
+| `alarms` | Đặt nhắc việc bền vững tên `due:<id>`, sống qua vòng đời service worker MV3 | `lib/alarms/scheduler.ts`, `entrypoints/background.ts:65` | `setTimeout` không bền khi SW bị kill; alarm là cách MV3 chuẩn để nhắc đúng hạn |
+| `notifications` | Hiện thông báo nhắc việc khi alarm fire (title + note rút gọn + hạn) | `entrypoints/background.ts:31` (`notifyTask`) | Hiển thị nhắc việc cho người dùng; không thể tự vẽ notification nếu không có quyền |
 
-## Route ↔ permission matrix
+> Cả 3 quyền đều **tối thiểu và trực tiếp** phục vụ tính năng cốt lõi. Không quyền nào dùng cho
+> mục đích khác (tracking, quảng cáo, thu thập dữ liệu).
 
-> Điền từ code; đây là bảng **overview** để review, không phải nguồn thực thi.
+## 2. Data handling (tab Privacy)
 
-| Route | Method | Auth | Role | Ownership |
-|-------|--------|------|------|-----------|
-| `/auth/login` | POST | no | — | — |
-| `/users` | GET | yes | ADMIN | — |
-| `/users/:id` | GET/PUT/DELETE | yes | USER/ADMIN | self hoặc ADMIN |
-| ... | ... | ... | ... | ... |
+| Khía cạnh | Thực tế |
+|-----------|---------|
+| Dữ liệu thu thập | Task (title, note, priority, tag, subtask, due, recurrence) + settings (theme, notificationsEnabled) — **do người dùng tự nhập** |
+| Nơi lưu | `chrome.storage.sync` (trong trình duyệt + đồng bộ qua tài khoản Chrome của chính người dùng) |
+| Truyền ra ngoài | **Không** — không network request, không server riêng, không third-party |
+| Analytics / tracking | **Không** |
+| Quảng cáo | **Không** |
+| Bán/chia sẻ dữ liệu | **Không** |
+| Remote code | **Không** |
+| Xoá dữ liệu | Xoá task trong popup = xoá key khỏi storage; gỡ extension = Chrome xoá dữ liệu extension |
 
-## Ghi chú sync
+**Single purpose:** quản lý todo cá nhân ngay trong trình duyệt (capture, nhắc việc, đồng bộ).
+Mọi quyền và dữ liệu đều phục vụ đúng mục đích này.
 
-- Khi thêm/sửa role hoặc guard → cập nhật file này **trong cùng task**.
-- Không hardcode role string rải rác; dùng enum/hằng chung.
+## 3. "Role" thực tế
+
+| Role | Mô tả | Nguồn |
+|------|-------|-------|
+| Local user (duy nhất) | Toàn quyền trên dữ liệu của chính mình trong trình duyệt | Không có enum/seed — client-only |
+
+Không có `ADMIN`/`USER`/`GUEST`, không middleware guard, không ownership check phía server,
+không rate-limit phía server. Giới hạn ghi (120 write/phút) là **giới hạn nền tảng của
+`chrome.storage.sync`**, không phải guard tự cài (xem [`ERD.md`](ERD.md) §4).
+
+## 4. Lưu ý trước khi đăng Web Store
+
+- ⚠️ **Icon còn thiếu:** manifest chưa khai `icons`, `background.ts:33` tham chiếu
+  `icons/icon-48.png` không tồn tại → cần bổ sung icon (16/32/48/128) trước khi upload
+  (gap G5, [`API_SPEC.md`](API_SPEC.md) §5).
+- Tab Privacy: dán justification mục 1 + data handling mục 2.
+- Không cần khai báo data collection vì không truyền dữ liệu ra ngoài trình duyệt.
