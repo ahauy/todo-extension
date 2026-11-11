@@ -1,298 +1,257 @@
 /**
- * App shell (L6-T19). Popup 360×600 quản lý view state (list / detail / settings),
- * render Header + FilterBar + Composer + TaskList (S1) hoặc TaskDetail (S2) hoặc
- * Settings (S3), ConfirmDialog/Toast đè lên (S4).
- *
- * Điều hướng 1 cấp panel (không nested), Escape/back đóng panel theo thứ tự lớp
- * trên cùng. Keyboard map: n focus composer, / mở search, Escape đóng menu→search→panel,
- * row checkbox Space tick, title Enter/Space mở detail, detail Cmd/Ctrl+Enter lưu,
- * Escape back (confirm nếu dirty).
+ * Popup Học Đường — 360×560, một cột: đầu trang → ô bút lông → dải tab →
+ * cuộn việc → chân trang cố định (đồng hồ thu gọn + bảy đài sen).
+ * Sửa việc là tờ giấy da trượt từ dưới lên; Cài đặt thay chỗ vùng nội dung.
+ * Phím: n về ô bút, / mở tìm, Escape đóng lớp trên cùng.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Header from '../../components/Header';
-import FilterBar from '../../components/FilterBar';
-import TaskComposer from '../../components/TaskComposer';
-import TaskList from '../../components/TaskList';
-import TaskDetail from '../../components/TaskDetail';
-import Settings from '../../components/Settings';
+import FilterRow from '../../components/FilterRow';
+import Composer from '../../components/Composer';
+import TaskScrollList from '../../components/TaskScrollList';
+import TaskParchment from '../../components/TaskParchment';
+import SettingsPanel from '../../components/SettingsPanel';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Toast from '../../components/Toast';
-import { useTasks } from '../../hooks/useTasks';
-import type { Task } from '../../lib/tasks/types';
+import FocusTimer from '../../components/FocusTimer';
+import StreakCard from '../../components/StreakCard';
+import { Proclamation } from '../../components/Proclamation';
+import Button from '../../components/ui/Button';
+import { ChevronLeftIcon } from '../../components/art/Icons';
+import { useBoard } from '../../hooks/useBoard';
+import type { BoardTab, SortKey } from '../../lib/tasks/query';
+import type { TaskDraft } from '../../lib/tasks/form';
 import './style.css';
 
-type View = 'list' | 'detail' | 'settings';
-type Tab = 'all' | 'active' | 'done';
-type SortCriterion = 'default' | 'priority' | 'created';
-
-const SORT_ORDER: SortCriterion[] = ['default', 'priority', 'created'];
-const SORT_LABELS: Record<SortCriterion, string> = {
-  default: 'Hạn chót',
-  priority: 'Ưu tiên',
-  created: 'Mới nhất',
-};
-
 export default function App() {
-  const { tasks, create, update, remove, toggle, restore, loading } = useTasks();
-  const [view, setView] = useState<View>('list');
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('all');
+  const board = useBoard();
+  const [view, setView] = useState<'list' | 'settings'>('list');
+  const [tab, setTab] = useState<BoardTab>('all');
+  const [subjectId, setSubjectId] = useState('all');
+  const [sortKey, setSortKey] = useState<SortKey>('deadline');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [sortCriterion, setSortCriterion] = useState<SortCriterion>('default');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [composerExpandSignal, setComposerExpandSignal] = useState(0);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [dirtyBackConfirm, setDirtyBackConfirm] = useState<boolean>(false);
-  const [toast, setToast] = useState<{
-    open: boolean;
-    message: string;
-    actionLabel?: string;
-    onAction?: () => void;
-  } | null>(null);
-  const [quotaError, setQuotaError] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
-
-  const availableTags = useMemo(
-    () => [...new Set(tasks.flatMap((task) => task.tags))],
-    [tasks]
-  );
-
-  const openDetail = useCallback((id: string) => {
-    setDirty(false);
-    setDetailId(id);
-    setView('detail');
-  }, []);
+  const [dirtyConfirm, setDirtyConfirm] = useState(false);
+  const [expandSignal, setExpandSignal] = useState(0);
+  const [bannerHidden, setBannerHidden] = useState(false);
 
   const closeDetail = useCallback(() => {
     if (dirty) {
-      setDirtyBackConfirm(true);
+      setDirtyConfirm(true);
       return;
     }
-    setView('list');
     setDetailId(null);
   }, [dirty]);
 
-  const openSettings = useCallback(() => {
-    setView('settings');
+  const openBoard = useCallback(() => {
+    void chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') });
+    window.close();
   }, []);
 
-  const closeSettings = useCallback(() => {
-    setView('list');
-  }, []);
-
-  const handleAdd = useCallback(
-    async (submitted: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-      await create(submitted);
-      setView('list');
-    },
-    [create]
-  );
-
-  const handleSave = useCallback(() => {
-    setDirty(false);
-    setView('list');
-    setDetailId(null);
-    setToast({
-      open: true,
-      message: 'Đã lưu việc',
-    });
-  }, []);
-
-  const handleDelete = useCallback(
-    async (id: string) => {
-      const deleted = tasks.find((task) => task.id === id) ?? null;
-      await remove(id);
-      setView('list');
-      setDetailId(null);
-      setToast({
-        open: true,
-        message: 'Đã xoá việc',
-        actionLabel: 'Hoàn tác',
-        onAction: deleted ? () => void restore(deleted) : undefined,
-      });
-    },
-    [remove, restore, tasks]
-  );
-
-  const handleQuotaError = useCallback((message: string) => {
-    setQuotaError(message);
-  }, []);
-
-  const handleToggleDirty = useCallback((value: boolean) => {
-    setDirty(value);
-  }, []);
-
-  const handleTagToggle = useCallback((tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]
-    );
-  }, []);
-
-  const handleSearchOpenChange = useCallback((open: boolean) => {
+  const handleSearchOpen = useCallback((open: boolean) => {
     setSearchOpen(open);
     if (!open) setSearchQuery('');
   }, []);
 
-  const closeToast = useCallback(() => setToast(null), []);
-
-  const handleHeaderSort = useCallback(() => {
-    const next =
-      SORT_ORDER[(SORT_ORDER.indexOf(sortCriterion) + 1) % SORT_ORDER.length];
-    setSortCriterion(next);
-    setToast({ open: true, message: `Sắp xếp: ${SORT_LABELS[next]}` });
-  }, [sortCriterion]);
-
-  // Keyboard map
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        if (e.key === 'Escape') {
-          (e.target as HTMLInputElement).blur();
-        }
-        return;
-      }
-      if (view === 'list') {
-        if (e.key === 'n') {
-          e.preventDefault();
-          setComposerExpandSignal((signal) => signal + 1);
-          return;
-        }
-        if (e.key === '/') {
-          e.preventDefault();
-          setSearchOpen(true);
-          return;
-        }
-        if (e.key === 'Escape' && searchOpen) {
-          e.preventDefault();
-          handleSearchOpenChange(false);
-          return;
-        }
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        if (view === 'detail') {
-          closeDetail();
-        } else if (view === 'settings') {
-          closeSettings();
-        }
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement;
+      if (typing) return;
+      if (event.key === 'n' && view === 'list') {
+        event.preventDefault();
+        setExpandSignal((value) => value + 1);
+      } else if (event.key === '/' && view === 'list') {
+        event.preventDefault();
+        setSearchOpen(true);
+      } else if (event.key === 'Escape') {
+        if (searchOpen) handleSearchOpen(false);
+        else if (view === 'settings') setView('list');
       }
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [view, searchOpen, closeDetail, closeSettings, handleSearchOpenChange]);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [view, searchOpen, handleSearchOpen]);
+
+  const submit = useCallback(
+    (draft: TaskDraft) => {
+      void board.createDraft(draft);
+    },
+    [board]
+  );
 
   return (
-    <div className="w-[360px] h-[600px] bg-bg text-fg font-sans text-body antialiased flex flex-col">
-      {/* Header - luôn hiển thị trên list view */}
-      {view === 'list' && (
-        <Header
-          activeCount={tasks.filter((t) => !t.done).length}
-          overdueCount={tasks.filter(
-            (t) => !t.done && !!t.dueAt && new Date(t.dueAt) < new Date()
-          ).length}
-          onSearch={() => setSearchOpen(true)}
-          onSort={handleHeaderSort}
-          onSettings={openSettings}
+    <div className="popup-shell frame-double">
+      {view === 'list' ? (
+        <>
+          <Header
+            activeCount={board.activeCount}
+            overdueCount={board.overdue}
+            soundEnabled={board.settings.soundEnabled}
+            onToggleSound={board.toggleSound}
+            onOpenBoard={openBoard}
+            onSettings={() => {
+              // Mở Cài đặt thì gỡ tờ giấy da đang mở — không để lớp cũ tràn sang view mới
+              setDetailId(null);
+              setDirty(false);
+              setView('settings');
+            }}
+          />
+
+          <div className="flex-none px-base pb-sm">
+            <Composer
+              subjects={board.subjects}
+              settings={board.settings}
+              defaultSubjectId={subjectId === 'all' || subjectId === 'none' ? null : subjectId}
+              expandSignal={expandSignal}
+              onSubmit={submit}
+            />
+          </div>
+
+          <div className="flex-none px-base pb-sm">
+            <FilterRow
+              tab={tab}
+              counts={board.counts}
+              onTabChange={setTab}
+              searchQuery={searchQuery}
+              searchOpen={searchOpen}
+              onSearchOpenChange={handleSearchOpen}
+              onSearchChange={setSearchQuery}
+              sortKey={sortKey}
+              onSortChange={setSortKey}
+              subjects={board.subjects}
+              subjectId={subjectId}
+              onSubjectChange={setSubjectId}
+            />
+          </div>
+
+          {!bannerHidden && (
+            <Proclamation
+              todayCount={board.counts.today}
+              overdue={board.overdue}
+              compact
+              onDismiss={() => setBannerHidden(true)}
+            />
+          )}
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-base py-base">
+            <TaskScrollList
+              tasks={board.tasks}
+              subjects={board.subjects}
+              tab={tab}
+              subjectId={subjectId}
+              searchQuery={searchQuery}
+              sortKey={sortKey}
+              now={board.now}
+              loading={board.loading}
+              compact
+              freshId={board.freshId}
+              quotaError={board.quotaError}
+              onQuotaRetry={() => board.setQuotaError(null)}
+              onToggle={(id) => void board.toggleTask(id)}
+              onOpen={setDetailId}
+            />
+          </div>
+
+          <footer className="popup-footer">
+            <FocusTimer
+              api={board.pomodoro}
+              preset={board.settings.pomodoroPreset}
+              onPresetChange={(preset) => void board.updateSettings({ pomodoroPreset: preset })}
+              compact
+            />
+            <div className="ml-auto">
+              <StreakCard
+                log={board.log}
+                now={board.now}
+                compact
+                phaseLabel={board.pomodoro.phase === 'focus' ? 'Giờ học' : 'Giờ nghỉ'}
+              />
+            </div>
+          </footer>
+        </>
+      ) : (
+        <>
+          <header className="flex h-14 flex-none items-center gap-sm px-base">
+            <Button variant="ghost" size="sm" onClick={() => setView('list')}>
+              <ChevronLeftIcon size={14} />
+              Về sổ
+            </Button>
+            <h1 className="ml-auto font-display text-heading-sm text-ink-deep">Cài đặt</h1>
+          </header>
+          <div className="min-h-0 flex-1 overflow-y-auto px-base pb-base">
+            <SettingsPanel />
+          </div>
+        </>
+      )}
+
+      {detailId && (
+        <TaskParchment
+          taskId={detailId}
+          subjects={board.subjects}
+          sheet
+          onClose={closeDetail}
+          onDirtyChange={setDirty}
+          onSave={() => {
+            setDirty(false);
+            setDetailId(null);
+            board.setToast({ message: 'Đã lưu việc vào sổ.' });
+          }}
+          onDelete={() => setDeleteId(detailId)}
+          onUpdateTask={board.updateTask}
+          onQuotaError={(message) => board.setQuotaError(message)}
         />
       )}
 
-      {/* View content */}
-      <div className="flex-1 overflow-hidden">
-        {view === 'list' && (
-          <>
-            <FilterBar
-              tab={tab}
-              searchQuery={searchQuery}
-              sortCriterion={sortCriterion}
-              selectedTags={selectedTags}
-              availableTags={availableTags}
-              searchOpen={searchOpen}
-              onSearchOpenChange={handleSearchOpenChange}
-              onTabChange={setTab}
-              onSearchChange={setSearchQuery}
-              onSortChange={(criterion) =>
-                setSortCriterion(criterion as SortCriterion)
-              }
-              onTagToggle={handleTagToggle}
-            />
-            <TaskComposer
-              onSubmit={handleAdd}
-              expandSignal={composerExpandSignal}
-            />
-            <TaskList
-              tasks={tasks}
-              tab={tab}
-              searchQuery={searchQuery}
-              sortCriterion={sortCriterion}
-              selectedTags={selectedTags}
-              loading={loading}
-              onToggle={toggle}
-              onOpenDetail={openDetail}
-              onQuotaRetry={() => {}}
-              quotaError={quotaError}
-            />
-          </>
-        )}
-        {view === 'detail' && detailId && (
-          <TaskDetail
-            taskId={detailId}
-            onSave={handleSave}
-            onDelete={() => setDeleteConfirmId(detailId)}
-            onBack={closeDetail}
-            onUpdateTask={update}
-            onQuotaError={handleQuotaError}
-            onDirtyChange={handleToggleDirty}
+      <ConfirmDialog
+        isOpen={!!deleteId}
+        sheet
+        title="Xoá việc này?"
+        description="Việc sẽ rời khỏi sổ. Con vẫn còn năm giây để hoàn tác sau khi xoá."
+        confirmLabel="Xoá"
+        cancelLabel="Giữ lại"
+        danger
+        onCancel={() => setDeleteId(null)}
+        onConfirm={() => {
+          if (deleteId) void board.deleteTask(deleteId);
+          setDeleteId(null);
+          setDetailId(null);
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={dirtyConfirm}
+        sheet
+        title="Bỏ thay đổi?"
+        description="Con có thay đổi chưa lưu. Bỏ và quay lại danh sách nhé?"
+        confirmLabel="Bỏ"
+        cancelLabel="Ở lại"
+        onCancel={() => setDirtyConfirm(false)}
+        onConfirm={() => {
+          setDirtyConfirm(false);
+          setDirty(false);
+          setDetailId(null);
+        }}
+      />
+
+      <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[80] flex justify-center px-base">
+        {board.toast && (
+          <Toast
+            isOpen
+            message={board.toast.message}
+            detail={board.toast.detail}
+            actionLabel={board.toast.actionLabel}
+            onAction={board.toast.onAction}
+            onClose={() => board.setToast(null)}
           />
         )}
-        {view === 'settings' && (
-          <Settings onBack={closeSettings} />
-        )}
       </div>
-
-      {/* ConfirmDialog */}
-      {deleteConfirmId && (
-        <ConfirmDialog
-          isOpen={!!deleteConfirmId}
-          title="Xoá việc này?"
-          description="Việc sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác."
-          confirmLabel="Xoá"
-          cancelLabel="Giữ lại"
-          danger
-          onConfirm={() => {
-            handleDelete(deleteConfirmId);
-            setDeleteConfirmId(null);
-          }}
-          onCancel={() => setDeleteConfirmId(null)}
-        />
-      )}
-      {dirtyBackConfirm && (
-        <ConfirmDialog
-          isOpen={dirtyBackConfirm}
-          title="Bỏ thay đổi?"
-          description="Bạn có thay đổi chưa lưu. Bỏ và quay lại danh sách?"
-          confirmLabel="Bỏ"
-          cancelLabel="Giữ lại"
-          onConfirm={() => {
-            setDirtyBackConfirm(false);
-            setDirty(false);
-            setView('list');
-            setDetailId(null);
-          }}
-          onCancel={() => setDirtyBackConfirm(false)}
-        />
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <Toast
-          isOpen={toast.open}
-          message={toast.message}
-          actionLabel={toast.actionLabel}
-          onAction={toast.onAction}
-          onClose={closeToast}
-        />
-      )}
     </div>
   );
 }

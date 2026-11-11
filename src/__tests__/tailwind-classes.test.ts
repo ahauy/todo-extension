@@ -1,8 +1,12 @@
 /**
- * Guard test nhóm B (#13/#17): class Tailwind phải tĩnh và tồn tại.
- * - PriorityGlyph không được dùng template động `bg-priority-${...}`
- * - Không còn utility không tồn tại `z-sticky`
- * - style.css khai đủ token màu priority
+ * Guard test sau cải tạo "Sơn mài Học Đường" (thay guard cũ thời PriorityGlyph):
+ * - PriorityBadge (components/ui/Chips.tsx) dùng class TĨNH cho cả 3 mức ưu
+ *   tiên (badge-high/badge-mid/badge-low), không ghép class động `badge-${...}`
+ *   — class động khiến Tailwind không scan ra và badge mất màu.
+ * - Không còn utility không tồn tại `z-sticky` trong components/ lẫn entrypoints/.
+ * - Token/class thật phải được khai trong styles/components.css
+ *   (.badge-high/.badge-mid/.badge-low) — style giờ nằm ở styles/*.css chứ
+ *   không còn trong entrypoints/popup/style.css.
  */
 import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -20,32 +24,32 @@ function listTsx(dir: string): string[] {
   return out;
 }
 
-describe('Tailwind classes (#13/#17)', () => {
-  it('PriorityGlyph dùng class tĩnh cho cả 3 priority', () => {
+describe('class ưu tiên tĩnh + token thật (sau cải tạo sơn mài)', () => {
+  it('Chips.tsx dùng class tĩnh badge-high/badge-mid/badge-low, không ghép template động', () => {
     const source = readFileSync(
-      resolve(root, 'components/ui/PriorityGlyph.tsx'),
+      resolve(root, 'components/ui/Chips.tsx'),
       'utf8'
     );
-    expect(source).not.toContain('bg-priority-${');
-    expect(source).toContain("'bg-priority-low'");
-    expect(source).toContain("'bg-priority-medium'");
-    expect(source).toContain("'bg-priority-high'");
+    expect(source).toContain('badge-high');
+    expect(source).toContain('badge-mid');
+    expect(source).toContain('badge-low');
+    expect(source).not.toContain('badge-${');
   });
 
-  it('không còn utility z-sticky (không tồn tại)', () => {
-    for (const file of listTsx('components')) {
+  it('không còn utility z-sticky (không tồn tại) trong components/ và entrypoints/', () => {
+    const files = [...listTsx('components'), ...listTsx('entrypoints')];
+    for (const file of files) {
       const source = readFileSync(resolve(root, file), 'utf8');
       expect(source, file).not.toContain('z-sticky');
     }
   });
 
-  it('style.css khai token --color-priority-*', () => {
-    const css = readFileSync(
-      resolve(root, 'entrypoints/popup/style.css'),
-      'utf8'
-    );
-    for (const token of ['low', 'medium', 'high']) {
-      expect(css).toContain(`--color-priority-${token}:`);
+  it('styles/components.css khai thật .badge-high/.badge-mid/.badge-low', () => {
+    const css = readFileSync(resolve(root, 'styles/components.css'), 'utf8');
+    for (const selector of ['.badge-high', '.badge-mid', '.badge-low']) {
+      expect(css, `styles/components.css thiếu selector ${selector}`).toContain(
+        selector
+      );
     }
   });
 });

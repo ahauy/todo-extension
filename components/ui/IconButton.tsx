@@ -1,10 +1,10 @@
 /**
- * IconButton (L4-T10). Hit area 44×44, aria-label + title, focus ring 2px.
- * Màu đi qua token, không hex inline.
+ * Nút icon tròn 40px (44px trên màn cảm ứng) — nền sơn bóng, viền mảnh.
+ * Icon luôn là SVG nét của components/art, không dùng emoji.
  */
 import React from 'react';
 
-interface IconButtonProps {
+interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
   'aria-label': string;
   title?: string;
   icon: React.ReactNode;
@@ -17,21 +17,21 @@ export default function IconButton({
   title,
   icon,
   onClick,
-  active = false,
+  active,
+  className,
+  ...rest
 }: IconButtonProps) {
   return (
     <button
       type="button"
       aria-label={ariaLabel}
       title={title ?? ariaLabel}
+      aria-pressed={active}
+      data-active={active === true ? 'true' : undefined}
       onClick={onClick}
-      className={`relative size-9 rounded-control ${
-        active
-          ? 'text-accent-text bg-accent-soft border border-accent-border'
-          : 'text-fg-secondary border-transparent hover:bg-surface-hover active:scale-[0.98]'
-      }`}
+      className={['btn-icon', className].filter(Boolean).join(' ')}
+      {...rest}
     >
-      <span className="absolute -inset-1" />
       {icon}
     </button>
   );

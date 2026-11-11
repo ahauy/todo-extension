@@ -1,8 +1,10 @@
 /**
- * Menu (L4-T10). Sort/tag menu, role=menu, arrow keys.
- * Màu đi qua token, focus ring 2px.
+ * Menu thả xuống kiểu giấy dó: nền sơn bóng, viền mảnh, bóng nổi.
+ * Mở thì focus mục đầu, mũi tên lên/xuống di chuyển, Enter chọn, Escape đóng,
+ * bấm ra ngoài đóng. Đặt absolute nên phần tử cha cần position: relative.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { CheckIcon } from '../art/Icons';
 
 interface MenuItem {
   value: string;
@@ -15,37 +17,63 @@ interface MenuProps {
   onSelect: (value: string) => void;
   open: boolean;
   onClose: () => void;
+  'aria-label'?: string;
+  align?: 'left' | 'right';
 }
 
-export default function Menu({ items, value, onSelect, open, onClose }: MenuProps) {
-  const [focusIndex, setFocusIndex] = useState(items.findIndex((i) => i.value === value));
+export default function Menu({
+  items,
+  value,
+  onSelect,
+  open,
+  onClose,
+  'aria-label': ariaLabel = 'Tuỳ chọn',
+  align = 'left',
+}: MenuProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const first = ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]');
+    first?.focus();
+    const onPointerDown = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open, onClose]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setFocusIndex((i) => (i + 1) % items.length);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusIndex((i) => (i - 1 + items.length) % items.length);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        onSelect(items[focusIndex]?.value ?? value);
-        onClose();
-      } else if (e.key === 'Escape') {
+    (event: React.KeyboardEvent) => {
+      const nodes = Array.from(
+        ref.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []
+      );
+      const index = nodes.indexOf(document.activeElement as HTMLButtonElement);
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        nodes[(index + 1) % nodes.length]?.focus();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        nodes[(index - 1 + nodes.length) % nodes.length]?.focus();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
         onClose();
       }
     },
-    [items, value, onSelect, onClose, focusIndex]
+    [onClose]
   );
 
-  if (!open) return null;
+  if (!open || items.length === 0) return null;
 
   return (
     <div
+      ref={ref}
       role="menu"
-      className="rounded-container border border-border bg-surface-raised shadow-e2 p-1"
+      aria-label={ariaLabel}
       onKeyDown={handleKeyDown}
+      className={`menu absolute top-[calc(100%+4px)] z-50 ${
+        align === 'right' ? 'right-0' : 'left-0'
+      }`}
     >
       {items.map((item) => (
         <button
@@ -57,12 +85,11 @@ export default function Menu({ items, value, onSelect, open, onClose }: MenuProp
             onSelect(item.value);
             onClose();
           }}
-          className={`h-10 px-3 rounded-control text-body w-full text-left transition-colors ${
-            item.value === value
-              ? 'bg-accent-soft text-accent-text font-medium'
-              : 'text-fg-secondary hover:bg-surface-hover'
-          }`}
+          className="menu-item"
         >
+          <span className="w-4 flex-none text-primary">
+            {item.value === value ? <CheckIcon size={14} /> : null}
+          </span>
           {item.label}
         </button>
       ))}

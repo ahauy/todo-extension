@@ -1,16 +1,11 @@
 /**
- * ErrorBoundary (bug/popup-blank-black #2).
- *
- * WHY: popup là màn duy nhất của extension — không có boundary thì mọi exception
- * khi render làm React unmount cả cây → người dùng thấy khối đen/trắng trống,
- * không text, không cách tự phục hồi. Boundary này biến lỗi im lặng thành thông
- * báo đọc được + nút thử lại.
- *
- * Fallback dùng token (`bg-bg`, `text-fg`) nên vẫn đúng theme light/dark,
- * không hex inline. Không log dữ liệu người dùng, chỉ log error + componentStack.
+ * Lưới đỡ khi cây React ném lỗi lúc render. Không có nó thì người dùng chỉ
+ * thấy một khối trống; ở đây lỗi biến thành câu đọc được + nút thử lại.
+ * Vẫn dùng token nên nền luôn là vỏ trứng ngà, không bao giờ đen tuyền.
  */
 import React from 'react';
 import Button from './ui/Button';
+import { BlankScroll } from './art/Scenes';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -31,7 +26,7 @@ export default class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    console.error('[popup] lỗi render — hiển thị fallback', error, info.componentStack);
+    console.error('[học đường] lỗi render — hiển thị fallback', error, info.componentStack);
   }
 
   private readonly handleRetry = (): void => {
@@ -44,11 +39,14 @@ export default class ErrorBoundary extends React.Component<
     return (
       <div
         role="alert"
-        className="w-[360px] h-[600px] bg-bg text-fg font-sans text-body antialiased flex flex-col items-center justify-center gap-2 px-6 text-center"
+        className="flex min-h-full w-full flex-col items-center justify-center gap-base bg-canvas px-lg py-xl text-center text-ink"
       >
-        <p className="text-title font-medium">Có lỗi khi tải popup</p>
-        <p className="text-caption text-fg-secondary">
-          Việc đã lưu vẫn còn nguyên. Hãy thử lại; nếu vẫn lỗi, đóng rồi mở lại popup.
+        <div className="arch w-[150px]">
+          <BlankScroll className="block w-full" />
+        </div>
+        <p className="font-display text-heading-sm">Có lỗi khi tải popup</p>
+        <p className="max-w-[34ch] text-body-sm text-umber">
+          Việc đã ghi vẫn còn nguyên trong sổ. Hãy thử lại; nếu vẫn lỗi, đóng rồi mở lại Học Đường.
         </p>
         <Button variant="primary" onClick={this.handleRetry}>
           Thử lại

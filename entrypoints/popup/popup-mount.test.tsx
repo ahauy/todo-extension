@@ -5,10 +5,15 @@
  * component) → React ném TypeError khi bundle được evaluate →
  * createRoot(...).render() ở main.tsx không bao giờ chạy → #root rỗng.
  *
- * Test chứng minh 2 điều:
+ * Test chứng minh 3 điều:
  * (a) import module hooks/useTasks không ném lỗi (module eval an toàn);
- * (b) render App vào #root cho ra DOM có nội dung (Header "Việc" +
- *     empty state "Chưa có việc nào."), #root.innerHTML khác rỗng.
+ * (b) render App vào #root cho ra DOM có nội dung: header "Học Đường" +
+ *     empty state "Chưa có điều gì cần ghi. Hãy cầm bút lên." (UI Sơn mài
+ *     Học Đường), #root.innerHTML khác rỗng;
+ * (c) expand composer qua nút "Mở chi tiết việc" (không còn nút '+') bày
+ *     form chi tiết — datetime-local + bộ chọn Ưu tiên — ô bút lông
+ *     "Tên việc cần ghi" vẫn còn, và body KHÔNG rơi vào fallback
+ *     "Có lỗi khi tải popup".
  *
  * Stub chrome.storage/alarms/runtime/notifications — không gọi extension API thật.
  */
@@ -87,50 +92,55 @@ describe('popup mount (regression bug/popup-blank-black)', () => {
     await expect(import('../../hooks/useTasks')).resolves.toBeDefined();
   });
 
-  it('(b) render App vào #root cho ra DOM có nội dung', async () => {
+  it('(b) render App vào #root cho ra DOM có nội dung (header + empty state)', async () => {
     document.body.innerHTML = '<div id="root"></div>';
     const { default: App } = await import('./App');
 
     const root = createRoot(document.getElementById('root')!);
     await act(async () => {
       root.render(React.createElement(App));
-    });
-    // Flush async loadAll (useEffect mount) → snapshot set lần đầu
-    await act(async () => {
+      // Flush ngay trong cùng act: loadAll/useSubjects/useSettings bootstrap
+      // async phải resolve trước khi act thoát, tránh cảnh báo update ngoài act
       await new Promise((r) => setTimeout(r, 0));
     });
 
     const html = document.getElementById('root')!.innerHTML;
     expect(html.length).toBeGreaterThan(0);
-    expect(html).toContain('Việc');
-    expect(html).toContain('Chưa có việc nào.');
-    root.unmount();
+    expect(html).toContain('Học Đường');
+    expect(html).toContain('Chưa có điều gì cần ghi. Hãy cầm bút lên.');
+    await act(async () => {
+      root.unmount();
+    });
   });
 
-  it('(c) expand composer hiện form, không rơi vào fallback lỗi (D24)', async () => {
+  it('(c) expand composer hiện form chi tiết, không rơi vào fallback lỗi (D24)', async () => {
     document.body.innerHTML = '<div id="root"></div>';
     const { default: App } = await import('./App');
 
     const root = createRoot(document.getElementById('root')!);
     await act(async () => {
       root.render(React.createElement(App));
-    });
-    await act(async () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    const plus = [...document.querySelectorAll('button')].find(
-      (button) => button.textContent === '+'
-    );
-    expect(plus).toBeDefined();
+    const expand = document.querySelector(
+      'button[aria-label="Mở chi tiết việc"]'
+    ) as HTMLButtonElement | null;
+    expect(expand).not.toBeNull();
     await act(async () => {
-      plus!.click();
+      expand!.click();
     });
 
+    expect(document.querySelector('input[type="datetime-local"]')).not.toBeNull();
     expect(
-      document.querySelector('input[placeholder="Ví dụ: Mua sắm tuần"]')
+      document.querySelector('[role="group"][aria-label="Ưu tiên"]')
+    ).not.toBeNull();
+    expect(
+      document.querySelector('input[aria-label="Tên việc cần ghi"]')
     ).not.toBeNull();
     expect(document.body.textContent).not.toContain('Có lỗi khi tải popup');
-    root.unmount();
+    await act(async () => {
+      root.unmount();
+    });
   });
 });

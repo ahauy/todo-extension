@@ -1,6 +1,7 @@
 /**
- * Field (L4-T10). Label hiển thị + helper/error text + aria-describedby/aria-invalid.
- * Không hex inline, focus ring 2px.
+ * Nhãn + chú thích/lỗi cho một trường. aria-describedby/aria-invalid được tiêm
+ * thẳng vào control thật, kể cả khi control nằm trong div bọc — mỗi Field có
+ * id riêng nên hai Field cạnh nhau không dùng chung mô tả.
  */
 import React from 'react';
 
@@ -12,34 +13,35 @@ interface FieldProps {
 }
 
 interface AriaProps {
+  id?: string;
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
 }
 
 const CONTROL_TYPES = new Set(['input', 'textarea', 'select']);
 
-/** Inject aria vào control thật, kể cả khi nằm trong wrapper div (mọi field dùng id riêng). */
 function injectAria(
   node: React.ReactNode,
+  controlId: string,
   describedBy: string | undefined,
   invalid: boolean | undefined
 ): React.ReactNode {
   return React.Children.map(node, (child) => {
     if (!React.isValidElement(child)) return child;
     if (typeof child.type === 'string' && CONTROL_TYPES.has(child.type)) {
-      const aria: AriaProps = {};
+      const existing = child.props as AriaProps;
+      const aria: AriaProps = { id: existing.id ?? controlId };
       if (describedBy !== undefined) aria['aria-describedby'] = describedBy;
       if (invalid !== undefined) aria['aria-invalid'] = invalid;
       return React.cloneElement(child as React.ReactElement<AriaProps>, aria);
     }
-    // Chỉ đệ quy vào host element (div/span...), không đụng custom component.
     if (typeof child.type !== 'string') return child;
     const props = child.props as { children?: React.ReactNode };
     if (props.children === undefined) return child;
     return React.cloneElement(
       child as React.ReactElement<{ children?: React.ReactNode }>,
       undefined,
-      injectAria(props.children, describedBy, invalid)
+      injectAria(props.children, controlId, describedBy, invalid)
     );
   });
 }
@@ -47,20 +49,24 @@ function injectAria(
 export default function Field({ label, helper, error, children }: FieldProps) {
   const helperId = React.useId();
   const errorId = React.useId();
+  const controlId = React.useId();
   if (!children) return null;
 
   const describedBy = error ? errorId : helper ? helperId : undefined;
-  const injected = injectAria(children, describedBy, error ? true : undefined);
+  const injected = injectAria(children, controlId, describedBy, error ? true : undefined);
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-meta text-fg-secondary">{label}</label>
+    <div className="flex flex-col gap-xs">
+      <label htmlFor={controlId} className="text-caption font-bold tracking-[0.4px] text-brown">
+        {label}
+      </label>
       {injected}
       {error ? (
-        <p id={errorId} className="text-meta text-danger" role="alert">
+        <p id={errorId} className="text-body-sm text-critical" role="alert">
           {error}
         </p>
       ) : helper ? (
-        <p id={helperId} className="text-meta text-fg-muted">
+        <p id={helperId} className="text-caption text-umber">
           {helper}
         </p>
       ) : null}

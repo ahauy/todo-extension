@@ -1,7 +1,7 @@
 /** Test gate thông báo (defect #16). */
 import { describe, expect, it } from 'vitest';
 import { shouldNotify } from '../../lib/notifications';
-import type { Settings, Task } from '../../lib/tasks/types';
+import { DEFAULT_SETTINGS, type Settings, type Task } from '../../lib/tasks/types';
 
 function task(overrides: Partial<Task> = {}): Task {
   return {
@@ -21,7 +21,7 @@ function task(overrides: Partial<Task> = {}): Task {
 }
 
 const settings = (enabled: boolean): Settings => ({
-  theme: 'system',
+  ...DEFAULT_SETTINGS,
   notificationsEnabled: enabled,
 });
 

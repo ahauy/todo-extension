@@ -2,26 +2,25 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Todo Extension</title>
+    <title>Học Đường</title>
     <style>
-      /* Nền dự phòng TĨNH, không phụ thuộc bundle JS/CSS: `color-scheme: light dark`
-         khiến canvas UA tô đen tuyền khi OS dark, nên nếu JS chết thì popup phải
-         vẫn có nền mang màu --bg (light #F5F6F7 / dark #14171A). */
+      /* Nền dự phòng TĨNH, không phụ thuộc bundle JS/CSS. Hệ màu chỉ có tông
+         sáng (vỏ trứng ngà) nên không đặt color-scheme: light dark — nếu JS
+         chết, popup vẫn là mặt giấy ngà chứ không phải khối đen của UA. */
       html,
       body {
-        background: #f5f6f7;
+        background: #f6ebd3;
+        color: #2b1b12;
       }
       body {
         margin: 0;
         width: 360px;
-        height: 600px;
+        height: 560px;
         overflow: hidden;
+        font-family: Georgia, 'Times New Roman', serif;
       }
-      @media (prefers-color-scheme: dark) {
-        html,
-        body {
-          background: #14171a;
-        }
+      #root {
+        height: 560px;
       }
     </style>
   </head>

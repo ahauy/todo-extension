@@ -1,0 +1,344 @@
+/* Bàn học: đồng hồ Pomodoro, chuỗi ngày, châm ngôn, giá sách, lời chào,
+   hộp thoại giấy da, chiếu chỉ, toast nhắc. */
+
+/* ── Đồng hồ giờ học ─────────────────────────────────────────────────── */
+.focus-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xxl);
+  background: var(--surface-lacquer);
+  border: 3px double var(--gold);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), var(--elev-raised);
+}
+.timer-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 220px;
+  height: 220px;
+  margin-inline: auto;
+  border-radius: 9999px;
+  background: var(--surface-lacquer);
+  border: 4px double var(--gold);
+}
+.timer-dial[data-size='sm'] {
+  width: 48px;
+  height: 48px;
+  border-width: 2px;
+}
+.timer-ring {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.timer-ring circle {
+  fill: none;
+  stroke: var(--primary);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 900ms linear;
+}
+.timer-readout {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+}
+.timer-dial[data-size='sm'] .timer-readout {
+  font-size: 18px;
+}
+
+/* Bản thu gọn ở chân Popup: đồng hồ 48px + nút play, đặt cạnh nhau trong
+   hàng ngang của .popup-footer (76px → 64px chiều cao chân trang). */
+.timer-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.timer-compact-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9999px;
+  border: 1px solid var(--gold);
+  background: var(--surface-lacquer);
+  color: var(--primary-deep);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.timer-compact-button:hover {
+  background: var(--primary-wash);
+}
+
+/* ── Chuỗi ngày học ──────────────────────────────────────────────────── */
+.streak-card {
+  padding: var(--spacing-base);
+  border-radius: var(--radius-lg);
+  background: var(--surface-paper);
+  border: 1px solid var(--hairline-soft);
+}
+/* Bảy đài sen thu gọn trong chân Popup — bắt buộc nằm ngang (mặc định block
+   sẽ xếp dọc và tràn khỏi chân trang). */
+.streak-compact {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+.streak-row {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+.streak-lotus {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--surface-sunk);
+  border: 2px solid transparent;
+  color: var(--sepia);
+}
+.streak-lotus[data-lit='true'] {
+  background: var(--gold-leaf);
+  border-color: var(--gold);
+  color: var(--primary-deep);
+}
+.streak-lotus[data-today='true'] {
+  outline: 1px dashed var(--sepia);
+  outline-offset: 2px;
+}
+
+/* ── Châm ngôn ───────────────────────────────────────────────────────── */
+.maxim-card {
+  padding: var(--spacing-lg) 0 0;
+  border-top: 1px solid var(--hairline);
+  color: var(--brown);
+}
+.maxim-quote {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* ── Giá sách ────────────────────────────────────────────────────────── */
+.spine {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--spacing-md) var(--spacing-base);
+  border-radius: var(--radius-sm);
+  background: var(--surface-paper);
+  border: 1px solid transparent;
+  border-left: 8px solid var(--spine-color, var(--sepia));
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.spine[aria-pressed='true'] {
+  background: var(--surface-lacquer);
+  border-color: var(--gold);
+  border-left-color: var(--spine-color, var(--sepia));
+}
+.spine-count {
+  margin-left: auto;
+  color: var(--umber);
+  font-weight: 400;
+}
+
+/* ── Lời chào ────────────────────────────────────────────────────────── */
+.greeting-title {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.5px;
+  color: var(--ink-deep);
+}
+.drop-cap {
+  float: left;
+  margin: 4px 12px 0 0;
+  font-family: var(--font-drop);
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 0.86;
+  color: var(--primary);
+}
+
+/* ── Chiếu chỉ & toast nhắc ──────────────────────────────────────────── */
+.proclamation {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.proclamation button {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 9999px;
+}
+.proclamation button:hover {
+  background: rgba(255, 246, 227, 0.18);
+}
+/* Bản popup: gọn một dòng, tràn thì lược bớt chữ thay vì xuống dòng */
+.proclamation-compact > span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toast-reminder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-base);
+  border-radius: var(--radius-lg);
+  background: var(--surface-lacquer);
+  border: 1px solid var(--gold);
+  border-left: 6px solid var(--primary);
+  box-shadow: var(--elev-raised);
+  animation: toast-rise var(--dur-slide) var(--ease-out) both;
+}
+@keyframes toast-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Hộp thoại giấy da ───────────────────────────────────────────────── */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  z-index: 60;
+  animation: fade-in var(--dur-fast) linear both;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.parchment {
+  position: relative;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-xxl);
+  background: var(--surface-lacquer);
+  border: 3px double var(--gold);
+  box-shadow: var(--elev-modal);
+  z-index: 70;
+  animation: parchment-in var(--dur-slide) var(--ease-out) both;
+}
+@keyframes parchment-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+.parchment[data-sheet='true'] {
+  /* Position phải nằm ở đây (unlayered) — utility `fixed` của Tailwind nằm
+     trong @layer và KHÔNG thắng được .parchment { position: relative }. */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 92%;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xxl) var(--radius-xxl) 0 0;
+  animation: sheet-up var(--dur-slide) var(--ease-out) both;
+}
+.parchment[data-centered='true'] {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 32px));
+  max-height: 88vh;
+  overflow-y: auto;
+  /* parchment-in dùng transform → đè lên translate căn giữa; đổi sang fade */
+  animation: fade-in var(--dur-fast) linear both;
+}
+.parchment::-webkit-scrollbar {
+  width: 10px;
+}
+.parchment::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border: 3px solid var(--surface-lacquer);
+  border-radius: 100px;
+}
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+/* ── Trạng thái rỗng ─────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-base);
+  padding: var(--spacing-xl) var(--spacing-base);
+  color: var(--umber);
+  text-align: center;
+}
+.empty-state p {
+  font-size: 18px;
+  line-height: 1.45;
+  max-width: 30ch;
+}
+
+/* ── Cuối bản thảo ───────────────────────────────────────────────────── */
+.colophon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-base);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-top: 1px solid var(--hairline);
+  background: var(--canvas);
+  color: var(--umber);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ── Bố cục dùng chung ───────────────────────────────────────────────── */
+.region-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-deep);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.hair-rule {
+  height: 1px;
+  background: var(--hairline);
+  border: 0;
+}

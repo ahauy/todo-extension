@@ -1,0 +1,436 @@
+/* Component chữ nhỏ: nút tấm sơn, dải tab đánh dấu trang, chip hạn, huy hiệu,
+   ô nhập. Mỗi biến thể pressed/focus/disabled viết riêng, không giấu trong JS. */
+
+/* ── Nút ─────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.btn:disabled {
+  cursor: not-allowed;
+  background: var(--surface-sunk);
+  color: var(--disabled-text);
+  border: 1px solid var(--hairline);
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-primary {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: 1px solid var(--primary-deep);
+  box-shadow: var(--elev-seal);
+  text-transform: uppercase;
+}
+.btn-primary:not(:disabled):active {
+  background: var(--primary-deep);
+  box-shadow: var(--elev-pressed);
+  transform: translateY(2px);
+}
+
+.btn-secondary {
+  padding: 11px 22px;
+  background: transparent;
+  color: var(--brown);
+  border: 1.5px solid var(--brown);
+}
+.btn-secondary:not(:disabled):active {
+  background: var(--surface-sunk);
+  box-shadow: var(--elev-pressed);
+}
+
+.btn-ghost {
+  padding: 10px 18px;
+  background: transparent;
+  color: var(--brown);
+  border: 1px dashed var(--hairline);
+}
+.btn-ghost:not(:disabled):active {
+  background: var(--surface-paper);
+  border-style: solid;
+}
+
+.btn-danger {
+  padding: 11px 22px;
+  background: transparent;
+  color: var(--critical);
+  border: 1.5px solid var(--critical);
+}
+.btn-danger:not(:disabled):active {
+  background: var(--critical-wash);
+  box-shadow: var(--elev-pressed);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--surface-lacquer);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.btn-icon:active {
+  background: var(--surface-sunk);
+  box-shadow: var(--elev-pressed);
+}
+.btn-icon[aria-pressed='true'],
+.btn-icon[data-active='true'] {
+  background: var(--ink);
+  color: var(--gold-pale);
+  border-color: var(--ink);
+}
+.btn-icon:disabled {
+  color: var(--disabled-text);
+  background: var(--surface-sunk);
+  cursor: not-allowed;
+}
+@media (pointer: coarse) {
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ── Dải tab đánh dấu trang ──────────────────────────────────────────── */
+/* ── Hàng lọc: dải tab + nút sắp xếp / tìm trên cùng một hàng ────────── */
+.filter-line {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+}
+.filter-line .btn-icon {
+  margin-bottom: 3px;
+}
+
+/* Dải tab cuộn ngang khi chật — thanh cuộn mảnh theo màu giấy, không ẩn hẳn
+   để người dùng còn thấy dấu hiệu "còn tab nữa bên phải". */
+.ribbon {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--hairline);
+  scrollbar-width: thin;
+  /* Vệt mờ cạnh phải báo hiệu "còn tab nữa" khi dải tab bị cắt */
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 16px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 16px), transparent);
+}
+.ribbon::-webkit-scrollbar {
+  height: 4px;
+}
+.ribbon::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border: 0;
+  border-radius: 100px;
+}
+.ribbon-tab {
+  flex: none;
+  padding: 8px 16px;
+  min-height: 40px;
+  border-radius: 8px 8px 0 0;
+  background: var(--surface-paper);
+  color: var(--brown);
+  border: 1px solid var(--hairline);
+  border-bottom: 3px solid transparent;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.ribbon-tab[aria-selected='true'] {
+  background: var(--surface-lacquer);
+  color: var(--primary-deep);
+  border-bottom: 3px solid var(--gold);
+}
+
+/* ── Bộ chọn phân đoạn ───────────────────────────────────────────────── */
+.segmented {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.segmented-option {
+  padding: 8px 14px;
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--surface-paper);
+  color: var(--brown);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.segmented-option[aria-checked='true'] {
+  background: var(--ink);
+  color: var(--gold-pale);
+  border-color: var(--ink);
+}
+
+/* ── Ô nhập ──────────────────────────────────────────────────────────── */
+.text-input,
+.text-area {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-lacquer);
+  color: var(--ink);
+  border: 1px solid var(--sepia);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+}
+.text-area {
+  resize: vertical;
+  min-height: 104px;
+}
+.text-input::placeholder,
+.text-area::placeholder {
+  color: var(--umber);
+  font-style: italic;
+}
+.text-input:focus,
+.text-area:focus {
+  outline: none;
+  border: 2px solid var(--primary);
+  padding: calc(var(--spacing-md) - 1px);
+  box-shadow: var(--focus-halo);
+}
+.text-input[aria-invalid='true'],
+.text-area[aria-invalid='true'] {
+  border-color: var(--critical);
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 40px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-paper);
+  border: 1px solid var(--hairline);
+  color: var(--umber);
+}
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+}
+.search-field input::placeholder {
+  color: var(--umber);
+}
+.search-field:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--focus-halo);
+}
+
+/* Ô chọn dấu triện: 28px nhưng vùng bấm 44×44 */
+.seal-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  cursor: pointer;
+}
+.seal-check input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.seal-check-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-lacquer);
+  border: 2px solid var(--sepia);
+  color: var(--on-primary);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.seal-check input:checked + .seal-check-box {
+  background: var(--primary);
+  border-color: var(--primary-deep);
+}
+.seal-check input:focus-visible + .seal-check-box {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  box-shadow: var(--focus-halo);
+}
+
+/* Công tắc — nhãn luôn nói trạng thái, màu chỉ hỗ trợ */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-height: 44px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+}
+.switch-track {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  flex: none;
+  border-radius: 100px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--sepia);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--surface-lacquer);
+  border: 1px solid var(--sepia);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.switch[aria-checked='true'] .switch-track {
+  background: var(--jade);
+  border-color: var(--jade);
+}
+.switch[aria-checked='true'] .switch-knob {
+  transform: translateX(22px);
+  background: var(--on-primary);
+  border-color: var(--on-primary);
+}
+
+/* ── Chip hạn & huy hiệu ─────────────────────────────────────────────── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--surface-paper);
+  color: var(--brown);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.chip-soon {
+  background: var(--gold-pale);
+  color: var(--on-gold);
+  border-color: var(--gold);
+}
+.chip-overdue {
+  background: var(--primary-wash);
+  color: var(--primary-deep);
+  border-color: var(--primary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.badge-high {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.badge-mid {
+  background: var(--gold-leaf);
+  color: var(--on-gold);
+}
+.badge-low {
+  background: var(--jade);
+  color: var(--on-primary);
+}
+.badge-subject {
+  background: var(--indigo-wash);
+  color: var(--ink);
+}
+
+/* ── Menu thả xuống ──────────────────────────────────────────────────── */
+.menu {
+  min-width: 180px;
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-lacquer);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-raised);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--brown);
+  font-family: var(--font-body);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-item[aria-checked='true'] {
+  background: var(--surface-paper);
+  color: var(--primary-deep);
+  font-weight: 700;
+}
+.menu-item:focus-visible {
+  background: var(--gold-pale);
+}

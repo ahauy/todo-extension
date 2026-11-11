@@ -1,10 +1,14 @@
 /**
- * Integration test cho nhóm A (phase-2-task-01): App wiring.
- * Defects: #5 composer data, #6 FilterBar/tab/search/sort, #10 dirty dialog,
- * #15 undo, #20 keyboard n + /.
+ * Integration test wiring popup sau cải tạo UI "Sơn mài Học Đường".
+ * Vẫn guard cùng các regression intent của bản cũ (#5 composer data, #6
+ * tab/search/sort, #10 dirty dialog, #11 detail persistence, #12 empty state,
+ * #15 undo, #20 keyboard n + /) — retarget sang UI mới: Composer bút lông →
+ * FilterRow (RibbonTabs + menu Sắp xếp + Tìm việc + Lọc theo môn học) →
+ * TaskScrollList → TaskParchment (Modal) + ConfirmDialog + Toast.
  *
  * Không dùng @testing-library — createRoot + act + chrome stub.
- * Module useTasks có state ở module scope → resetModules mỗi test.
+ * Module useTasks/useSubjects/useSettings có state ở module scope →
+ * vi.resetModules() mỗi test + import động trong từng test.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -77,6 +81,15 @@ function findButton(scope: ParentNode, label: string): HTMLButtonElement {
   return button as HTMLButtonElement;
 }
 
+/** Tab ribbon có thêm <span> đếm bên trong → so "chứa nhãn", không so exact text. */
+function findTab(scope: ParentNode, label: string): HTMLButtonElement {
+  const tab = [...scope.querySelectorAll('[role="tab"]')].find((candidate) =>
+    candidate.textContent?.includes(label)
+  );
+  if (!tab) throw new Error(`Không tìm thấy tab "${label}"`);
+  return tab as HTMLButtonElement;
+}
+
 function setInputValue(input: HTMLInputElement, value: string): void {
   const setter = Object.getOwnPropertyDescriptor(
     HTMLInputElement.prototype,
@@ -86,8 +99,46 @@ function setInputValue(input: HTMLInputElement, value: string): void {
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+function setSelectValue(select: HTMLSelectElement, value: string): void {
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLSelectElement.prototype,
+    'value'
+  )!.set!;
+  setter.call(select, value);
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
 function pressKey(key: string): void {
   document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+}
+
+/** Mở tờ giấy da sửa việc: bấm tiêu đề cuộn thư rồi flush 2 nhịp (loadAll async). */
+async function openParchment(container: HTMLElement, title: string): Promise<void> {
+  const titleButton = [
+    ...container.querySelectorAll<HTMLButtonElement>('button.scroll-title'),
+  ].find((candidate) => candidate.textContent === title);
+  if (!titleButton) throw new Error(`Không tìm thấy việc "${title}"`);
+  await act(() => {
+    titleButton.click();
+  });
+  await act(async () => {
+    await flush();
+  });
+  await act(async () => {
+    await flush();
+  });
+  expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+}
+
+/** Nút "Hoàn tác" trong toast — không nhầm với nút undo nội dòng của cuộn thư. */
+function toastUndoButton(container: HTMLElement): HTMLButtonElement {
+  const toast = container.querySelector('.toast-reminder');
+  if (!toast) throw new Error('Không thấy toast');
+  const button = [...toast.querySelectorAll('button')].find(
+    (candidate) => candidate.textContent === 'Hoàn tác'
+  );
+  if (!button) throw new Error('Không tìm thấy nút "Hoàn tác" trong toast');
+  return button as HTMLButtonElement;
 }
 
 beforeEach(() => {
@@ -105,15 +156,17 @@ afterEach(async () => {
 });
 
 describe('App wiring — empty & loading state (#12)', () => {
-  it('storage rỗng: chỉ empty state, không còn skeleton', async () => {
+  it('storage rỗng: empty state "cầm bút lên", không còn skeleton', async () => {
     const container = await renderApp();
-    expect(container.textContent).toContain('Chưa có việc nào.');
-    expect(container.querySelector('.bg-skeleton')).toBeNull();
+    expect(container.textContent).toContain(
+      'Chưa có điều gì cần ghi. Hãy cầm bút lên.'
+    );
+    expect(container.querySelector('.skeleton-scroll')).toBeNull();
   });
 });
 
-describe('App wiring — tab / search / sort (#6)', () => {
-  it('tab "Đang làm" ẩn task đã xong', async () => {
+describe('App wiring — tab board (#6)', () => {
+  it('tab "Đã xong" chỉ hiện việc xong; "Hôm nay" ẩn việc xong', async () => {
     stub.seed({
       't:a': fixture({ id: 'a', title: 'Việc đang làm' }),
       't:b': fixture({ id: 'b', title: 'Việc đã xong', done: true }),
@@ -123,19 +176,28 @@ describe('App wiring — tab / search / sort (#6)', () => {
     expect(container.textContent).toContain('Việc đã xong');
 
     await act(async () => {
-      findButton(container, 'Đang làm').click();
+      findTab(container, 'Đã xong').click();
     });
+    expect(container.textContent).toContain('Việc đã xong');
+    expect(container.textContent).not.toContain('Việc đang làm');
 
-    expect(container.textContent).toContain('Việc đang làm');
+    await act(async () => {
+      findTab(container, 'Hôm nay').click();
+    });
     expect(container.textContent).not.toContain('Việc đã xong');
+    expect(container.textContent).toContain('Hôm nay chưa có việc nào đến hạn.');
   });
 
-  it('chỉ render 1 FilterBar trong list view', async () => {
+  it('list view chỉ có đúng 1 dải tab "Lọc việc theo thời hạn"', async () => {
     await renderApp();
-    expect(document.querySelectorAll('[role="group"]')).toHaveLength(1);
+    expect(
+      document.querySelectorAll('[role="tablist"][aria-label="Lọc việc theo thời hạn"]')
+    ).toHaveLength(1);
   });
+});
 
-  it('phím / mở search và lọc theo tiêu đề; đóng search xoá filter', async () => {
+describe('App wiring — search / subject / sort (#6)', () => {
+  it('phím / mở search, lọc theo tiêu đề; Escape đóng và xoá filter', async () => {
     stub.seed({
       't:a': fixture({ id: 'a', title: 'Alpha task' }),
       't:b': fixture({ id: 'b', title: 'Beta task' }),
@@ -146,45 +208,56 @@ describe('App wiring — tab / search / sort (#6)', () => {
       pressKey('/');
     });
     const input = document.querySelector(
-      'input[placeholder="Tìm việc…"]'
+      'input[aria-label="Tìm việc"]'
     ) as HTMLInputElement | null;
     expect(input).not.toBeNull();
 
     await act(async () => {
       setInputValue(input!, 'alpha');
     });
-
     expect(container.textContent).toContain('Alpha task');
     expect(container.textContent).not.toContain('Beta task');
 
     await act(async () => {
       pressKey('Escape');
     });
+    expect(container.textContent).toContain('Alpha task');
     expect(container.textContent).toContain('Beta task');
+    expect(document.querySelector('input[aria-label="Tìm việc"]')).toBeNull();
   });
 
-  it('lọc theo thẻ từ menu tag', async () => {
+  it('lọc theo môn học qua select "Lọc theo môn học" (thay menu thẻ cũ)', async () => {
     stub.seed({
-      't:a': fixture({ id: 'a', title: 'Việc Work', tags: ['work'] }),
-      't:b': fixture({ id: 'b', title: 'Việc Home', tags: ['home'] }),
+      subjects: [
+        { id: 's1', name: 'Toán', order: 0, createdAt: '2026-01-01T00:00:00.000Z' },
+      ],
+      't:a': fixture({ id: 'a', title: 'Việc Toán', subjectId: 's1' }),
+      't:b': fixture({ id: 'b', title: 'Việc tự do' }),
     });
     const container = await renderApp();
 
-    const tagButton = document.querySelector(
-      '[aria-label="Lọc theo thẻ"]'
-    ) as HTMLButtonElement;
-    await act(async () => {
-      tagButton.click();
-    });
-    await act(async () => {
-      findButton(container, '#work').click();
-    });
+    const select = container.querySelector(
+      'select[aria-label="Lọc theo môn học"]'
+    ) as HTMLSelectElement;
+    expect(select).not.toBeNull();
+    expect(
+      [...select.options].some((o) => o.value === 's1' && o.textContent === 'Toán')
+    ).toBe(true);
 
-    expect(container.textContent).toContain('Việc Work');
-    expect(container.textContent).not.toContain('Việc Home');
+    await act(async () => {
+      setSelectValue(select, 's1');
+    });
+    expect(container.textContent).toContain('Việc Toán');
+    expect(container.textContent).not.toContain('Việc tự do');
+
+    await act(async () => {
+      setSelectValue(select, 'none');
+    });
+    expect(container.textContent).not.toContain('Việc Toán');
+    expect(container.textContent).toContain('Việc tự do');
   });
 
-  it('nút sort header cycle sang ưu tiên và đổi thứ tự list', async () => {
+  it('menu Sắp xếp chuyển sang Ưu tiên và đổi thứ tự list', async () => {
     stub.seed({
       't:a': fixture({
         id: 'a',
@@ -204,74 +277,86 @@ describe('App wiring — tab / search / sort (#6)', () => {
       [...container.querySelectorAll('[role="listitem"]')].map(
         (item) => item.textContent ?? ''
       );
+    const sortButton = () =>
+      container.querySelector('button[aria-label="Sắp xếp"]') as HTMLButtonElement;
 
-    // Sort mặc định (hạn chót): task due sớm hơn đứng trước
+    // Mặc định "Hạn chót": việc hết hạn sớm đứng trước
+    expect(sortButton().title).toBe('Sắp xếp: Hạn chót');
     expect(titles()[0]).toContain('Việc ưu tiên thấp');
 
-    const sortButtons = document.querySelectorAll('[aria-label="Sắp xếp"]');
     await act(async () => {
-      (sortButtons[0] as HTMLButtonElement).click();
+      sortButton().click();
+    });
+    expect(container.querySelector('[role="menu"]')).not.toBeNull();
+    const menuItem = [...container.querySelectorAll('[role="menuitem"]')].find(
+      (candidate) => candidate.textContent === 'Ưu tiên'
+    );
+    expect(menuItem).toBeDefined();
+
+    await act(async () => {
+      (menuItem as HTMLButtonElement).click();
     });
 
-    expect(container.textContent).toContain('Sắp xếp: Ưu tiên');
+    expect(sortButton().title).toBe('Sắp xếp: Ưu tiên');
     expect(titles()[0]).toContain('Việc ưu tiên cao');
   });
 });
 
 describe('App wiring — composer & keyboard (#5, #20)', () => {
-  it('phím n mở composer expanded và focus ô tên', async () => {
+  it('phím n focus ô bút lông; blur rồi bấm n lại vẫn focus lại', async () => {
     await renderApp();
+    const quillInput = () =>
+      document.querySelector('input[aria-label="Tên việc cần ghi"]') as HTMLInputElement;
 
     await act(async () => {
       pressKey('n');
     });
+    expect(document.activeElement).toBe(quillInput());
 
-    const input = document.querySelector(
-      'input[placeholder="Ví dụ: Mua sắm tuần"]'
-    );
-    expect(input).not.toBeNull();
-    expect(document.activeElement).toBe(input);
+    await act(async () => {
+      quillInput().blur();
+    });
+    expect(document.activeElement).not.toBe(quillInput());
+
+    await act(async () => {
+      pressKey('n');
+    });
+    expect(document.activeElement).toBe(quillInput());
   });
 
-  it('phím n khi composer đang mở vẫn focus lại ô tên', async () => {
-    await renderApp();
-
-    await act(async () => {
-      pressKey('n');
-    });
-    const input = document.querySelector(
-      'input[placeholder="Ví dụ: Mua sắm tuần"]'
-    ) as HTMLInputElement;
-    expect(document.activeElement).toBe(input);
-
-    await act(async () => {
-      input.blur();
-    });
-    expect(document.activeElement).not.toBe(input);
-
-    await act(async () => {
-      pressKey('n');
-    });
-    expect(document.activeElement).toBe(input);
-  });
-
-  it('lưu composer giữ đủ field (không chỉ title)', async () => {
-    await renderApp();
+  it('lưu composer giữ đủ field (ưu tiên Cao) qua nút "Ghi"', async () => {
+    const container = await renderApp();
 
     await act(async () => {
       pressKey('n');
     });
     const titleInput = document.querySelector(
-      'input[placeholder="Ví dụ: Mua sắm tuần"]'
+      'input[aria-label="Tên việc cần ghi"]'
     ) as HTMLInputElement;
     await act(async () => {
       setInputValue(titleInput, 'Việc đầy đủ');
     });
+    const expandButton = container.querySelector(
+      'button[aria-label="Mở chi tiết việc"]'
+    ) as HTMLButtonElement;
     await act(async () => {
-      findButton(document.body, 'Cao').click();
+      expandButton.click();
     });
+
+    const priorityGroup = container.querySelector(
+      '[role="group"][aria-label="Ưu tiên"]'
+    );
+    expect(priorityGroup).not.toBeNull();
+    const cao = [...priorityGroup!.querySelectorAll('button')].find(
+      (candidate) => candidate.textContent === 'Cao'
+    );
+    expect(cao).toBeDefined();
     await act(async () => {
-      findButton(document.body, 'Lưu').click();
+      cao!.click();
+    });
+
+    await act(async () => {
+      findButton(container, 'Ghi').click();
     });
 
     const keys = [...stub.store.keys()].filter((key) => key.startsWith('t:'));
@@ -282,8 +367,8 @@ describe('App wiring — composer & keyboard (#5, #20)', () => {
   });
 });
 
-describe('App wiring — detail persistence (#11)', () => {
-  it('lưu detail bump updatedAt', async () => {
+describe('App wiring — parchment persistence (#11)', () => {
+  it('lưu parchment đổi title + bump updatedAt', async () => {
     const original = fixture({
       id: 'a',
       title: 'Việc A',
@@ -292,12 +377,11 @@ describe('App wiring — detail persistence (#11)', () => {
     stub.seed({ 't:a': original });
     const container = await renderApp();
 
-    await act(async () => {
-      findButton(container, 'Việc A').click();
-    });
+    await openParchment(container, 'Việc A');
     const titleInput = container.querySelector(
-      'input[type="text"]'
+      'input.text-input[data-autofocus]'
     ) as HTMLInputElement;
+    expect(titleInput.value).toBe('Việc A');
     await act(async () => {
       setInputValue(titleInput, 'Việc A mới');
     });
@@ -312,7 +396,7 @@ describe('App wiring — detail persistence (#11)', () => {
     );
   });
 
-  it('toggle subtask trong detail bump updatedAt', async () => {
+  it('tick subtask trong parchment ghi NGAY, không cần bấm Lưu', async () => {
     const original = fixture({
       id: 'a',
       title: 'Việc A',
@@ -322,10 +406,8 @@ describe('App wiring — detail persistence (#11)', () => {
     stub.seed({ 't:a': original });
     const container = await renderApp();
 
-    await act(async () => {
-      findButton(container, 'Việc A').click();
-    });
-    const subtask = document.querySelector(
+    await openParchment(container, 'Việc A');
+    const subtask = container.querySelector(
       'input[aria-label="Đánh dấu subtask: Bước 1"]'
     ) as HTMLInputElement;
     expect(subtask).not.toBeNull();
@@ -342,23 +424,19 @@ describe('App wiring — detail persistence (#11)', () => {
 });
 
 describe('App wiring — dirty confirm & undo (#10, #15)', () => {
-  it('sửa title rồi Quay lại hiện dialog "Bỏ thay đổi?"', async () => {
+  it('sửa title rồi "Để sau" hiện dialog "Bỏ thay đổi?"; "Bỏ" đóng hết, không lưu', async () => {
     stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });
     const container = await renderApp();
 
-    await act(async () => {
-      findButton(container, 'Việc A').click();
-    });
+    await openParchment(container, 'Việc A');
     const titleInput = container.querySelector(
-      'input[type="text"]'
-    ) as HTMLInputElement | null;
-    expect(titleInput?.value).toBe('Việc A');
-
+      'input.text-input[data-autofocus]'
+    ) as HTMLInputElement;
     await act(async () => {
-      setInputValue(titleInput!, 'Việc A sửa');
+      setInputValue(titleInput, 'Việc A sửa');
     });
     await act(async () => {
-      findButton(container, 'Quay lại').click();
+      findButton(container, 'Để sau').click();
     });
 
     expect(container.textContent).toContain('Bỏ thay đổi?');
@@ -367,34 +445,55 @@ describe('App wiring — dirty confirm & undo (#10, #15)', () => {
       findButton(container, 'Bỏ').click();
     });
 
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
     expect(container.textContent).not.toContain('Bỏ thay đổi?');
-    expect(container.textContent).toContain('Việc A');
     const saved = stub.store.get('t:a') as Task;
     expect(saved.title).toBe('Việc A');
   });
 
-  it('xoá việc rồi Hoàn tác khôi phục task', async () => {
+  it('xoá việc qua parchment rồi Hoàn tác trong toast khôi phục', async () => {
     stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc xoá' }) });
     const container = await renderApp();
 
-    await act(async () => {
-      findButton(container, 'Việc xoá').click();
-    });
+    await openParchment(container, 'Việc xoá');
     await act(async () => {
       findButton(container, 'Xoá việc').click();
     });
+    expect(container.textContent).toContain('Xoá việc này?');
     await act(async () => {
       findButton(container, 'Xoá').click();
     });
 
     expect(stub.store.has('t:a')).toBe(false);
-    expect(container.textContent).toContain('Đã xoá việc');
+    expect(container.textContent).toContain('Đã xoá việc khỏi sổ.');
 
     await act(async () => {
-      findButton(container, 'Hoàn tác').click();
+      toastUndoButton(container).click();
     });
 
     expect(stub.store.has('t:a')).toBe(true);
     expect(container.textContent).toContain('Việc xoá');
+  });
+
+  it('đóng dấu son rồi Hoàn tác trong toast trả lại việc chưa xong', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });
+    const container = await renderApp();
+
+    const seal = container.querySelector(
+      'button[aria-label="Đánh dấu xong: Việc A"]'
+    ) as HTMLButtonElement;
+    expect(seal).not.toBeNull();
+    await act(async () => {
+      seal.click();
+    });
+
+    expect((stub.store.get('t:a') as Task).done).toBe(true);
+    expect(container.textContent).toContain('Đã đóng dấu son.');
+
+    await act(async () => {
+      toastUndoButton(container).click();
+    });
+
+    expect((stub.store.get('t:a') as Task).done).toBe(false);
   });
 });

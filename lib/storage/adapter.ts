@@ -8,8 +8,15 @@
  * Vitest mock `chrome.storage` (không gọi extension API thật trong unit test).
  */
 
-import type { Settings, Task } from '../tasks/types';
-import { SETTINGS_KEY, TASK_KEY_PREFIX, taskKey } from '../tasks/types';
+import type { Settings, StudyLog, Subject, Task } from '../tasks/types';
+import {
+  DEFAULT_SETTINGS,
+  SETTINGS_KEY,
+  STUDY_LOG_KEY,
+  SUBJECTS_KEY,
+  TASK_KEY_PREFIX,
+  taskKey,
+} from '../tasks/types';
 
 const MAX_ITEM_BYTES = 8192;
 
@@ -117,11 +124,26 @@ export async function remove(id: string): Promise<void> {
   }
 }
 
+/** Gộp settings đã lưu với mặc định. Bản cũ có `theme` (sáng/tối) — hệ màu
+ *  mới chỉ có tông sáng nên trường đó bị bỏ, các trường mới lấy mặc định. */
+export function normalizeSettings(raw: unknown): Settings {
+  const source = (raw ?? {}) as Partial<Record<keyof Settings, unknown>>;
+  const merged = { ...DEFAULT_SETTINGS };
+  for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
+    const value = source[key];
+    if (typeof value === typeof DEFAULT_SETTINGS[key]) {
+      Object.assign(merged, { [key]: value });
+    }
+  }
+  return merged;
+}
+
 /** Đọc settings */
 export async function loadSettings(): Promise<Settings | null> {
   try {
     const all = await storageGet<Record<string, unknown>>([SETTINGS_KEY]);
-    return (all[SETTINGS_KEY] as Settings) ?? null;
+    const raw = all[SETTINGS_KEY];
+    return raw === undefined ? null : normalizeSettings(raw);
   } catch (err) {
     if (isQuotaError(err)) {
       throw new StorageQuotaError(`loadSettings quota: ${err}`);
@@ -155,4 +177,46 @@ export function subscribe(
   return () => {
     chrome.storage.onChanged.removeListener(handler);
   };
+}
+
+/** Danh sách môn học — một key nhỏ, ghi nguyên cả danh sách */
+export async function loadSubjects(): Promise<Subject[]> {
+  const all = await storageGet<Record<string, unknown>>([SUBJECTS_KEY]);
+  const raw = all[SUBJECTS_KEY];
+  return Array.isArray(raw) ? (raw as Subject[]) : [];
+}
+
+export async function putSubjects(subjects: Subject[]): Promise<void> {
+  try {
+    await storageSet({ [SUBJECTS_KEY]: subjects });
+  } catch (err) {
+    if (isQuotaError(err)) {
+      throw new StorageQuotaError(`putSubjects quota: ${err}`);
+    }
+    throw err;
+  }
+}
+
+/** Nhật ký học — chỉ giữ 60 ngày gần nhất để không phình key */
+export const STUDY_LOG_DAYS = 60;
+
+export async function loadStudyLog(): Promise<StudyLog> {
+  const all = await storageGet<Record<string, unknown>>([STUDY_LOG_KEY]);
+  const raw = all[STUDY_LOG_KEY];
+  return raw && typeof raw === 'object' ? (raw as StudyLog) : {};
+}
+
+export async function putStudyLog(log: StudyLog): Promise<void> {
+  const keys = Object.keys(log).sort();
+  const kept = keys.slice(-STUDY_LOG_DAYS);
+  const pruned: StudyLog = {};
+  for (const key of kept) pruned[key] = log[key];
+  try {
+    await storageSet({ [STUDY_LOG_KEY]: pruned });
+  } catch (err) {
+    if (isQuotaError(err)) {
+      throw new StorageQuotaError(`putStudyLog quota: ${err}`);
+    }
+    throw err;
+  }
 }

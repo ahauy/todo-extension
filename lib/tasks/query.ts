@@ -105,3 +105,73 @@ export function sortDoneTasks(tasks: Task[]): Task[] {
     return tb - ta;
   });
 }
+
+/* ── Bảng Học Đường: Tất cả · Hôm nay · Sắp tới · Đã xong ─────────────── */
+
+export type BoardTab = 'all' | 'today' | 'upcoming' | 'done';
+export type SortKey = 'deadline' | 'priority' | 'created';
+
+function sameLocalDay(iso: string, now: Date): boolean {
+  const date = new Date(iso);
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  );
+}
+
+/** "Hôm nay" gồm cả việc quá hạn chưa xong — chúng vẫn đang chờ hôm nay */
+export function filterByBoard(tasks: Task[], tab: BoardTab, now: Date): Task[] {
+  switch (tab) {
+    case 'today':
+      return tasks.filter(
+        (task) =>
+          !task.done &&
+          !!task.dueAt &&
+          (sameLocalDay(task.dueAt, now) || new Date(task.dueAt) < now)
+      );
+    case 'upcoming':
+      return tasks.filter(
+        (task) => !task.done && !!task.dueAt && new Date(task.dueAt) > now && !sameLocalDay(task.dueAt, now)
+      );
+    case 'done':
+      return tasks.filter((task) => task.done);
+    case 'all':
+      return [...tasks];
+  }
+}
+
+/** Lọc theo gáy sách. 'all' = mọi môn, 'none' = việc chưa xếp môn */
+export function filterBySubject(tasks: Task[], subjectId: string): Task[] {
+  if (subjectId === 'all') return [...tasks];
+  if (subjectId === 'none') return tasks.filter((task) => !task.subjectId);
+  return tasks.filter((task) => task.subjectId === subjectId);
+}
+
+export function sortBoard(tasks: Task[], key: SortKey, now: Date): Task[] {
+  if (key === 'created') {
+    return [...tasks].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+  if (key === 'priority') {
+    return [...tasks].sort((a, b) => {
+      const diff = priorityRank(b.priority) - priorityRank(a.priority);
+      if (diff !== 0) return diff;
+      const ad = a.dueAt ? new Date(a.dueAt).getTime() : Number.POSITIVE_INFINITY;
+      const bd = b.dueAt ? new Date(b.dueAt).getTime() : Number.POSITIVE_INFINITY;
+      if (ad !== bd) return ad - bd;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+  return sortTasks(tasks, now);
+}
+
+/** Việc chưa xong đang chờ hôm nay — dùng cho chiếu chỉ và lời chào */
+export function dueTodayCount(tasks: Task[], now: Date): number {
+  return filterByBoard(tasks, 'today', now).length;
+}
+
+export function overdueCount(tasks: Task[], now: Date): number {
+  return tasks.filter((task) => isOverdue(task, now)).length;
+}

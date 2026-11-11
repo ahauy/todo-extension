@@ -9,8 +9,9 @@
 
 import { syncAlarms, scheduleTask, clearTaskAlarm, alarmName } from '../lib/alarms/scheduler';
 import { loadAll, loadSettings } from '../lib/storage/adapter';
+import { recallBoardTab } from '../lib/storage/local';
 import { shouldNotify } from '../lib/notifications';
-import type { Task } from '../lib/tasks/types';
+import { DEFAULT_SETTINGS, type DisplayMode, type Task } from '../lib/tasks/types';
 
 const MAX_NOTE_PREVIEW = 60;
 
@@ -33,7 +34,7 @@ function notifyTask(task: Task): void {
     type: 'basic',
     iconUrl: chrome.runtime.getURL('icon/48.png'),
     title: taskTitle(task),
-    message: notePreview(task) || `Hạn: ${task.dueAt || 'không có hạn'}`,
+    message: notePreview(task) || `Đến hạn rồi con ơi: ${task.dueAt || 'không có hạn'}`,
     priority: task.priority === 'high' ? 2 : 0,
   });
 }
@@ -49,9 +50,44 @@ async function resyncAlarmsFromStorage(): Promise<void> {
   }
 }
 
+/** Chế độ hiển thị quyết định nút biểu tượng mở gì.
+ *  Popup / Tự động → mở popup. New Tab → gỡ popup để onClicked chạy. */
+async function applyDisplayMode(mode: DisplayMode): Promise<void> {
+  try {
+    await chrome.action.setPopup({ popup: mode === 'newtab' ? '' : 'popup.html' });
+  } catch (err) {
+    console.error('[học đường] không đổi được chế độ nút biểu tượng:', err);
+  }
+}
+
+async function currentDisplayMode(): Promise<DisplayMode> {
+  const settings = await loadSettings();
+  return (settings ?? DEFAULT_SETTINGS).displayMode;
+}
+
+/** Mở hoặc quay lại bảng lớn. Id tab nhớ trong storage.session nên không
+ *  cần quyền `tabs` để truy vấn theo URL. */
+async function openBoard(): Promise<void> {
+  const remembered = await recallBoardTab();
+  if (remembered !== null) {
+    try {
+      await chrome.tabs.update(remembered, { active: true });
+      return;
+    } catch {
+      // Tab đã đóng → mở cái mới
+    }
+  }
+  await chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') });
+}
+
 import { defineBackground } from 'wxt/utils/define-background';
 
 export default defineBackground(() => {
+  /** Nút biểu tượng khi đang ở chế độ New Tab */
+  chrome.action.onClicked.addListener(() => {
+    void openBoard();
+  });
+
   /** onAlarm → hiện notification (tôn trọng settings.notificationsEnabled) */
   chrome.alarms.onAlarm.addListener((alarm) => {
     void (async () => {
@@ -68,13 +104,15 @@ export default defineBackground(() => {
     })();
   });
 
-  /** onInstalled / onStartup → resync toàn bộ alarm */
+  /** onInstalled / onStartup → resync toàn bộ alarm + áp chế độ hiển thị */
   chrome.runtime.onInstalled.addListener(() => {
     void resyncAlarmsFromStorage();
+    void currentDisplayMode().then(applyDisplayMode);
   });
 
   chrome.runtime.onStartup.addListener(() => {
     void resyncAlarmsFromStorage();
+    void currentDisplayMode().then(applyDisplayMode);
   });
 
   /** storage.onChanged → reschedule alarm khi task thay đổi (settings do popup/useTasks xử lý) */
@@ -82,6 +120,9 @@ export default defineBackground(() => {
     if (area !== 'sync') return;
 
     void (async () => {
+      if (changes.settings) {
+        await applyDisplayMode(await currentDisplayMode());
+      }
       for (const [key, change] of Object.entries(changes)) {
         if (typeof key === 'string' && key.startsWith('t:')) {
           const id = key.slice('t:'.length);

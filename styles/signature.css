@@ -1,0 +1,336 @@
+/* Những mảnh định hình cảm giác sản phẩm: khung đôi vàng kim, cuộn thư,
+   con dấu son, ô nhập bút lông. Đây là chỗ phải dựng bằng tay, không utility. */
+
+/* ── Khung đôi vàng kim + họa tiết góc ───────────────────────────────── */
+.frame-double {
+  position: relative;
+  border: 3px double var(--gold);
+  background: var(--canvas);
+}
+.frame-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  color: var(--gold);
+  pointer-events: none;
+}
+.frame-corner[data-at='tl'] { top: 6px; left: 6px; }
+.frame-corner[data-at='tr'] { top: 6px; right: 6px; transform: scaleX(-1); }
+.frame-corner[data-at='bl'] { bottom: 6px; left: 6px; transform: scaleY(-1); }
+.frame-corner[data-at='br'] { bottom: 6px; right: 6px; transform: scale(-1); }
+
+/* Đường phân cách mây giữa các khu lớn */
+.cloud-rule {
+  height: 12px;
+  color: var(--hairline);
+  background-repeat: repeat-x;
+  background-size: 48px 12px;
+}
+
+/* ── Cuộn thư nhiệm vụ ───────────────────────────────────────────────── */
+.scroll-task {
+  position: relative;
+  padding: var(--spacing-base);
+  border-radius: var(--radius-lg);
+  background: var(--surface-lacquer);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-lacquer);
+  transition: background-color var(--dur-slide) var(--ease-out),
+    border-color var(--dur-slide) var(--ease-out);
+}
+/* Trục cuộn trên và dưới */
+.scroll-task::before,
+.scroll-task::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 6px;
+  border-radius: 100px;
+  background: linear-gradient(
+    180deg,
+    var(--hairline-soft) 0%,
+    var(--hairline) 45%,
+    var(--sepia) 100%
+  );
+  opacity: 0.55;
+}
+.scroll-task::before { top: -3px; }
+.scroll-task::after { bottom: -3px; }
+
+.scroll-task[data-state='done'] {
+  background: var(--surface-paper);
+  border-color: var(--hairline-soft);
+  box-shadow: none;
+  color: var(--umber);
+}
+.scroll-task[data-state='done']::before,
+.scroll-task[data-state='done']::after {
+  opacity: 0.3;
+}
+.scroll-task[data-state='overdue'] {
+  background: var(--primary-wash);
+  border-color: var(--primary);
+}
+.scroll-task[data-fresh='true'] {
+  animation: scroll-unfurl var(--dur-slide) var(--ease-out) both;
+}
+@keyframes scroll-unfurl {
+  from { opacity: 0; transform: translateY(-10px) scaleY(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+.scroll-title {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: inherit;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.scroll-title:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 4px;
+}
+.scroll-task[data-state='done'] .scroll-title {
+  font-weight: 400;
+  color: var(--umber);
+}
+
+/* ── Con dấu son XONG ────────────────────────────────────────────────── */
+.seal-stamp {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  border: 3px double var(--primary);
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 1px;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(-6deg);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+}
+.seal-stamp[data-size='sm'] {
+  width: 40px;
+  height: 40px;
+  font-size: 11px;
+  border-width: 2px;
+}
+.seal-stamp[data-size='lg'] {
+  width: 92px;
+  height: 92px;
+  font-size: 22px;
+  border-width: 4px;
+}
+.seal-stamp[data-striking='true'] {
+  animation: seal-strike var(--dur-slide) var(--ease-out) both;
+}
+@keyframes seal-strike {
+  0% { opacity: 0; transform: rotate(-6deg) scale(1.4); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: rotate(-6deg) scale(1); }
+}
+
+/* Nút đóng dấu ở đầu cuộn */
+.seal-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: 1px solid var(--primary-deep);
+  box-shadow: var(--elev-seal);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.seal-button:active {
+  background: var(--primary-deep);
+  box-shadow: var(--elev-pressed);
+  transform: translateY(2px);
+}
+.seal-button[aria-pressed='true'] {
+  background: transparent;
+  color: var(--sepia);
+  border: 1px dashed var(--sepia);
+  box-shadow: none;
+}
+
+/* ── Ô nhập bút lông ─────────────────────────────────────────────────── */
+.quill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--surface-lacquer);
+  border: 1px solid var(--sepia);
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+/* Đường kẻ ngang mờ như giấy kẻ */
+.quill::before {
+  content: '';
+  position: absolute;
+  left: var(--spacing-base);
+  right: var(--spacing-base);
+  bottom: 12px;
+  height: 1px;
+  background: var(--hairline-soft);
+  pointer-events: none;
+}
+.quill[data-focused='true'] {
+  border: 2px solid var(--primary);
+  box-shadow: var(--focus-halo);
+}
+.quill[data-invalid='true'] {
+  border-color: var(--critical);
+}
+
+.quill-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 54px;
+}
+/* Lớp mực trang trí nằm chồng lên input thật; input giữ IME/dán/undo */
+.quill-ink,
+.quill-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 10px var(--spacing-base) 14px;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-quill);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: pre;
+  overflow: hidden;
+}
+.quill-input {
+  color: transparent;
+  outline: none;
+}
+.quill[data-plain='true'] .quill-input {
+  color: var(--ink);
+}
+.quill[data-plain='true'] .quill-ink {
+  display: none;
+}
+.quill-input::placeholder {
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-style: italic;
+  color: var(--umber);
+}
+.quill-ink {
+  pointer-events: none;
+  color: var(--ink);
+}
+.quill-ink[data-composing='true'] {
+  text-decoration: underline;
+  text-decoration-color: var(--sepia);
+  text-underline-offset: 4px;
+}
+
+.ink-char {
+  display: inline-block;
+  white-space: pre;
+  animation: ink-soak var(--dur-ink) var(--ease-ink) both,
+    ink-dry var(--dur-dry) linear both;
+}
+@keyframes ink-soak {
+  from { opacity: 0; filter: blur(1px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes ink-dry {
+  from { color: var(--brown); }
+  to { color: var(--ink); }
+}
+
+.quill-nib {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  color: var(--brown);
+  pointer-events: none;
+  transform-origin: 2px 26px;
+  transition: transform var(--dur-nib) var(--ease-out),
+    opacity var(--dur-slide) var(--ease-out);
+  will-change: transform;
+}
+.quill-nib[data-resting='true'] {
+  opacity: 0.5;
+}
+.quill-nib[data-tapping='true'] .nib-body {
+  animation: nib-tap var(--dur-nib) var(--ease-out);
+}
+@keyframes nib-tap {
+  50% { transform: translateY(2px); }
+}
+
+/* ── Cuộn chờ khi đang mở sổ ─────────────────────────────────────────── */
+.skeleton-scroll {
+  height: 92px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hairline-soft);
+  background: linear-gradient(
+    100deg,
+    var(--surface-paper) 0%,
+    var(--surface-sunk) 42%,
+    var(--surface-paper) 78%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-breathe 1.6s var(--ease-ink) infinite;
+}
+@keyframes skeleton-breathe {
+  from { background-position: 120% 0; }
+  to { background-position: -40% 0; }
+}
+
+/* ── Khung vòm cho minh họa ──────────────────────────────────────────── */
+.arch {
+  border-radius: var(--radius-arch) var(--radius-arch) var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-paper);
+  border: 1px solid var(--hairline);
+}
+
+/* ── Thanh tiến độ mực ───────────────────────────────────────────────── */
+.progress-ink {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface-sunk);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+.progress-ink > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width var(--dur-slide) var(--ease-out);
+}

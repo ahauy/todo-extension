@@ -1,233 +1,781 @@
-# Design Specification — Todo Extension
+---
+version: alpha
+name: Son-Mai-Hoc-Duong-Todo
+description: Hệ thiết kế cho extension todo "Học Đường" — nhắc việc cho người đi học. Giao diện mô phỏng tranh sơn mài Việt Nam tông sáng (nền vỏ trứng ngà, vàng kim, đỏ son, nâu sơn ta) pha bố cục trang bản thảo trung cổ (khung viền đôi, chữ cái đầu trang trí, cuộn thư, con dấu son). Mỗi công việc là một cuộn thư, mỗi môn học là một gáy sách, hoàn thành việc là đóng một dấu son. Khi gõ, ô nhập hiển thị chữ như được viết bằng bút lông ngỗng theo từng ký tự. Hỗ trợ hai chế độ hiển thị — Popup (360×560) và New Tab (toàn màn hình) — người dùng tự chọn hoặc để tự động.
 
-> **Design spec (canonical).** Nguồn sự thật đầy đủ:
-> [`.context/design-spec.md`](../.context/design-spec.md) (screen specs, interaction, a11y, copy deck)
-> và [`skills/react-nodejs/design-tokens.md`](../skills/react-nodejs/design-tokens.md) (tokens + contrast evidence).
-> File này là overview có cấu trúc để đọc nhanh; giá trị chi tiết lấy từ 2 nguồn trên.
-> Stack: WXT + React 19 + TypeScript + **Tailwind CSS v4** (custom components, không UI lib, không shadcn).
+colors:
+  primary: "#b8381c"
+  primary-deep: "#8e2a14"
+  primary-wash: "#f4d3c4"
+  on-primary: "#fff6e3"
+  gold: "#c9962b"
+  gold-leaf: "#e2b84a"
+  gold-pale: "#f3dc9a"
+  on-gold: "#2b1b12"
+  jade: "#3f6b4e"
+  jade-wash: "#d8e4cf"
+  indigo: "#2f5d7c"
+  indigo-wash: "#d3e0e6"
+  critical: "#9e1b32"
+  critical-wash: "#f0cdd3"
+  canvas: "#f6ebd3"
+  surface-lacquer: "#fbf3e0"
+  surface-paper: "#efe0bf"
+  surface-sunk: "#e6d3a8"
+  ink-deep: "#1a0f0a"
+  ink: "#2b1b12"
+  brown: "#5a3a26"
+  umber: "#7b5a3e"
+  sepia: "#9a7b5c"
+  hairline: "#c8ae80"
+  hairline-soft: "#dcc9a0"
+  disabled-text: "#a8987a"
 
+typography:
+  hero-display:
+    fontFamily: Cormorant Garamond
+    fontSize: 56px
+    fontWeight: 700
+    lineHeight: 1.12
+    letterSpacing: 0.5px
+  display-lg:
+    fontFamily: Cormorant Garamond
+    fontSize: 40px
+    fontWeight: 700
+    lineHeight: 1.15
+    letterSpacing: 0.4px
+  heading-lg:
+    fontFamily: Cormorant Garamond
+    fontSize: 32px
+    fontWeight: 600
+    lineHeight: 1.2
+  heading-md:
+    fontFamily: Cormorant Garamond
+    fontSize: 24px
+    fontWeight: 500
+    lineHeight: 1.25
+  heading-sm:
+    fontFamily: Cormorant Garamond
+    fontSize: 20px
+    fontWeight: 700
+    lineHeight: 1.3
+  subtitle-lg:
+    fontFamily: EB Garamond
+    fontSize: 18px
+    fontWeight: 600
+    lineHeight: 1.45
+  subtitle-md:
+    fontFamily: EB Garamond
+    fontSize: 18px
+    fontWeight: 400
+    lineHeight: 1.45
+  body-md-bold:
+    fontFamily: EB Garamond
+    fontSize: 17px
+    fontWeight: 700
+    lineHeight: 1.55
+  body-md:
+    fontFamily: EB Garamond
+    fontSize: 17px
+    fontWeight: 400
+    lineHeight: 1.55
+  body-sm-bold:
+    fontFamily: EB Garamond
+    fontSize: 15px
+    fontWeight: 700
+    lineHeight: 1.5
+  body-sm:
+    fontFamily: EB Garamond
+    fontSize: 15px
+    fontWeight: 400
+    lineHeight: 1.5
+  caption-bold:
+    fontFamily: EB Garamond
+    fontSize: 13px
+    fontWeight: 700
+    lineHeight: 1.4
+    letterSpacing: 0.4px
+  caption:
+    fontFamily: EB Garamond
+    fontSize: 13px
+    fontWeight: 400
+    lineHeight: 1.4
+  button-md:
+    fontFamily: Cormorant Garamond
+    fontSize: 16px
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: 1px
+  link-md:
+    fontFamily: EB Garamond
+    fontSize: 17px
+    fontWeight: 600
+    lineHeight: 1.55
+  drop-cap:
+    fontFamily: Pirata One
+    fontSize: 72px
+    fontWeight: 400
+    lineHeight: 0.9
+  quill-script:
+    fontFamily: Dancing Script
+    fontSize: 24px
+    fontWeight: 500
+    lineHeight: 1.35
+  timer-display:
+    fontFamily: Cormorant Garamond
+    fontSize: 64px
+    fontWeight: 600
+    lineHeight: 1
+    fontFeature: "lnum, tnum"
+
+rounded:
+  xs: 2px
+  sm: 4px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  xxl: 24px
+  arch: 160px
+  full: 100px
+  circle: 9999px
+
+spacing:
+  xxs: 4px
+  xs: 6px
+  sm: 8px
+  md: 12px
+  base: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section-sm: 64px
+  section: 96px
+  hero: 128px
+
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.button-md}"
+    rounded: "{rounded.md}"
+    padding: "12px 24px"
+    border: "1px solid {colors.primary-deep}"
+    shadow: "inset 0 1px 0 rgba(255, 246, 227, 0.35), 0 2px 0 #8e2a14"
+  button-primary-pressed:
+    backgroundColor: "{colors.primary-deep}"
+    textColor: "{colors.on-primary}"
+    shadow: "inset 0 2px 4px rgba(26, 15, 10, 0.35)"
+  button-primary-disabled:
+    backgroundColor: "{colors.surface-sunk}"
+    textColor: "{colors.disabled-text}"
+    border: "1px solid {colors.hairline}"
+  button-secondary:
+    backgroundColor: "transparent"
+    textColor: "{colors.brown}"
+    typography: "{typography.button-md}"
+    rounded: "{rounded.md}"
+    padding: "11px 22px"
+    border: "1.5px solid {colors.brown}"
+  button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.brown}"
+    typography: "{typography.button-md}"
+    rounded: "{rounded.md}"
+    padding: "10px 18px"
+    border: "1px dashed {colors.hairline}"
+  button-seal-done:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.circle}"
+    size: 44px
+    shadow: "inset 0 1px 0 rgba(255, 246, 227, 0.35), 0 2px 0 #8e2a14"
+  button-tab-ribbon:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.brown}"
+    typography: "{typography.body-sm-bold}"
+    rounded: "8px 8px 0 0"
+    padding: "8px 16px"
+    border: "1px solid {colors.hairline}"
+  button-tab-ribbon-active:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.primary-deep}"
+    border-bottom: "3px solid {colors.gold}"
+  button-icon-round:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.circle}"
+    size: 40px
+    border: "1px solid {colors.hairline}"
+  segmented-option:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.brown}"
+    typography: "{typography.body-sm-bold}"
+    rounded: "{rounded.md}"
+    padding: "8px 14px"
+    border: "1px solid {colors.hairline}"
+  segmented-option-active:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.gold-pale}"
+  card-popup-shell:
+    backgroundColor: "{colors.canvas}"
+    padding: "{spacing.base}"
+    border: "3px double {colors.gold}"
+    width: 360px
+    height: 560px
+  card-newtab-board:
+    backgroundColor: "{colors.canvas}"
+    padding: "{spacing.xl}"
+    border: "3px double {colors.gold}"
+  card-scroll-task:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.lg}"
+    padding: "{spacing.base}"
+    border: "1px solid {colors.hairline}"
+    shadow: "inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 0 #c8ae80"
+  card-scroll-task-done:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.umber}"
+    border: "1px solid {colors.hairline-soft}"
+  card-scroll-task-overdue:
+    backgroundColor: "{colors.primary-wash}"
+    textColor: "{colors.ink}"
+    border: "1px solid {colors.primary}"
+  card-subject-spine:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm-bold}"
+    rounded: "{rounded.sm}"
+    padding: "{spacing.md} {spacing.base}"
+    border-left: "8px solid {colors.primary}"
+  card-focus-timer:
+    backgroundColor: "{colors.surface-lacquer}"
+    rounded: "{rounded.xxl}"
+    padding: "{spacing.lg}"
+    border: "3px double {colors.gold}"
+    shadow: "inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 20px rgba(90, 58, 38, 0.18)"
+  card-streak:
+    backgroundColor: "{colors.surface-paper}"
+    rounded: "{rounded.lg}"
+    padding: "{spacing.base}"
+    border: "1px solid {colors.hairline-soft}"
+  card-maxim:
+    backgroundColor: "transparent"
+    textColor: "{colors.brown}"
+    typography: "{typography.heading-md}"
+    padding: "{spacing.lg}"
+    border-top: "1px solid {colors.hairline}"
+  card-empty-state:
+    backgroundColor: "transparent"
+    textColor: "{colors.umber}"
+    typography: "{typography.subtitle-md}"
+    padding: "{spacing.xl}"
+  modal-parchment:
+    backgroundColor: "{colors.surface-lacquer}"
+    rounded: "{rounded.xxl}"
+    padding: "{spacing.xl}"
+    border: "3px double {colors.gold}"
+    shadow: "0 12px 32px rgba(26, 15, 10, 0.28)"
+  quill-input:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    typography: "{typography.quill-script}"
+    rounded: "{rounded.md}"
+    padding: "{spacing.md} {spacing.base}"
+    border: "1px solid {colors.sepia}"
+    height: 56px
+  quill-input-focused:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    border: "2px solid {colors.primary}"
+    shadow: "0 0 0 3px rgba(201, 150, 43, 0.35)"
+  quill-input-error:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    border: "1px solid {colors.critical}"
+  text-input:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.md}"
+    padding: "{spacing.md}"
+    border: "1px solid {colors.sepia}"
+    height: 44px
+  text-input-focused:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    border: "2px solid {colors.primary}"
+    shadow: "0 0 0 3px rgba(201, 150, 43, 0.35)"
+  text-input-error:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    border: "1px solid {colors.critical}"
+  search-field:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.umber}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
+    padding: "{spacing.sm} {spacing.md}"
+    border: "1px solid {colors.hairline}"
+    height: 40px
+  checkbox-seal:
+    backgroundColor: "{colors.surface-lacquer}"
+    rounded: "{rounded.sm}"
+    size: 28px
+    border: "2px solid {colors.sepia}"
+  checkbox-seal-checked:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    border: "2px solid {colors.primary-deep}"
+  badge-priority-high:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.sm}"
+    padding: "2px 8px"
+  badge-priority-mid:
+    backgroundColor: "{colors.gold-leaf}"
+    textColor: "{colors.on-gold}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.sm}"
+    padding: "2px 8px"
+  badge-priority-low:
+    backgroundColor: "{colors.jade}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.sm}"
+    padding: "2px 8px"
+  badge-subject:
+    backgroundColor: "{colors.indigo-wash}"
+    textColor: "{colors.ink}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.sm}"
+    padding: "2px 8px"
+  chip-deadline:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.brown}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.full}"
+    padding: "3px 10px"
+    border: "1px solid {colors.hairline}"
+  chip-deadline-soon:
+    backgroundColor: "{colors.gold-pale}"
+    textColor: "{colors.on-gold}"
+    border: "1px solid {colors.gold}"
+  chip-deadline-overdue:
+    backgroundColor: "{colors.primary-wash}"
+    textColor: "{colors.primary-deep}"
+    border: "1px solid {colors.primary}"
+  toast-reminder:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-md}"
+    rounded: "{rounded.lg}"
+    padding: "{spacing.base}"
+    border: "1px solid {colors.gold}"
+    border-left: "6px solid {colors.primary}"
+    shadow: "0 8px 20px rgba(90, 58, 38, 0.22)"
+  banner-proclamation:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.body-sm-bold}"
+    padding: "{spacing.md} {spacing.lg}"
+  timer-dial:
+    backgroundColor: "{colors.surface-lacquer}"
+    textColor: "{colors.ink}"
+    typography: "{typography.timer-display}"
+    rounded: "{rounded.circle}"
+    size: 220px
+    border: "4px double {colors.gold}"
+  progress-ink:
+    backgroundColor: "{colors.surface-sunk}"
+    rounded: "{rounded.full}"
+    height: 8px
+    border: "1px solid {colors.hairline}"
+  streak-lotus:
+    backgroundColor: "{colors.surface-sunk}"
+    rounded: "{rounded.circle}"
+    size: 28px
+  streak-lotus-lit:
+    backgroundColor: "{colors.gold-leaf}"
+    border: "2px solid {colors.gold}"
+  footer-colophon:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.umber}"
+    typography: "{typography.caption}"
+    padding: "{spacing.lg} {spacing.xl}"
+    border-top: "1px solid {colors.hairline}"
 ---
 
-## Design References
+## Overview
 
-**Figma Link:** Không có (greenfield, không design reference từ user).
-**Design Tool:** Spec viết tay bằng `.agent/design.md` (Phase 3).
-**Nguồn:** `SPECIFICATIONS.md` (R-01…R-18) + `docs/specs/2026-11-10-todo-extension-design.md`.
+Học Đường là một cuốn sổ tay của người đi học, không phải một bảng quản lý dự án. Cảm giác chủ đạo: nâng niu từng việc nhỏ. Nền là mặt sơn mài sáng màu vỏ trứng ngà ({colors.canvas}), viền khung đôi vàng kim như trang bản thảo trung cổ, và những chi tiết thủ công — cuộn thư, gáy sách, bút lông ngỗng, con dấu son — thay cho các icon phẳng quen thuộc.
 
-**Design Read:** browser-extension productivity popup cho người dùng cá nhân capture task khi đang
-lướt web — ngôn ngữ **calm, minimal, high-legibility**; Tailwind v4 semantic tokens + system UI font + CSS-only micro-motion.
+Nếu hệ thiết kế thương mại (Meta) lấy ảnh sản phẩm làm trung tâm và nút bấm hình viên thuốc, hệ này đảo lại: **trang giấy là trung tâm**, ảnh minh họa chỉ nằm ở viền và góc; nút là những tấm bảng sơn bóng (plaque) bo góc nhỏ; điểm nhấn là **đỏ son** cho hành động chính và **vàng kim** cho đường viền, không dùng xanh dương.
 
-| Dial | Value | Lý do |
+Chữ được chọn vì hai lẽ: có dấu tiếng Việt đầy đủ và gợi cảm giác chữ in cổ. Cormorant Garamond cho tiêu đề và nút, EB Garamond cho đoạn chữ, Pirata One cho chữ cái đầu trang trí (drop cap), Dancing Script **chỉ** cho chữ viết tay hiện ra khi người dùng gõ vào ô nhập.
+
+Extension có hai chế độ hiển thị, người dùng chọn trong Cài đặt hoặc để **Tự động**:
+- **Popup** (360×560px): một cột, ưu tiên ghi nhanh một việc rồi đi.
+- **New Tab**: toàn màn hình, ba vùng "giá sách – cuộn thư – bàn học".
+
+**Key Characteristics:**
+- Nền vỏ trứng ngà ({colors.canvas}), thẻ nổi lên bằng lớp sơn bóng {colors.surface-lacquer}; không có nền trắng tinh
+- Khung viền đôi vàng kim (`3px double {colors.gold}`) bao quanh popup, bảng New Tab, thẻ giờ học và hộp thoại
+- Một màu hành động duy nhất: đỏ son {colors.primary} cho nút chính, con dấu hoàn thành, ô nhập khi focus
+- Mỗi công việc là một "cuộn thư" ({components.card-scroll-task}); mỗi môn học là một "gáy sách" ({components.card-subject-spine})
+- Hoàn thành việc = đóng dấu son "XONG" lên cuộn, không gạch ngang chữ
+- Ô nhập chính ({components.quill-input}) có cây bút lông ngỗng chạy theo con trỏ và viết từng chữ người dùng gõ
+- Bo góc nhỏ đến vừa (4–12px) cho phần lớn thành phần; chỉ đồng hồ và nút dấu mới tròn hẳn
+
+## Colors
+
+> Nguồn cảm hứng: tranh sơn mài Việt Nam tông sáng (nền vỏ trứng khảm, vàng son, nâu sơn ta), bản thảo trung cổ (vellum, chu sa, vàng lá). Toàn bộ là chủ đề sáng; chưa có chế độ tối (xem Known Gaps).
+
+### Brand & Accent
+- **Đỏ son** ({colors.primary}): Nút chính ("Ghi vào sổ", "Bắt đầu học"), con dấu hoàn thành, viền ô nhập khi focus, thanh nhắc nhở bên trái toast. Giữ khan hiếm: một màn hình tối đa vài điểm đỏ.
+- **Đỏ cánh gián** ({colors.primary-deep}): Trạng thái nhấn (pressed), viền nút, chữ trên nền {colors.primary-wash}.
+- **Đỏ son nhạt** ({colors.primary-wash}): Nền thẻ quá hạn, chip quá hạn.
+- **Vàng kim** ({colors.gold}): Viền khung đôi, đường kẻ trang trí, tab đang chọn. **Không dùng làm chữ** hoặc viền chức năng độc lập vì độ tương phản với nền chỉ khoảng 2.3:1.
+- **Vàng lá** ({colors.gold-leaf}): Nền huy hiệu ưu tiên vừa, ngày streak đã sáng, mức độ "sắp đến hạn".
+- **Vàng nhạt** ({colors.gold-pale}): Nền chip sắp đến hạn, chữ trên nền mực đậm (segmented active).
+
+### Surface
+- **Vỏ trứng ngà** ({colors.canvas}): Nền trang (popup, New Tab).
+- **Sơn bóng sáng** ({colors.surface-lacquer}): Bề mặt thẻ, ô nhập, hộp thoại — sáng hơn nền một bậc, tạo cảm giác lớp sơn nổi.
+- **Giấy dó** ({colors.surface-paper}): Thẻ việc đã xong, gáy sách, tab chưa chọn, chip.
+- **Giấy lún** ({colors.surface-sunk}): Rãnh thanh tiến độ, ô streak chưa sáng, nút vô hiệu.
+- **Đường kẻ** ({colors.hairline}) và **Đường kẻ nhạt** ({colors.hairline-soft}): Chia khu, viền thẻ. Đường kẻ trang trí, không dùng làm viền thành phần tương tác duy nhất.
+- **Nâu giấy cũ** ({colors.sepia}): Viền ô nhập và checkbox (≥ 3:1 trên nền, đạt chuẩn viền thành phần giao diện).
+
+### Text (mực)
+- **Mực đen** ({colors.ink-deep}): Dùng rất ít — tiêu đề lớn nhấn mạnh.
+- **Mực sơn ta** ({colors.ink}): Chữ chính trên mọi nền sáng.
+- **Nâu sơn** ({colors.brown}): Chữ phụ, nhãn tab, nút phụ (≈ 8:1 trên nền).
+- **Nâu đất** ({colors.umber}): Chú thích, chữ việc đã xong, footer (≈ 5:1).
+- **Nâu bạc** ({colors.disabled-text}): Chỉ cho trạng thái vô hiệu.
+
+### Semantic
+- **Ngọc lục** ({colors.jade}): Ưu tiên thấp, "đã lưu", streak giữ được. Nền nhạt {colors.jade-wash}.
+- **Chàm** ({colors.indigo}): Thông tin, nhãn môn học mặc định. Nền nhạt {colors.indigo-wash}.
+- **Vàng lá** ({colors.gold-leaf}): Cảnh báo "sắp đến hạn", ưu tiên vừa.
+- **Đỏ thẫm** ({colors.critical}): Lỗi nhập liệu, xóa. Phân biệt với đỏ son bằng sắc tía hơn; nền nhạt {colors.critical-wash}.
+
+### Màu nhãn môn học
+Gáy sách dùng viền trái 8px đổi màu theo môn. Lấy từ cùng bảng: {colors.primary} · {colors.indigo} · {colors.jade} · {colors.gold} · {colors.umber}. Tối đa 5 môn có màu riêng, môn thứ 6 trở đi dùng {colors.sepia}. Không thêm màu ngoài bảng này.
+
+## Typography
+
+### Font Family
+**Cormorant Garamond** (tiêu đề, nút, đồng hồ) — nét thanh, mang dáng chữ in cổ, hỗ trợ tiếng Việt.
+**EB Garamond** (đoạn chữ, nhãn) — dễ đọc ở cỡ 15–17px; cỡ chữ cơ sở được nâng lên 17px vì Garamond có chiều cao x thấp.
+**Pirata One** — chỉ làm chữ cái đầu trang trí (drop cap) ở lời chào New Tab và tiêu đề hộp thoại; không dùng cho đoạn chữ.
+**Dancing Script** — chỉ cho chữ trong {components.quill-input} khi người dùng gõ; sau khi lưu, nội dung việc hiển thị lại bằng EB Garamond cho dễ đọc.
+Fallback: Cormorant Garamond → Georgia, "Times New Roman", serif; Dancing Script → "Segoe Script", cursive.
+
+### Hierarchy
+
+| Token | Size | Weight | Line Height | Letter Spacing | Use |
+|---|---|---|---|---|---|
+| `{typography.hero-display}` | 56px | 700 | 1.12 | 0.5px | Lời chào New Tab ("Chào buổi sáng") |
+| `{typography.display-lg}` | 40px | 700 | 1.15 | 0.4px | Tiêu đề trang cài đặt |
+| `{typography.heading-lg}` | 32px | 600 | 1.2 | 0 | Tên khu vực ("Cuộn nhiệm vụ", "Bàn học") |
+| `{typography.heading-md}` | 24px | 500 | 1.25 | 0 | Châm ngôn học tập, tiêu đề hộp thoại |
+| `{typography.heading-sm}` | 20px | 700 | 1.3 | 0 | Tiêu đề thẻ, tên môn học |
+| `{typography.subtitle-lg}` | 18px | 600 | 1.45 | 0 | Tên việc nổi bật |
+| `{typography.subtitle-md}` | 18px | 400 | 1.45 | 0 | Mô tả ngắn, trạng thái rỗng |
+| `{typography.body-md}` | 17px | 400 | 1.55 | 0 | Nội dung việc, ghi chú |
+| `{typography.body-md-bold}` | 17px | 700 | 1.55 | 0 | Nhấn mạnh trong đoạn |
+| `{typography.body-sm}` | 15px | 400 | 1.5 | 0 | Phụ đề thẻ, giờ nhắc |
+| `{typography.body-sm-bold}` | 15px | 700 | 1.5 | 0 | Nhãn tab, tên gáy sách |
+| `{typography.caption-bold}` | 13px | 700 | 1.4 | 0.4px | Huy hiệu, chip hạn |
+| `{typography.caption}` | 13px | 400 | 1.4 | 0 | Footer, chú thích nhỏ |
+| `{typography.button-md}` | 16px | 700 | 1.25 | 1px | Nhãn nút (viết HOA ở nút chính) |
+| `{typography.link-md}` | 17px | 600 | 1.55 | 0 | Liên kết, gạch chân nét đứt |
+| `{typography.drop-cap}` | 72px | 400 | 0.9 | 0 | Chữ cái đầu trang trí |
+| `{typography.quill-script}` | 24px | 500 | 1.35 | 0 | Chữ trong ô nhập bút lông |
+| `{typography.timer-display}` | 64px | 600 | 1 | 0 | Số đồng hồ Pomodoro |
+
+### Principles
+- Tiêu đề thanh – nặng ở 600–700, đoạn chữ 400. Không dùng weight 300 vì Garamond mảnh sẽ khó đọc trên nền ngà.
+- Số trên đồng hồ và hạn chót bật `lnum, tnum` (số thẳng hàng, độ rộng đều) để không nhảy khi đếm; số trong đoạn chữ có thể giữ số kiểu cổ (oldstyle) mặc định của Garamond.
+- Nút chính viết HOA với giãn chữ 1px, như nhãn trên con dấu; nút phụ viết thường.
+- Đoạn chữ không dài quá ~60 ký tự mỗi dòng; trong popup, tên việc cắt 2 dòng rồi "…".
+- Chữ tiếng Việt cần dòng cao hơn chữ Latin thông thường để dấu không dính dòng: không giảm `lineHeight` của `{typography.body-md}` dưới 1.55.
+- Dancing Script không bao giờ dùng cho chữ cần đọc nhanh (danh sách, giờ, nhãn).
+
+## Layout
+
+### Spacing System
+- **Base unit**: 4px, bước chính 8/12/16.
+- **Tokens**: `{spacing.xxs}` (4px) · `{spacing.xs}` (6px) · `{spacing.sm}` (8px) · `{spacing.md}` (12px) · `{spacing.base}` (16px) · `{spacing.lg}` (24px) · `{spacing.xl}` (32px) · `{spacing.xxl}` (48px) · `{spacing.section-sm}` (64px) · `{spacing.section}` (96px) · `{spacing.hero}` (128px).
+- **Nhịp**: Popup chặt (12–16px giữa các thẻ). New Tab thoáng hơn: 24px giữa thẻ trong cuộn, 32px giữa ba vùng, 64–96px phía trên lời chào.
+- **Đệm thẻ**: Cuộn việc 16px; thẻ giờ học và hộp thoại 24–32px.
+
+### Display Modes (Popup / New Tab / Tự động)
+Cài đặt có điều khiển ba lựa chọn dạng {components.segmented-option}: **Popup** · **New Tab** · **Tự động**.
+- **Popup**: bấm biểu tượng extension mở cửa sổ 360×560px (trong giới hạn popup của Chrome). Trang New Tab giữ nguyên mặc định của trình duyệt.
+- **New Tab**: extension thay trang tab mới bằng bảng toàn màn hình; bấm biểu tượng sẽ mở/focus tab Học Đường thay vì popup.
+- **Tự động**: bấm biểu tượng → Popup; mở tab mới → New Tab. Người dùng có thể ghim lại bất kỳ lúc nào; lựa chọn được lưu và đồng bộ.
+- Cùng một bộ token và component cho cả hai chế độ; chỉ khác bố cục (bên dưới), không có component riêng cho từng chế độ.
+
+### Bố cục Popup (360×560)
+Một cột, từ trên xuống, đều nằm trong `{components.card-popup-shell}`:
+1. **Đầu trang** (56px): tên "Học Đường" bằng `{typography.heading-sm}`, nút chuyển chế độ và cài đặt ({components.button-icon-round}).
+2. **Khu ghi việc** (72px): {components.quill-input} + nút "Ghi" ({components.button-primary}).
+3. **Dải tab** (40px): {components.button-tab-ribbon} cuộn ngang — Tất cả · Hôm nay · theo môn.
+4. **Cuộn việc**: vùng cuộn dọc, các {components.card-scroll-task} cách nhau 12px.
+5. **Chân trang cố định** (64px): đồng hồ Pomodoro thu gọn + {components.streak-lotus} 7 ngày.
+
+### Bố cục New Tab
+Lưới 3 vùng, rộng tối đa 1280px, lề 32px, nằm trong `{components.card-newtab-board}`:
+- **Cột trái (240px) — "Giá sách"**: danh sách {components.card-subject-spine}, mỗi gáy hiển thị tên môn + số việc còn lại; nút "Thêm môn" kiểu {components.button-ghost}.
+- **Cột giữa (1fr, tối đa 640px) — "Cuộn nhiệm vụ"**: trên cùng lời chào `{typography.hero-display}` với drop cap, ô {components.quill-input} cỡ lớn, rồi dải tab, rồi danh sách cuộn.
+- **Cột phải (320px) — "Bàn học"**: {components.card-focus-timer}, {components.card-streak}, rồi {components.card-maxim} đóng cột.
+- **Chân trang**: {components.footer-colophon} một dòng ("Học, nhớ, rồi lại học.") và liên kết cài đặt.
+
+### Whitespace Philosophy
+Khoảng trắng là *mặt giấy*, không phải khoảng trống: giữ lề rộng quanh cuộn việc để mỗi việc "đứng riêng". Trong Popup ưu tiên mật độ; trong New Tab ưu tiên cảm giác tĩnh, mỗi vùng có khung đôi riêng và không quá ba loại thẻ trên một màn hình.
+
+## Elevation & Depth
+
+Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến từ lớp sơn (vệt sáng phía trên + gờ dưới), không từ bóng mờ lớn.
+
+| Level | Treatment | Use |
 |---|---|---|
-| `DESIGN_VARIANCE` | 4 | Danh sách 1 cột, bố cục dự đoán được; không hero, không bất đối xứng |
-| `MOTION_INTENSITY` | 3 | Chỉ feedback (tick, enter/exit, panel); không trang trí |
-| `VISUAL_DENSITY` | 6 | 50 task / 600px: row 52px, hairline divider, mật độ "daily app" |
+| 0 (phẳng) | Không bóng; viền `1px solid {colors.hairline-soft}` | Thẻ việc đã xong, gáy sách, empty state |
+| 1 (lớp sơn) | `inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 0 #c8ae80` | Cuộn việc, nút chính (gờ dưới theo màu viền) |
+| 2 (nổi) | `0 8px 20px rgba(90, 58, 38, 0.18)` | Thẻ giờ học, toast nhắc nhở |
+| 3 (che nền) | `0 12px 32px rgba(26, 15, 10, 0.28)` | Hộp thoại {components.modal-parchment} |
 
----
+### Decorative Depth
+- **Khung đôi vàng kim** (`3px double {colors.gold}`): dấu hiệu nhận diện, dùng cho popup, bảng New Tab, thẻ giờ học, hộp thoại; không dùng cho thẻ việc.
+- **Họa tiết góc** (24×24px, nét vàng kim): hoa sen hoặc mây cuộn ở bốn góc khung chính; ẩn trong Popup nếu chật.
+- **Vệt sáng sơn mài**: gradient `linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 40%)` phủ lên thẻ nổi (level 1–2). Tùy chọn, tắt được trong Cài đặt để tiết kiệm pin.
+- **Hạt khảm vỏ trứng**: chấm li ti 2–3% độ mờ trên {colors.canvas}; coi là chất liệu trang trí, không phải token màu.
+- **Đường phân cách "mây"**: dải 12px lặp họa tiết mây giữa các khu lớn trong New Tab.
 
-## Brand & Visual Identity
+## Shapes
 
-- **Palette:** neutral cool-gray + **1 accent cobalt duy nhất**. Không gradient, không glass, không serif, không bo góc lớn.
-- **Không pure black/white cho text**: `#16191C` (light) / `#ECEEF0` (dark).
-- **Màu không là tín hiệu duy nhất**: priority có số vạch (1/2/3), overdue có chữ "Quá hạn", done có line-through, subtask có "2/5".
-- **Token semantic, không raw hex trong component** (cấm `text-[#…]`, `bg-zinc-800`).
-- **Signature elements:** checkbox 18px viền 1.5px trong hit area 44px (tick nét vẽ); glyph 3 vạch priority; hairline divider giữa row; composer card phẳng mở rộng tại chỗ.
+### Border Radius Scale
 
-### Color Palette (tóm tắt — đầy đủ + contrast ở design-tokens.md §2)
+| Token | Value | Use |
+|---|---|---|
+| `{rounded.xs}` | 2px | Góc vi mô, dấu tích |
+| `{rounded.sm}` | 4px | Huy hiệu, checkbox dấu, gáy sách |
+| `{rounded.md}` | 8px | Nút, ô nhập, tab (chỉ góc trên) |
+| `{rounded.lg}` | 12px | Cuộn việc, toast, thẻ streak |
+| `{rounded.xl}` | 16px | Khay phụ, thẻ cỡ vừa |
+| `{rounded.xxl}` | 24px | Thẻ giờ học, hộp thoại |
+| `{rounded.arch}` | 160px | Khung ảnh minh họa dạng vòm trên cửa sổ trung cổ (chỉ hai góc trên) |
+| `{rounded.full}` | 100px | Chip hạn, thanh tiến độ |
+| `{rounded.circle}` | 50% | Đồng hồ, nút dấu, nút icon, ô streak |
 
-**Neutral**
+### Geometry Rules
+- Nút là **tấm sơn bo nhẹ** (8px), không phải viên thuốc — khác hẳn pill; tránh bo ≥ 16px cho nút.
+- Minh họa trên trạng thái rỗng và lời chào dùng khung vòm (`border-radius: 160px 160px 12px 12px`), gợi ô cửa sổ nhà thờ/tu viện.
+- Con dấu "XONG" là hình vuông bo 4px nghiêng −6°, viền đôi, như con dấu triện; không dùng hình tròn cho dấu này.
+- Icon dạng nét, đầu nét tròn, dày 1.5px, màu {colors.brown}; icon đặc dùng {colors.primary} chỉ cho hành động chính.
 
-| Token | Light | Dark | Dùng ở đâu |
-|-------|-------|------|-----------|
-| `--bg` | `#F5F6F7` | `#14171A` | Nền popup |
-| `--surface` | `#FFFFFF` | `#1C2024` | Card, input, row |
-| `--surface-sunken` | `#EEF0F2` | `#232930` | Chip, track progress, skeleton |
-| `--border` | `#DFE3E6` | `#2E343A` | Viền card/panel |
-| `--border-control` | `#828C95` | `#6B757E` | Viền checkbox/input (≥3:1) |
-| `--fg` | `#16191C` | `#ECEEF0` | Text chính |
-| `--fg-secondary` | `#4A5157` | `#B4BBC1` | Meta, label |
-| `--fg-muted` | `#676F76` | `#8B9399` | Placeholder, counter |
+## Components
 
-**Accent (cobalt)**
+> Chính sách hover: không ghi trạng thái hover (như hệ gốc). Chỉ ghi mặc định, pressed/active, focus, disabled.
 
-| Token | Light | Dark | Dùng ở đâu |
-|-------|-------|------|-----------|
-| `--accent` | `#2C5FD4` | `#3D6FE0` | Button chính, checkbox tick, progress |
-| `--on-accent` | `#FFFFFF` | `#FFFFFF` | Text/icon trên accent |
-| `--accent-text` | `#1F4BB0` | `#8FB0F7` | Link, tab active |
-| `--accent-soft` | `#E6EDFC` | `#1E2A3D` | Nền tab active, chip đang lọc |
-| `--focus-ring` | `#2C5FD4` | `#8FB0F7` | Ring `:focus-visible` |
+### Buttons
 
-**Priority / Status**
+**`button-primary`** — Tấm sơn đỏ son cho hành động chính ("GHI VÀO SỔ", "BẮT ĐẦU HỌC").
+- Background `{colors.primary}`, text `{colors.on-primary}` (≈ 5.4:1), typography `{typography.button-md}`, rounded `{rounded.md}`, padding `12px 24px`, viền `{colors.primary-deep}`, bóng level 1 theo màu đỏ.
+- Pressed: nền `{colors.primary-deep}`, bóng chuyển thành `inset` lõm xuống.
+- Disabled: nền `{colors.surface-sunk}`, chữ `{colors.disabled-text}`.
+- Mỗi màn hình chỉ có **một** nút chính.
 
-| Token | Light | Dark | Ý nghĩa |
-|-------|-------|------|---------|
-| `--priority-low` | `#5A6672` | `#9AA7B4` | 1 vạch |
-| `--priority-medium` | `#8F5A00` | `#E0A94B` | 2 vạch |
-| `--priority-high` | `#B4232A` | `#F08A8A` | 3 vạch (chung họ đỏ danger) |
-| `--success` | `#1D7A4C` | `#5FD3A0` | Đã lưu/đồng bộ |
-| `--warning` | `#9A6300` | `#E8B45C` | Notification bị chặn |
-| `--danger` | `#B4232A` | `#F08A8A` | Lỗi, action xoá |
-| `--overdue` | `#A62B1F` | `#FF9B8A` | Chữ "Quá hạn" |
+**`button-secondary`** — Viền nâu, nền trong ("Hủy", "Để sau").
+- Viền `1.5px solid {colors.brown}`, chữ `{colors.brown}`, padding `11px 22px`, rounded `{rounded.md}`.
 
-> Contrast đã đo WCAG 2.1 (text ≥4.5:1, control ≥3:1) — bảng đầy đủ design-tokens.md §2.5.
-> Giới hạn đã biết: không đặt `fg-muted` trên `surface-sunken` (4.04 light, dưới 4.5).
+**`button-ghost`** — Viền nét đứt như đường may, cho thao tác nhẹ ("Thêm môn", "Xem tất cả").
+- Viền `1px dashed {colors.hairline}`, chữ `{colors.brown}`, padding `10px 18px`.
 
-### Typography
+**`button-seal-done`** — Nút tròn 44px đỏ son ở đầu mỗi cuộn việc, bấm để đóng dấu "XONG". Hiệu ứng dấu: xem `card-scroll-task` bên dưới.
 
-System font stack (không tải font file — R-17/R-18, không Inter):
-`ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, …`. Weight chỉ 400/500/600.
+**`button-tab-ribbon`** + **`button-tab-ribbon-active`** — Tab như dải đánh dấu trang.
+- Chưa chọn: nền `{colors.surface-paper}`, chữ `{colors.brown}`, viền `1px solid {colors.hairline}`, góc trên bo 8px.
+- Đang chọn: nền `{colors.surface-lacquer}`, chữ `{colors.primary-deep}`, gờ dưới `3px solid {colors.gold}` thay viền.
 
-| Token | Size / LH | Weight | Dùng ở đâu |
-|-------|-----------|--------|-----------|
-| `--text-meta` | 12 / 16 | 500 | Meta row, counter, chip, label form |
-| `--text-caption` | 13 / 18 | 400 | Helper, note preview, empty body |
-| `--text-body` | 14 / 20 | 400 | Body, tên việc, button, menu item |
-| `--text-title` | 16 / 22 | 500 | Tên app header, detail title |
-| `--text-heading` | 20 / 26 | 600 | Tiêu đề panel |
-| `--text-display` | 24 / 30 | 600 | Chỉ options page sau này (không dùng popup) |
+**`segmented-option`** + **`segmented-option-active`** — Bộ chọn chế độ hiển thị (Popup / New Tab / Tự động) và khoảng Pomodoro.
+- Đang chọn: nền `{colors.ink}`, chữ `{colors.gold-pale}`.
 
-Số đếm/giờ/ngày dùng `tabular-nums`. Không uppercase label, không eyebrow.
+**`button-icon-round`** — Nút icon tròn 40px (cài đặt, chuyển chế độ, snooze). Lên 44px trong popup cảm ứng.
 
-### Spacing Scale (4px base)
+### Cards & Containers
 
-| Token | Value | | Token | Value |
-|-------|-------|-|-------|-------|
-| `--space-1` | 4px | | `--space-4` | 16px |
-| `--space-2` | 8px | | `--space-5` | 20px |
-| `--space-3` | 12px (padding ngang popup) | | `--space-6` | 24px |
+**`card-popup-shell`** / **`card-newtab-board`** — Khung ngoài của hai chế độ. Nền {colors.canvas}, khung đôi vàng kim `3px double`.
 
-Layout cứng: header 52px · filter 48px · search row 56px · composer collapsed 80px / expanded max 380px ·
-row min 52px (thực 56–72) · panel detail full 600px (header 52 + body scroll + footer 60). Padding ngang chuẩn **12px**.
+**`card-scroll-task`** — "Cuộn thư" cho một công việc: thành phần chính của extension.
+- Nền `{colors.surface-lacquer}`, rounded `{rounded.lg}`, padding `{spacing.base}`, viền `1px solid {colors.hairline}`, bóng level 1.
+- Hai đầu cuộn: thanh trục nhỏ 6px màu {colors.hairline} ở trên và dưới (trang trí).
+- Bố cục hàng: `button-seal-done` hoặc `checkbox-seal` (trái) · tên việc `{typography.subtitle-lg}` + dòng phụ `{typography.body-sm}` (giữa) · `chip-deadline` và `badge-priority-*` (phải, xuống hàng trong popup).
+- Phía dưới: `badge-subject` của môn học.
+- **Hoàn thành**: dấu "XONG" ép xuống 240ms (`scale 1.4 → 1`, nghiêng −6°, `mix-blend-mode: multiply`), thẻ chuyển sang `card-scroll-task-done`. Có nút "Hoàn tác" 5 giây.
 
-### Border Radius
+**`card-scroll-task-done`** — Nền {colors.surface-paper}, chữ {colors.umber}, dấu đỏ ở góc. Giữ nguyên chữ, không gạch ngang.
 
-| Token | Value | Áp dụng |
-|-------|-------|---------|
-| `--radius-control` | 6px | Button, input, select, segmented |
-| `--radius-container` | 10px | Card, panel, menu, dialog |
-| `--radius-checkbox` | 5px | Ô tick |
-| `--radius-chip` | 9999px | Chip tag, badge |
+**`card-scroll-task-overdue`** — Nền {colors.primary-wash}, viền {colors.primary}, đi kèm `chip-deadline-overdue`.
 
-Shape lock: control 6, container 10, chip full. Không `rounded-xl` cho card.
+**`card-subject-spine`** — Gáy sách môn học, dùng ở "Giá sách" (New Tab) và dải lọc (Popup).
+- Nền {colors.surface-paper}, rounded 4px, viền trái 8px theo màu môn, tên môn `{typography.body-sm-bold}` + số việc còn lại bên phải.
+- Đang chọn: nền chuyển {colors.surface-lacquer}, viền trái giữ màu, thêm gờ vàng kim 1px quanh thẻ.
 
-### Elevation
+**`card-focus-timer`** — Khu Pomodoro.
+- Nền {colors.surface-lacquer}, rounded `{rounded.xxl}`, khung đôi vàng kim, bóng level 2.
+- Gồm {components.timer-dial}, thanh {components.progress-ink} theo chu kỳ, hàng nút (Bắt đầu / Tạm dừng / Bỏ qua) và bộ chọn thời lượng 25/5 hoặc 50/10 ({components.segmented-option}).
 
-`--elev-1` (card list/composer: border + shadow nhẹ) · `--elev-2` (menu/tooltip) · `--elev-3` (dialog).
-Shadow light tint theo hue nền `rgba(16,24,32,…)`, không đen thuần. Giá trị đầy đủ: design-tokens.md §6.
+**`card-streak`** — Chuỗi ngày học: 7 ô {components.streak-lotus} nối tiếp, nhãn "Chuỗi 5 ngày" bằng `{typography.heading-sm}`.
 
----
+**`card-maxim`** — Một châm ngôn học tập mỗi ngày, `{typography.heading-md}` màu {colors.brown}, trích nguồn `{typography.caption}`; có đường kẻ trên.
 
-## Screen Inventory
+**`card-empty-state`** — Khi chưa có việc: khung vòm vẽ cuộn thư trắng + một câu `{typography.subtitle-md}` ("Chưa có điều gì cần ghi. Hãy cầm bút lên."), mũi tên nhẹ trỏ tới ô nhập.
 
-> Chi tiết từng screen (layout ASCII, field, states, a11y): `.context/design-spec.md` §4–7.
+**`modal-parchment`** — Hộp thoại chi tiết việc (sửa hạn, ghi chú, môn học, lặp lại).
+- Nền {colors.surface-lacquer}, rounded `{rounded.xxl}`, khung đôi vàng kim, bóng level 3; tiêu đề có drop cap.
 
-| # | Screen | Requirement | Mô tả |
-|---|--------|-------------|-------|
-| **S1** | Popup — Task list | R-15, R-16, R-18 | Mặc định; header + FilterBar + Composer + card list |
-| S1a | Composer collapsed/expanded | R-01, R-05, R-07, R-09, R-10 | Tạo task; expanded thêm priority/hạn/lặp/tag/subtask |
-| S1b | TaskItem states | R-04…R-09 | normal / done / overdue / subtask / tag / priority |
-| S1c | Empty + skeleton + quota banner | R-16, R-18 | 5 biến thể empty; skeleton 4 row sau 50ms; banner `role=alert` |
-| **S2** | Task detail / edit | R-02, R-03, R-06…R-10 | Panel toàn popup; dirty state; footer Lưu |
-| **S3** | Settings | R-14, R-16 | Theme radio + hint notification + dung lượng đồng bộ |
-| **S4** | Dialogs | R-03, R-02 | Xoá việc / Bỏ thay đổi; focus trap, nút an toàn mặc định |
+### Inputs & Forms
 
-**Screen map:**
-```
-Popup root (360×600)
-├─ S1 Task list (mặc định): FilterBar → Composer → TaskList → TaskItem
-├─ S2 Task detail (panel full, mở từ title row)
-├─ S3 Settings (panel full, mở từ header)
-└─ S4 Dialogs (đè lên panel hiện tại)
-```
-Điều hướng 1 cấp panel, không nested, không route/URL. `Escape`/back đóng panel.
+**`quill-input`** — Ô nhập việc chính, xem **Signature Components** để biết cách cây bút hoạt động.
+- Nền {colors.surface-lacquer}, chữ {colors.ink}, typography `{typography.quill-script}`, viền `1px solid {colors.sepia}`, cao 56px, có đường kẻ ngang mờ phía dưới như giấy kẻ.
+- Placeholder bằng EB Garamond nghiêng, màu {colors.umber}: "Hôm nay con cần làm gì?".
 
-### Screen states (state matrix — design-spec §13)
+**`quill-input-focused`** — Viền `2px solid {colors.primary}` + quầng vàng `0 0 0 3px` mờ 35%.
+**`quill-input-error`** — Viền `1px solid {colors.critical}`; nhãn lỗi bên dưới bằng `{typography.body-sm}` màu {colors.critical}.
 
-| Screen | Loading | Empty | Error | Success |
-|--------|---------|-------|-------|---------|
-| S1 list | skeleton 4 row (sau 50ms), `aria-busy` | 5 biến thể | banner quota `role=alert` | list render, `aria-live` count |
-| S1 composer | submit disabled | label + placeholder | lỗi inline dưới field | clear input + announce |
-| S2 detail | — | subtask "Chưa có bước con." | lỗi field + banner quota | đóng panel + announce |
-| S3 settings | — | — | "Thông báo đang bị chặn" + hint | "Đang bật" |
-| S4 dialog | — | — | — | đóng + focus return |
+**`text-input`** — Trường thông thường (ghi chú, tên môn, giờ nhắc).
+- Nền {colors.surface-lacquer}, chữ {colors.ink}, viền `1px solid {colors.sepia}`, cao 44px, rounded 8px. Trạng thái `text-input-focused` và `text-input-error` như quill-input nhưng cùng chữ EB Garamond (không dùng chữ viết tay).
 
----
+**`search-field`** — Ô tìm việc: nền {colors.surface-paper}, rounded 8px, cao 40px, icon kính lúp nét mảnh bên trái.
 
-## Component Library (as-built)
+**`checkbox-seal`** + **`checkbox-seal-checked`** — Ô chọn vuông 28px, viền {colors.sepia}. Khi chọn: nền {colors.primary}, hiện chữ "XONG" thu nhỏ hoặc dấu tích cách điệu màu {colors.on-primary}.
 
-> File thật trong `components/` (20 file). Design-spec §15 gợi ý một số tên khác
-> (`TagInput`, `SubtaskEditor`, `RecurrenceField`, `ErrorBanner`) — thực tế gộp vào component cha
-> hoặc đặt tên khác; bảng dưới theo code hiện tại.
+### Badges & Status
 
-| Component | File | Vai trò |
-|-----------|------|---------|
-| App shell | `entrypoints/popup/App.tsx` | View state (list/detail/settings), theme apply, keyboard map |
-| Header | `components/Header.tsx` | Title, count subtitle, actions (search/sort/settings) |
-| FilterBar | `components/FilterBar.tsx` | Segmented tabs, search toggle, sort/tag menu |
-| TaskComposer | `components/TaskComposer.tsx` | Collapsed + expanded form, validation |
-| TaskList | `components/TaskList.tsx` | Render list, empty states, skeleton |
-| TaskItem | `components/TaskItem.tsx` | Row, checkbox, meta, priority glyph, progress |
-| TaskDetail | `components/TaskDetail.tsx` | Panel edit, dirty state, save |
-| Settings | `components/Settings.tsx` | Theme radio, notification hint, storage usage |
-| ConfirmDialog | `components/ConfirmDialog.tsx` | Dialog xoá / bỏ thay đổi, focus trap |
-| Toast | `components/Toast.tsx` | Xoá + Hoàn tác (P2) |
-| ErrorBoundary | `components/ErrorBoundary.tsx` | Bắt lỗi render |
-| **UI primitives** | `components/ui/` | `Button`, `Field`, `Segmented`, `IconButton`, `Checkbox`, `Menu`, `TagChip`, `PriorityGlyph`, `SubtaskProgress`, `Divider` |
+**`badge-priority-high`** / **`-mid`** / **`-low`** — Mức ưu tiên Cao / Vừa / Thấp.
+- Cao: nền {colors.primary}, chữ {colors.on-primary}. Vừa: nền {colors.gold-leaf}, chữ {colors.on-gold}. Thấp: nền {colors.jade}, chữ {colors.on-primary}.
+- Luôn kèm **chữ** ("Cao/Vừa/Thấp"), không chỉ dựa vào màu.
 
-**Icon:** design-spec định dùng `@phosphor-icons/react` (O3) nhưng **chưa cài** — as-built dùng
-**SVG inline primitives** (tick checkbox, glyph priority) và icon đơn giản, không dependency icon.
-⚠️ Cần thống nhất trước Web Store (xem gap ở [`API_SPEC.md`](API_SPEC.md) §5).
+**`badge-subject`** — Nhãn môn học: nền {colors.indigo-wash} (hoặc màu nhạt tương ứng môn), chữ {colors.ink}.
 
----
+**`chip-deadline`** — Hạn chót dạng "Hôm nay 18:00". Mặc định nền {colors.surface-paper}; **`chip-deadline-soon`** (còn dưới 24 giờ) nền {colors.gold-pale}; **`chip-deadline-overdue`** nền {colors.primary-wash}, chữ {colors.primary-deep}.
 
-## Design Style
+**`banner-proclamation`** — Dải "chiếu chỉ" đỏ son ở đầu bảng khi có việc quá hạn hoặc đến giờ ("Còn 3 việc đang chờ con hôm nay"). Chữ `{typography.body-sm-bold}`, có nút đóng; không chiếm quá một dòng trong popup.
 
-- **Overall feel:** Minimal / calm / high-legibility (productivity daily app).
-- **Color scheme:** Both (light + dark qua `data-theme` trên `<html>`, `system` theo `prefers-color-scheme`).
-- **UI Library:** Tailwind v4 only + custom primitives (không shadcn/MUI).
-- **Animation level:** Subtle — CSS transition only, không Motion/GSAP (bundle R-18).
+### Reminders (Nhắc nhở)
 
----
+**`toast-reminder`** — Thông báo trong trang khi đến giờ nhắc.
+- Nền {colors.surface-lacquer}, viền vàng kim, thanh trái 6px đỏ son, bóng level 2, bo 12px.
+- Nội dung: tên việc `{typography.subtitle-lg}`, môn + hạn `{typography.body-sm}`, hai nút: **Xong** ({components.button-primary} nhỏ) và **Nhắc lại sau 10 phút** ({components.button-secondary}).
+- Với thông báo hệ điều hành (chrome.notifications): dùng cùng văn bản và biểu tượng cuộn thư; không thể tạo kiểu, chỉ giữ giọng văn.
+- Giọng nhắc nhở: ấm, ngắn, xưng "con/bạn" nhất quán toàn ứng dụng — chọn một và giữ.
 
-## Responsive & Density
+### Pomodoro & Streak
 
-- **Popup cố định 360×600** (Chrome giới hạn max 800×600). **Không breakpoint trong popup.**
-- `min-width: 320` fallback: padding ngang giảm 10, ẩn subtitle header, tag chip chỉ 1 + `+n`.
-- Không horizontal scroll (`overflow-x: hidden`, `break-words`); title clamp 2 dòng, note preview 1 dòng.
-- 50 task render hết (không virtualization), row `memo`, sort/filter qua `useMemo`.
-- Breakpoint 768/1280: chỉ cho options page full-page **sau này** (ngoài scope).
+**`timer-dial`** — Đồng hồ tròn 220px (Popup thu gọn còn 96px, chỉ số và nút bắt đầu): nền {colors.surface-lacquer}, viền đôi vàng kim, số `{typography.timer-display}`, vòng tiến độ nét {colors.primary} chạy quanh viền khi đang đếm.
 
-> Nguyên tắc mobile-first/container-queries trong template gốc áp dụng cho web page;
-> với popup cố định, phần lớn là **N/A** — ghi rõ để không áp dụng máy móc.
+**`progress-ink`** — Thanh tiến độ 8px: rãnh {colors.surface-sunk}, phần đã đi tô {colors.primary}; dùng cho "đã xong 3/7 việc hôm nay".
 
----
+**`streak-lotus`** + **`streak-lotus-lit`** — Ô ngày 28px; ngày đã học nền {colors.gold-leaf}, viền {colors.gold}, kèm hình đài sen nhỏ. Ô chưa tới dùng {colors.surface-sunk}.
 
-## Motion (CSS-only — design-spec §9, design-tokens.md §8)
+### Navigation
 
-| Motion | Chi tiết |
-|--------|----------|
-| Tick done | checkbox fill 120ms + tick draw 140ms |
-| Task enter/exit | opacity + translateY 4px, 120ms |
-| Panel mở/đóng | opacity + translateX 8px, 200ms / 160ms |
-| Press | scale 0.98, 90ms |
+**Đầu trang (Popup)** — Tên + hai nút icon; không có menu hamburger.
+**Đầu trang (New Tab)** — Lời chào bên trái, hôm nay là thứ mấy ngày mấy bên phải; nút Cài đặt ở góc.
+**Dải tab** — {components.button-tab-ribbon}: *Tất cả · Hôm nay · Sắp tới · Đã xong*; ở New Tab, môn học nằm ở "Giá sách" thay vì dải tab.
 
-Chỉ animate `transform`/`opacity`. `prefers-reduced-motion: reduce` → duration 0.01ms, tắt translate/scale.
-Không shimmer/pulse/infinite loop.
+### Signature Components
 
----
+**`quill-input` — Bút lông viết chữ theo người gõ.** Ô nhập thật vẫn là một `<input>` chuẩn (để IME, đọc màn hình, dán, hoàn tác hoạt động); lớp bút chỉ là phần trang trí đặt chồng lên, `aria-hidden="true"`.
+- **Cây bút mặc định**: biểu tượng bút lông ngỗng 28×28px, nghiêng 35°, đầu ngòi đặt ở vị trí con trỏ. Bàn tay cầm bút là biến thể thay thế (cài đặt "Bút / Bàn tay cầm bút"), cùng kích thước, cùng điểm neo ở đầu ngòi.
+- **Chữ hiện ra**: mỗi ký tự *đã xác nhận* hiện bằng hiệu ứng mực thấm: `opacity 0 → 1` và `blur 1px → 0` trong 180ms `ease-out`; màu chữ bắt đầu {colors.brown} (mực ướt) rồi sẫm dần sang {colors.ink} trong ~800ms (mực khô).
+- **Bút chuyển động**: nhún 2px theo mỗi ký tự (120ms), trượt theo con trỏ; ngừng gõ 600ms thì bút nhấc lên, nghiêng nhẹ rồi nằm yên cạnh ô.
+- **Bắt gõ tiếng Việt (Telex/VNI)**: trong lúc đang ghép dấu (`compositionstart` → `compositionend`) **không** chạy hiệu ứng mực; chữ đang ghép chỉ gạch chân nét mảnh {colors.sepia}, đến khi chốt mới thấm mực. Tránh chữ nhấp nháy khi bỏ dấu.
+- **Ghi vào sổ** (Enter hoặc nút): chữ khô hẳn, một cuộn thư mới trượt xuống đầu danh sách trong 240ms, ô nhập xóa trống và bút trở về lọ mực.
+- **Giảm chuyển động**: nếu `prefers-reduced-motion: reduce` hoặc người dùng tắt "Hiệu ứng bút", ẩn bút, giữ chữ hiện ngay, màu chuyển tức thì.
+- **Giới hạn**: tối đa 200 ký tự; quá dài thì bút ngừng, ô vẫn nhận chữ nhưng không chạy hiệu ứng thêm.
 
-## Accessibility (design-spec §10)
+**`hero-greeting`** (chỉ New Tab) — Lời chào `{typography.hero-display}` với chữ cái đầu trang trí `{typography.drop-cap}` màu {colors.primary}, ngay dưới là câu phụ `{typography.subtitle-md}` ("Hôm nay có 4 việc cần ghi nhớ"), nền khung vòm minh họa cửa sổ ở bên phải.
 
-- Semantic: `<header>`, `<main>`, `<section aria-label>`; `h1` sr-only, panel `h2`; `aria-live` vùng sr-only duy nhất.
-- Checkbox thật (sr-only) + visual; priority glyph `aria-hidden` + text sr-only; `<time datetime>`; tabs `role=group` + `aria-pressed` (không tablist); menu `role=menu` + arrow keys; dialog `aria-modal` + focus trap + focus return.
-- Form: `<label for>` hiển thị (không placeholder-as-label), error qua `aria-describedby` + `aria-invalid`.
-- Focus ring 2px + offset 2px, không `outline:none`. Hit area ≥44×44 (chip display-only ngoại lệ).
-- Contrast AA đã đo; màu không là tín hiệu duy nhất; không text <12px; zoom 150% không cắt text.
+**`seal-stamp`** — Con dấu "XONG": hình vuông bo 4px, viền đôi {colors.primary}, chữ Cormorant 700 HOA màu {colors.primary}, nghiêng −6°, kích thước 64×64px trên cuộn việc (40×40 trong popup). Thành tích (hoàn thành cả ngày, streak 7 ngày) dùng dấu lớn hơn với chữ khác ("ĐẠT", "BỀN CHÍ").
 
----
+**`footer-colophon`** — Dòng cuối trang theo kiểu cuối bản thảo: một câu ngắn bằng `{typography.caption}` màu {colors.umber}, trên đường kẻ {colors.hairline}.
 
-## Copy deck & format thời gian
+## Do's and Don'ts
 
-Toàn bộ chuỗi tiếng Việt + format thời gian local (Hôm nay/Mai/{Thứ}/DD/MM…): `.context/design-spec.md` §12.
-Tên app / `document.title`: **"Việc"**. Ngôn ngữ: `vi`.
+### Do
+- Dùng {colors.primary} (đỏ son) cho **một** hành động chính mỗi màn hình, cho con dấu hoàn thành và focus.
+- Dùng viền đôi vàng kim (`3px double {colors.gold}`) cho các khung lớn; dùng viền mảnh {colors.hairline} cho thẻ nhỏ.
+- Giữ chữ viết tay (`{typography.quill-script}`) trong ô nhập; hiển thị việc đã lưu bằng EB Garamond.
+- Luôn kèm chữ cho mọi tín hiệu màu (mức ưu tiên, quá hạn, trạng thái xong).
+- Đóng dấu "XONG" thay vì gạch ngang; hiển thị nút "Hoàn tác" trong 5 giây.
+- Cho người dùng tắt hiệu ứng bút, họa tiết góc và vệt sáng sơn mài.
+- Dùng một giọng xưng hô thống nhất ("con" hoặc "bạn") ở mọi thông báo.
+
+### Don't
+- Đừng dùng xanh dương làm màu hành động; nó phá vỡ hệ sơn mài. Chàm chỉ dùng cho thông tin và nhãn môn.
+- Đừng dùng {colors.gold} làm chữ hoặc viền duy nhất của thành phần tương tác (độ tương phản ~2.3:1); dùng {colors.sepia} hoặc {colors.brown}.
+- Đừng thêm màu ngoài bảng (không hồng, tím, xanh nõn chuối); sắc tía chỉ có trong {colors.critical}.
+- Đừng dùng Pirata One hay Dancing Script cho đoạn chữ dài; chúng chỉ để trang trí.
+- Đừng bo nút thành viên thuốc; đừng làm bóng đổ mờ lớn (blur > 32px) hay màu đen thuần.
+- Đừng để dấu tiếng Việt bị cắt: không giảm `lineHeight` của `{typography.body-md}` dưới 1.55, không đặt chữ trong ô cao cố định nhỏ hơn dòng chữ.
+- Đừng chạy hiệu ứng mực khi đang ghép dấu bằng IME.
+- Đừng bắt người dùng xem hiệu ứng đóng dấu quá một lần mỗi việc; không lặp lại khi cuộn danh sách.
+
+## Responsive Behavior
+
+### Breakpoints
+| Name | Width | Key Changes |
+|---|---|---|
+| Popup | 360 × 560 (cố định) | Một cột; đầu trang → ô nhập → tab → cuộn việc → chân trang cố định. Họa tiết góc ẩn. |
+| New Tab nhỏ | < 720px | Một cột; "Giá sách" thành dải tab cuộn ngang; "Bàn học" xếp dưới cuộn việc, hoặc trượt vào từ cạnh phải. |
+| New Tab vừa | 720 – 1023px | Hai cột: cuộn việc + "Bàn học"; "Giá sách" thu thành dải tab trên cùng. |
+| New Tab lớn | 1024 – 1439px | Ba vùng đầy đủ: 240 / 1fr / 320. |
+| New Tab rộng | ≥ 1440px | Giữ tối đa 1280px, căn giữa; hai bên hiện họa tiết mây/sen trang trí. |
+
+### Touch Targets
+- Nút chính cao ≥ 44px (padding 12px + chữ 16px). Nút icon 40px, tăng lên 44px trên thiết bị cảm ứng.
+- `button-seal-done` 44px; `checkbox-seal` 28px nhưng vùng bấm mở rộng thành 44×44px.
+- Ô streak 28px không tương tác; nếu có tương tác (xem lịch) vùng bấm ≥ 44px.
+
+### Collapsing Strategy
+- **Cuộn việc**: trong Popup, chip hạn và huy hiệu ưu tiên xuống dòng dưới tên việc; tên việc cắt ở 2 dòng.
+- **Giá sách**: ≥ 1024px là cột dọc, dưới đó thành dải tab ngang.
+- **Bàn học**: dưới 1024px đồng hồ Pomodoro giữ lại, streak thu thành một dòng 7 chấm, châm ngôn ẩn.
+- **Lời chào**: `{typography.hero-display}` (56px) giảm còn `{typography.heading-lg}` (32px) dưới 720px.
+- **Khung đôi vàng**: giữ ở mọi kích thước, nhưng giảm từ 3px còn 2px ở Popup.
+- **Hộp thoại**: ở Popup chiếm toàn chiều rộng dạng tờ trượt từ dưới lên; ở New Tab là hộp căn giữa tối đa 560px.
+
+### Image Behavior
+- Họa tiết (sen, mây, bút, lọ mực, dấu) là SVG đơn sắc theo biến màu; không dùng ảnh raster trong Popup để mở nhanh.
+- Minh họa lớn (lời chào, trạng thái rỗng) dùng khung vòm `{rounded.arch}`; tải lười, có phương án thay thế (alt) mô tả.
+- Hạt khảm vỏ trứng là một tile 128×128px lặp, độ mờ ≤ 3%.
+
+## Iteration Guide
+
+1. Làm **một component** mỗi lần; bắt đầu từ `card-scroll-task`, `quill-input`, `button-seal-done` vì chúng định hình cả cảm giác sản phẩm.
+2. Tham chiếu tên component và token trực tiếp (`{colors.primary}`, `{component-name}-pressed`, `{rounded.md}`) — không diễn đạt lại bằng mã màu.
+3. Chạy `npx @google/design.md lint DESIGN.md` sau mỗi lần sửa để bắt tham chiếu hỏng, cặp màu thiếu tương phản, token mồ côi.
+4. Thêm biến thể ở mục `components:` riêng (`-pressed`, `-disabled`, `-focused`, `-checked`), không giấu trong phần mô tả.
+5. Mặc định dùng `{typography.body-md}` cho nội dung và `{typography.subtitle-lg}` cho nhấn mạnh; tiêu đề đi theo `hero-display → display-lg → heading-lg → heading-md → heading-sm`.
+6. Giữ {colors.primary} khan hiếm: nếu cả màn hình đỏ son, hãy hỏi lại điều gì thực sự là hành động chính.
+7. Mỗi họa tiết trang trí mới phải trả lời được câu hỏi "nó nhắc người dùng điều gì về việc học?" (cuộn thư, bút, sách, dấu, đèn dầu…). Nếu chỉ để cho đẹp, bỏ.
+8. Thử mọi component với chuỗi tiếng Việt dài có đủ dấu (ví dụ "Nghiên cứu phương trình vi phân thường") để kiểm tra cắt dấu, ngắt dòng.
+
+## Known Gaps
+
+- **Chế độ tối** chưa định nghĩa (yêu cầu hiện tại là tông sáng). Nếu cần, gợi ý một bản "đêm sơn mài": nền {colors.ink}, chữ {colors.gold-pale}, giữ đỏ son cho hành động.
+- **Độ phủ tiếng Việt của phông**: cần kiểm tra thực tế các ký tự có dấu kép (ế, ặ, ữ, ợ…) trong Cormorant Garamond, EB Garamond, Pirata One và Dancing Script trước khi phát hành; phương án dự phòng cho từng phông đã ghi ở mục Typography. Pirata One là rủi ro cao nhất; có thể thay bằng chữ in hoa Cormorant màu đỏ son nếu thiếu glyph.
+- **Bộ họa tiết SVG** (bút lông ngỗng, bàn tay cầm bút, lọ mực, cuộn thư, sen, mây, dấu "XONG") chưa được vẽ; file này chỉ mô tả kích thước, điểm neo và màu.
+- **Thời gian chuyển động** ở mục `quill-input` là đề xuất ban đầu (180/120/240/800ms); cần thử trên máy yếu và với người gõ nhanh.
+- **Âm thanh nhắc** (chuông đồng, tiếng giấy) chưa quy định; mặc định tắt, bật trong Cài đặt.
+- **Thông báo hệ điều hành** không tạo kiểu được; chỉ đồng bộ giọng văn và biểu tượng.
+- **Hiệu năng**: vệt sáng gradient và hạt khảm trên Popup có thể ảnh hưởng thời gian mở; đo trước khi bật mặc định.
+- **Ngôn ngữ khác**: chuỗi và dấu "XONG" cần bản địa hóa nếu hỗ trợ tiếng Anh; phông có thể cần đổi phần nhãn nút HOA.
+- **Họa tiết theo mùa/ngày lễ** (Tết, khai giảng) chưa có; nên coi như nội dung trang trí, không thêm token màu mới.

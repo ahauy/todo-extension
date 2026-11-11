@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+@import '../../styles/fonts.css';
+@import '../../styles/tokens.css';
+@import '../../styles/base.css';
+@import '../../styles/components.css';
+@import '../../styles/signature.css';
+@import '../../styles/board.css';
+
+/* Trang tab mới: mặt giấy trải hết cửa sổ, bảng nằm giữa */
+.board-page {
+  min-height: 100vh;
+  padding: var(--spacing-xl) var(--spacing-base) var(--spacing-xxl);
+}
+
+.board {
+  position: relative;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: var(--spacing-xl);
+}
+
+/* Hàng nút góc phải nằm trong luồng, phía trên chiếu chỉ — không đè lên nó */
+.board-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-sm);
+}
+
+.board-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* Ba vùng: Giá sách 240 · Cuộn nhiệm vụ 1fr (tối đa 640) · Bàn học 320 */
+.board-grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) 320px;
+  gap: var(--spacing-xl);
+  align-items: start;
+  padding-top: var(--spacing-lg);
+}
+
+.board-shelf {
+  position: sticky;
+  top: var(--spacing-lg);
+}
+
+.board-scroll {
+  min-width: 0;
+  max-width: 640px;
+}
+
+.board-desk {
+  position: sticky;
+  top: var(--spacing-lg);
+}
+
+.board-shelf-strip {
+  padding-top: var(--spacing-lg);
+}
+
+/* Chế độ Popup: tab mới chỉ là một trang chào */
+.quiet-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-base);
+  max-width: 620px;
+  margin: 12vh auto;
+  padding: var(--spacing-xxl) var(--spacing-xl);
+  text-align: center;
+}
+
+/* ≥1440px: hai bên bảng hiện dải mây trang trí */
+@media (min-width: 1440px) {
+  .board-page::before,
+  .board-page::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: calc((100vw - 1280px) / 2 - 24px);
+    background-image: url('/art/cloud-band.svg');
+    background-repeat: repeat-y;
+    background-position: center top;
+    background-size: 64px 96px;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .board-page::before { left: 12px; }
+  .board-page::after { right: 12px; }
+  :root[data-ornaments='off'] .board-page::before,
+  :root[data-ornaments='off'] .board-page::after {
+    display: none;
+  }
+}
+
+/* 1024–1439: ba vùng đầy đủ nhưng cột giữa hẹp hơn */
+@media (max-width: 1279px) {
+  .board-grid {
+    grid-template-columns: 208px minmax(0, 1fr) 300px;
+    gap: var(--spacing-lg);
+  }
+}
+
+/* 720–1023: hai cột, Giá sách thành dải ngang phía trên */
+@media (max-width: 1023px) {
+  .board-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .board-scroll {
+    max-width: none;
+  }
+  .board-maxim {
+    display: none;
+  }
+}
+
+/* <720: một cột, Bàn học xếp dưới cuộn việc */
+@media (max-width: 719px) {
+  .board-page {
+    padding: var(--spacing-base) var(--spacing-sm) var(--spacing-xl);
+  }
+  .board {
+    padding: var(--spacing-base);
+    border-width: 2px;
+  }
+  .board-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-lg);
+  }
+  .board-shelf,
+  .board-desk {
+    position: static;
+  }
+  .greeting-title {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+  .drop-cap {
+    font-size: 48px;
+    margin-top: 2px;
+  }
+  .board-actions {
+    gap: var(--spacing-xxs);
+  }
+  /* Ô bút một hàng, nút ghi xuống hàng riêng cho đủ rộng ngón tay */
+  .composer-row {
+    flex-wrap: wrap;
+  }
+  .composer-row > .composer-submit {
+    width: 100%;
+  }
+  .colophon {
+    padding: var(--spacing-base);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+}

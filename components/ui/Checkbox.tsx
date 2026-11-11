@@ -1,32 +1,35 @@
 /**
- * Checkbox (L4-T10). Visual 18px + hit area 44×44, done state.
- * Màu đi qua token, focus ring 2px.
+ * Ô chọn kiểu dấu triện: vuông 28px bo 4px, viền nâu giấy cũ; khi chọn nền đỏ
+ * son và hiện dấu tích cách điệu. Vùng bấm thật 44×44.
  */
 import React from 'react';
+import { CheckIcon } from '../art/Icons';
 
 interface CheckboxProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   'aria-label': string;
+  disabled?: boolean;
 }
 
-export default function Checkbox({ checked, onChange, 'aria-label': ariaLabel }: CheckboxProps) {
+export default function Checkbox({
+  checked,
+  onChange,
+  'aria-label': ariaLabel,
+  disabled = false,
+}: CheckboxProps) {
   return (
-    <span className="relative size-11 -m-3 p-3 flex items-center justify-center">
+    <label className="seal-check">
       <input
         type="checkbox"
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.checked)}
         aria-label={ariaLabel}
-        className="sr-only w-0 h-0 border-0 p-0 -m-0"
       />
-      <span
-        className={`size-[18px] rounded-checkbox border-[1.5px] flex items-center justify-center ${
-          checked ? 'bg-accent border-accent text-on-accent' : 'border-border-control bg-surface'
-        }`}
-      >
-        {checked ? '✓' : null}
+      <span className="seal-check-box" aria-hidden="true">
+        {checked ? <CheckIcon size={16} /> : null}
       </span>
-    </span>
+    </label>
   );
 }

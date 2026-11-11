@@ -17,7 +17,7 @@ import type { Task } from '../../lib/tasks/types';
 interface UseTasksApi {
   tasks: Task[];
   add: (title: string) => Promise<void>;
-  create: (draft: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  create: (draft: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Task | null>;
   update: (task: Task) => Promise<void>;
   remove: (id: string) => Promise<void>;
   toggle: (id: string) => Promise<void>;
@@ -111,7 +111,6 @@ afterEach(async () => {
   cleanup = null;
   await flush();
   document.body.innerHTML = '';
-  delete document.documentElement.dataset.theme;
 });
 
 describe('useTasks — load & add', () => {
@@ -326,39 +325,6 @@ describe('useTasks — subscription ổn định (#22)', () => {
       await api.add('Việc thứ hai');
     });
     expect(stub.subscribeCalls).toBe(1);
-  });
-});
-
-describe('useTasks — theme (#7)', () => {
-  it('áp theme dark đã lưu khi mount', async () => {
-    stub.seed({ settings: { theme: 'dark', notificationsEnabled: true } });
-    await mountHook();
-    expect(document.documentElement.dataset.theme).toBe('dark');
-  });
-
-  it('theme system xoá data-theme khi mount', async () => {
-    document.documentElement.dataset.theme = 'dark';
-    stub.seed({ settings: { theme: 'system', notificationsEnabled: true } });
-    await mountHook();
-    expect(document.documentElement.dataset.theme).toBeUndefined();
-  });
-
-  it('không có settings thì về system (xoá data-theme cũ)', async () => {
-    document.documentElement.dataset.theme = 'dark';
-    await mountHook();
-    expect(document.documentElement.dataset.theme).toBeUndefined();
-  });
-
-  it('storage.onChanged settings áp theme mới ngay', async () => {
-    await mountHook();
-
-    await act(async () => {
-      stub.store.set('settings', { theme: 'dark', notificationsEnabled: true });
-      stub.emitChange(['settings']);
-      await flush();
-    });
-
-    expect(document.documentElement.dataset.theme).toBe('dark');
   });
 });
 

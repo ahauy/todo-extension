@@ -9,10 +9,14 @@
  * Test chứng minh 3 điều:
  * (a) ErrorBoundary bắt lỗi render của child → DOM có fallback text đọc được,
  *     không rỗng, không ném tiếp ra ngoài;
- * (b) fallback dùng token nền/chữ (class ổn định `bg-bg` + `text-fg`) + `role="alert"`
+ * (b) fallback dùng token nền/chữ hệ màu mới (class ổn định `bg-canvas` +
+ *     `text-ink` — vỏ trứng ngà) + `role="alert"`
  *     — không assert computed CSS vì jsdom không layout;
- * (c) guard tĩnh: index.html có background cho html/body + fallback dark
- *     ⇒ chặn regression "ai đó xoá nền dự phòng".
+ * (c) guard tĩnh light-only: index.html có nền #f6ebd3 + màu #2b1b12 cho
+ *     html/body, KHÔNG khai báo `color-scheme` và KHÔNG có @media
+ *     prefers-color-scheme — UI Sơn mài Học Đường chỉ có tông sáng, nên nếu
+ *     ai đó trả dark mode hoặc xoá nền dự phòng tĩnh thì test đỏ ngay
+ *     ⇒ chặn regression "popup đen tuyền khi JS chết".
  */
 import { describe, expect, it, vi } from 'vitest';
 import React, { act } from 'react';
@@ -64,29 +68,36 @@ describe('popup fallback (regression bug/popup-blank-black #2)', () => {
     consoleError.mockRestore();
   });
 
-  it('(b) fallback dùng token nền/chữ (bg-bg + text-fg) và có role="alert"', async () => {
+  it('(b) fallback dùng token nền/chữ (bg-canvas + text-ink) và có role="alert"', async () => {
     const { root, container, consoleError } = await mountThrowingChild();
 
     const fallback = container.querySelector('[role="alert"]') as HTMLElement | null;
     expect(fallback).not.toBeNull();
-    expect(fallback!.className).toContain('bg-bg');
-    expect(fallback!.className).toContain('text-fg');
+    expect(fallback!.className).toContain('bg-canvas');
+    expect(fallback!.className).toContain('text-ink');
 
     root.unmount();
     consoleError.mockRestore();
   });
 
-  it('(c) index.html có nền tĩnh cho html/body + fallback dark', () => {
+  it('(c) index.html giữ nền tĩnh vỏ trứng ngà, chỉ tông sáng (không dark mode)', () => {
     const html = readFileSync(INDEX_HTML, 'utf8');
     const styleStart = html.indexOf('<style>');
     const styleEnd = html.indexOf('</style>');
     expect(styleStart).toBeGreaterThan(-1);
     expect(styleEnd).toBeGreaterThan(styleStart);
 
-    const css = html.slice(styleStart, styleEnd).replace(/\s+/g, ' ').toLowerCase();
+    // Bỏ comment CSS trước khi assert — comment giải thích "không đặt
+    // color-scheme" trong file nguồn có nhắc đúng chuỗi đó.
+    const css = html
+      .slice(styleStart, styleEnd)
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
     expect(css).toMatch(/html[^{}]*\{[^}]*background\s*:/);
-    expect(css).toMatch(/@media \(prefers-color-scheme: dark\)\s*\{[^}]*background/);
-    expect(css).toContain('#f5f6f7');
-    expect(css).toContain('#14171a');
+    expect(css).toContain('#f6ebd3');
+    expect(css).toContain('#2b1b12');
+    expect(css).not.toContain('color-scheme');
+    expect(css).not.toContain('prefers-color-scheme');
   });
 });

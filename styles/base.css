@@ -1,0 +1,179 @@
+/* Lớp nền: giấy, mực, con trỏ, thanh cuộn, focus. Những thứ trình duyệt tự vẽ
+   cũng phải thuộc hệ sơn mài — đây là chỗ rẻ nhất để một giao diện trông như
+   được dựng chứ không phải lắp ráp. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Hạt khảm vỏ trứng: một lớp phủ cố định, không chặn tương tác */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/art/eggshell.svg');
+  background-size: 128px 128px;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+}
+:root[data-grain='off'] body::before {
+  display: none;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: var(--gold-pale);
+  color: var(--ink-deep);
+}
+
+input,
+textarea,
+button,
+select {
+  font: inherit;
+  color: inherit;
+  caret-color: var(--primary);
+}
+
+/* Thanh cuộn như một rãnh mực trên giấy dó */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border: 3px solid var(--canvas);
+  border-radius: 100px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sepia);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Focus: quầng vàng kim + nét đỏ son, không dùng outline mặc định của UA */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--primary-deep);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+/* Số thẳng hàng ở đồng hồ, hạn chót, bộ đếm */
+.tnum {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'lnum' 1, 'tnum' 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Vệt sáng sơn mài phủ lên thẻ nổi — tắt được trong Cài đặt */
+.sheen {
+  position: relative;
+}
+.sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--sheen);
+  pointer-events: none;
+}
+:root[data-sheen='off'] .sheen::after {
+  display: none;
+}
+
+/* Họa tiết góc — ẩn trong popup và khi người dùng tắt */
+.ornament {
+  color: var(--gold);
+  pointer-events: none;
+}
+:root[data-ornaments='off'] .ornament {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-ink: 0.01ms;
+    --dur-dry: 0.01ms;
+    --dur-nib: 0.01ms;
+    --dur-slide: 0.01ms;
+    --dur-fast: 0.01ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Người dùng tắt hiệu ứng bút: chữ hiện ngay, mực khô tức thì */
+:root[data-quill='off'] .ink-char,
+:root[data-quill='off'] .ink-wet {
+  animation: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  color: var(--ink) !important;
+}
+:root[data-quill='off'] .quill-nib {
+  display: none;
+}

@@ -1,0 +1,168 @@
+/* Token của docs/DESIGN.md — hệ "Sơn Mài Học Đường".
+   Một nguồn màu duy nhất, tông sáng. Không có light-dark(), không có data-theme:
+   DESIGN.md chốt toàn bộ là chủ đề sáng. */
+
+:root {
+  /* Brand & accent */
+  --primary: #b8381c;
+  --primary-deep: #8e2a14;
+  --primary-wash: #f4d3c4;
+  --on-primary: #fff6e3;
+  --gold: #c9962b;
+  --gold-leaf: #e2b84a;
+  --gold-pale: #f3dc9a;
+  --on-gold: #2b1b12;
+
+  /* Semantic */
+  --jade: #3f6b4e;
+  --jade-wash: #d8e4cf;
+  --indigo: #2f5d7c;
+  --indigo-wash: #d3e0e6;
+  --critical: #9e1b32;
+  --critical-wash: #f0cdd3;
+
+  /* Surface */
+  --canvas: #f6ebd3;
+  --surface-lacquer: #fbf3e0;
+  --surface-paper: #efe0bf;
+  --surface-sunk: #e6d3a8;
+
+  /* Mực */
+  --ink-deep: #1a0f0a;
+  --ink: #2b1b12;
+  --brown: #5a3a26;
+  --umber: #7b5a3e;
+  --sepia: #9a7b5c;
+  --hairline: #c8ae80;
+  --hairline-soft: #dcc9a0;
+  --disabled-text: #a8987a;
+
+  /* Màu gáy sách — 5 môn đầu, môn thứ 6+ dùng sepia */
+  --spine-1: var(--primary);
+  --spine-2: var(--indigo);
+  --spine-3: var(--jade);
+  --spine-4: var(--gold);
+  --spine-5: var(--umber);
+  --spine-rest: var(--sepia);
+
+  /* Chiều sâu: lớp sơn, không phải bóng mờ lớn */
+  --elev-lacquer: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 0 #c8ae80;
+  --elev-seal: inset 0 1px 0 rgba(255, 246, 227, 0.35), 0 2px 0 #8e2a14;
+  --elev-pressed: inset 0 2px 4px rgba(26, 15, 10, 0.35);
+  --elev-raised: 0 8px 20px rgba(90, 58, 38, 0.18);
+  --elev-modal: 0 12px 32px rgba(26, 15, 10, 0.28);
+  --scrim: rgba(26, 15, 10, 0.42);
+
+  /* Vệt sáng sơn mài + hạt khảm vỏ trứng (tắt được trong Cài đặt) */
+  --sheen: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%);
+  --focus-halo: 0 0 0 3px rgba(201, 150, 43, 0.35);
+
+  /* Motion */
+  --dur-ink: 180ms;
+  --dur-dry: 800ms;
+  --dur-nib: 120ms;
+  --dur-slide: 240ms;
+  --dur-fast: 140ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-ink: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  color-scheme: light;
+  accent-color: var(--primary);
+}
+
+@theme inline {
+  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  /* Pirata One đã đo thử: chữ "C" blackletter hẹp 30px ở cỡ 72px, đọc không ra
+     chữ C trong lời chào tiếng Việt. DESIGN.md § Known Gaps cho phép lùi về
+     Cormorant in hoa màu đỏ son — đó là phông đang dùng cho drop cap. */
+  --font-drop: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-quill: 'Dancing Script', 'Segoe Script', cursive;
+
+  --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
+  --color-primary-wash: var(--primary-wash);
+  --color-on-primary: var(--on-primary);
+  --color-gold: var(--gold);
+  --color-gold-leaf: var(--gold-leaf);
+  --color-gold-pale: var(--gold-pale);
+  --color-on-gold: var(--on-gold);
+  --color-jade: var(--jade);
+  --color-jade-wash: var(--jade-wash);
+  --color-indigo: var(--indigo);
+  --color-indigo-wash: var(--indigo-wash);
+  --color-critical: var(--critical);
+  --color-critical-wash: var(--critical-wash);
+  --color-canvas: var(--canvas);
+  --color-lacquer: var(--surface-lacquer);
+  --color-paper: var(--surface-paper);
+  --color-sunk: var(--surface-sunk);
+  --color-ink-deep: var(--ink-deep);
+  --color-ink: var(--ink);
+  --color-brown: var(--brown);
+  --color-umber: var(--umber);
+  --color-sepia: var(--sepia);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-disabled-text: var(--disabled-text);
+
+  --text-hero: 56px;
+  --text-hero--line-height: 1.12;
+  --text-hero--letter-spacing: 0.5px;
+  --text-hero--font-weight: 700;
+  --text-display-lg: 40px;
+  --text-display-lg--line-height: 1.15;
+  --text-display-lg--letter-spacing: 0.4px;
+  --text-display-lg--font-weight: 700;
+  --text-heading-lg: 32px;
+  --text-heading-lg--line-height: 1.2;
+  --text-heading-lg--font-weight: 600;
+  --text-heading-md: 24px;
+  --text-heading-md--line-height: 1.25;
+  --text-heading-md--font-weight: 500;
+  --text-heading-sm: 20px;
+  --text-heading-sm--line-height: 1.3;
+  --text-heading-sm--font-weight: 700;
+  --text-subtitle: 18px;
+  --text-subtitle--line-height: 1.45;
+  --text-body-md: 17px;
+  --text-body-md--line-height: 1.55;
+  --text-body-sm: 15px;
+  --text-body-sm--line-height: 1.5;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.4;
+  --text-button: 16px;
+  --text-button--line-height: 1.25;
+  --text-button--letter-spacing: 1px;
+  --text-button--font-weight: 700;
+  --text-drop: 72px;
+  --text-drop--line-height: 0.9;
+  --text-quill: 24px;
+  --text-quill--line-height: 1.35;
+  --text-timer: 64px;
+  --text-timer--line-height: 1;
+  --text-timer--font-weight: 600;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-xxl: 24px;
+  --radius-arch: 160px;
+  --radius-full: 100px;
+
+  --spacing-xxs: 4px;
+  --spacing-xs: 6px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  --shadow-lacquer: var(--elev-lacquer);
+  --shadow-seal: var(--elev-seal);
+  --shadow-raised: var(--elev-raised);
+  --shadow-modal: var(--elev-modal);
+}

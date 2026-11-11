@@ -14,7 +14,7 @@
  * - update: updatedAt now → put.
  * - chrome.storage.onChanged: key t:<id> đổi → merge theo updatedAt lớn hơn
  *   thắng (last-write-wins), cập nhật UI + reschedule alarm; key bị xoá →
- *   xoá local + clear alarm; key settings → áp theme.
+ *   xoá local + clear alarm; key settings → resync alarm.
  * Ghi 1 key/task (không ghi cả danh sách), không autosave keystroke
  * (giới hạn 120 write/phút).
  * Lỗi quota ném từ adapter → không swallow.
@@ -31,8 +31,7 @@ import {
   scheduleTask,
   syncAlarms,
 } from '../lib/alarms/scheduler';
-import { loadAll, loadSettings, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
-import { applyTheme } from '../lib/theme';
+import { loadAll, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
 import { nextFutureDue } from '../lib/tasks/recurrence';
 import type { Task } from '../lib/tasks/types';
 
@@ -53,6 +52,7 @@ function defaultDraft(title: string): TaskDraft {
     recurrence: { kind: 'none' },
     tags: [],
     subtasks: [],
+    subjectId: null,
     done: false,
   };
 }
@@ -121,12 +121,6 @@ export function useTasks() {
         } catch {
           // không throw trong onChanged listener
         }
-        try {
-          const settings = await loadSettings();
-          applyTheme(settings?.theme ?? 'system');
-        } catch {
-          // theme lỗi không được làm hỏng listener
-        }
       }
     },
     [setSnapshot]
@@ -158,11 +152,12 @@ export function useTasks() {
   const create = useCallback(
     async (draft: TaskDraft) => {
       const title = draft.title.trim();
-      if (!title || title.length > MAX_TITLE) return;
+      if (!title || title.length > MAX_TITLE) return null;
       const task = buildTask({ ...draft, title });
       await put(task);
       setSnapshot([...snapshotStore.tasks, task]);
       syncAlarms(snapshotStore.tasks);
+      return task;
     },
     [setSnapshot]
   );
@@ -296,12 +291,6 @@ export function useTasks() {
         // load lỗi: giữ snapshot rỗng, hết loading, không unhandled rejection
       } finally {
         setLoading(false);
-      }
-      try {
-        const settings = await loadSettings();
-        applyTheme(settings?.theme ?? 'system');
-      } catch {
-        // không chặn mount nếu đọc settings lỗi
       }
     })();
   }, []);
