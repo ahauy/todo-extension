@@ -151,7 +151,7 @@ export default function TaskComposer({
               ref={titleInputRef}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full h-10 px-2.5 rounded-control border-border-control bg-surface text-body placeholder:text-fg-muted"
+              className="w-full h-10 px-2.5 rounded-control border border-border-control bg-surface text-body placeholder:text-fg-muted"
               placeholder="Ví dụ: Mua sắm tuần"
               maxLength={MAX_TITLE}
               autoFocus
@@ -182,7 +182,7 @@ export default function TaskComposer({
                 type="datetime-local"
                 value={dueAt ?? ''}
                 onChange={(e) => handleDueChange(e.target.value || null)}
-                className="flex-1 h-10 px-2.5 rounded-control border-border-control bg-surface text-body"
+                className="flex-1 h-10 px-2.5 rounded-control border border-border-control bg-surface text-body"
               />
               <Button
                 variant="ghost"
@@ -265,7 +265,7 @@ export default function TaskComposer({
                   }
                 }}
                 placeholder="+ subtask"
-                className="flex-1 h-8 px-2.5 rounded-control border-border-control bg-surface text-body"
+                className="flex-1 h-8 px-2.5 rounded-control border border-border-control bg-surface text-body"
               />
               <span className="text-meta text-fg-muted tabular-nums">
                 {subtasks.length}/{MAX_SUBTASKS}

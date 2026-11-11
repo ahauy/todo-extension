@@ -219,7 +219,7 @@ export default function TaskDetail({
             ref={titleRef}
             value={localTask.title}
             onChange={handleTitleChange}
-            className="w-full h-10 px-2.5 rounded-control border-border-control bg-surface text-body placeholder:text-fg-muted"
+            className="w-full h-10 px-2.5 rounded-control border border-border-control bg-surface text-body placeholder:text-fg-muted"
             maxLength={200}
             autoFocus
             disabled={saving}
@@ -230,7 +230,7 @@ export default function TaskDetail({
           <textarea
             value={localTask.note}
             onChange={handleNoteChange}
-            className="w-full h-32 px-2.5 rounded-control border-border-control bg-surface text-body placeholder:text-fg-muted"
+            className="w-full h-32 px-2.5 rounded-control border border-border-control bg-surface text-body placeholder:text-fg-muted"
             placeholder="Ghi chú thêm về việc này…"
             maxLength={MAX_NOTE}
             disabled={saving}
@@ -255,7 +255,7 @@ export default function TaskDetail({
               type="datetime-local"
               value={localTask.dueAt ?? ''}
               onChange={(e) => handleDueChange(e.target.value || null)}
-              className="flex-1 h-10 px-2.5 rounded-control border-border-control bg-surface text-body"
+              className="flex-1 h-10 px-2.5 rounded-control border border-border-control bg-surface text-body"
               disabled={saving}
             />
             <Button

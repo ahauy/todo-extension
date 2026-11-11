@@ -1,19 +1,19 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 9,
-  "generatedAt": "2026-11-11T11:55:00+07:00",
+  "scopeVersion": 10,
+  "generatedAt": "2026-11-11T12:00:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-16"],
+  "specRefs": ["R-01", "R-02"],
   "changed": {
-    "files": ["hooks/useTasks.ts", "entrypoints/popup/App.tsx", "components/TaskList.tsx", "src/__tests__/TaskList.test.tsx", "entrypoints/popup/App.wiring.test.tsx"],
-    "modules": ["list", "tasks-hook"]
+    "files": ["components/TaskComposer.tsx", "components/TaskDetail.tsx", "src/__tests__/border-classes.test.ts"],
+    "modules": ["composer", "detail", "ui"]
   },
   "impact": {
-    "direct": ["skeleton chỉ hiện khi đang tải; empty state không còn đi kèm 4 thanh xám", "useTasks expose loading"],
-    "dependents": ["App truyền loading", "TaskList prop loading/quotaError default"],
-    "regression": ["list có task render như cũ", "quota banner giữ nguyên", "popup-mount empty vẫn xanh"]
+    "direct": ["input/textarea ở composer và detail có viền 1px theo token --border-control"],
+    "dependents": ["wxt build CSS (utility .border + .border-border-control)"],
+    "regression": ["layout không đổi ngoài 1px border; các class khác giữ nguyên"]
   },
-  "acceptance": ["TaskList 2 test loading/empty", "App empty không skeleton", "vitest 12 file / 71 test PASS"],
+  "acceptance": ["guard test 0 orphan border-border-control", "vitest 13 file / 73 test PASS"],
   "risk": "low"
 }
