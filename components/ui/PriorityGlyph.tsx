@@ -20,6 +20,13 @@ const labels: Record<'low' | 'medium' | 'high', string> = {
   high: 'Cao',
 };
 
+// Class tĩnh từng priority — Tailwind không sinh class từ template string động (#13).
+const activeClass: Record<'low' | 'medium' | 'high', string> = {
+  low: 'bg-priority-low',
+  medium: 'bg-priority-medium',
+  high: 'bg-priority-high',
+};
+
 export default function PriorityGlyph({ priority }: PriorityGlyphProps) {
   const threshold = barHeights[priority];
   return (
@@ -29,7 +36,7 @@ export default function PriorityGlyph({ priority }: PriorityGlyphProps) {
           key={n}
           className={`w-[3px] rounded-[1px] transition-colors ${
             n <= threshold
-              ? `bg-priority-${priority}`
+              ? activeClass[priority]
               : 'bg-border-subtle'
           }`}
         />

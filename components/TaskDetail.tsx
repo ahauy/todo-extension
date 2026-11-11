@@ -325,7 +325,7 @@ export default function TaskDetail({
       <footer
         className={`sticky bottom-0 px-3 py-2 flex items-center justify-between gap-2 bg-${
           saving ? 'surface' : 'bg'
-        } border-t border-border-subtle z-sticky`}
+        } border-t border-border-subtle z-10`}
       >
         {dirty && (
           <span className="text-meta text-fg-muted">

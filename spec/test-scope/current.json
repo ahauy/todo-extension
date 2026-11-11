@@ -1,19 +1,19 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 11,
-  "generatedAt": "2026-11-11T12:07:00+07:00",
+  "scopeVersion": 12,
+  "generatedAt": "2026-11-11T12:12:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-12"],
+  "specRefs": ["R-01", "R-02"],
   "changed": {
-    "files": ["components/Settings.tsx", "lib/notifications.ts", "entrypoints/background.ts", "src/__tests__/helpers/chrome-stub.ts", "src/__tests__/Settings.test.tsx", "src/__tests__/shouldNotify.test.ts", "docs/API_SPEC.md"],
-    "modules": ["settings", "background", "notifications"]
+    "files": ["components/ui/PriorityGlyph.tsx", "components/TaskDetail.tsx", "components/Settings.tsx", "src/__tests__/tailwind-classes.test.ts"],
+    "modules": ["ui", "detail", "settings"]
   },
   "impact": {
-    "direct": ["Settings có toggle Bật nhắc việc lưu settings + đọc quyền thật chrome.notifications.getPermissionLevel", "background chỉ notify khi shouldNotify(task, settings) -> tắt nhắc việc là không gửi"],
-    "dependents": ["alarm handler background", "Settings preferences", "docs API_SPEC §2.3"],
-    "regression": ["theme vẫn do popup/useTasks xử lý; background không ghi đè settings nữa", "alarm reschedule giữ nguyên"]
+    "direct": ["PriorityGlyph hiện đúng 1-3 vạch màu theo priority (class tĩnh được build)", "footer detail/settings có z-index z-10"],
+    "dependents": ["wxt build CSS (.bg-priority-*, .z-10)"],
+    "regression": ["layout khác giữ nguyên; dialog z-[60/70], toast z-[80] vẫn trên footer"]
   },
-  "acceptance": ["Settings toggle persist; denied hiện cảnh báo + copy", "shouldNotify 4 case", "vitest 15 file / 80 test PASS"],
-  "risk": "medium"
+  "acceptance": ["guard 3 test", "CSS build có bg-priority-high + z-10", "vitest 16 file / 83 test PASS"],
+  "risk": "low"
 }

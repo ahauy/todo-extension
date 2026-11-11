@@ -186,7 +186,7 @@ export default function Settings({ onBack }: SettingsProps) {
         )}
       </div>
 
-      <footer className="sticky bottom-0 px-3 py-2 border-t border-border-subtle bg-bg z-sticky">
+      <footer className="sticky bottom-0 px-3 py-2 border-t border-border-subtle bg-bg z-10">
         <Button variant="ghost" onClick={onBack}>
           Đóng
         </Button>
