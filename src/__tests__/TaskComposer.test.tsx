@@ -116,6 +116,67 @@ describe('TaskComposer', () => {
     expect(draft.recurrence).toEqual({ kind: 'none' });
   });
 
+  it('chọn lặp Hàng tháng lưu rule.day lấy từ hạn', () => {
+    const onSubmit = vi.fn();
+    const container = renderComposer(onSubmit);
+    const titleInput = expand(container);
+    typeTitle(titleInput, 'Việc lặp tháng');
+
+    const dueInput = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value'
+    )!.set!;
+    act(() => {
+      setter.call(dueInput, '2035-01-15T09:00');
+      dueInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    act(() => {
+      findButton(container, 'Hàng tháng').click();
+    });
+    act(() => {
+      findButton(container, 'Lưu').click();
+    });
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const draft = onSubmit.mock.calls[0][0] as Draft;
+    expect(draft.recurrence).toEqual({ kind: 'monthly', rule: { day: 15 } });
+  });
+
+  it('đổi hạn sau khi chọn lặp tháng thì rule.day cập nhật theo hạn mới', () => {
+    const onSubmit = vi.fn();
+    const container = renderComposer(onSubmit);
+    const titleInput = expand(container);
+    typeTitle(titleInput, 'Việc lặp tháng');
+
+    const dueInput = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value'
+    )!.set!;
+    act(() => {
+      setter.call(dueInput, '2035-01-15T09:00');
+      dueInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    act(() => {
+      findButton(container, 'Hàng tháng').click();
+    });
+    act(() => {
+      setter.call(dueInput, '2035-02-20T09:00');
+      dueInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    act(() => {
+      findButton(container, 'Lưu').click();
+    });
+
+    const draft = onSubmit.mock.calls[0][0] as Draft;
+    expect(draft.recurrence).toEqual({ kind: 'monthly', rule: { day: 20 } });
+  });
+
   it('chọn lặp daily khi chưa có hạn: Lưu vẫn disabled', () => {
     const container = renderComposer(vi.fn());
     const input = expand(container);

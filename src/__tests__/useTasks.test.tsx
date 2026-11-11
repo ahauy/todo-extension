@@ -268,6 +268,25 @@ describe('useTasks — toggle', () => {
     expect(stub.alarms.has('due:a')).toBe(false);
   });
 
+  it('toggle task lặp monthly (có rule.day): không crash, dời hạn sang tương lai', async () => {
+    const task = fixture({
+      id: 'm',
+      dueAt: '2020-01-15T09:00:00',
+      recurrence: { kind: 'monthly', rule: { day: 15 } },
+    });
+    stub.seed({ 't:m': task });
+    await mountHook();
+
+    await act(async () => {
+      await api.toggle('m');
+    });
+
+    const saved = stub.store.get('t:m') as Task;
+    expect(saved.done).toBe(false);
+    expect(new Date(saved.dueAt!).getTime()).toBeGreaterThan(Date.now());
+    expect(new Date(saved.dueAt!).getDate()).toBe(15);
+  });
+
   it('toggle task lặp daily: dời dueAt sang tương lai, done=false, tạo alarm mới', async () => {
     const yesterday = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
     const task = fixture({

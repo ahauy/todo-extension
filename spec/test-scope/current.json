@@ -1,35 +1,34 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 6,
-  "generatedAt": "2026-11-11T11:39:00+07:00",
+  "scopeVersion": 7,
+  "generatedAt": "2026-11-11T11:44:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-12", "R-17"],
+  "specRefs": ["R-10", "R-11"],
   "changed": {
     "files": [
-      "entrypoints/background.ts",
-      "wxt.config.ts",
-      "public/icon/16.png",
-      "public/icon/48.png",
-      "public/icon/128.png",
-      "src/__tests__/notification-icon.test.ts",
-      "docs/API_SPEC.md",
-      "docs/PERMISSION.md"
+      "lib/tasks/recurrence.ts",
+      "components/TaskComposer.tsx",
+      "components/TaskDetail.tsx",
+      "src/__tests__/recurrence.test.ts",
+      "src/__tests__/TaskComposer.test.tsx",
+      "src/__tests__/useTasks.test.tsx"
     ],
-    "modules": ["background", "manifest", "assets"]
+    "modules": ["recurrence", "composer", "detail"]
   },
   "impact": {
     "direct": [
-      "notification dùng icon thật qua chrome.runtime.getURL('icon/48.png'); không còn lỗi 'Unable to download all specified images'",
-      "manifest có icons 16/48/128 để Chrome/Web Store nhận diện extension"
+      "chọn lặp Hàng tháng/Hàng tuần tạo rule đầy đủ (day/weekday lấy từ hạn) -> tick done không còn TypeError",
+      "đổi hạn sau khi chọn lặp sẽ cập nhật lại rule theo hạn mới",
+      "task legacy thiếu rule.day không crash khi tick done (fallback ngày của hạn cũ)"
     ],
-    "dependents": ["chrome.notifications.create", "wxt build output icons", "docs gap G5"],
-    "regression": ["permissions vẫn storage/alarms/notifications", "popup bundle không đổi logic"]
+    "dependents": ["useTasks.toggle -> nextFutureDue", "TaskComposer/TaskDetail onChange recurrence"],
+    "regression": ["daily/weekly vẫn cộng ngày; validation 'lặp cần hạn' giữ nguyên", "monthly clamp ngày cuối tháng"]
   },
   "acceptance": [
-    "guard test notification-icon.test.ts PASS (file + background getURL + manifest icons)",
-    "wxt build manifest.json có icons 16/48/128; output có 3 PNG",
-    "vitest 10 file / 56 test PASS; tsc/eslint PASS"
+    "7 test recurrence (helper, clamp 31, legacy thiếu rule, catch-up)",
+    "composer lưu rule.day=15 và resync 15->20; useTasks toggle monthly không crash, dueAt > now",
+    "vitest 11 file / 66 test PASS; tsc/eslint/wxt build PASS"
   ],
-  "risk": "low"
+  "risk": "medium"
 }

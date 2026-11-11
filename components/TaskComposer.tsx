@@ -12,6 +12,7 @@ import IconButton from './ui/IconButton';
 import Segmented from './ui/Segmented';
 import TagChip from './ui/TagChip';
 import type { RecurrenceRule, Task } from '../lib/tasks/types';
+import { recurrenceForKind } from '../lib/tasks/recurrence';
 
 const MAX_TITLE = 200;
 const MAX_TAGS = 5;
@@ -56,13 +57,19 @@ export default function TaskComposer({
 
   const handleRecurrenceChange = useCallback(
     (v: string) => {
-      setRecurrence((prev) => ({
-        ...prev,
-        kind: v as RecurrenceRule['kind'],
-      }) as RecurrenceRule);
+      setRecurrence(recurrenceForKind(v as RecurrenceRule['kind'], dueAt));
     },
-    []
+    [dueAt]
   );
+
+  const handleDueChange = useCallback((value: string | null) => {
+    setDueAt(value);
+    setRecurrence((prev) =>
+      prev.kind === 'weekly' || prev.kind === 'monthly'
+        ? recurrenceForKind(prev.kind, value)
+        : prev
+    );
+  }, []);
   const [tags, setTags] = useState<string[]>(initial.tags ?? []);
   const [subtasks, setSubtasks] = useState<{ id: string; title: string; done: boolean }[]>(
     initial.subtasks ?? []
@@ -174,12 +181,12 @@ export default function TaskComposer({
               <input
                 type="datetime-local"
                 value={dueAt ?? ''}
-                onChange={(e) => setDueAt(e.target.value || null)}
+                onChange={(e) => handleDueChange(e.target.value || null)}
                 className="flex-1 h-10 px-2.5 rounded-control border-border-control bg-surface text-body"
               />
               <Button
                 variant="ghost"
-                onClick={() => setDueAt(null)}
+                onClick={() => handleDueChange(null)}
                 disabled={!dueAt}
               >
                 Bỏ hạn

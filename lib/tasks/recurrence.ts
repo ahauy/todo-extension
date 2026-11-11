@@ -12,6 +12,28 @@ import type { RecurrenceRule } from './types';
 
 const MAX_ITERATIONS = 1000;
 
+/**
+ * Tạo rule đầy đủ từ kind + hạn hiện tại (composer/detail chỉ chọn kind).
+ * weekly/monthly cần dữ liệu con — lấy từ dueAt, fallback hôm nay.
+ */
+export function recurrenceForKind(
+  kind: RecurrenceRule['kind'],
+  dueAt?: string | null
+): RecurrenceRule {
+  if (kind === 'none') return { kind: 'none' };
+  if (kind === 'daily') return { kind: 'daily' };
+
+  const parsed = dueAt ? new Date(dueAt) : null;
+  const base = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date();
+  if (kind === 'weekly') {
+    return { kind: 'weekly', rule: { weekdays: [base.getDay()] } };
+  }
+  if (kind === 'monthly') {
+    return { kind: 'monthly', rule: { day: base.getDate() } };
+  }
+  return { kind: 'none' };
+}
+
 /** Lấy thành phần local time của Date (không dùng UTC) */
 function localParts(d: Date) {
   return {
@@ -72,7 +94,11 @@ export function nextDueAt(
       ).toISOString();
 
     case 'monthly': {
-      const targetDay = Math.min(rule.rule.day, daysInMonth(p.year, p.month + 1));
+      // Dữ liệu cũ (bug #9) có thể thiếu rule.day → fallback ngày của prevDue.
+      const targetDay = Math.min(
+        rule.rule?.day ?? p.date,
+        daysInMonth(p.year, p.month + 1)
+      );
       const next = makeLocal(
         p.year, p.month + 1, targetDay,
         p.hours, p.minutes, p.seconds, p.ms
