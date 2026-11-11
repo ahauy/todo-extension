@@ -1,19 +1,19 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 10,
-  "generatedAt": "2026-11-11T12:00:00+07:00",
+  "scopeVersion": 11,
+  "generatedAt": "2026-11-11T12:07:00+07:00",
   "trigger": "bug-fix",
   "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01", "R-02"],
+  "specRefs": ["R-12"],
   "changed": {
-    "files": ["components/TaskComposer.tsx", "components/TaskDetail.tsx", "src/__tests__/border-classes.test.ts"],
-    "modules": ["composer", "detail", "ui"]
+    "files": ["components/Settings.tsx", "lib/notifications.ts", "entrypoints/background.ts", "src/__tests__/helpers/chrome-stub.ts", "src/__tests__/Settings.test.tsx", "src/__tests__/shouldNotify.test.ts", "docs/API_SPEC.md"],
+    "modules": ["settings", "background", "notifications"]
   },
   "impact": {
-    "direct": ["input/textarea ở composer và detail có viền 1px theo token --border-control"],
-    "dependents": ["wxt build CSS (utility .border + .border-border-control)"],
-    "regression": ["layout không đổi ngoài 1px border; các class khác giữ nguyên"]
+    "direct": ["Settings có toggle Bật nhắc việc lưu settings + đọc quyền thật chrome.notifications.getPermissionLevel", "background chỉ notify khi shouldNotify(task, settings) -> tắt nhắc việc là không gửi"],
+    "dependents": ["alarm handler background", "Settings preferences", "docs API_SPEC §2.3"],
+    "regression": ["theme vẫn do popup/useTasks xử lý; background không ghi đè settings nữa", "alarm reschedule giữ nguyên"]
   },
-  "acceptance": ["guard test 0 orphan border-border-control", "vitest 13 file / 73 test PASS"],
-  "risk": "low"
+  "acceptance": ["Settings toggle persist; denied hiện cảnh báo + copy", "shouldNotify 4 case", "vitest 15 file / 80 test PASS"],
+  "risk": "medium"
 }

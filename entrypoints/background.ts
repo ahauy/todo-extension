@@ -8,8 +8,9 @@
  */
 
 import { syncAlarms, scheduleTask, clearTaskAlarm, alarmName } from '../lib/alarms/scheduler';
-import { loadAll, put, remove, subscribe, loadSettings, putSettings } from '../lib/storage/adapter';
-import type { Task, Settings } from '../lib/tasks/types';
+import { loadAll, loadSettings } from '../lib/storage/adapter';
+import { shouldNotify } from '../lib/notifications';
+import type { Task } from '../lib/tasks/types';
 
 const MAX_NOTE_PREVIEW = 60;
 
@@ -48,32 +49,23 @@ async function resyncAlarmsFromStorage(): Promise<void> {
   }
 }
 
-/** Áp theme mới khi settings đổi */
-async function applyTheme(settings: Settings): Promise<void> {
-  try {
-    await putSettings(settings);
-    // Popup tự lắng nghe storage.onChanged để cập nhật data-theme
-  } catch (err) {
-    console.error('[todo-extension] apply theme failed:', err);
-  }
-}
-
 import { defineBackground } from 'wxt/utils/define-background';
 
 export default defineBackground(() => {
-  /** onAlarm → hiện notification */
+  /** onAlarm → hiện notification (tôn trọng settings.notificationsEnabled) */
   chrome.alarms.onAlarm.addListener((alarm) => {
-    try {
-      const id = alarm.name.slice('due:'.length);
-      void loadAll().then((tasks) => {
+    void (async () => {
+      try {
+        const id = alarm.name.slice('due:'.length);
+        const tasks = await loadAll();
         const task = tasks.find((t) => t.id === id);
-        if (task && !task.done && task.dueAt) {
-          notifyTask(task);
-        }
-      });
-    } catch (err) {
-      console.error('[todo-extension] onAlarm failed:', err);
-    }
+        if (!task) return;
+        const settings = await loadSettings();
+        if (shouldNotify(task, settings)) notifyTask(task);
+      } catch (err) {
+        console.error('[todo-extension] onAlarm failed:', err);
+      }
+    })();
   });
 
   /** onInstalled / onStartup → resync toàn bộ alarm */
@@ -85,18 +77,12 @@ export default defineBackground(() => {
     void resyncAlarmsFromStorage();
   });
 
-  /** storage.onChanged → reschedule alarm khi task thay đổi; áp theme khi settings đổi */
+  /** storage.onChanged → reschedule alarm khi task thay đổi (settings do popup/useTasks xử lý) */
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
 
     void (async () => {
       for (const [key, change] of Object.entries(changes)) {
-        if (key === 'settings') {
-          const settings = change.newValue as Settings | undefined;
-          if (settings) await applyTheme(settings);
-          continue;
-        }
-
         if (typeof key === 'string' && key.startsWith('t:')) {
           const id = key.slice('t:'.length);
           if (change.newValue === null || change.newValue === undefined) {

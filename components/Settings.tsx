@@ -6,6 +6,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import Button from './ui/Button';
+import Checkbox from './ui/Checkbox';
 import Field from './ui/Field';
 import IconButton from './ui/IconButton';
 import { loadSettings, putSettings } from '../lib/storage/adapter';
@@ -18,10 +19,18 @@ interface SettingsProps {
 
 export default function Settings({ onBack }: SettingsProps) {
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [saving, setSaving] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
   const [storageUsage, setStorageUsage] = useState<{ used: number; total: number } | null>(null);
   const [storageError, setStorageError] = useState(false);
+  const [permissionLevel, setPermissionLevel] = useState<'granted' | 'denied' | 'unknown'>(
+    'unknown'
+  );
+
+  useEffect(() => {
+    chrome.notifications.getPermissionLevel?.((level) => {
+      setPermissionLevel(level === 'granted' ? 'granted' : 'denied');
+    });
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -40,6 +49,20 @@ export default function Settings({ onBack }: SettingsProps) {
         await putSettings(next);
       } catch (err) {
         // Lưu thất bại không chặn UI (đã áp ngay)
+      }
+    },
+    [settings]
+  );
+
+  const handleNotificationsToggle = useCallback(
+    async (enabled: boolean) => {
+      if (!settings) return;
+      const next = { ...settings, notificationsEnabled: enabled };
+      setSettings(next);
+      try {
+        await putSettings(next);
+      } catch {
+        setSettings(settings);
       }
     },
     [settings]
@@ -116,10 +139,15 @@ export default function Settings({ onBack }: SettingsProps) {
         {/* Thông báo */}
         <Field label="Thông báo" helper="Nhắc việc khi đến hạn">
           <div className="flex items-center justify-between">
-            <span className="text-body text-fg">
-              {settings.notificationsEnabled ? 'Đang bật' : 'Đang bị chặn'}
-            </span>
-            {!settings.notificationsEnabled && (
+            <label className="flex items-center gap-2 text-body text-fg">
+              <Checkbox
+                checked={settings.notificationsEnabled}
+                onChange={handleNotificationsToggle}
+                aria-label="Bật nhắc việc"
+              />
+              {settings.notificationsEnabled ? 'Đang bật' : 'Đang tắt'}
+            </label>
+            {permissionLevel === 'denied' && (
               <Button
                 variant="ghost"
                 onClick={handleCopyNotifications}
@@ -132,9 +160,10 @@ export default function Settings({ onBack }: SettingsProps) {
               <span className="text-meta text-success text-xs">Đã sao chép</span>
             )}
           </div>
-          {!settings.notificationsEnabled && (
+          {permissionLevel === 'denied' && (
             <p className="text-meta text-fg-muted mt-1">
-              Bạn đã chặn thông báo. Sao chép địa chỉ trên vào trình duyệt để mở cài đặt thông báo của Chrome.
+              Trình duyệt đang chặn thông báo. Sao chép địa chỉ trên vào trình duyệt để mở cài đặt
+              thông báo của Chrome.
             </p>
           )}
         </Field>
@@ -158,7 +187,7 @@ export default function Settings({ onBack }: SettingsProps) {
       </div>
 
       <footer className="sticky bottom-0 px-3 py-2 border-t border-border-subtle bg-bg z-sticky">
-        <Button variant="ghost" onClick={onBack} disabled={saving}>
+        <Button variant="ghost" onClick={onBack}>
           Đóng
         </Button>
       </footer>

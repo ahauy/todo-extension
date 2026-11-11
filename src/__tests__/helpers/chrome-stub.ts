@@ -25,6 +25,8 @@ export interface ChromeStub {
   alarms: Map<string, AlarmRecord>;
   /** Listener của chrome.storage.onChanged */
   listeners: Set<StorageChangeListener>;
+  /** Mức quyền thông báo trả về từ chrome.notifications.getPermissionLevel */
+  notificationLevel: 'granted' | 'denied';
   /** Ghi trực tiếp nhiều key (không phát onChanged — dùng trước khi mount) */
   seed(items: Record<string, unknown>): void;
   /** Phát onChanged cho danh sách key (shape tối thiểu mà adapter cần) */
@@ -62,6 +64,9 @@ export function createChromeStub(): ChromeStub {
   const store = new Map<string, unknown>();
   const alarms = new Map<string, AlarmRecord>();
   const listeners = new Set<StorageChangeListener>();
+  const notificationState: { level: 'granted' | 'denied' } = {
+    level: 'granted',
+  };
 
   const stub = {
     storage: {
@@ -105,6 +110,9 @@ export function createChromeStub(): ChromeStub {
     },
     notifications: {
       create() {},
+      getPermissionLevel(cb: (level: 'granted' | 'denied') => void) {
+        cb(notificationState.level);
+      },
     },
   };
 
@@ -112,6 +120,12 @@ export function createChromeStub(): ChromeStub {
     store,
     alarms,
     listeners,
+    get notificationLevel() {
+      return notificationState.level;
+    },
+    set notificationLevel(level: 'granted' | 'denied') {
+      notificationState.level = level;
+    },
     seed(items) {
       for (const [key, value] of Object.entries(items)) store.set(key, value);
     },

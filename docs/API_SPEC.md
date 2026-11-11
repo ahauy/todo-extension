@@ -43,7 +43,7 @@ Justification từng quyền cho Chrome Web Store: xem [`PERMISSION.md`](PERMISS
 | `sync.get(keys, cb)` | `adapter.ts:33` (`storageGet`) | Đọc task/settings; `null` = đọc tất cả |
 | `sync.set(items, cb)` | `adapter.ts:46` (`storageSet`) | Ghi 1 key/task hoặc `settings` |
 | `sync.remove(keys, cb)` | `adapter.ts:59` (`storageRemove`) | Xoá key `t:<id>` |
-| `onChanged.addListener` | `adapter.ts:154`, `background.ts:89` | Nhận thay đổi từ thiết bị khác (R-13) |
+| `onChanged.addListener` | `adapter.ts:154`, `background.ts:81` | Nhận thay đổi từ thiết bị khác (R-13) |
 | `sync.getBytesInUse` | `components/Settings.tsx` (optional) | Hiển thị dung lượng đã dùng |
 
 Mọi lời gọi đều kiểm tra `chrome.runtime.lastError` và reject Promise khi lỗi
@@ -56,7 +56,7 @@ Mọi lời gọi đều kiểm tra `chrome.runtime.lastError` và reject Promis
 | `alarms.create(name, {delayInMinutes})` | `scheduler.ts:45,68` | Đặt nhắc việc tên `due:<id>` |
 | `alarms.clear(name)` | `scheduler.ts:38,54,63,73` | Xoá alarm khi done/xoá/quá hạn |
 | `alarms.getAll(cb)` | `scheduler.ts:50` | Dọn alarm mồ côi (task không còn) |
-| `alarms.onAlarm.addListener` | `background.ts:65` | Alarm fire → hiện notification |
+| `alarms.onAlarm.addListener` | `background.ts:56` | Alarm fire → hiện notification |
 
 Alarm bền hơn `setTimeout` trong service worker MV3 (SW bị kill giữa chừng) — `scheduler.ts:4`.
 
@@ -64,18 +64,22 @@ Alarm bền hơn `setTimeout` trong service worker MV3 (SW bị kill giữa ch�
 
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
-| `notifications.create(id, opts)` | `background.ts:31` (`notifyTask`) | Hiện nhắc việc: title task + note rút gọn (≤60 ký tự) + hạn |
+| `notifications.create(id, opts)` | `background.ts:32` (`notifyTask`) | Hiện nhắc việc: title task + note rút gọn (≤60 ký tự) + hạn |
 
 Notification **không** tự đổi trạng thái task (R-12). `iconUrl: chrome.runtime.getURL('icon/48.png')`
-(`background.ts:33`) — icon 16/48/128 nằm trong `public/icon/`, manifest khai `icons`
+(`background.ts:34`) — icon 16/48/128 nằm trong `public/icon/`, manifest khai `icons`
 (gap G5 đã đóng 2026-11-11, guard test `src/__tests__/notification-icon.test.ts`).
+
+Background chỉ gọi `notifications.create` khi `shouldNotify(task, settings)` (`lib/notifications.ts`):
+`task.done === false`, có `dueAt`, và `settings.notificationsEnabled !== false`.
+Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notifications.getPermissionLevel`.
 
 ### 2.4 `chrome.runtime`
 
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
-| `runtime.onInstalled` | `background.ts:80` | Resync toàn bộ alarm khi cài |
-| `runtime.onStartup` | `background.ts:84` | Resync alarm khi Chrome khởi động |
+| `runtime.onInstalled` | `background.ts:72` | Resync toàn bộ alarm khi cài |
+| `runtime.onStartup` | `background.ts:76` | Resync alarm khi Chrome khởi động |
 | `runtime.lastError` | `adapter.ts` | Phát hiện lỗi storage/quota |
 
 ## 3. Internal module interfaces
