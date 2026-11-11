@@ -17,9 +17,11 @@ import type { Task } from '../../lib/tasks/types';
 interface UseTasksApi {
   tasks: Task[];
   add: (title: string) => Promise<void>;
+  create: (draft: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   update: (task: Task) => Promise<void>;
   remove: (id: string) => Promise<void>;
   toggle: (id: string) => Promise<void>;
+  restore: (task: Task) => Promise<void>;
 }
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -154,6 +156,62 @@ describe('useTasks — load & add', () => {
     expect(taskKeys()).toHaveLength(0);
     expect(stub.store.size).toBe(0);
     expect(container.querySelectorAll('li')).toHaveLength(0);
+  });
+});
+
+describe('useTasks — create & restore', () => {
+  it('create lưu đủ field từ draft composer', async () => {
+    const container = await mountHook();
+
+    await act(async () => {
+      await api.create({
+        title: '  Họp nhóm  ',
+        note: 'chuẩn bị slide',
+        priority: 'high',
+        dueAt: '2035-01-01T08:00:00.000Z',
+        recurrence: { kind: 'daily' },
+        tags: ['work', 'urgent'],
+        subtasks: [{ id: 's1', title: 'Chuẩn bị', done: false }],
+        done: false,
+      });
+    });
+
+    const saved = stub.store.get(taskKeys()[0]) as Task;
+    expect(saved.title).toBe('Họp nhóm');
+    expect(saved.note).toBe('chuẩn bị slide');
+    expect(saved.priority).toBe('high');
+    expect(saved.dueAt).toBe('2035-01-01T08:00:00.000Z');
+    expect(saved.recurrence).toEqual({ kind: 'daily' });
+    expect(saved.tags).toEqual(['work', 'urgent']);
+    expect(saved.subtasks).toEqual([
+      { id: 's1', title: 'Chuẩn bị', done: false },
+    ]);
+    expect(container.textContent).toContain('Họp nhóm');
+  });
+
+  it('restore đưa task đã xoá trở lại với id/createdAt gốc', async () => {
+    const container = await mountHook();
+    const task = fixture({ id: 'gone', title: 'Khôi phục tôi' });
+
+    await act(async () => {
+      await api.restore(task);
+    });
+
+    expect(stub.store.get('t:gone')).toEqual(task);
+    expect(container.textContent).toContain('Khôi phục tôi');
+  });
+  it('restore task đã có sẵn thì thay thế, không duplicate', async () => {
+    stub.seed({ 't:x': fixture({ id: 'x', title: 'Bản cũ' }) });
+    const container = await mountHook();
+
+    await act(async () => {
+      await api.restore(fixture({ id: 'x', title: 'Bản khôi phục' }));
+    });
+
+    expect(taskKeys()).toHaveLength(1);
+    expect((stub.store.get('t:x') as Task).title).toBe('Bản khôi phục');
+    expect(container.querySelectorAll('li')).toHaveLength(1);
+    expect(container.textContent).toContain('Bản khôi phục');
   });
 });
 

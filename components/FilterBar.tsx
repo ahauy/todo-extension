@@ -12,6 +12,9 @@ interface FilterBarProps {
   searchQuery: string;
   sortCriterion: string;
   selectedTags: string[];
+  availableTags?: string[];
+  searchOpen?: boolean;
+  onSearchOpenChange?: (open: boolean) => void;
   onTabChange?: (tab: 'all' | 'active' | 'done') => void;
   onSearchChange?: (query: string) => void;
   onSortChange?: (criterion: string) => void;
@@ -23,14 +26,26 @@ export default function FilterBar({
   searchQuery,
   sortCriterion,
   selectedTags,
+  availableTags = [],
+  searchOpen,
+  onSearchOpenChange,
   onTabChange,
   onSearchChange,
   onSortChange,
   onTagToggle,
 }: FilterBarProps) {
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [internalSearchOpen, setInternalSearchOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
+
+  const isSearchOpen = searchOpen ?? internalSearchOpen;
+  const setSearchOpen = useCallback(
+    (open: boolean) => {
+      onSearchOpenChange?.(open);
+      if (searchOpen === undefined) setInternalSearchOpen(open);
+    },
+    [searchOpen, onSearchOpenChange]
+  );
 
   const handleSearchKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -55,7 +70,7 @@ export default function FilterBar({
       />
 
       {/* Search row */}
-      {searchOpen && (
+      {isSearchOpen && (
         <div className="flex items-center gap-2 bg-surface-sunken rounded-control p-1 border border-border-control">
           <input
             type="text"
@@ -78,11 +93,11 @@ export default function FilterBar({
       {/* Action buttons: search, sort, tags */}
       <div className="flex items-center gap-2">
         <IconButton
-          aria-label={searchOpen ? 'Đóng tìm kiếm' : 'Tìm việc'}
-          title={searchOpen ? 'Đóng tìm kiếm' : 'Tìm việc'}
+          aria-label={isSearchOpen ? 'Đóng tìm kiếm' : 'Tìm việc'}
+          title={isSearchOpen ? 'Đóng tìm kiếm' : 'Tìm việc'}
           icon="🔍"
-          active={searchOpen}
-          onClick={() => setSearchOpen(!searchOpen)}
+          active={isSearchOpen}
+          onClick={() => setSearchOpen(!isSearchOpen)}
         />
         <IconButton
           aria-label="Sắp xếp"
@@ -129,6 +144,13 @@ export default function FilterBar({
           title="Lọc theo thẻ"
           icon="🏷"
           onClick={() => setTagMenuOpen(!tagMenuOpen)}
+        />
+        <Menu
+          items={availableTags.map((tag) => ({ value: tag, label: `#${tag}` }))}
+          value=""
+          onSelect={(tag) => onTagToggle?.(tag)}
+          open={tagMenuOpen && availableTags.length > 0}
+          onClose={() => setTagMenuOpen(false)}
         />
       </div>
     </div>

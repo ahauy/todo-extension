@@ -1,11 +1,12 @@
 /**
  * useTasks hook (L6-T18). Nguồn state popup qua useSyncExternalStore trên
- * storage adapter — { tasks, add, update, remove, toggle }.
+ * storage adapter — { tasks, add, create, update, remove, toggle, restore }.
  *
  * Logic:
- * - add: validate title 1-200 trim, id = crypto.randomUUID(), done=false,
- *   priority medium, tags=[], subtasks=[], recurrence none,
- *   createdAt=updatedAt=now → put (1 key/task).
+ * - add(title): quick-add chỉ title → create(default draft).
+ * - create(draft): validate title 1-200 trim, id = crypto.randomUUID(), put
+ *   (1 key/task) — dùng cho composer đầy đủ field (R-05).
+ * - restore(task): đưa task đã xoá trở lại storage (undo) — giữ nguyên id/createdAt.
  * - toggle done: task thường → done=true + clear alarm; task lặp →
  *   nextDueAt/nextFutureDue catch-up (max 1000), done=false, dueAt=next,
  *   updatedAt=now, tạo alarm mới (R-11).
@@ -37,14 +38,15 @@ import type { RecurrenceRule, Task } from '../lib/tasks/types';
 
 const MAX_TITLE = 200;
 
+export type TaskDraft = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
+
 function nowISO(): string {
   return new Date().toISOString();
 }
 
-function createTask(title: string): Task {
+function defaultDraft(title: string): TaskDraft {
   return {
-    id: crypto.randomUUID(),
-    title: title.trim(),
+    title,
     note: '',
     priority: 'medium',
     dueAt: null,
@@ -52,6 +54,14 @@ function createTask(title: string): Task {
     tags: [],
     subtasks: [],
     done: false,
+  };
+}
+
+function buildTask(draft: TaskDraft): Task {
+  return {
+    id: crypto.randomUUID(),
+    ...draft,
+    title: draft.title.trim(),
     createdAt: nowISO(),
     updatedAt: nowISO(),
   };
@@ -99,19 +109,37 @@ export function useTasks() {
     notify();
   }, [notify]);
 
+  const create = useCallback(
+    async (draft: TaskDraft) => {
+      const title = draft.title.trim();
+      if (!title || title.length > MAX_TITLE) return;
+      const task = buildTask({ ...draft, title });
+      await put(task);
+      setSnapshot([...snapshotStore.tasks, task]);
+      syncAlarms(snapshotStore.tasks);
+    },
+    [setSnapshot]
+  );
+
   const add = useCallback(
     async (title: string) => {
-      if (!title.trim() || title.trim().length > MAX_TITLE) return;
-      const task = createTask(title);
-      try {
-        await put(task);
-        setSnapshot([...snapshotStore.tasks, task]);
-        syncAlarms(snapshotStore.tasks);
-      } catch (err) {
-        throw err;
-      }
+      await create(defaultDraft(title));
     },
-    []
+    [create]
+  );
+
+  const restore = useCallback(
+    async (task: Task) => {
+      await put(task);
+      const exists = snapshotStore.tasks.some((t) => t.id === task.id);
+      setSnapshot(
+        exists
+          ? snapshotStore.tasks.map((t) => (t.id === task.id ? task : t))
+          : [...snapshotStore.tasks, task]
+      );
+      syncAlarms(snapshotStore.tasks);
+    },
+    [setSnapshot]
   );
 
   const update = useCallback(
@@ -250,5 +278,5 @@ export function useTasks() {
     })();
   }, []);
 
-  return { tasks, add, update, remove, toggle };
+  return { tasks, add, create, update, remove, toggle, restore };
 }

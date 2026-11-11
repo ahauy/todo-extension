@@ -8,7 +8,7 @@
  * row checkbox Space tick, title Enter/Space mở detail, detail Cmd/Ctrl+Enter lưu,
  * Escape back (confirm nếu dirty).
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Header from '../../components/Header';
 import FilterBar from '../../components/FilterBar';
 import TaskComposer from '../../components/TaskComposer';
@@ -22,14 +22,26 @@ import type { Task } from '../../lib/tasks/types';
 import './style.css';
 
 type View = 'list' | 'detail' | 'settings';
+type Tab = 'all' | 'active' | 'done';
+type SortCriterion = 'default' | 'priority' | 'created';
+
+const SORT_ORDER: SortCriterion[] = ['default', 'priority', 'created'];
+const SORT_LABELS: Record<SortCriterion, string> = {
+  default: 'Hạn chót',
+  priority: 'Ưu tiên',
+  created: 'Mới nhất',
+};
 
 export default function App() {
-  const { tasks, add, update, remove, toggle } = useTasks();
+  const { tasks, create, remove, toggle, restore } = useTasks();
   const [view, setView] = useState<View>('list');
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortCriterion, setSortCriterion] = useState<'default'>('default');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [sortCriterion, setSortCriterion] = useState<SortCriterion>('default');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [composerExpandSignal, setComposerExpandSignal] = useState(0);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [dirtyBackConfirm, setDirtyBackConfirm] = useState<boolean>(false);
   const [toast, setToast] = useState<{
@@ -41,7 +53,13 @@ export default function App() {
   const [quotaError, setQuotaError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
 
+  const availableTags = useMemo(
+    () => [...new Set(tasks.flatMap((task) => task.tags))],
+    [tasks]
+  );
+
   const openDetail = useCallback((id: string) => {
+    setDirty(false);
     setDetailId(id);
     setView('detail');
   }, []);
@@ -65,17 +83,10 @@ export default function App() {
 
   const handleAdd = useCallback(
     async (submitted: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const task: Task = {
-        id: crypto.randomUUID(),
-        ...submitted,
-        done: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      await add(task.title);
+      await create(submitted);
       setView('list');
     },
-    [add]
+    [create]
   );
 
   const handleSave = useCallback(() => {
@@ -88,16 +99,21 @@ export default function App() {
     });
   }, []);
 
-  const handleDelete = useCallback(async (id: string) => {
-    await remove(id);
-    setView('list');
-    setDetailId(null);
-    setToast({
-      open: true,
-      message: 'Đã xoá việc',
-      actionLabel: 'Hoàn tác',
-    });
-  }, [remove]);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const deleted = tasks.find((task) => task.id === id) ?? null;
+      await remove(id);
+      setView('list');
+      setDetailId(null);
+      setToast({
+        open: true,
+        message: 'Đã xoá việc',
+        actionLabel: 'Hoàn tác',
+        onAction: deleted ? () => void restore(deleted) : undefined,
+      });
+    },
+    [remove, restore, tasks]
+  );
 
   const handleQuotaError = useCallback((message: string) => {
     setQuotaError(message);
@@ -107,6 +123,26 @@ export default function App() {
     setDirty(value);
   }, []);
 
+  const handleTagToggle = useCallback((tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]
+    );
+  }, []);
+
+  const handleSearchOpenChange = useCallback((open: boolean) => {
+    setSearchOpen(open);
+    if (!open) setSearchQuery('');
+  }, []);
+
+  const closeToast = useCallback(() => setToast(null), []);
+
+  const handleHeaderSort = useCallback(() => {
+    const next =
+      SORT_ORDER[(SORT_ORDER.indexOf(sortCriterion) + 1) % SORT_ORDER.length];
+    setSortCriterion(next);
+    setToast({ open: true, message: `Sắp xếp: ${SORT_LABELS[next]}` });
+  }, [sortCriterion]);
+
   // Keyboard map
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -115,6 +151,23 @@ export default function App() {
           (e.target as HTMLInputElement).blur();
         }
         return;
+      }
+      if (view === 'list') {
+        if (e.key === 'n') {
+          e.preventDefault();
+          setComposerExpandSignal((signal) => signal + 1);
+          return;
+        }
+        if (e.key === '/') {
+          e.preventDefault();
+          setSearchOpen(true);
+          return;
+        }
+        if (e.key === 'Escape' && searchOpen) {
+          e.preventDefault();
+          handleSearchOpenChange(false);
+          return;
+        }
       }
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -127,7 +180,7 @@ export default function App() {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [view, closeDetail, closeSettings]);
+  }, [view, searchOpen, closeDetail, closeSettings, handleSearchOpenChange]);
 
   return (
     <div className="w-[360px] h-[600px] bg-bg text-fg font-sans text-body antialiased flex flex-col">
@@ -138,8 +191,8 @@ export default function App() {
           overdueCount={tasks.filter(
             (t) => !t.done && !!t.dueAt && new Date(t.dueAt) < new Date()
           ).length}
-          onSearch={() => {}}
-          onSort={() => {}}
+          onSearch={() => setSearchOpen(true)}
+          onSort={handleHeaderSort}
           onSettings={openSettings}
         />
       )}
@@ -149,15 +202,27 @@ export default function App() {
         {view === 'list' && (
           <>
             <FilterBar
-              tab="all"
+              tab={tab}
               searchQuery={searchQuery}
               sortCriterion={sortCriterion}
               selectedTags={selectedTags}
+              availableTags={availableTags}
+              searchOpen={searchOpen}
+              onSearchOpenChange={handleSearchOpenChange}
+              onTabChange={setTab}
+              onSearchChange={setSearchQuery}
+              onSortChange={(criterion) =>
+                setSortCriterion(criterion as SortCriterion)
+              }
+              onTagToggle={handleTagToggle}
             />
-            <TaskComposer onSubmit={handleAdd} />
+            <TaskComposer
+              onSubmit={handleAdd}
+              expandSignal={composerExpandSignal}
+            />
             <TaskList
               tasks={tasks}
-              tab="all"
+              tab={tab}
               searchQuery={searchQuery}
               sortCriterion={sortCriterion}
               selectedTags={selectedTags}
@@ -175,6 +240,7 @@ export default function App() {
             onDelete={() => setDeleteConfirmId(detailId)}
             onBack={closeDetail}
             onQuotaError={handleQuotaError}
+            onDirtyChange={handleToggleDirty}
           />
         )}
         {view === 'settings' && (
@@ -207,6 +273,7 @@ export default function App() {
           cancelLabel="Giữ lại"
           onConfirm={() => {
             setDirtyBackConfirm(false);
+            setDirty(false);
             setView('list');
             setDetailId(null);
           }}
@@ -220,6 +287,8 @@ export default function App() {
           isOpen={toast.open}
           message={toast.message}
           actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          onClose={closeToast}
         />
       )}
     </div>

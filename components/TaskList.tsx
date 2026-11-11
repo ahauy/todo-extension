@@ -1,5 +1,5 @@
 /**
- * TaskList + FilterBar (L4-T13). S1 danh sách chính.
+ * TaskList (L4-T13). S1 danh sách chính (FilterBar render ở App shell).
  * Sort theo R-15, empty states 5 biến thể, skeleton 4 row, quota banner.
  */
 import React, { useCallback, useMemo, useState } from 'react';
@@ -7,13 +7,12 @@ import Button from './ui/Button';
 import TaskItem from './TaskItem';
 import Divider from './ui/Divider';
 import type { Task } from '../lib/tasks/types';
-import FilterBar from './FilterBar';
 
 interface TaskListProps {
   tasks: Task[];
   tab: 'all' | 'active' | 'done';
   searchQuery: string;
-  sortCriterion: 'default';
+  sortCriterion: 'default' | 'priority' | 'created';
   selectedTags: string[];
   onToggle: (id: string) => void;
   onOpenDetail: (id: string) => void;
@@ -59,7 +58,23 @@ export default function TaskList({
   }, [searched, selectedTags]);
 
   const sorted = useMemo(() => {
+    const rank = (p: Task['priority']) =>
+      p === 'high' ? 2 : p === 'medium' ? 1 : 0;
+    const dueTime = (t: Task) =>
+      t.dueAt ? new Date(t.dueAt).getTime() : Number.POSITIVE_INFINITY;
+    const createdTime = (t: Task) => new Date(t.createdAt).getTime();
+
     return [...tagged].sort((a, b) => {
+      if (sortCriterion === 'priority') {
+        if (rank(a.priority) !== rank(b.priority))
+          return rank(b.priority) - rank(a.priority);
+        if (dueTime(a) !== dueTime(b)) return dueTime(a) - dueTime(b);
+        return createdTime(b) - createdTime(a);
+      }
+      if (sortCriterion === 'created') {
+        return createdTime(b) - createdTime(a);
+      }
+
       const aOverdue = !!a.dueAt && !a.done && new Date(a.dueAt) < now;
       const bOverdue = !!b.dueAt && !b.done && new Date(b.dueAt) < now;
       if (aOverdue && !bOverdue) return -1;
@@ -75,16 +90,12 @@ export default function TaskList({
         if (ad !== bd) return ad - bd;
       }
 
-      const rank = (p: Task['priority']) =>
-        p === 'high' ? 2 : p === 'medium' ? 1 : 0;
       if (rank(a.priority) !== rank(b.priority))
         return rank(b.priority) - rank(a.priority);
 
-      const ca = new Date(a.createdAt).getTime();
-      const cb = new Date(b.createdAt).getTime();
-      return cb - ca;
+      return createdTime(b) - createdTime(a);
     });
-  }, [tagged, now, tab]);
+  }, [tagged, now, sortCriterion]);
 
   const isEmpty = sorted.length === 0;
 
@@ -125,13 +136,6 @@ export default function TaskList({
       )}
 
       <div className="px-3 py-2 space-y-1">
-        <FilterBar
-          tab={tab}
-          searchQuery={searchQuery}
-          sortCriterion={sortCriterion}
-          selectedTags={selectedTags}
-        />
-
         {isEmpty && quotaError === null && (
           <div className="opacity-50">
             {Array.from({ length: 4 }).map((_, i) => (

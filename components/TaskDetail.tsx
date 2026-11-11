@@ -23,6 +23,7 @@ interface TaskDetailProps {
   onDelete: () => void;
   onBack: () => void;
   onQuotaError?: (message: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export default function TaskDetail({
@@ -31,6 +32,7 @@ export default function TaskDetail({
   onDelete,
   onBack,
   onQuotaError,
+  onDirtyChange,
 }: TaskDetailProps) {
   const [task, setTask] = useState<Task | null>(null);
   const [removedElsewhere, setRemovedElsewhere] = useState(false);
@@ -40,6 +42,10 @@ export default function TaskDetail({
   const [noteCounter, setNoteCounter] = useState(0);
 
   const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   const localTask = useMemo(() => task, [task]);
 

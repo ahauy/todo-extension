@@ -4,7 +4,7 @@
  * Tick subtask không đổi trạng thái task cha (R-08).
  * Lưu khi submit (L6-T18 useTasks), component chỉ gọi onSubmit.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Button from './ui/Button';
 import Checkbox from './ui/Checkbox';
 import Field from './ui/Field';
@@ -22,14 +22,30 @@ interface TaskComposerProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onCancel?: () => void;
   initial?: Partial<Task>;
+  expandSignal?: number;
 }
 
 export default function TaskComposer({
   onSubmit,
   onCancel,
   initial = {},
+  expandSignal,
 }: TaskComposerProps) {
   const [expanded, setExpanded] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const lastExpandSignal = useRef(expandSignal);
+
+  useEffect(() => {
+    if (expandSignal !== undefined && expandSignal !== lastExpandSignal.current) {
+      lastExpandSignal.current = expandSignal;
+      setExpanded(true);
+      titleInputRef.current?.focus();
+    }
+  }, [expandSignal]);
+
+  useEffect(() => {
+    if (expanded) titleInputRef.current?.focus();
+  }, [expanded]);
   const [title, setTitle] = useState(initial.title ?? '');
   const [note, setNote] = useState(initial.note ?? '');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -125,6 +141,7 @@ export default function TaskComposer({
           <Field label="Tên việc" helper={title.length === 0 ? 'Bắt buộc' : undefined}>
             <input
               type="text"
+              ref={titleInputRef}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full h-10 px-2.5 rounded-control border-border-control bg-surface text-body placeholder:text-fg-muted"
