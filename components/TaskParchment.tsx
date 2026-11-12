@@ -2,14 +2,15 @@
  * Hộp thoại sửa một việc — tờ giấy da khung đôi vàng kim. Trong Popup nó
  * trượt từ dưới lên, trong New Tab nó căn giữa. Đổi chữ là "chưa lưu"; tick
  * việc nhỏ thì ghi ngay. Việc bị xoá ở máy khác thì báo chứ không lưu đè.
- * Cmd/Ctrl+Enter lưu nhanh.
+ * Cmd/Ctrl+Enter lưu nhanh. Khi có hộp xác nhận mở phía trên, tờ giấy hạ
+ * xuống (suspended) để chỉ còn một lớp modal, form vẫn giữ nguyên.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
 import Field from './ui/Field';
 import TaskFields from './TaskFields';
-import { formError, type TaskForm } from '../lib/tasks/form';
+import { formErrors, type TaskForm, type TaskFormErrors } from '../lib/tasks/form';
 import { TrashIcon } from './art/Icons';
 import { loadAll } from '../lib/storage/adapter';
 import { longDate } from '../lib/datetime';
@@ -19,6 +20,7 @@ interface TaskParchmentProps {
   taskId: string;
   subjects: Subject[];
   sheet?: boolean;
+  suspended?: boolean;
   onSave: () => void;
   onDelete: () => void;
   onClose: () => void;
@@ -44,6 +46,7 @@ export default function TaskParchment({
   taskId,
   subjects,
   sheet = false,
+  suspended = false,
   onSave,
   onDelete,
   onClose,
@@ -60,16 +63,20 @@ export default function TaskParchment({
 
   useEffect(() => {
     let alive = true;
-    void loadAll().then((all) => {
-      if (!alive) return;
-      const found = all.find((item) => item.id === taskId);
-      if (!found) {
-        setGone(true);
-        return;
-      }
-      setTask(found);
-      setForm(toForm(found));
-    });
+    void loadAll()
+      .then((all) => {
+        if (!alive) return;
+        const found = all.find((item) => item.id === taskId);
+        if (!found) {
+          setGone(true);
+          return;
+        }
+        setTask(found);
+        setForm(toForm(found));
+      })
+      .catch(() => {
+        if (alive) setGone(true);
+      });
     return () => {
       alive = false;
     };
@@ -85,10 +92,19 @@ export default function TaskParchment({
     setSaveError(null);
   }, []);
 
-  const problem = useMemo(
-    () => (form ? formError(form, form.recurrence.kind !== task?.recurrence.kind) : null),
+  const problems = useMemo<TaskFormErrors>(
+    () => (form ? formErrors(form, form.recurrence.kind !== task?.recurrence.kind) : {}),
     [form, task]
   );
+
+  const problem =
+    problems.title ??
+    problems.recurrence ??
+    problems.dueAt ??
+    problems.tags ??
+    problems.subtasks ??
+    problems.note ??
+    null;
 
   const save = useCallback(async () => {
     if (!task || !form || !dirty || problem) return;
@@ -126,6 +142,7 @@ export default function TaskParchment({
   );
 
   useEffect(() => {
+    if (suspended) return undefined;
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
@@ -134,11 +151,11 @@ export default function TaskParchment({
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [save]);
+  }, [save, suspended]);
 
   if (gone) {
     return (
-      <Modal open onClose={onClose} title="Việc đã bị xoá" sheet={sheet}>
+      <Modal open={!suspended} onClose={onClose} title="Việc đã bị xoá" sheet={sheet}>
         <p className="text-body-md text-brown">
           Việc này đã bị xoá ở một thiết bị khác. Sổ không ghi đè lên thay đổi đó.
         </p>
@@ -151,11 +168,19 @@ export default function TaskParchment({
     );
   }
 
-  if (!task || !form) return null;
+  if (!task || !form) {
+    return (
+      <Modal open={!suspended} onClose={onClose} title="Sửa việc" sheet={sheet}>
+        <p aria-busy="true" className="text-body-md text-brown">
+          Đang mở tờ giấy…
+        </p>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
-      open
+      open={!suspended}
       onClose={onClose}
       title="Sửa việc"
       sheet={sheet}
@@ -177,7 +202,7 @@ export default function TaskParchment({
       </p>
 
       <div className="stack gap-base">
-        <Field label="Tên việc" helper={`${form.title.length}/200 ký tự`} error={problem ?? undefined}>
+        <Field label="Tên việc" helper={`${form.title.length}/200 ký tự`} error={problems.title}>
           <input
             type="text"
             className="text-input"
@@ -192,6 +217,7 @@ export default function TaskParchment({
         <TaskFields
           form={form}
           subjects={subjects}
+          errors={problems}
           onChange={(next) => {
             if (next.subtasks) {
               const before = form.subtasks;

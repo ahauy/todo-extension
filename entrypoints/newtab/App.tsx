@@ -92,6 +92,8 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      // Hộp thoại đang mở thì nhường phím cho nó — không giật focus ra sau lớp modal
+      if (document.querySelector('[role="dialog"]')) return;
       const target = event.target as HTMLElement | null;
       if (
         target instanceof HTMLInputElement ||
@@ -177,6 +179,7 @@ export default function App() {
           {wide && <aside className="board-shelf">{shelf}</aside>}
 
           <main className="board-scroll">
+            <h2 className="region-title mb-base">Cuộn nhiệm vụ</h2>
             <Greeting now={board.now} todayCount={board.counts.today} doneToday={board.doneToday} />
             <CloudRule className="my-lg" />
             <Composer
@@ -252,6 +255,7 @@ export default function App() {
         <TaskParchment
           taskId={detailId}
           subjects={board.subjects}
+          suspended={!!deleteId || dirtyConfirm}
           onClose={closeDetail}
           onDirtyChange={setDirty}
           onSave={() => {
@@ -312,6 +316,13 @@ export default function App() {
           setDropSubject(null);
         }}
       />
+
+      {/* Live region thường trú: toast mount kèm nội dung nên tự nó không được đọc */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {board.toast
+          ? `${board.toast.message}${board.toast.detail ? ` ${board.toast.detail}` : ''}`
+          : ''}
+      </div>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-lg z-[80] flex justify-center px-base">
         {board.toast && (

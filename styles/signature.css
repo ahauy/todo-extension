@@ -155,23 +155,24 @@
   height: 44px;
   flex: none;
   border-radius: 9999px;
-  background: var(--primary);
-  color: var(--on-primary);
-  border: 1px solid var(--primary-deep);
-  box-shadow: var(--elev-seal);
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  box-shadow: none;
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out);
 }
 .seal-button:active {
-  background: var(--primary-deep);
+  background: var(--primary);
+  color: var(--on-primary);
   box-shadow: var(--elev-pressed);
   transform: translateY(2px);
 }
 .seal-button[aria-pressed='true'] {
-  background: transparent;
-  color: var(--sepia);
-  border: 1px dashed var(--sepia);
+  background: var(--primary);
+  color: var(--on-primary);
+  border: 2px solid var(--primary-deep);
   box-shadow: none;
 }
 

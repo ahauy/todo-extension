@@ -67,6 +67,7 @@ const QuillInput = React.forwardRef<HTMLInputElement, QuillInputProps>(function 
   forwardedRef
 ) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const inkRef = useRef<HTMLDivElement>(null);
   const mirrorRef = useRef<HTMLSpanElement>(null);
   const nibRef = useRef<HTMLSpanElement>(null);
   const previous = useRef(value);
@@ -135,7 +136,9 @@ const QuillInput = React.forwardRef<HTMLInputElement, QuillInputProps>(function 
     mirror.textContent = value.slice(0, caret);
     // Ngòi nằm ở (2, 26) trong khung 28px → lùi 2px cho đầu ngòi trúng caret
     setNibX(14 + mirror.offsetWidth - input.scrollLeft);
-  }, [value, caret]);
+    // Lớp mực cuộn theo input thật — nếu không, chữ dài bị cắt cứng ở mép phải
+    if (inkRef.current) inkRef.current.style.transform = `translateX(${-input.scrollLeft}px)`;
+  }, [value, caret, focused]);
 
   useEffect(() => () => {
     if (idleTimer.current !== null) window.clearTimeout(idleTimer.current);
@@ -157,7 +160,7 @@ const QuillInput = React.forwardRef<HTMLInputElement, QuillInputProps>(function 
       data-plain={!animate}
     >
       <div className="quill-field">
-        <div className="quill-ink" data-composing={isComposing} aria-hidden="true">
+        <div ref={inkRef} className="quill-ink" data-composing={isComposing} aria-hidden="true">
           {isComposing || !animate
             ? value
             : chars.map((char, index) => (

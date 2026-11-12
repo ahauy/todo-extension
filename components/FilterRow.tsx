@@ -3,7 +3,7 @@
  * thêm ô chọn môn vì Giá sách nằm ở bảng lớn; hai chiều lọc độc lập nên mỗi
  * chiều chỉ có một lựa chọn đang sáng.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import RibbonTabs, { type RibbonTab } from './ui/RibbonTabs';
 import Menu from './ui/Menu';
 import IconButton from './ui/IconButton';
@@ -48,6 +48,8 @@ export default function FilterRow({
   onSubjectChange,
 }: FilterRowProps) {
   const [sortOpen, setSortOpen] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const restoreTriggerFocus = useRef(false);
 
   const tabs: RibbonTab[] = [
     { value: 'all', label: 'Tất cả', count: counts.all },
@@ -57,11 +59,19 @@ export default function FilterRow({
   ];
 
   const closeSearch = useCallback(() => {
+    restoreTriggerFocus.current = true;
     onSearchOpenChange(false);
   }, [onSearchOpenChange]);
 
+  // Input tìm kiếm unmount khi đóng → trả focus về nút "Tìm việc", không để rơi về body
+  useEffect(() => {
+    if (searchOpen || !restoreTriggerFocus.current) return;
+    restoreTriggerFocus.current = false;
+    rowRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Tìm việc"]')?.focus();
+  }, [searchOpen]);
+
   return (
-    <div className="stack gap-sm">
+    <div ref={rowRef} className="stack gap-sm">
       <div className="filter-line">
         <RibbonTabs
           aria-label="Lọc việc theo thời hạn"
@@ -71,11 +81,14 @@ export default function FilterRow({
           className="min-w-0 flex-1"
         />
 
-        <div className="relative flex-none">
+        <div id="sort-menu" className="relative flex-none">
           <IconButton
             aria-label="Sắp xếp"
             title={`Sắp xếp: ${SORT_LABEL[sortKey]}`}
-            active={sortOpen}
+            aria-haspopup="menu"
+            aria-expanded={sortOpen}
+            aria-controls="sort-menu"
+            data-active={sortOpen ? 'true' : undefined}
             icon={<SortIcon size={17} />}
             onClick={() => setSortOpen((open) => !open)}
           />

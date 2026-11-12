@@ -32,7 +32,7 @@ export default function Greeting({ now, todayCount, doneToday }: GreetingProps) 
           <span className="sr-only">{initial}</span>
           {rest}
         </h1>
-        <p className="mt-sm clear-none text-subtitle text-brown">{subtitle}</p>
+        <p className="mt-sm text-subtitle text-brown">{subtitle}</p>
         <p className="mt-xs text-caption text-umber">{longDate(now)}</p>
       </div>
       <div className="arch hidden w-[168px] flex-none lg:block">

@@ -85,7 +85,8 @@ export default function TaskScrollList({
 
   if (loading) {
     return (
-      <div className="stack gap-md" aria-busy="true" aria-label="Đang mở sổ">
+      <div className="stack gap-md" role="status" aria-busy="true">
+        <span className="sr-only">Đang mở sổ…</span>
         {[0, 1, 2, 3].map((index) => (
           <div key={index} className="skeleton-scroll" style={{ opacity: 1 - index * 0.18 }} />
         ))}
@@ -95,27 +96,34 @@ export default function TaskScrollList({
 
   if (visible.length === 0) {
     return (
-      <EmptyState
-        reason={reasonFor(tab, searchQuery, subjectId, tasks.length)}
-        compact={compact}
-      />
+      <div role="status" aria-live="polite">
+        <EmptyState
+          reason={reasonFor(tab, searchQuery, subjectId, tasks.length)}
+          compact={compact}
+        />
+      </div>
     );
   }
 
   return (
-    <div role="list" className={`stack ${compact ? 'gap-md' : 'gap-lg'}`}>
-      {visible.map((task) => (
-        <TaskScroll
-          key={task.id}
-          task={task}
-          subject={findSubject(subjects, task.subjectId)}
-          now={now}
-          compact={compact}
-          fresh={task.id === freshId}
-          onToggle={onToggle}
-          onOpen={onOpen}
-        />
-      ))}
-    </div>
+    <>
+      <p role="status" aria-live="polite" className="sr-only">
+        {`Đang bày ${visible.length} việc.`}
+      </p>
+      <div role="list" className={`stack ${compact ? 'gap-md' : 'gap-lg'}`}>
+        {visible.map((task) => (
+          <TaskScroll
+            key={task.id}
+            task={task}
+            subject={findSubject(subjects, task.subjectId)}
+            now={now}
+            compact={compact}
+            fresh={task.id === freshId}
+            onToggle={onToggle}
+            onOpen={onOpen}
+          />
+        ))}
+      </div>
+    </>
   );
 }

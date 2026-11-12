@@ -20,6 +20,22 @@ interface AriaProps {
 
 const CONTROL_TYPES = new Set(['input', 'textarea', 'select']);
 
+/** Có control thật (trực tiếp hoặc trong div bọc) thì mới dùng <label htmlFor> */
+function containsControl(node: React.ReactNode): boolean {
+  let found = false;
+  React.Children.forEach(node, (child) => {
+    if (found || !React.isValidElement(child)) return;
+    if (typeof child.type === 'string' && CONTROL_TYPES.has(child.type)) {
+      found = true;
+      return;
+    }
+    if (typeof child.type !== 'string') return;
+    const props = child.props as { children?: React.ReactNode };
+    if (props.children !== undefined && containsControl(props.children)) found = true;
+  });
+  return found;
+}
+
 function injectAria(
   node: React.ReactNode,
   controlId: string,
@@ -54,13 +70,30 @@ export default function Field({ label, helper, error, children }: FieldProps) {
 
   const describedBy = error ? errorId : helper ? helperId : undefined;
   const injected = injectAria(children, controlId, describedBy, error ? true : undefined);
+  // Con là nhóm (Segmented role="group") thì label htmlFor sẽ trỏ vào id không tồn tại
+  const grouped = !containsControl(children);
 
   return (
     <div className="flex flex-col gap-xs">
-      <label htmlFor={controlId} className="text-caption font-bold tracking-[0.4px] text-brown">
-        {label}
-      </label>
-      {injected}
+      {grouped ? (
+        <fieldset
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
+          className="m-0 flex min-w-0 flex-col gap-xs border-0 p-0"
+        >
+          <legend className="p-0 text-caption font-bold tracking-[0.4px] text-brown">
+            {label}
+          </legend>
+          {children}
+        </fieldset>
+      ) : (
+        <>
+          <label htmlFor={controlId} className="text-caption font-bold tracking-[0.4px] text-brown">
+            {label}
+          </label>
+          {injected}
+        </>
+      )}
       {error ? (
         <p id={errorId} className="text-body-sm text-critical" role="alert">
           {error}

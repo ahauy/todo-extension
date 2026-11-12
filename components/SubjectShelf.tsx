@@ -56,7 +56,7 @@ export default function SubjectShelf({
   return (
     <section aria-label="Giá sách môn học" className="stack gap-sm">
       {!horizontal && (
-        <h2 className="mb-xs flex items-center gap-sm font-display text-heading-sm text-ink-deep">
+        <h2 className="region-title mb-xs flex items-center gap-sm">
           <BookIcon size={18} />
           Giá sách
         </h2>

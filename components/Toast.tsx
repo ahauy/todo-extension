@@ -1,6 +1,7 @@
 /**
  * Nhắc nhở trong trang: tờ giấy nhỏ viền vàng kim, thanh đỏ son bên trái.
- * role="status" để đọc màn hình đọc được, tự đóng sau thời lượng cho trước.
+ * Chữ được đọc qua live region thường trú ở shell; toast có nút hoàn tác là
+ * đường quay lại duy nhất nên không tự đóng.
  */
 import React, { useEffect, useState } from 'react';
 import Button from './ui/Button';
@@ -33,23 +34,21 @@ export default function Toast({
       return undefined;
     }
     if (dismissed) return undefined;
+    // Có nút hoàn tác thì giữ toast tới khi người dùng đóng hoặc bấm hoàn tác
+    if (actionLabel) return undefined;
     const timer = window.setTimeout(() => {
       setDismissed(true);
       onClose?.();
     }, duration);
     return () => window.clearTimeout(timer);
-  }, [isOpen, dismissed, duration, onClose]);
+  }, [isOpen, dismissed, duration, onClose, actionLabel]);
 
   if (!isOpen || dismissed) return null;
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="toast-reminder pointer-events-auto w-[min(340px,calc(100vw-32px))]"
-    >
+    <div className="toast-reminder pointer-events-auto w-[min(340px,calc(100vw-32px))]">
       <div className="flex items-start gap-sm">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1" aria-hidden="true">
           <p className="text-subtitle font-semibold text-ink">{message}</p>
           {detail && <p className="mt-xxs text-body-sm text-umber">{detail}</p>}
         </div>

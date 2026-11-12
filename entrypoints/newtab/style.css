@@ -23,7 +23,7 @@
 .board-top {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .board-actions {
@@ -114,6 +114,13 @@
   .board-maxim {
     display: none;
   }
+  /* Ô bút một hàng, nút ghi xuống hàng riêng cho đủ rộng ngón tay */
+  .composer-row {
+    flex-wrap: wrap;
+  }
+  .composer-row > .composer-submit {
+    width: 100%;
+  }
 }
 
 /* <720: một cột, Bàn học xếp dưới cuộn việc */
@@ -143,13 +150,6 @@
   }
   .board-actions {
     gap: var(--spacing-xxs);
-  }
-  /* Ô bút một hàng, nút ghi xuống hàng riêng cho đủ rộng ngón tay */
-  .composer-row {
-    flex-wrap: wrap;
-  }
-  .composer-row > .composer-submit {
-    width: 100%;
   }
   .colophon {
     padding: var(--spacing-base);

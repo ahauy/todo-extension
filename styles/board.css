@@ -163,6 +163,7 @@
 
 /* ── Lời chào ────────────────────────────────────────────────────────── */
 .greeting-title {
+  display: flow-root;
   font-family: var(--font-display);
   font-size: 56px;
   font-weight: 700;
@@ -172,7 +173,7 @@
 }
 .drop-cap {
   float: left;
-  margin: 4px 12px 0 0;
+  margin: 4px 0 0 0;
   font-family: var(--font-drop);
   font-size: 72px;
   font-weight: 700;
@@ -186,8 +187,12 @@
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--primary);
-  color: var(--on-primary);
+  background: var(--surface-lacquer);
+  color: var(--brown);
+  border: 1px solid var(--hairline);
+  border-left: 6px solid var(--primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-lacquer);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
@@ -206,7 +211,7 @@
   border-radius: 9999px;
 }
 .proclamation button:hover {
-  background: rgba(255, 246, 227, 0.18);
+  background: var(--primary-wash);
 }
 /* Bản popup: gọn một dòng, tràn thì lược bớt chữ thay vì xuống dòng */
 .proclamation-compact > span {

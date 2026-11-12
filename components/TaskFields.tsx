@@ -18,16 +18,18 @@ import {
   MAX_TAGS,
   MAX_TAG_LEN,
   type TaskForm,
+  type TaskFormErrors,
 } from '../lib/tasks/form';
 
 interface TaskFieldsProps {
   form: TaskForm;
   subjects: Subject[];
+  errors?: TaskFormErrors;
   onChange: (patch: Partial<TaskForm>) => void;
   withNote?: boolean;
 }
 
-export default function TaskFields({ form, subjects, onChange, withNote = true }: TaskFieldsProps) {
+export default function TaskFields({ form, subjects, errors, onChange, withNote = true }: TaskFieldsProps) {
   const [tagDraft, setTagDraft] = useState('');
   const [subtaskDraft, setSubtaskDraft] = useState('');
 
@@ -74,7 +76,7 @@ export default function TaskFields({ form, subjects, onChange, withNote = true }
           </select>
         </Field>
 
-        <Field label="Hạn chót" helper="Ngày và giờ cần xong">
+        <Field label="Hạn chót" helper="Ngày và giờ cần xong" error={errors?.dueAt}>
           <div className="flex items-center gap-sm">
             <input
               type="datetime-local"
@@ -115,6 +117,7 @@ export default function TaskFields({ form, subjects, onChange, withNote = true }
             ? 'Việc chỉ làm một lần'
             : 'Xong một lần, hạn tự nhảy sang lần sau'
         }
+        error={errors?.recurrence}
       >
         <Segmented
           aria-label="Lặp lại"
@@ -132,7 +135,7 @@ export default function TaskFields({ form, subjects, onChange, withNote = true }
       </Field>
 
       {withNote && (
-        <Field label="Ghi chú" helper={`${form.note.length}/${MAX_NOTE} ký tự`}>
+        <Field label="Ghi chú" helper={`${form.note.length}/${MAX_NOTE} ký tự`} error={errors?.note}>
           <textarea
             className="text-area"
             value={form.note}
@@ -143,7 +146,7 @@ export default function TaskFields({ form, subjects, onChange, withNote = true }
         </Field>
       )}
 
-      <Field label="Thẻ" helper={`Tối đa ${MAX_TAGS} thẻ, mỗi thẻ 1–${MAX_TAG_LEN} ký tự`}>
+      <Field label="Thẻ" helper={`Tối đa ${MAX_TAGS} thẻ, mỗi thẻ 1–${MAX_TAG_LEN} ký tự`} error={errors?.tags}>
         <div className="flex flex-wrap items-center gap-xs">
           {form.tags.map((tag) => (
             <span key={tag} className="chip">
@@ -178,7 +181,7 @@ export default function TaskFields({ form, subjects, onChange, withNote = true }
         </div>
       </Field>
 
-      <Field label="Việc nhỏ" helper={`${form.subtasks.length}/${MAX_SUBTASKS} bước`}>
+      <Field label="Việc nhỏ" helper={`${form.subtasks.length}/${MAX_SUBTASKS} bước`} error={errors?.subtasks}>
         <div className="stack gap-xs">
           {form.subtasks.map((subtask) => (
             <div key={subtask.id} className="flex items-center gap-sm">

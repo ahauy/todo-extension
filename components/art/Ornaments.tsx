@@ -78,8 +78,6 @@ export const CloudRule: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     width="100%"
     height="12"
-    viewBox="0 0 48 12"
-    preserveAspectRatio="xMidYMid"
     className={className}
     aria-hidden="true"
     focusable="false"

@@ -89,12 +89,12 @@ export default function Modal({
         data-sheet={sheet}
         data-centered={!sheet || undefined}
         onClick={stop}
-        className="parchment p-lg"
+        className="parchment"
       >
         <div className="mb-base flex items-start gap-md">
           <h2 id={titleId} className="flex-1 text-heading-md text-ink-deep">
             <span
-              className="mr-xs align-baseline font-drop text-[44px] font-bold leading-none text-primary"
+              className="align-baseline font-drop text-[44px] font-bold leading-none text-primary"
               aria-hidden="true"
             >
               {initial}
