@@ -28,6 +28,16 @@
   background: var(--surface-paper);
 }
 
+/* Thu đài sen 28 → 24px và hạ khe 6 → 4px: bảy đài + nhãn chuỗi cần ~40px nữa
+   mới vừa lòng popup 360px mà không phải cắt bớt ngày. */
+.popup-footer .streak-compact {
+  gap: 4px;
+}
+.popup-footer .streak-lotus {
+  width: 24px;
+  height: 24px;
+}
+
 /* Chỉnh Popup: ngòi bút nhỏ hơn để placeholder không bị cắt sau nút chi tiết;
    tab ribbon gọn hơn để bớt tràn ngang */
 .popup-shell .quill-ink,

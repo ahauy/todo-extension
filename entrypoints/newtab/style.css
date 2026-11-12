@@ -45,9 +45,13 @@
   top: var(--spacing-lg);
 }
 
+/* Cột giữa là container: độ rộng của nó mới là thứ quyết định lời chào / ô bút
+   có vừa một hàng hay không, chứ không phải độ rộng cửa sổ. */
 .board-scroll {
   min-width: 0;
   max-width: 640px;
+  container-type: inline-size;
+  container-name: board;
 }
 
 .board-desk {
@@ -156,5 +160,37 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-xs);
+  }
+}
+
+/* Cột giữa hẹp: bỏ ô cửa sổ vòm, hạ cỡ chữ chào và cho ô bút xuống hàng — đặt
+   SAU các @media để thắng thứ tự nguồn khi cả hai cùng áp dụng.
+   570px là ngưỡng thật của lời chào dài nhất ("Chào buổi chiều" đo được 369px ở
+   cỡ hero) cộng ô vòm 168px và khe 24px = 561px; hẹp hơn là lời chào phải
+   xuống dòng. Cột giữa rộng nhất chỉ 592px nên vòm chỉ hiện ở màn ≥ ~1300px. */
+@container board (max-width: 570px) {
+  .greeting-arch {
+    display: none;
+  }
+  .greeting-title {
+    font-size: var(--text-display-lg);
+    line-height: 1.18;
+  }
+  .drop-cap {
+    font-size: 56px;
+    margin-top: 2px;
+  }
+  .composer-row {
+    flex-wrap: wrap;
+  }
+  .composer-row > .composer-submit {
+    width: 100%;
+  }
+  .quill-ink,
+  .quill-input {
+    font-size: var(--text-heading-sm);
+  }
+  .quill-input::placeholder {
+    font-size: var(--text-button);
   }
 }

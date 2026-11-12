@@ -110,7 +110,7 @@ export default function TaskScrollList({
       <p role="status" aria-live="polite" className="sr-only">
         {`Đang bày ${visible.length} việc.`}
       </p>
-      <div role="list" className={`stack ${compact ? 'gap-md' : 'gap-lg'}`}>
+      <div role="list" className={`stack ${compact ? 'gap-md' : 'gap-base'}`}>
         {visible.map((task) => (
           <TaskScroll
             key={task.id}

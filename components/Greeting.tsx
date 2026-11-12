@@ -35,7 +35,7 @@ export default function Greeting({ now, todayCount, doneToday }: GreetingProps) 
         <p className="mt-sm text-subtitle text-brown">{subtitle}</p>
         <p className="mt-xs text-caption text-umber">{longDate(now)}</p>
       </div>
-      <div className="arch hidden w-[168px] flex-none lg:block">
+      <div className="greeting-arch arch w-[168px] flex-none">
         <StudyWindow part={part} className="block w-full" />
       </div>
     </header>
