@@ -10,7 +10,7 @@
   min-height: 44px;
   border-radius: var(--radius-md);
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: var(--text-button);
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: 1px;
@@ -76,9 +76,9 @@
 }
 
 .btn-sm {
-  min-height: 36px;
-  padding: 7px 14px;
-  font-size: 14px;
+  min-height: 44px;
+  padding: var(--spacing-sm) var(--spacing-base);
+  font-size: var(--text-body-sm);
 }
 
 .btn-icon {
@@ -124,9 +124,14 @@
   display: flex;
   align-items: flex-end;
   gap: var(--spacing-sm);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: var(--spacing-sm);
 }
-.filter-line .btn-icon {
-  margin-bottom: 3px;
+.filter-line .ribbon {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 /* Dải tab cuộn ngang khi chật — thanh cuộn mảnh theo màu giấy, không ẩn hẳn
@@ -137,6 +142,10 @@
   gap: 4px;
   overflow-x: auto;
   padding-bottom: 3px;
+  /* Chừa 16px padding phải để vệt mờ của mask rơi vào chỗ trống, không ăn
+     vào tab cuối khi dải tab vẫn còn chỗ */
+  padding-right: var(--spacing-base);
+  margin-right: calc(var(--spacing-base) * -1);
   border-bottom: 1px solid var(--hairline);
   scrollbar-width: thin;
   /* Vệt mờ cạnh phải báo hiệu "còn tab nữa" khi dải tab bị cắt */
@@ -161,7 +170,7 @@
   border: 1px solid var(--hairline);
   border-bottom: 3px solid transparent;
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: var(--text-body-sm);
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
@@ -172,6 +181,10 @@
   background: var(--surface-lacquer);
   color: var(--primary-deep);
   border-bottom: 3px solid var(--gold);
+}
+/* Tab môn ở chế độ ngang giữ một vạch màu gáy sách để không lẫn thành beige */
+.ribbon-tab[data-spine] {
+  border-top: 4px solid var(--spine-color);
 }
 
 /* ── Bộ chọn phân đoạn ───────────────────────────────────────────────── */
@@ -188,7 +201,7 @@
   color: var(--brown);
   border: 1px solid var(--hairline);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: var(--text-body-sm);
   font-weight: 700;
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
@@ -211,7 +224,7 @@
   color: var(--ink);
   border: 1px solid var(--sepia);
   font-family: var(--font-body);
-  font-size: 17px;
+  font-size: var(--text-body-md);
   line-height: 1.55;
 }
 .text-area {
@@ -252,7 +265,7 @@
   border: 0;
   background: transparent;
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: var(--text-body-sm);
   color: var(--ink);
   outline: none;
 }
@@ -355,7 +368,7 @@
   background: var(--surface-paper);
   color: var(--brown);
   border: 1px solid var(--hairline);
-  font-size: 13px;
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: 0.4px;
   line-height: 1.4;
@@ -378,7 +391,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: var(--text-caption);
   font-weight: 700;
   letter-spacing: 0.4px;
   line-height: 1.4;
@@ -397,7 +410,7 @@
   color: var(--on-primary);
 }
 .badge-subject {
-  background: var(--indigo-wash);
+  background: var(--spine-wash, var(--indigo-wash));
   color: var(--ink);
 }
 
@@ -422,7 +435,7 @@
   background: transparent;
   color: var(--brown);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: var(--text-body-sm);
   text-align: left;
   cursor: pointer;
 }

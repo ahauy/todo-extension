@@ -154,7 +154,7 @@ export default function TaskFields({ form, subjects, errors, onChange, withNote 
               <button
                 type="button"
                 aria-label={`Bỏ thẻ ${tag}`}
-                className="ml-xxs text-umber"
+                className="ml-xxs grid size-6 place-items-center text-umber"
                 onClick={() => onChange({ tags: form.tags.filter((item) => item !== tag) })}
               >
                 <CloseIcon size={12} />

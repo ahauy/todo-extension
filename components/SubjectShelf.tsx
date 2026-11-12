@@ -66,7 +66,7 @@ export default function SubjectShelf({
         <button
           type="button"
           className={horizontal ? 'ribbon-tab' : 'spine'}
-          style={horizontal ? undefined : { ['--spine-color' as string]: 'var(--ink)' }}
+          style={horizontal ? undefined : { ['--spine-color' as string]: 'var(--primary-deep)' }}
           aria-pressed={horizontal ? undefined : value === 'all'}
           aria-selected={horizontal ? value === 'all' : undefined}
           role={horizontal ? 'tab' : undefined}
@@ -83,7 +83,8 @@ export default function SubjectShelf({
             <button
               type="button"
               className={horizontal ? 'ribbon-tab' : 'spine'}
-              style={horizontal ? undefined : { ['--spine-color' as string]: spineColor(subject.order) }}
+              style={{ ['--spine-color' as string]: spineColor(subject.order) }}
+              data-spine={horizontal ? '' : undefined}
               aria-pressed={horizontal ? undefined : value === subject.id}
               aria-selected={horizontal ? value === subject.id : undefined}
               role={horizontal ? 'tab' : undefined}
@@ -111,7 +112,7 @@ export default function SubjectShelf({
         <button
           type="button"
           className={horizontal ? 'ribbon-tab' : 'spine'}
-          style={horizontal ? undefined : { ['--spine-color' as string]: 'var(--hairline)' }}
+          style={horizontal ? undefined : { ['--spine-color' as string]: 'var(--sepia)' }}
           aria-pressed={horizontal ? undefined : value === 'none'}
           aria-selected={horizontal ? value === 'none' : undefined}
           role={horizontal ? 'tab' : undefined}

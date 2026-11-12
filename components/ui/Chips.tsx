@@ -56,7 +56,7 @@ export function SubjectBadge({ subject }: { subject: Subject | null }) {
   return (
     <span
       className="badge badge-subject"
-      style={{ background: spineWash(subject.order) }}
+      style={{ ['--spine-wash' as string]: spineWash(subject.order) }}
     >
       {subject.name}
     </span>

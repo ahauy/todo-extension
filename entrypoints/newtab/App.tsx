@@ -243,7 +243,7 @@ export default function App() {
           <span>Học, nhớ, rồi lại học.</span>
           <button
             type="button"
-            className="text-primary-deep underline decoration-dotted underline-offset-4"
+            className="inline-flex min-h-6 items-center px-xs text-primary-deep underline decoration-dotted underline-offset-4"
             onClick={() => setSettingsOpen(true)}
           >
             Cài đặt

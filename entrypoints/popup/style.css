@@ -12,7 +12,7 @@
   flex-direction: column;
   width: 360px;
   height: 560px;
-  overflow: hidden;
+  overflow-y: auto;
   border-width: 2px;
 }
 
@@ -32,11 +32,11 @@
    tab ribbon gọn hơn để bớt tràn ngang */
 .popup-shell .quill-ink,
 .popup-shell .quill-input {
-  font-size: 20px;
+  font-size: var(--text-heading-sm);
   padding-inline: 10px;
 }
 .popup-shell .quill-input::placeholder {
-  font-size: 16px;
+  font-size: var(--text-button);
 }
 .popup-shell .ribbon-tab {
   padding-inline: 10px;

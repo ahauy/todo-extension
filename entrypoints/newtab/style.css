@@ -141,7 +141,7 @@
     position: static;
   }
   .greeting-title {
-    font-size: 32px;
+    font-size: var(--text-heading-lg);
     line-height: 1.2;
   }
   .drop-cap {
