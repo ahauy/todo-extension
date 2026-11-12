@@ -15,7 +15,9 @@ generate-types/
 
 # workflow state (template opencode — chỉ dùng local, không commit)
 .context/
-tasks/
+# Chỉ thư mục task ở gốc repo. Không neo đầu dòng thì `tasks/` nuốt luôn
+# `lib/tasks/` và làm rơi module thật khỏi repo (CI typecheck đỏ).
+/tasks/
 docs/specs/
 docs/diagrams/
 spec/updates/
