@@ -9,6 +9,7 @@
 | ID | Tiêu đề | Loại | Trạng thái | Change file | Tạo | Xong |
 |----|---------|------|-----------|-------------|-----|------|
 | BUG-001 | Popup thiếu entrypoint + tailwind chưa cài — extension không bấm được | BUG | done | [2026-11-11-popup-missing-entrypoint.md](2026-11-11-popup-missing-entrypoint.md) | 2026-11-11 | 2026-11-11 |
+| FEAT-001 | Popup: gộp hai hàng chip trong cuộn thư thành một hàng (mật độ) | MODIFY | done | [2026-11-12-popup-task-card-density.md](archive/2026-11-12-popup-task-card-density.md) | 2026-11-12 | 2026-11-12 |
 
 ## Quy tắc tracking
 

@@ -1,19 +1,35 @@
 {
   "specVersion": "1.0.0",
-  "scopeVersion": 17,
-  "generatedAt": "2026-11-11T12:42:00+07:00",
-  "trigger": "bug-fix",
-  "workItem": "bug/popup-blank-black",
-  "specRefs": ["R-01", "R-15"],
+  "scopeVersion": 19,
+  "generatedAt": "2026-11-12T11:55:00+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature/popup-task-card-density",
+  "specRefs": ["R-05", "R-07", "R-08", "R-09"],
   "changed": {
-    "files": ["eslint.config.mjs", "tsconfig.json", "src/mjs-modules.d.ts", "src/__tests__/eslint-config.test.ts", "components/Settings.tsx", "components/TaskComposer.tsx", "components/TaskDetail.tsx", "components/TaskList.tsx", "components/Toast.tsx", "lib/tasks/query.ts", "docs/API_SPEC.md"],
-    "modules": ["dev-tooling", "typecheck", "lint", "components"]
+    "files": ["components/TaskScroll.tsx", "src/__tests__/TaskScroll.test.tsx"],
+    "modules": ["components"]
   },
   "impact": {
-    "direct": ["ESLint recommended rules active thật (trước đây 0 rule); 19 vi phạm pre-existing đã dọn; lint gate bắt được any/unused", "tsc include src/** -> test files được typecheck; ambient module .mjs"],
-    "dependents": ["CI lint/typecheck job", "toàn bộ components/hooks/lib/src"],
-    "regression": ["runtime build không đổi (popup 265.92 kB); component tests xanh; sortTasks bỏ param chưa dùng (không caller)"]
+    "direct": [
+      "TaskScroll nhánh compact: 2 hàng chip gộp thành 1 hàng flex-wrap TRẢI RỘNG article-level (data-chip-row duy nhất), giữ đủ hạn chót/ưu tiên/lặp lại/môn/tag/tiến độ; tiến độ bỏ ml-auto; Hoàn tác đặt sau hàng chip",
+      "Layout trải rộng + acceptance mật độ nới: user duyệt spec delta 2026-11-12 (chrome popup chiếm 247/560px nên không bắt buộc +1 thẻ trọn vẹn)",
+      "Test: compact → đúng 1 container data-chip-row; non-compact → 2 container; parity từng chip + thứ tự (không bám class Tailwind)"
+    ],
+    "dependents": [
+      "TaskScrollList + test (prop compact xuyên suốt)",
+      "popup App wiring (compact=true)",
+      "newtab board (compact=false) — bắt buộc giữ nguyên 2 hàng trong cột"
+    ],
+    "regression": [
+      "Board newtab không đổi: geometry thẻ identical 1024+1440 (board-geom JSON) + class byte-identical (reviewer)",
+      "A11y: role=listitem, aria-label dấu son, reading order seal→title→chips→undo, tiến độ subtask đọc được",
+      "Chip quá hạn vẫn phân biệt màu (không đụng token/màu)"
+    ]
   },
-  "acceptance": ["eslint . exit 0 với rule active; guard test 2 case", "tsc PASS với src; vitest 18 file / 92 test PASS; wxt build PASS"],
-  "risk": "medium"
+  "acceptance": [
+    "tsc --noEmit + eslint . + vitest run (110 test) + wxt build PASS (cả working tree lẫn clean export)",
+    "Popup 360×560 (8 việc mẫu): thẻ mở thấp hơn rõ, tổng chiều cao list giảm (đo 1081→947, −12.4%); không bắt buộc +1 thẻ trọn vẹn (spec nới 2026-11-12)",
+    "Board newtab trước/sau trùng khớp ở phần thẻ việc (geometry identical 1024+1440)"
+  ],
+  "risk": "low"
 }

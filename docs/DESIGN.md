@@ -615,8 +615,8 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 **`card-scroll-task`** — "Cuộn thư" cho một công việc: thành phần chính của extension.
 - Nền `{colors.surface-lacquer}`, rounded `{rounded.lg}`, padding `{spacing.base}`, viền `1px solid {colors.hairline}`, bóng level 1.
 - Hai đầu cuộn: thanh trục nhỏ 6px màu {colors.hairline} ở trên và dưới (trang trí).
-- Bố cục hàng: `button-seal-done` hoặc `checkbox-seal` (trái) · tên việc `{typography.subtitle-lg}` + dòng phụ `{typography.body-sm}` (giữa) · `chip-deadline` và `badge-priority-*` (phải, xuống hàng trong popup).
-- Phía dưới: `badge-subject` của môn học.
+- Bố cục hàng: `button-seal-done` hoặc `checkbox-seal` (trái) · tên việc `{typography.subtitle-lg}` (giữa) · dấu "XONG" (phải, khi hoàn thành).
+- Hàng chip meta: **New Tab** = 2 hàng trong cột nội dung (hàng 1 `chip-deadline` / `badge-priority-*` / "Lặp lại", hàng 2 `badge-subject` / tag / tiến độ subtask). **Popup (compact)** = 1 hàng flex-wrap trải toàn bề rộng thẻ, đặt dưới hàng tiêu đề, gộp đủ mọi chip theo thứ tự trên — hết chỗ wrap xuống dòng, không ẩn dữ liệu (spec delta 2026-11-12).
 - **Hoàn thành**: dấu "XONG" ép xuống 240ms (`scale 1.4 → 1`, nghiêng −6°, `mix-blend-mode: multiply`), thẻ chuyển sang `card-scroll-task-done`. Có nút "Hoàn tác" 5 giây.
 
 **`card-scroll-task-done`** — Nền {colors.surface-paper}, chữ {colors.umber}, dấu đỏ ở góc. Giữ nguyên chữ, không gạch ngang.
@@ -745,7 +745,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - Ô streak 28px không tương tác; nếu có tương tác (xem lịch) vùng bấm ≥ 44px.
 
 ### Collapsing Strategy
-- **Cuộn việc**: trong Popup, chip hạn và huy hiệu ưu tiên xuống dòng dưới tên việc; tên việc cắt ở 2 dòng.
+- **Cuộn việc**: trong Popup, mọi chip meta gộp thành 1 hàng flex-wrap trải rộng dưới tên việc (hết chỗ wrap xuống dòng, không ẩn chip); tên việc cắt ở 2 dòng. New Tab giữ 2 hàng chip trong cột nội dung.
 - **Giá sách**: ≥ 1024px là cột dọc, dưới đó thành dải tab ngang.
 - **Bàn học**: dưới 1024px đồng hồ Pomodoro giữ lại, streak thu thành một dòng 7 chấm, châm ngôn ẩn.
 - **Lời chào**: `{typography.hero-display}` (56px) giảm còn `{typography.heading-lg}` (32px) dưới 720px.

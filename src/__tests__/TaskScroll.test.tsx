@@ -230,6 +230,110 @@ describe('TaskScroll', () => {
     expect(chip?.textContent).toContain('Hôm nay 18:00');
   });
 
+  describe('bố cục hàng chip (data-chip-row)', () => {
+    const FULL_TASK = fixture({
+      priority: 'high',
+      dueAt: '2026-01-15T18:00',
+      tags: ['bài tập'],
+      subtasks: [
+        { id: 'st-1', title: 'Đọc bài', done: true },
+        { id: 'st-2', title: 'Làm bài', done: false },
+      ],
+    });
+
+    it('compact: đúng 1 hàng chip, chứa đủ hạn chót + ưu tiên + môn + tag + tiến độ', () => {
+      const { container } = renderScroll(FULL_TASK, { compact: true });
+
+      const rows = container.querySelectorAll('[data-chip-row]');
+      expect(rows).toHaveLength(1);
+      const row = rows[0];
+      expect(row.querySelector('time')).not.toBeNull(); // hạn chót
+      expect(row.querySelector('.badge-high')?.textContent).toBe('Cao'); // ưu tiên
+      expect(row.querySelector('.badge-subject')).not.toBeNull(); // môn
+      expect(row.textContent).toContain('#bài tập'); // tag
+      expect(row.querySelector('.progress-ink')).not.toBeNull(); // tiến độ
+      expect(row.textContent).toContain('1/2');
+      expect(row.textContent).not.toContain('Lặp lại'); // có hạn chót → không chip lặp
+    });
+
+    it('compact: lặp lại mà không có hạn chót → chip "Lặp lại" trong hàng duy nhất', () => {
+      const { container } = renderScroll(
+        fixture({ recurrence: { kind: 'daily' } }),
+        { compact: true }
+      );
+
+      const rows = container.querySelectorAll('[data-chip-row]');
+      expect(rows).toHaveLength(1);
+      expect(rows[0].querySelector('time')).toBeNull();
+      expect(rows[0].textContent).toContain('Lặp lại');
+    });
+
+    it('không compact: giữ nguyên 2 hàng — hạn chót + ưu tiên ở hàng 1, môn + tag + tiến độ ở hàng 2', () => {
+      const { container } = renderScroll(FULL_TASK, { compact: false });
+
+      const rows = container.querySelectorAll('[data-chip-row]');
+      expect(rows).toHaveLength(2);
+      const row1 = container.querySelector('[data-chip-row="1"]') as HTMLElement;
+      const row2 = container.querySelector('[data-chip-row="2"]') as HTMLElement;
+      expect(row1.querySelector('time')).not.toBeNull();
+      expect(row1.querySelector('.badge-high')).not.toBeNull();
+      expect(row1.querySelector('.badge-subject')).toBeNull();
+      expect(row2.querySelector('.badge-subject')).not.toBeNull();
+      expect(row2.textContent).toContain('#bài tập');
+      expect(row2.querySelector('.progress-ink')).not.toBeNull();
+      expect(row2.querySelector('time')).toBeNull();
+    });
+
+    it('không mất chip: hàng compact gộp đủ từng chip của bản 2 hàng, đúng thứ tự (task đầy đủ)', () => {
+      const full = fixture({
+        priority: 'high',
+        dueAt: '2026-01-15T18:00',
+        tags: ['bài tập', 'đồ án'],
+        subtasks: [
+          { id: 'st-1', title: 'Đọc bài', done: true },
+          { id: 'st-2', title: 'Làm bài', done: false },
+        ],
+      });
+      const board = renderScroll(full, { subject: SUBJECT, compact: false });
+      const popup = renderScroll(full, { subject: SUBJECT, compact: true });
+
+      const boardRows = [...board.container.querySelectorAll('[data-chip-row]')];
+      expect(boardRows).toHaveLength(2);
+      const rowOne = popup.container.querySelector('[data-chip-row="1"]') as HTMLElement;
+
+      // Parity cấu trúc: tổng chip con của 2 hàng board = chip con của hàng compact.
+      const boardChipCount = boardRows.reduce((sum, row) => sum + row.children.length, 0);
+      expect(rowOne.children.length).toBe(boardChipCount);
+
+      // Từng chip đối chiếu với chính bản board, không hardcode chữ.
+      const boardTime = boardRows[0].querySelector('time') as HTMLTimeElement;
+      const compactTime = rowOne.querySelector('time') as HTMLTimeElement;
+      expect(compactTime.getAttribute('datetime')).toBe(boardTime.getAttribute('datetime'));
+      expect(rowOne.querySelector('.badge-high')?.textContent).toBe(
+        boardRows[0].querySelector('.badge-high')?.textContent
+      );
+      expect(rowOne.querySelector('.badge-subject')?.textContent).toBe(
+        boardRows[1].querySelector('.badge-subject')?.textContent
+      );
+      const compactText = rowOne.textContent ?? '';
+      for (const tag of full.tags) expect(compactText).toContain(`#${tag}`);
+      expect(rowOne.querySelector('.progress-ink')).not.toBeNull();
+      expect(compactText).toContain('1/2');
+
+      // Đúng thứ tự: hạn chót · ưu tiên · môn · tag · tiến độ.
+      const positions = [
+        compactText.indexOf(compactTime.textContent ?? ''),
+        compactText.indexOf('Cao'),
+        compactText.indexOf('Toán'),
+        compactText.indexOf('#bài tập'),
+        compactText.indexOf('#đồ án'),
+        compactText.indexOf('1/2'),
+      ];
+      expect(positions.every((pos) => pos >= 0)).toBe(true);
+      expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    });
+  });
+
   it('vòng đời done: dấu XONG + nút Hoàn tác; bỏ dấu thì mất hết', () => {
     const onToggle = vi.fn();
     const task = fixture({ id: 't-9', title: 'Học từ vựng' });
