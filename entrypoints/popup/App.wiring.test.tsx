@@ -99,15 +99,6 @@ function setInputValue(input: HTMLInputElement, value: string): void {
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-function setSelectValue(select: HTMLSelectElement, value: string): void {
-  const setter = Object.getOwnPropertyDescriptor(
-    HTMLSelectElement.prototype,
-    'value'
-  )!.set!;
-  setter.call(select, value);
-  select.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
 function pressKey(key: string): void {
   document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
 }
@@ -226,7 +217,7 @@ describe('App wiring — search / subject / sort (#6)', () => {
     expect(document.querySelector('input[aria-label="Tìm việc"]')).toBeNull();
   });
 
-  it('lọc theo môn học qua select "Lọc theo môn học" (thay menu thẻ cũ)', async () => {
+  it('lọc theo môn học qua menu "Lọc theo môn học" (thay <select> native)', async () => {
     stub.seed({
       subjects: [
         { id: 's1', name: 'Toán', order: 0, createdAt: '2026-01-01T00:00:00.000Z' },
@@ -236,22 +227,41 @@ describe('App wiring — search / subject / sort (#6)', () => {
     });
     const container = await renderApp();
 
-    const select = container.querySelector(
-      'select[aria-label="Lọc theo môn học"]'
-    ) as HTMLSelectElement;
-    expect(select).not.toBeNull();
-    expect(
-      [...select.options].some((o) => o.value === 's1' && o.textContent === 'Toán')
-    ).toBe(true);
+    const subjectButton = () =>
+      container.querySelector(
+        'button[aria-label^="Lọc theo môn học"]'
+      ) as HTMLButtonElement;
+
+    expect(subjectButton()).not.toBeNull();
+    expect(subjectButton().getAttribute('aria-expanded')).toBe('false');
 
     await act(async () => {
-      setSelectValue(select, 's1');
+      subjectButton().click();
+    });
+    expect(
+      container.querySelector('[role="menu"][aria-label="Lọc theo môn học"]')
+    ).not.toBeNull();
+    const toan = [...container.querySelectorAll('[role="menuitem"]')].find(
+      (candidate) => candidate.textContent === 'Toán'
+    ) as HTMLButtonElement | undefined;
+    expect(toan).toBeDefined();
+
+    await act(async () => {
+      toan!.click();
     });
     expect(container.textContent).toContain('Việc Toán');
     expect(container.textContent).not.toContain('Việc tự do');
 
     await act(async () => {
-      setSelectValue(select, 'none');
+      subjectButton().click();
+    });
+    const none = [...container.querySelectorAll('[role="menuitem"]')].find(
+      (candidate) => candidate.textContent === 'Chưa xếp môn'
+    ) as HTMLButtonElement | undefined;
+    expect(none).toBeDefined();
+
+    await act(async () => {
+      none!.click();
     });
     expect(container.textContent).not.toContain('Việc Toán');
     expect(container.textContent).toContain('Việc tự do');
@@ -278,7 +288,7 @@ describe('App wiring — search / subject / sort (#6)', () => {
         (item) => item.textContent ?? ''
       );
     const sortButton = () =>
-      container.querySelector('button[aria-label="Sắp xếp"]') as HTMLButtonElement;
+      container.querySelector('button[aria-label^="Sắp xếp"]') as HTMLButtonElement;
 
     // Mặc định "Hạn chót": việc hết hạn sớm đứng trước
     expect(sortButton().title).toBe('Sắp xếp: Hạn chót');

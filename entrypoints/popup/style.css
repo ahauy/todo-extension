@@ -39,7 +39,7 @@
   font-size: var(--text-button);
 }
 .popup-shell .ribbon-tab {
-  padding-inline: 10px;
+  padding-inline: 8px;
   font-size: 14px;
 }
 

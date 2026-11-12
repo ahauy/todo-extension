@@ -15,7 +15,6 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
-import { Proclamation } from '../../components/Proclamation';
 import Button from '../../components/ui/Button';
 import { ChevronLeftIcon } from '../../components/art/Icons';
 import { useBoard } from '../../hooks/useBoard';
@@ -36,7 +35,6 @@ export default function App() {
   const [dirty, setDirty] = useState(false);
   const [dirtyConfirm, setDirtyConfirm] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
-  const [bannerHidden, setBannerHidden] = useState(false);
 
   const closeDetail = useCallback(() => {
     if (dirty) {
@@ -132,15 +130,6 @@ export default function App() {
               onSubjectChange={setSubjectId}
             />
           </div>
-
-          {!bannerHidden && (
-            <Proclamation
-              todayCount={board.counts.today}
-              overdue={board.overdue}
-              compact
-              onDismiss={() => setBannerHidden(true)}
-            />
-          )}
 
           <div className="min-h-0 flex-1 overflow-y-auto px-base py-base">
             <TaskScrollList

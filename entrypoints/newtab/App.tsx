@@ -179,7 +179,9 @@ export default function App() {
           {wide && <aside className="board-shelf">{shelf}</aside>}
 
           <main className="board-scroll">
-            <h2 className="region-title mb-base">Cuộn nhiệm vụ</h2>
+            {/* Lời chào đã là tiêu đề thị giác của vùng này; giữ h2 cho cấu trúc
+                tài liệu và trình đọc màn hình nhưng không bày thêm một dòng chữ. */}
+            <h2 className="sr-only">Cuộn nhiệm vụ</h2>
             <Greeting now={board.now} todayCount={board.counts.today} doneToday={board.doneToday} />
             <CloudRule className="my-lg" />
             <Composer

@@ -29,7 +29,7 @@ colors:
   sepia: "#9a7b5c"
   hairline: "#c8ae80"
   hairline-soft: "#dcc9a0"
-  disabled-text: "#a8987a"
+  disabled-text: "#846a4a"
 
 typography:
   hero-display:

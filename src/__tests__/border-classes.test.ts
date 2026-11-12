@@ -35,15 +35,18 @@ describe('border width cho input (#14)', () => {
   });
 
   it('component render input thật sự dùng class text-input', () => {
-    const files = [
-      'components/TaskParchment.tsx',
-      'components/TaskFields.tsx',
-      'components/FilterRow.tsx',
-    ];
+    const files = ['components/TaskParchment.tsx', 'components/TaskFields.tsx'];
     for (const file of files) {
       expect(read(file), `${file} phải dùng class text-input cho ô nhập`).toContain(
         'text-input'
       );
     }
+  });
+
+  it('FilterRow: ô tìm việc dùng khung .search-field có viền thật', () => {
+    expect(read('styles/components.css'), '.search-field phải khai viền thật').toMatch(
+      /\.search-field\s*\{[^}]*border:\s*1px solid/
+    );
+    expect(read('components/FilterRow.tsx')).toContain('search-field');
   });
 });

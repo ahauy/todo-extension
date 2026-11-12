@@ -62,7 +62,7 @@ export default function SubjectShelf({
         </h2>
       )}
 
-      <div className={horizontal ? 'ribbon' : 'stack gap-xs'}>
+      <div className={horizontal ? 'shelf-strip' : 'stack gap-xs'}>
         <button
           type="button"
           className={horizontal ? 'ribbon-tab' : 'spine'}

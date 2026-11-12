@@ -120,18 +120,84 @@
 
 /* ── Dải tab đánh dấu trang ──────────────────────────────────────────── */
 /* ── Hàng lọc: dải tab + nút sắp xếp / tìm trên cùng một hàng ────────── */
+/* `flex-wrap` + `flex-basis` 320px: khi cột hẹp (bảng 2 cột, mobile) dải tab
+   tự chiếm trọn một hàng và hai nút lọc xuống hàng dưới, không bao giờ bị
+   vệt mờ cắt mất tab "Đã xong". Cột rộng thì vẫn nằm chung một hàng. */
 .filter-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: var(--spacing-sm);
   border-bottom: 1px solid var(--hairline);
   padding-bottom: var(--spacing-sm);
 }
 .filter-line .ribbon {
-  flex: 1;
+  flex: 1 1 320px;
   min-width: 0;
   border-bottom: 0;
   padding-bottom: 0;
+}
+.filter-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-left: auto;
+}
+
+/* Ô lọc môn trong Popup — thay cho <select> native để giữ đúng tông sơn mài:
+   nền giấy, viền mảnh, chấm màu gáy sách bên trái, mũi tên nét mảnh. */
+.filter-subject {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-paper);
+  color: var(--brown);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-body);
+  font-size: var(--text-body-sm);
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.filter-subject:hover {
+  background: var(--surface-lacquer);
+  border-color: var(--sepia);
+}
+.filter-subject:focus-visible {
+  border-color: var(--primary);
+}
+.filter-subject-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 9999px;
+}
+.filter-subject-caret {
+  flex: none;
+  color: var(--sepia);
+}
+
+/* Dải gáy sách ngang dưới 1024px: cho phép xuống hàng thay vì cắt mất môn
+   cuối khi màn hẹp. Tab ở đây không dính vào đường kẻ dưới nên bo tròn đủ
+   bốn góc, bỏ lề âm vốn để chồng lên viền của dải tab lọc. */
+.shelf-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px;
+}
+.shelf-strip .ribbon-tab {
+  margin-bottom: 0;
+  border-radius: var(--radius-md);
 }
 
 /* Dải tab cuộn ngang khi chật — thanh cuộn mảnh theo màu giấy, không ẩn hẳn
@@ -185,6 +251,15 @@
 /* Tab môn ở chế độ ngang giữ một vạch màu gáy sách để không lẫn thành beige */
 .ribbon-tab[data-spine] {
   border-top: 4px solid var(--spine-color);
+}
+
+/* Cột hẹp (bảng hai cột ở 1024, mobile): tab gọn lại để bốn tab lọc vẫn vừa
+   một hàng thay vì bị vệt mờ cắt mất tab cuối. */
+@media (max-width: 1199px) {
+  .ribbon-tab {
+    padding-inline: 8px;
+    font-size: 14px;
+  }
 }
 
 /* ── Bộ chọn phân đoạn ───────────────────────────────────────────────── */
@@ -422,6 +497,11 @@
   background: var(--surface-lacquer);
   border: 1px solid var(--hairline);
   box-shadow: var(--elev-raised);
+  /* Menu lọc môn có thể dài tới 12 môn + 2 mục "cả giá sách"/"chưa xếp" —
+     chặn chiều cao để mục cuối vẫn tới được trong Popup 560px. */
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .menu-item {
   display: flex;
