@@ -279,7 +279,6 @@
 }
 .quill-input {
   color: transparent;
-  outline: none;
 }
 .quill[data-plain='true'] .quill-input {
   color: var(--ink);

@@ -313,7 +313,6 @@
 }
 .text-input:focus,
 .text-area:focus {
-  outline: none;
   border: 2px solid var(--primary);
   padding: calc(var(--spacing-md) - 1px);
   box-shadow: var(--focus-halo);
@@ -342,7 +341,6 @@
   font-family: var(--font-body);
   font-size: var(--text-body-sm);
   color: var(--ink);
-  outline: none;
 }
 .search-field input::placeholder {
   color: var(--umber);

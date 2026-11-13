@@ -84,6 +84,7 @@ select {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+  scroll-margin: var(--spacing-sm);
 }
 
 h1,
