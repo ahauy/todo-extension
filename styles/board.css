@@ -110,6 +110,13 @@
   border-color: var(--gold);
   color: var(--primary-deep);
 }
+.streak-lotus[data-lit-just='true'] {
+  animation: lotus-light var(--dur-slide) var(--ease-out) both;
+}
+@keyframes lotus-light {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
 .streak-lotus[data-today='true'] {
   outline: 1px dashed var(--sepia);
   outline-offset: 2px;

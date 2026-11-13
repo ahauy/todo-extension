@@ -502,6 +502,12 @@
   max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Hiệu ứng mở menu: chỉ khi trạng thái thay đổi, không Ambient */
+  animation: menu-rise var(--dur-fast) var(--ease-out) both;
+}
+@keyframes menu-rise {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
 }
 .menu-item {
   display: flex;
@@ -526,4 +532,20 @@
 }
 .menu-item:focus-visible {
   background: var(--gold-pale);
+}
+
+/* Menu mở/đóng có chuyển động nhẹ, chỉ khi trạng thái đổi; tắt khi giảm chuyển động. */
+.menu[data-entering='true'] {
+  animation: menu-fade-in var(--dur-fast) var(--ease-out) both;
+}
+.menu[data-exiting='true'] {
+  animation: menu-fade-out var(--dur-fast) var(--ease-out) both;
+}
+@keyframes menu-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes menu-fade-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-4px); }
 }

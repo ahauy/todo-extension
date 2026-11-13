@@ -2,7 +2,7 @@
  * Chuỗi ngày học: bảy ô đài sen, ngày đã học sáng vàng lá. Ô không tương
  * tác nên giữ 28px; nhãn ngày nằm dưới để đọc được bằng chữ chứ không bằng màu.
  */
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Lotus, SealFrame } from './art/Ornaments';
 import { lastSevenDays, streakLength } from '../hooks/useStudyLog';
 import type { StudyLog } from '../lib/tasks/types';
@@ -20,6 +20,30 @@ export default function StreakCard({
 }) {
   const cells = lastSevenDays(log, now);
   const streak = streakLength(log, now);
+  const prevLit = useRef<Set<string>>(new Set());
+  const isFirstRender = useRef(true);
+  const [justLit, setJustLit] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      prevLit.current = new Set(cells.filter((cell) => cell.lit).map((cell) => cell.key));
+      return;
+    }
+    const currentLit = new Set(cells.filter((cell) => cell.lit).map((cell) => cell.key));
+    const newlyLit = new Set<string>();
+    for (const key of currentLit) {
+      if (!prevLit.current.has(key)) newlyLit.add(key);
+    }
+    prevLit.current = currentLit;
+    if (newlyLit.size > 0) {
+      setJustLit(newlyLit);
+      const timer = setTimeout(() => setJustLit(new Set()), 260);
+      return () => clearTimeout(timer);
+    }
+  }, [cells]);
+
+  const lotusJustLit = (cellKey: string) => justLit.has(cellKey) ? 'true' : undefined;
 
   if (compact) {
     return (
@@ -34,6 +58,7 @@ export default function StreakCard({
               className="streak-lotus"
               data-lit={cell.lit}
               data-today={cell.today}
+              data-lit-just={lotusJustLit(cell.key)}
               title={`${cell.weekday}${cell.lit ? ' — đã học' : ' — chưa học'}`}
             >
               <Lotus size={12} />
@@ -53,7 +78,12 @@ export default function StreakCard({
       <div className="streak-row">
         {cells.map((cell) => (
           <div key={cell.key} className="stack flex-1 items-center gap-xxs">
-            <span className="streak-lotus" data-lit={cell.lit} data-today={cell.today}>
+            <span
+              className="streak-lotus"
+              data-lit={cell.lit}
+              data-today={cell.today}
+              data-lit-just={lotusJustLit(cell.key)}
+            >
               <Lotus size={15} />
             </span>
             <span className="text-caption text-umber">{cell.weekday}</span>

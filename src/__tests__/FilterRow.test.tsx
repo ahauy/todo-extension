@@ -49,6 +49,7 @@ afterEach(() => {
   });
   roots.length = 0;
   document.body.innerHTML = '';
+  vi.useRealTimers();
 });
 
 function keyDown(element: Element | null, key: string) {
@@ -67,6 +68,7 @@ function click(element: Element | null) {
 
 describe('FilterRow subject chooser', () => {
   it('mở menu môn, ArrowDown di chuyển fokus, Escape đóng và trả fokus về nút kích hoạt', () => {
+    vi.useFakeTimers();
     const { container } = renderFilterRow();
     const trigger = container.querySelector('button[aria-label="Lọc theo môn học: Cả giá sách"]');
     expect(trigger).not.toBeNull();
@@ -83,11 +85,15 @@ describe('FilterRow subject chooser', () => {
     expect(document.activeElement).toBe(items[1]);
 
     keyDown(document.activeElement as Element, 'Escape');
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
     expect(container.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(trigger);
   });
 
   it('chọn mục môn gọi onSelect đúng giá trị, đóng menu và trả fokus về nút kích hoạt', () => {
+    vi.useFakeTimers();
     const { container, props } = renderFilterRow();
     const trigger = container.querySelector('button[aria-label="Lọc theo môn học: Cả giá sách"]')!;
     click(trigger);
@@ -95,18 +101,53 @@ describe('FilterRow subject chooser', () => {
     const second = items[1];
     click(second);
     expect(props.onSubjectChange).toHaveBeenCalledWith('s1');
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
     expect(container.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it('menu mở có data-entering, đóng có data-exiting rồi biến mất', () => {
+    vi.useFakeTimers();
+    const { container } = renderFilterRow();
+    const trigger = container.querySelector('button[aria-label="Lọc theo môn học: Cả giá sách"]');
+    expect(trigger).not.toBeNull();
+
+    click(trigger);
+    const menu = container.querySelector('[role="menu"]');
+    expect(menu).not.toBeNull();
+    expect(menu?.getAttribute('data-entering')).toBe('true');
+
+    // Chạy hết timer enter → data-entering biến mất
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    expect(container.querySelector('[role="menu"]')?.getAttribute('data-entering')).toBeNull();
+
+    click(trigger);
+    const menu2 = container.querySelector('[role="menu"]');
+    expect(menu2).not.toBeNull();
+    expect(menu2?.getAttribute('data-exiting')).toBe('true');
+
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    expect(container.querySelector('[role="menu"]')).toBeNull();
   });
 });
 
 describe('FilterRow sort menu', () => {
   it('Escape đóng menu sắp xếp và trả fokus về nút sắp xếp', () => {
+    vi.useFakeTimers();
     const { container } = renderFilterRow();
     const trigger = container.querySelector('button[aria-label="Sắp xếp theo: Hạn chót"]')!;
     click(trigger);
     expect(container.querySelector('[role="menu"]')).not.toBeNull();
     keyDown(document.activeElement as Element, 'Escape');
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
     expect(container.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(trigger);
   });
