@@ -1,35 +1,52 @@
 {
-  "specVersion": "1.0.0",
-  "scopeVersion": 19,
-  "generatedAt": "2026-11-12T11:55:00+07:00",
+  "specVersion": "1.1.0",
+  "scopeVersion": 20,
+  "generatedAt": "2026-11-12T12:55:00+07:00",
   "trigger": "feature-update",
-  "workItem": "feature/popup-task-card-density",
-  "specRefs": ["R-05", "R-07", "R-08", "R-09"],
+  "workItem": "feature/son-mai-experience-polish",
+  "specRefs": ["R-09", "R-13", "R-14", "R-15", "R-19"],
   "changed": {
-    "files": ["components/TaskScroll.tsx", "src/__tests__/TaskScroll.test.tsx"],
-    "modules": ["components"]
+    "files": [
+      "SPECIFICATIONS.md",
+      "spec/updates/2026-11-12-son-mai-experience-polish.md",
+      "docs/DESIGN.md",
+      "docs/ERD.md",
+      "docs/API_SPEC.md",
+      "docs/BRD.md",
+      "docs/USER_FLOW.md",
+      "entrypoints/newtab/style.css",
+      "components/FilterRow.tsx",
+      "components/ui/Menu.tsx",
+      "styles/components.css",
+      "components/TaskScroll.tsx",
+      "components/StreakCard.tsx",
+      "styles/signature.css"
+    ],
+    "modules": ["design-system", "newtab", "popup", "filtering", "task-feedback", "study-streak", "docs"]
   },
   "impact": {
     "direct": [
-      "TaskScroll nhánh compact: 2 hàng chip gộp thành 1 hàng flex-wrap TRẢI RỘNG article-level (data-chip-row duy nhất), giữ đủ hạn chót/ưu tiên/lặp lại/môn/tag/tiến độ; tiến độ bỏ ml-auto; Hoàn tác đặt sau hàng chip",
-      "Layout trải rộng + acceptance mật độ nới: user duyệt spec delta 2026-11-12 (chrome popup chiếm 247/560px nên không bắt buộc +1 thẻ trọn vẹn)",
-      "Test: compact → đúng 1 container data-chip-row; non-compact → 2 container; parity từng chip + thứ tự (không bám class Tailwind)"
+      "Responsive layout New Tab tại dải 1024–1199px",
+      "Menu chọn môn popup và affordance ribbon tab hẹp",
+      "Motion phản hồi triện, bộ lọc/menu và milestone chuỗi học",
+      "As-built documentation và intent UI requirement"
     ],
     "dependents": [
-      "TaskScrollList + test (prop compact xuyên suốt)",
-      "popup App wiring (compact=true)",
-      "newtab board (compact=false) — bắt buộc giữ nguyên 2 hàng trong cột"
+      "Popup App wiring, FilterRow/Menu keyboard and focus return",
+      "TaskScroll state/undo and useTasks completion flow",
+      "Settings reduced-motion/effect toggles, existing screenshot harness"
     ],
     "regression": [
-      "Board newtab không đổi: geometry thẻ identical 1024+1440 (board-geom JSON) + class byte-identical (reviewer)",
-      "A11y: role=listitem, aria-label dấu son, reading order seal→title→chips→undo, tiến độ subtask đọc được",
-      "Chip quá hạn vẫn phân biệt màu (không đụng token/màu)"
+      "360px popup, 390px New Tab, 1024px and desktop geometry; no horizontal overflow",
+      "Keyboard navigation, focus-visible and prefers-reduced-motion",
+      "Task deadline/subject/priority legibility and existing task completion semantics",
+      "Build size/performance and no added permission, network or animation dependency"
     ]
   },
   "acceptance": [
-    "tsc --noEmit + eslint . + vitest run (110 test) + wxt build PASS (cả working tree lẫn clean export)",
-    "Popup 360×560 (8 việc mẫu): thẻ mở thấp hơn rõ, tổng chiều cao list giảm (đo 1081→947, −12.4%); không bắt buộc +1 thẻ trọn vẹn (spec nới 2026-11-12)",
-    "Board newtab trước/sau trùng khớp ở phần thẻ việc (geometry identical 1024+1440)"
+    "Requirements and as-built docs no longer describe removed dark mode or obsolete popup/filter/storage contracts.",
+    "New Tab collapses before the task column becomes hard to scan; popup subject selection preserves context.",
+    "Visual feedback is state-driven and reduced-motion safe, without decorative autoplay."
   ],
-  "risk": "low"
+  "risk": "medium"
 }

@@ -1,6 +1,6 @@
 ---
-spec_version: 1.0.0
-updated_at: 2026-11-10
+spec_version: 1.1.0
+updated_at: 2026-11-12
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -71,7 +71,7 @@ Tick hết subtask KHÔNG tự tick task cha (tránh hành vi ngầm); tick task
 ### Domain: Thời gian & nhắc việc
 
 **R-09 — Due date + giờ**
-Task có thể có `dueAt` (epoch ms, gồm cả ngày và giờ) hoặc không có. Không có `dueAt` → không nhắc.
+Task có thể có `dueAt` (chuỗi ISO 8601 local, gồm cả ngày và giờ) hoặc không có. Không có `dueAt` → không nhắc.
 `dueAt < now` → hiển thị trạng thái "quá hạn" (overdue) trong UI.
 
 **R-10 — Quy tắc lặp lại**
@@ -103,16 +103,17 @@ tự đổi trạng thái task. `dueAt ≤ now` không tạo alarm (Chrome sẽ 
 Dữ liệu lưu `chrome.storage.sync`; thay đổi từ thiết bị khác nhận qua `chrome.storage.onChanged`:
 - Key `t:<id>` **thay đổi** → merge theo `updatedAt` (lớn hơn thắng), cập nhật UI + reschedule alarm.
 - Key `t:<id>` **bị xoá** (`newValue` undefined) → xoá task khỏi state local + `chrome.alarms.clear('due:<id>')`.
-- Key `settings` thay đổi → áp theme mới.
+- Key `settings` thay đổi → áp ngay các lựa chọn hiển thị và tương tác hiện có.
 
 ### Domain: UI & trải nghiệm
 
-**R-14 — Dark mode**
-Theme `system | light | dark`, lưu trong key `settings`, mặc định `system`. `system` theo
-`prefers-color-scheme`; chọn tay ghi đè.
+**R-14 — Hệ hiển thị Sơn Mài Học Đường**
+Sản phẩm dùng một palette sáng vỏ trứng/sơn mài. Settings lưu lựa chọn mở extension
+(`popup | newtab | auto`), kiểu bút, hiệu ứng bút, hoạ tiết, vệt sơn, thời lượng Pomodoro,
+tiếng chuông và thông báo. Dark mode không thuộc phạm vi hiện tại.
 
 **R-15 — Lọc / tìm / sắp xếp**
-Tab `all | active | done`, tìm kiếm theo title/note/tag (không phân biệt hoa thường).
+Tab `all | today | upcoming | done`, lọc theo môn học, tìm kiếm theo title/note/tag (không phân biệt hoa thường).
 
 Sort mặc định: **overdue trước → `dueAt` gần nhất → `priority` high→low → `createdAt` mới nhất**.
 Task không có `dueAt` xếp sau task có `dueAt`. User chọn được tiêu chí chính (`dueAt` | `priority` |
@@ -130,6 +131,15 @@ không content script, không network request.
 Mở popup hiển thị dữ liệu < 100ms trên máy tham chiếu (MacBook Apple Silicon, ~50 task); không
 chạy code trên trang web đang mở.
 
+**R-19 — Trải nghiệm Sơn Mài có chủ đích**
+Popup 360×560 và bảng New Tab là hai bề mặt của cùng một hệ thiết kế. Ở mọi breakpoint hỗ trợ,
+nội dung task, hạn chót, môn học và ưu tiên phải luôn dễ đọc và không tràn ngang. Menu/lọc có thể
+dài phải giữ ngữ cảnh thao tác, đóng rõ ràng và dùng được bằng bàn phím.
+
+Motion chỉ được dùng để phản hồi thao tác hoặc đổi trạng thái thật: ghi việc, đóng/bỏ triện,
+chuyển bộ lọc/menu, và mốc chuỗi học. Không có autoplay, marquee, parallax hay hiệu ứng lặp vô cớ.
+Tất cả motion phải tuân `prefers-reduced-motion`; không được thêm thư viện animation hoặc quyền/network mới.
+
 ## API Endpoints
 
 Không có — extension không có backend/API.
@@ -141,9 +151,11 @@ Không có DB. Storage layout `chrome.storage.sync`:
 | Key | Value | Ghi chú |
 |---|---|---|
 | `t:<uuid>` | `Task` | 1 key / task → ghi cục bộ, tránh ghi đè cả danh sách |
-| `settings` | `{ theme: 'system' \| 'light' \| 'dark' }` | Cấu hình UI |
+| `settings` | `Settings` | display mode, tuỳ chọn hiệu ứng, Pomodoro, âm thanh, thông báo |
+| `subjects` | `Subject[]` | giá sách môn học |
+| `studyLog` | `StudyLog` | chuỗi ngày học |
 
-`Task`: xem `docs/specs/2026-11-10-todo-extension-design.md` § Data Model.
+Pomodoro là trạng thái local, không đồng bộ. Chi tiết hợp đồng dữ liệu: `docs/ERD.md`.
 
 ## Authentication
 
