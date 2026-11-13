@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<style>
+  /* Mô phỏng đúng cơ chế flex popup: shell flex column, list flex-1 min-h-0,
+     footer flex-none. box-sizing border-box như base.css.
+     Biến thể đã duyệt (B3): body auto + không overflow, shell height 560 + overflow-y auto. */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: sans-serif; width: 360px; }
+
+  .case { margin-bottom: 24px; }
+  .case > .label { font: 12px monospace; padding: 4px; }
+
+  .root { height: 560px; }
+
+  .shell {
+    display: flex;
+    flex-direction: column;
+    width: 360px;
+    height: 560px;
+    border: 2px solid #c9962b;
+    background: #f6ebd3;
+  }
+  .shell.approved { overflow-y: auto; }
+  .shell.old { overflow: hidden; }
+
+  .head { flex: none; height: 56px; background: #efe0bf; }
+  .composer { flex: none; height: 64px; background: #fbf3e0; }
+  .filter { flex: none; height: 96px; background: #efe0bf; }
+  .list { min-height: 0; flex: 1 1 0%; overflow-y: auto; background: #fbf3e0; }
+  .task { height: 92px; margin: 0 0 8px; background: #e6d3a8; }
+  .foot { flex: none; height: 64px; background: #efe0bf; }
+
+  /* Cỡ chữ lớn: các khối flex-none phình to hơn 560 - footer */
+  .large .head { height: 120px; }
+  .large .composer { height: 160px; }
+  .large .filter { height: 220px; }
+  .large .foot { height: 120px; }
+</style>
+</head>
+<body>
+  <div class="case" data-case="old-short">
+    <div class="label">old-short</div>
+    <div class="root"><div class="shell old">
+      <div class="head"></div><div class="composer"></div><div class="filter"></div>
+      <div class="list"><div class="task"></div><div class="task"></div></div>
+      <div class="foot"></div>
+    </div></div>
+  </div>
+
+  <div class="case" data-case="v1-short">
+    <div class="label">v1-short</div>
+    <div class="root"><div class="shell approved">
+      <div class="head"></div><div class="composer"></div><div class="filter"></div>
+      <div class="list"><div class="task"></div><div class="task"></div></div>
+      <div class="foot"></div>
+    </div></div>
+  </div>
+
+  <div class="case" data-case="v1-tall-list">
+    <div class="label">v1-tall-list</div>
+    <div class="root"><div class="shell approved">
+      <div class="head"></div><div class="composer"></div><div class="filter"></div>
+      <div class="list">
+        <div class="task"></div><div class="task"></div><div class="task"></div><div class="task"></div>
+        <div class="task"></div><div class="task"></div><div class="task"></div><div class="task"></div>
+      </div>
+      <div class="foot"></div>
+    </div></div>
+  </div>
+
+  <div class="case" data-case="v1-large-text">
+    <div class="label">v1-large-text</div>
+    <div class="root"><div class="shell approved large">
+      <div class="head"></div><div class="composer"></div><div class="filter"></div>
+      <div class="list"><div class="task"></div></div>
+      <div class="foot"></div>
+    </div></div>
+  </div>
+
+<pre id="out">PENDING</pre>
+
+<script>
+  const rows = [];
+  document.querySelectorAll('.case').forEach((el) => {
+    const name = el.getAttribute('data-case');
+    const root = el.querySelector('.root');
+    const shell = el.querySelector('.shell');
+    const list = el.querySelector('.list');
+    const foot = el.querySelector('.foot');
+    const rootBox = root.getBoundingClientRect();
+    const shellBox = shell.getBoundingClientRect();
+    const footBox = foot.getBoundingClientRect();
+    const delta = shell.scrollHeight - shell.clientHeight;
+    let scrollTopAfter = null;
+    if (delta > 0) {
+      shell.scrollTop = 60;
+      scrollTopAfter = shell.scrollTop;
+      shell.scrollTop = 0;
+    }
+    rows.push({
+      name,
+      shellH: Math.round(shellBox.height * 10) / 10,
+      footerOffsetFromRootBottom: Math.round((rootBox.bottom - footBox.bottom) * 10) / 10,
+      shellScrollable: delta > 0,
+      shellScrollDelta: delta,
+      shellScrollTopAfterSet60: scrollTopAfter,
+      listScrollable: list.scrollHeight > list.clientHeight
+    });
+  });
+  document.getElementById('out').textContent = 'RESULT ' + JSON.stringify(rows, null, 0);
+</script>
+</body>
+</html>

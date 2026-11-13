@@ -1,0 +1,671 @@
+{
+  "320": {
+    "before": {
+      "innerWidth": 320,
+      "cards": [
+        {
+          "title": "Nộp bài tập Toán",
+          "card": {
+            "w": 268,
+            "h": 172.8,
+            "x": 26,
+            "y": 699.5,
+            "right": 294
+          },
+          "innerScroll": {
+            "sw": 184,
+            "cw": 178
+          },
+          "metaScroll": {
+            "sw": 184,
+            "cw": 178,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 178,
+            "cw": 178
+          },
+          "chips": [
+            {
+              "t": "Quá hạn · hôm qua 09:0",
+              "box": {
+                "w": 184.3,
+                "h": 26.2,
+                "x": 99,
+                "y": 748.6,
+                "right": 283.3
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Vừa",
+              "box": {
+                "w": 39.9,
+                "h": 22.2,
+                "x": 99,
+                "y": 780.8,
+                "right": 138.9
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Đọc chương 1",
+          "card": {
+            "w": 268,
+            "h": 172.8,
+            "x": 26,
+            "y": 896.4,
+            "right": 294
+          },
+          "innerScroll": {
+            "sw": 127,
+            "cw": 102
+          },
+          "metaScroll": {
+            "sw": 127,
+            "cw": 102,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 102,
+            "cw": 102
+          },
+          "chips": [
+            {
+              "t": "Hôm nay 09:00",
+              "box": {
+                "w": 127,
+                "h": 26.2,
+                "x": 99,
+                "y": 945.5,
+                "right": 226
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Vừa",
+              "box": {
+                "w": 39.9,
+                "h": 22.2,
+                "x": 99,
+                "y": 977.7,
+                "right": 138.9
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Ôn tập chương 3",
+          "card": {
+            "w": 268,
+            "h": 144.7,
+            "x": 26,
+            "y": 1093.2,
+            "right": 294
+          },
+          "innerScroll": {
+            "sw": 178,
+            "cw": 178
+          },
+          "metaScroll": {
+            "sw": 178,
+            "cw": 178,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 178,
+            "cw": 178
+          },
+          "chips": [
+            {
+              "t": "Hôm nay 18:00",
+              "box": {
+                "w": 127,
+                "h": 26.2,
+                "x": 99,
+                "y": 1142.3,
+                "right": 226
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Cao",
+              "box": {
+                "w": 38.5,
+                "h": 22.2,
+                "x": 232,
+                "y": 1144.3,
+                "right": 270.5
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Học từ vựng mỗi ngày",
+          "card": {
+            "w": 268,
+            "h": 172.8,
+            "x": 26,
+            "y": 1261.9,
+            "right": 294
+          },
+          "innerScroll": {
+            "sw": 178,
+            "cw": 178
+          },
+          "metaScroll": {
+            "sw": 178,
+            "cw": 178,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 178,
+            "cw": 178
+          },
+          "chips": [
+            {
+              "t": "Ngày mai 09:00",
+              "box": {
+                "w": 129.6,
+                "h": 26.2,
+                "x": 99,
+                "y": 1311,
+                "right": 228.6
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Thấp",
+              "box": {
+                "w": 46.8,
+                "h": 22.2,
+                "x": 99,
+                "y": 1343.2,
+                "right": 145.8
+              },
+              "ws": "nowrap"
+            }
+          ]
+        }
+      ],
+      "composer": {
+        "input": {
+          "w": 220,
+          "h": 54,
+          "x": 27,
+          "y": 454.7,
+          "right": 247
+        },
+        "inputPadRight": "16px",
+        "inputFont": "24px",
+        "placeholder": "Hôm nay con cần làm gì?",
+        "chevron": {
+          "w": 40,
+          "h": 40,
+          "x": 247,
+          "y": 461.7,
+          "right": 287
+        },
+        "row": {
+          "w": 268,
+          "h": 110,
+          "x": 26,
+          "y": 453.7,
+          "right": 294
+        },
+        "chevronLeft": 247
+      }
+    },
+    "bytes": 40757
+  },
+  "390": {
+    "before": {
+      "innerWidth": 390,
+      "cards": [
+        {
+          "title": "Nộp bài tập Toán",
+          "card": {
+            "w": 338,
+            "h": 120.5,
+            "x": 26,
+            "y": 677,
+            "right": 364
+          },
+          "innerScroll": {
+            "sw": 248,
+            "cw": 248
+          },
+          "metaScroll": {
+            "sw": 248,
+            "cw": 248,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 248,
+            "cw": 248
+          },
+          "chips": [
+            {
+              "t": "Quá hạn · hôm qua 09:0",
+              "box": {
+                "w": 184.3,
+                "h": 26.2,
+                "x": 99,
+                "y": 726.1,
+                "right": 283.3
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Vừa",
+              "box": {
+                "w": 39.9,
+                "h": 22.2,
+                "x": 289.3,
+                "y": 728.1,
+                "right": 329.2
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Đọc chương 1",
+          "card": {
+            "w": 338,
+            "h": 172.8,
+            "x": 26,
+            "y": 821.5,
+            "right": 364
+          },
+          "innerScroll": {
+            "sw": 172,
+            "cw": 172
+          },
+          "metaScroll": {
+            "sw": 172,
+            "cw": 172,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 172,
+            "cw": 172
+          },
+          "chips": [
+            {
+              "t": "Hôm nay 09:00",
+              "box": {
+                "w": 127,
+                "h": 26.2,
+                "x": 99,
+                "y": 870.6,
+                "right": 226
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Vừa",
+              "box": {
+                "w": 39.9,
+                "h": 22.2,
+                "x": 99,
+                "y": 902.8,
+                "right": 138.9
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Ôn tập chương 3",
+          "card": {
+            "w": 338,
+            "h": 120.5,
+            "x": 26,
+            "y": 1018.4,
+            "right": 364
+          },
+          "innerScroll": {
+            "sw": 248,
+            "cw": 248
+          },
+          "metaScroll": {
+            "sw": 248,
+            "cw": 248,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 248,
+            "cw": 248
+          },
+          "chips": [
+            {
+              "t": "Hôm nay 18:00",
+              "box": {
+                "w": 127,
+                "h": 26.2,
+                "x": 99,
+                "y": 1067.5,
+                "right": 226
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Cao",
+              "box": {
+                "w": 38.5,
+                "h": 22.2,
+                "x": 232,
+                "y": 1069.5,
+                "right": 270.5
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Học từ vựng mỗi ngày",
+          "card": {
+            "w": 338,
+            "h": 120.5,
+            "x": 26,
+            "y": 1162.8,
+            "right": 364
+          },
+          "innerScroll": {
+            "sw": 248,
+            "cw": 248
+          },
+          "metaScroll": {
+            "sw": 248,
+            "cw": 248,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 248,
+            "cw": 248
+          },
+          "chips": [
+            {
+              "t": "Ngày mai 09:00",
+              "box": {
+                "w": 129.6,
+                "h": 26.2,
+                "x": 99,
+                "y": 1211.9,
+                "right": 228.6
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Thấp",
+              "box": {
+                "w": 46.8,
+                "h": 22.2,
+                "x": 234.6,
+                "y": 1213.9,
+                "right": 281.4
+              },
+              "ws": "nowrap"
+            }
+          ]
+        }
+      ],
+      "composer": {
+        "input": {
+          "w": 290,
+          "h": 54,
+          "x": 27,
+          "y": 432.2,
+          "right": 317
+        },
+        "inputPadRight": "16px",
+        "inputFont": "24px",
+        "placeholder": "Hôm nay con cần làm gì?",
+        "chevron": {
+          "w": 40,
+          "h": 40,
+          "x": 317,
+          "y": 439.2,
+          "right": 357
+        },
+        "row": {
+          "w": 338,
+          "h": 110,
+          "x": 26,
+          "y": 431.2,
+          "right": 364
+        },
+        "chevronLeft": 317
+      }
+    },
+    "bytes": 72718
+  },
+  "768": {
+    "before": {
+      "innerWidth": 768,
+      "cards": [
+        {
+          "title": "Nộp bài tập Toán",
+          "card": {
+            "w": 342,
+            "h": 120.5,
+            "x": 51,
+            "y": 726.1,
+            "right": 393
+          },
+          "innerScroll": {
+            "sw": 252,
+            "cw": 252
+          },
+          "metaScroll": {
+            "sw": 252,
+            "cw": 252,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 252,
+            "cw": 252
+          },
+          "chips": [
+            {
+              "t": "Quá hạn · hôm qua 09:0",
+              "box": {
+                "w": 184.3,
+                "h": 26.2,
+                "x": 124,
+                "y": 775.2,
+                "right": 308.3
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Vừa",
+              "box": {
+                "w": 39.9,
+                "h": 22.2,
+                "x": 314.3,
+                "y": 777.2,
+                "right": 354.2
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Đọc chương 1",
+          "card": {
+            "w": 342,
+            "h": 144.7,
+            "x": 51,
+            "y": 870.6,
+            "right": 393
+          },
+          "innerScroll": {
+            "sw": 176,
+            "cw": 176
+          },
+          "metaScroll": {
+            "sw": 176,
+            "cw": 176,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 176,
+            "cw": 176
+          },
+          "chips": [
+            {
+              "t": "Hôm nay 09:00",
+              "box": {
+                "w": 127,
+                "h": 26.2,
+                "x": 124,
+                "y": 919.7,
+                "right": 251
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Vừa",
+              "box": {
+                "w": 39.9,
+                "h": 22.2,
+                "x": 257,
+                "y": 921.7,
+                "right": 296.8
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Ôn tập chương 3",
+          "card": {
+            "w": 342,
+            "h": 120.5,
+            "x": 51,
+            "y": 1039.2,
+            "right": 393
+          },
+          "innerScroll": {
+            "sw": 252,
+            "cw": 252
+          },
+          "metaScroll": {
+            "sw": 252,
+            "cw": 252,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 252,
+            "cw": 252
+          },
+          "chips": [
+            {
+              "t": "Hôm nay 18:00",
+              "box": {
+                "w": 127,
+                "h": 26.2,
+                "x": 124,
+                "y": 1088.3,
+                "right": 251
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Cao",
+              "box": {
+                "w": 38.5,
+                "h": 22.2,
+                "x": 257,
+                "y": 1090.3,
+                "right": 295.5
+              },
+              "ws": "nowrap"
+            }
+          ]
+        },
+        {
+          "title": "Học từ vựng mỗi ngày",
+          "card": {
+            "w": 342,
+            "h": 120.5,
+            "x": 51,
+            "y": 1183.7,
+            "right": 393
+          },
+          "innerScroll": {
+            "sw": 252,
+            "cw": 252
+          },
+          "metaScroll": {
+            "sw": 252,
+            "cw": 252,
+            "wrap": "wrap"
+          },
+          "titleScroll": {
+            "sw": 252,
+            "cw": 252
+          },
+          "chips": [
+            {
+              "t": "Ngày mai 09:00",
+              "box": {
+                "w": 129.6,
+                "h": 26.2,
+                "x": 124,
+                "y": 1232.8,
+                "right": 253.6
+              },
+              "ws": "nowrap"
+            },
+            {
+              "t": "Thấp",
+              "box": {
+                "w": 46.8,
+                "h": 22.2,
+                "x": 259.6,
+                "y": 1234.8,
+                "right": 306.4
+              },
+              "ws": "nowrap"
+            }
+          ]
+        }
+      ],
+      "composer": {
+        "input": {
+          "w": 136.1,
+          "h": 54,
+          "x": 52,
+          "y": 535.2,
+          "right": 188.1
+        },
+        "inputPadRight": "16px",
+        "inputFont": "24px",
+        "placeholder": "Hôm nay con cần làm gì?",
+        "chevron": {
+          "w": 40,
+          "h": 40,
+          "x": 188.1,
+          "y": 542.2,
+          "right": 228.1
+        },
+        "row": {
+          "w": 342,
+          "h": 56,
+          "x": 51,
+          "y": 534.2,
+          "right": 393
+        },
+        "chevronLeft": 188.1
+      }
+    },
+    "bytes": 138223
+  }
+}

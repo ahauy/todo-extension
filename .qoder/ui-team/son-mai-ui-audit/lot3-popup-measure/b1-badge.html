@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<!-- Nạp CSS THẬT của repo (đường dẫn tương đối từ thư mục artifact) -->
+<link rel="stylesheet" href="../../../../styles/tokens.css" />
+<link rel="stylesheet" href="../../../../styles/base.css" />
+<link rel="stylesheet" href="../../../../styles/components.css" />
+<link rel="stylesheet" href="../../../../styles/signature.css" />
+<link rel="stylesheet" href="../../../../styles/board.css" />
+<style>
+  /* Chỉ để đặt các case cạnh nhau; không ghi đè màu/selector của app */
+  body { margin: 16px; font-family: sans-serif; }
+  .case { margin-bottom: 16px; width: 480px; }
+</style>
+</head>
+<body>
+  <!-- Case 1: thẻ quá hạn + môn đầu tiên (Toán, order 0 → primary-wash) -->
+  <div class="case" data-case="overdue-math">
+    <article class="scroll-task" data-state="overdue">
+      <span class="badge badge-subject" style="--spine-wash: var(--primary-wash)">Toán</span>
+    </article>
+  </div>
+
+  <!-- Case 2: thẻ thường + môn thứ 2 (indigo-wash) — màu wash không được đổi -->
+  <div class="case" data-case="open-indigo">
+    <article class="scroll-task" data-state="open">
+      <span class="badge badge-subject" style="--spine-wash: var(--indigo-wash)">Văn</span>
+    </article>
+  </div>
+
+  <!-- Case 3: không có môn (không set --spine-wash) → fallback indigo-wash như cũ -->
+  <div class="case" data-case="open-nosubject">
+    <article class="scroll-task" data-state="open">
+      <span class="badge badge-subject">Chưa xếp môn</span>
+    </article>
+  </div>
+
+<pre id="out">PENDING</pre>
+
+<script>
+  const rows = [];
+  document.querySelectorAll('.case').forEach((el) => {
+    const name = el.getAttribute('data-case');
+    const card = el.querySelector('.scroll-task');
+    const badge = el.querySelector('.badge-subject');
+    const cardBg = getComputedStyle(card).backgroundColor;
+    const badgeBg = getComputedStyle(badge).backgroundColor;
+    rows.push({
+      name,
+      cardBg,
+      badgeBg,
+      identical: badgeBg === cardBg,
+      badgeShadow: getComputedStyle(badge).boxShadow,
+      badgeInlineStyle: badge.getAttribute('style')
+    });
+  });
+  document.getElementById('out').textContent = 'RESULT ' + JSON.stringify(rows, null, 0);
+</script>
+</body>
+</html>

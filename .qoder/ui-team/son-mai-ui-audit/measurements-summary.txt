@@ -1,0 +1,141 @@
+
+### popup-default-360x560-light-before.png | vp=360x560 docW=360 docH=560 errors=0
+  OVF div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-114 scrollW=330 clientW=228 inXScroller=false pos=static
+  OVF div.popup-shell.frame-double>div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start | rightOver=-31 scrollW=300 clientW=298 inXScroller=true pos=static
+  CR 1.92 need 4.5 | Ghi | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.popup-shell.frame-double>div.flex-none.px-base>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=11 w=700 | div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  FIXED [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.pointer-events-none.fixed","pos":"fixed","top":475,"bottom":475,"h":0}]
+  SCROLL [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.min-h-0.flex-1","clientH":213,"scrollH":518}]
+
+### popup-detail-parchment-360x560-light-before.png | vp=360x560 docW=360 docH=560 errors=0
+  OVF div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-114 scrollW=330 clientW=228 inXScroller=false pos=static
+  OVF div.popup-shell.frame-double>div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start | rightOver=-31 scrollW=300 clientW=298 inXScroller=true pos=static
+  OVF div.popup-shell.frame-double>div.parchment.p-lg>div.mb-base.flex>h2#_r_3_.flex-1.text-heading-md>span.sr-only | rightOver=-304.3 scrollW=12 clientW=1 inXScroller=true pos=absolute
+  CR 1.92 need 4.5 | Ghi | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.popup-shell.frame-double>div.flex-none.px-base>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=11 w=700 | div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  CR 1.92 need 4.5 | Thêm | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=14 w=700 | div.stack.gap-base>div.flex.flex-col>div.stack.gap-xs>div.flex.items-center>button.btn.btn-ghost
+  CR 1.92 need 4.5 | Lưu | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div#root>div.popup-shell.frame-double>div.parchment.p-lg>div.mt-lg.flex>button.btn.btn-primary
+  TGT 12x12 | div.stack.gap-base>div.flex.flex-col>div.flex.flex-wrap>span.chip>button.ml-xxs.text-umber | Bỏ thẻ bài tập
+  TGT 1x1 | div.flex.flex-col>div.stack.gap-xs>div.flex.items-center>label.seal-check>input | Đánh dấu subtask: Chuẩn bị
+  TGT 1x1 | div.flex.flex-col>div.stack.gap-xs>div.flex.items-center>label.seal-check>input | Đánh dấu subtask: Nộp
+  FIXED [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.scrim","pos":"fixed","top":0,"bottom":560,"h":560},{"sel":"html>body>div#root>div.popup-shell.frame-double>div.parchment.p-lg","pos":"fixed","top":44.8,"bottom":560,"h":515.2},{"sel":"html>body>div#root>div.popup-shell.frame-double>div.pointer-events-none.fixed","pos":"fixed","top":475,"bottom":475,"h":0}]
+  SCROLL [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.min-h-0.flex-1","clientH":213,"scrollH":518},{"sel":"html>body>div#root>div.popup-shell.frame-double>div.parchment.p-lg","clientH":509,"scrollH":1338}]
+
+### popup-settings-360x560-light-before.png | vp=360x560 docW=360 docH=560 errors=0
+  FIXED [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.pointer-events-none.fixed","pos":"fixed","top":475,"bottom":475,"h":0}]
+  SCROLL [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.min-h-0.flex-1","clientH":497,"scrollH":869}]
+
+### popup-pomodoro-running-360x560-light-before.png | vp=360x560 docW=360 docH=560 errors=0
+  OVF div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-114 scrollW=330 clientW=228 inXScroller=false pos=static
+  OVF div.popup-shell.frame-double>div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start | rightOver=-31 scrollW=300 clientW=298 inXScroller=true pos=static
+  CR 1.92 need 4.5 | Ghi | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.popup-shell.frame-double>div.flex-none.px-base>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=11 w=700 | div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  FIXED [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.pointer-events-none.fixed","pos":"fixed","top":475,"bottom":475,"h":0}]
+  SCROLL [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.min-h-0.flex-1","clientH":213,"scrollH":518}]
+
+### popup-empty-360x560-light-before.png | vp=360x560 docW=360 docH=560 errors=0
+  OVF div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-114 scrollW=330 clientW=228 inXScroller=false pos=static
+  CR 1.92 need 4.5 | Ghi | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.popup-shell.frame-double>div.flex-none.px-base>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  FIXED [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.pointer-events-none.fixed","pos":"fixed","top":475,"bottom":475,"h":0}]
+  SCROLL [{"sel":"html>body>div#root>div.popup-shell.frame-double>div.min-h-0.flex-1","clientH":265,"scrollH":278}]
+
+### newtab-1440x900-light-before.png | vp=1440x900 docW=1440 docH=1361 errors=0
+  OVF main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only | rightOver=-991.5 scrollW=39 clientW=1 inXScroller=false pos=absolute
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-484 scrollW=555 clientW=552 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial | rightOver=-165 scrollW=216 clientW=212 inXScroller=false pos=relative
+  CR 1.92 need 4.5 | Ghi vào sổ | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.board-grid>main.board-scroll>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=17 w=700 | div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  TGT 36.1x18.2 | div#root>div.board-page>div.board.frame-double>footer.colophon.mt-xl>button.text-primary-deep.underline | Cài đặt
+  FIXED [{"sel":"div#root>div.board-page>div.board.frame-double>div.board-grid>aside.board-shelf","pos":"sticky","top":191,"bottom":535.5,"h":344.5},{"sel":"div#root>div.board-page>div.board.frame-double>div.board-grid>aside.board-desk","pos":"sticky","top":191,"bottom":1033.4,"h":842.4},{"sel":"html>body>div#root>div.board-page>div.pointer-events-none.fixed","pos":"fixed","top":876,"bottom":876,"h":0}]
+
+### newtab-1280x800-light-before.png | vp=1280x800 docW=1280 docH=1361 errors=0
+  OVF main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only | rightOver=-895.5 scrollW=39 clientW=1 inXScroller=false pos=absolute
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-420 scrollW=523 clientW=520 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial | rightOver=-101 scrollW=216 clientW=212 inXScroller=false pos=relative
+  CR 1.92 need 4.5 | Ghi vào sổ | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.board-grid>main.board-scroll>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=17 w=700 | div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  TGT 36.1x18.2 | div#root>div.board-page>div.board.frame-double>footer.colophon.mt-xl>button.text-primary-deep.underline | Cài đặt
+  FIXED [{"sel":"div#root>div.board-page>div.board.frame-double>div.board-grid>aside.board-shelf","pos":"sticky","top":191,"bottom":535.5,"h":344.5},{"sel":"div#root>div.board-page>div.board.frame-double>div.board-grid>aside.board-desk","pos":"sticky","top":191,"bottom":1033.4,"h":842.4},{"sel":"html>body>div#root>div.board-page>div.pointer-events-none.fixed","pos":"fixed","top":776,"bottom":776,"h":0}]
+
+### newtab-1023x900-light-before.png | vp=1023x900 docW=1023 docH=1383 errors=0
+  OVF main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only | rightOver=-910.5 scrollW=39 clientW=1 inXScroller=false pos=absolute
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-392 scrollW=566 clientW=563 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial | rightOver=-91 scrollW=216 clientW=212 inXScroller=false pos=relative
+  CR 1.92 need 4.5 | Ghi vào sổ | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.board-grid>main.board-scroll>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=17 w=700 | div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  TGT 36.1x18.2 | div#root>div.board-page>div.board.frame-double>footer.colophon.mt-xl>button.text-primary-deep.underline | Cài đặt
+  FIXED [{"sel":"div#root>div.board-page>div.board.frame-double>div.board-grid>aside.board-desk","pos":"sticky","top":304.5,"bottom":989.7,"h":685.2},{"sel":"html>body>div#root>div.board-page>div.pointer-events-none.fixed","pos":"fixed","top":876,"bottom":876,"h":0}]
+
+### newtab-768x1024-light-before.png | vp=768x1024 docW=768 docH=1486 errors=0
+  OVF main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only | rightOver=-655.5 scrollW=39 clientW=1 inXScroller=false pos=absolute
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-471 scrollW=393 clientW=246 inXScroller=false pos=static
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-392 scrollW=311 clientW=308 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial | rightOver=-91 scrollW=216 clientW=212 inXScroller=false pos=relative
+  CR 1.92 need 4.5 | Ghi vào sổ | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.board-grid>main.board-scroll>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=17 w=700 | div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  TGT 36.1x18.2 | div#root>div.board-page>div.board.frame-double>footer.colophon.mt-xl>button.text-primary-deep.underline | Cài đặt
+  FIXED [{"sel":"div#root>div.board-page>div.board.frame-double>div.board-grid>aside.board-desk","pos":"sticky","top":304.5,"bottom":989.7,"h":685.2},{"sel":"html>body>div#root>div.board-page>div.pointer-events-none.fixed","pos":"fixed","top":1000,"bottom":1000,"h":0}]
+
+### newtab-390x844-light-before.png | vp=390x844 docW=390 docH=2127 errors=0
+  OVF div.board-page>div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon | rightOver=-26 scrollW=571 clientW=338 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon>div.flex.flex-none | rightOver=63.1 scrollW=116 clientW=116 inXScroller=true pos=static
+  OVF div.board-shelf-strip>section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab | rightOver=63.1 scrollW=114 clientW=114 inXScroller=true pos=static
+  OVF section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab>span.truncate | rightOver=32.2 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab>span.tnum.ml-xs | rightOver=46.1 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon>button.ribbon-tab | rightOver=207 scrollW=138 clientW=138 inXScroller=true pos=static
+  OVF div.board-shelf-strip>section.stack.gap-sm>div.ribbon>button.ribbon-tab>span.tnum.ml-xs | rightOver=190 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only | rightOver=-318.8 scrollW=22 clientW=1 inXScroller=false pos=absolute
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-122 scrollW=393 clientW=242 inXScroller=false pos=static
+  OVF div.mt-lg>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab | rightOver=29.2 scrollW=98 clientW=98 inXScroller=true pos=static
+  OVF div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab>span.tnum.ml-xs | rightOver=12.2 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-43 scrollW=307 clientW=304 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial | rightOver=-85 scrollW=216 clientW=212 inXScroller=false pos=relative
+  CR 1.92 need 4.5 | Ghi vào sổ | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.board-grid>main.board-scroll>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=17 w=700 | div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  TGT 36.1x18.2 | div#root>div.board-page>div.board.frame-double>footer.colophon.mt-xl>button.text-primary-deep.underline | Cài đặt
+  FIXED [{"sel":"html>body>div#root>div.board-page>div.pointer-events-none.fixed","pos":"fixed","top":820,"bottom":820,"h":0}]
+
+### newtab-320x568-light-before.png | vp=320x568 docW=320 docH=2321 errors=0
+  OVF div.board-page>div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon | rightOver=-26 scrollW=571 clientW=268 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon>div.flex.flex-none | rightOver=13.2 scrollW=102 clientW=102 inXScroller=true pos=static
+  OVF div.board-shelf-strip>section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab | rightOver=13.2 scrollW=100 clientW=100 inXScroller=true pos=static
+  OVF div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon>div.flex.flex-none | rightOver=133.1 scrollW=116 clientW=116 inXScroller=true pos=static
+  OVF div.board-shelf-strip>section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab | rightOver=133.1 scrollW=114 clientW=114 inXScroller=true pos=static
+  OVF section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab>span.truncate | rightOver=102.2 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF section.stack.gap-sm>div.ribbon>div.flex.flex-none>button.ribbon-tab>span.tnum.ml-xs | rightOver=116.1 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon>button.ribbon-tab | rightOver=277 scrollW=138 clientW=138 inXScroller=true pos=static
+  OVF div.board-shelf-strip>section.stack.gap-sm>div.ribbon>button.ribbon-tab>span.tnum.ml-xs | rightOver=260 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only | rightOver=-248.8 scrollW=22 clientW=1 inXScroller=false pos=absolute
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0 | rightOver=-122 scrollW=393 clientW=172 inXScroller=false pos=static
+  OVF div.mt-lg>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab | rightOver=99.2 scrollW=98 clientW=98 inXScroller=true pos=static
+  OVF div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab>span.tnum.ml-xs | rightOver=82.2 scrollW=0 clientW=0 inXScroller=true pos=static
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-43 scrollW=240 clientW=234 inXScroller=false pos=static
+  OVF div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1 | rightOver=-43 scrollW=184 clientW=178 inXScroller=false pos=static
+  OVF div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex | rightOver=-43 scrollW=184 clientW=178 inXScroller=false pos=static
+  OVF main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start | rightOver=-43 scrollW=237 clientW=234 inXScroller=false pos=static
+  OVF div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1 | rightOver=-119 scrollW=127 clientW=102 inXScroller=false pos=static
+  OVF div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex | rightOver=-119 scrollW=127 clientW=102 inXScroller=false pos=static
+  OVF div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial | rightOver=-47 scrollW=216 clientW=212 inXScroller=false pos=relative
+  OVF div.board-grid>aside.board-desk>div.mt-lg>section.streak-card>div.streak-row | rightOver=-43 scrollW=244 clientW=234 inXScroller=false pos=static
+  CR 1.92 need 4.5 | Ghi vào sổ | fg=rgb(168, 152, 122) bg=rgb(230, 211, 168) size=16 w=700 | div.board-grid>main.board-scroll>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary
+  CR 4.43 need 4.5 | #bài tập | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.text-caption.text-umber
+  CR 4.43 need 4.5 | 1/2 | fg=rgb(123, 90, 62) bg=rgb(244, 211, 196) size=13 w=400 | article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex>span.tnum.ml-auto
+  CR 4.44 need 4.5 | XONG | fg=rgb(184, 56, 28) bg=rgb(239, 224, 191) size=17 w=700 | div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>span.seal-stamp.-mt-xs
+  TGT 36.1x18.2 | div#root>div.board-page>div.board.frame-double>footer.colophon.mt-xl>button.text-primary-deep.underline | Cài đặt
+  FIXED [{"sel":"html>body>div#root>div.board-page>div.pointer-events-none.fixed","pos":"fixed","top":544,"bottom":544,"h":0}]

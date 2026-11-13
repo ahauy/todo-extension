@@ -1,0 +1,563 @@
+{
+  "steps": [],
+  "shots": [],
+  "popupDefault": {
+    "scrollers": [
+      {
+        "sel": "div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0",
+        "ownOX": "auto",
+        "sw": 330,
+        "cw": 228
+      },
+      {
+        "sel": "div.popup-shell.frame-double>div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start",
+        "ownOX": "visible",
+        "sw": 300,
+        "cw": 298
+      }
+    ],
+    "buttons": [
+      {
+        "sel": "div#root>div.popup-shell.frame-double>header.flex.h-14>div.flex.flex-none>button.btn-icon",
+        "label": "Bật chuông và tiếng giấy",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 40,
+          "h": 40,
+          "x": 210,
+          "y": 11.8
+        }
+      },
+      {
+        "sel": "div#root>div.popup-shell.frame-double>header.flex.h-14>div.flex.flex-none>button.btn-icon",
+        "label": "Mở bảng Học Đường ở tab mới",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 40,
+          "h": 40,
+          "x": 256,
+          "y": 11.8
+        }
+      },
+      {
+        "sel": "div#root>div.popup-shell.frame-double>header.flex.h-14>div.flex.flex-none>button.btn-icon",
+        "label": "Cài đặt",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 40,
+          "h": 40,
+          "x": 302,
+          "y": 11.8
+        }
+      },
+      {
+        "sel": "div.composer-row.flex>div.min-w-0.flex-1>div.quill>div.flex.flex-none>button.btn-icon.size-9",
+        "label": "Mở chi tiết việc",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 40,
+          "h": 40,
+          "x": 204.6,
+          "y": 69.5
+        }
+      },
+      {
+        "sel": "div.popup-shell.frame-double>div.flex-none.px-base>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary",
+        "label": "Ghi",
+        "disabled": true,
+        "ariaDisabled": null,
+        "box": {
+          "w": 82.4,
+          "h": 46,
+          "x": 259.6,
+          "y": 61.5
+        }
+      },
+      {
+        "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+        "label": "Tất cả4",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 71.1,
+          "h": 41,
+          "x": 18,
+          "y": 125.5
+        }
+      },
+      {
+        "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+        "label": "Hôm nay2",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 88,
+          "h": 41,
+          "x": 93.1,
+          "y": 125.5
+        }
+      },
+      {
+        "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+        "label": "Sắp tới1",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 75.8,
+          "h": 41,
+          "x": 185.1,
+          "y": 125.5
+        }
+      },
+      {
+        "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+        "label": "Đã xong1",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 83.6,
+          "h": 41,
+          "x": 264.9,
+          "y": 125.5
+        }
+      },
+      {
+        "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.relative.flex-none>button.btn-icon",
+        "label": "Sắp xếp",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 40,
+          "h": 40,
+          "x": 254,
+          "y": 126.5
+        }
+      },
+      {
+        "sel": "div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>button.btn-icon",
+        "label": "Tìm việc",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 40,
+          "h": 40,
+          "x": 302,
+          "y": 126.5
+        }
+      },
+      {
+        "sel": "body>div#root>div.popup-shell.frame-double>div.proclamation.proclamation-compact>button",
+        "label": "Ẩn nhắc nhở",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 28,
+          "h": 28,
+          "x": 306,
+          "y": 241.5
+        }
+      },
+      {
+        "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+        "label": "Đánh dấu xong: Nộp bài tập Toán",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 44,
+          "h": 44,
+          "x": 31,
+          "y": 310.5
+        }
+      },
+      {
+        "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+        "label": "Nộp bài tập Toán",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 242,
+          "h": 26.1,
+          "x": 87,
+          "y": 310.5
+        }
+      },
+      {
+        "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+        "label": "Bỏ dấu xong: Đọc chương 1",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 44,
+          "h": 44,
+          "x": 31,
+          "y": 435
+        }
+      },
+      {
+        "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+        "label": "Đọc chương 1",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 190,
+          "h": 26.1,
+          "x": 87,
+          "y": 435
+        }
+      },
+      {
+        "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+        "label": "Đánh dấu xong: Ôn tập chương 3",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 44,
+          "h": 44,
+          "x": 31,
+          "y": 559.4
+        }
+      },
+      {
+        "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+        "label": "Ôn tập chương 3",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 242,
+          "h": 26.1,
+          "x": 87,
+          "y": 559.4
+        }
+      },
+      {
+        "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+        "label": "Đánh dấu xong: Học từ vựng mỗi ngày",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 44,
+          "h": 44,
+          "x": 31,
+          "y": 683.9
+        }
+      },
+      {
+        "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+        "label": "Học từ vựng mỗi ngày",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 242,
+          "h": 26.1,
+          "x": 87,
+          "y": 683.9
+        }
+      },
+      {
+        "sel": "div#root>div.popup-shell.frame-double>footer.popup-footer>div.timer-compact>button.timer-compact-button",
+        "label": "Bắt đầu học",
+        "disabled": false,
+        "ariaDisabled": null,
+        "box": {
+          "w": 32,
+          "h": 32,
+          "x": 74,
+          "y": 510.5
+        }
+      }
+    ],
+    "footer": {
+      "footer": {
+        "w": 356,
+        "h": 64,
+        "x": 2,
+        "y": 494
+      },
+      "listRect": {
+        "w": 356,
+        "h": 212.5,
+        "x": 2,
+        "y": 281.5
+      },
+      "listScroll": {
+        "clientH": 213,
+        "scrollH": 518
+      }
+    },
+    "composerInput": {
+      "sel": "div.composer-row.flex>div.min-w-0.flex-1>div.quill>div.quill-field>input.quill-input",
+      "value": "",
+      "placeholder": "Hôm nay con cần làm gì?",
+      "box": {
+        "w": 185.6,
+        "h": 54,
+        "x": 19,
+        "y": 62.5
+      }
+    }
+  },
+  "detail": {
+    "tagChip": {
+      "box": {
+        "w": 12,
+        "h": 12,
+        "x": 92.9,
+        "y": 929.8
+      },
+      "parent": {
+        "w": 88.9,
+        "h": 26.2,
+        "x": 27,
+        "y": 922.7
+      },
+      "parentSel": "div.stack.gap-base>div.stack.gap-base>div.flex.flex-col>div.flex.flex-wrap>span.chip"
+    },
+    "sealCheck": [
+      {
+        "box": {
+          "w": 44,
+          "h": 44,
+          "x": 27,
+          "y": 1063.3
+        },
+        "inputBox": {
+          "w": 1,
+          "h": 1,
+          "x": 48.5,
+          "y": 1084.8
+        },
+        "text": ""
+      },
+      {
+        "box": {
+          "w": 44,
+          "h": 44,
+          "x": 27,
+          "y": 1113.3
+        },
+        "inputBox": {
+          "w": 1,
+          "h": 1,
+          "x": 48.5,
+          "y": 1134.8
+        },
+        "text": ""
+      }
+    ],
+    "saveBtn": {
+      "disabled": true,
+      "box": {
+        "w": 84.2,
+        "h": 46,
+        "x": 248.8,
+        "y": 1315.8
+      },
+      "color": "rgb(168, 152, 122)",
+      "opacity": "1"
+    },
+    "addBtn": {
+      "disabled": true,
+      "box": {
+        "w": 90.9,
+        "h": 36,
+        "x": 242.1,
+        "y": 1171.4
+      },
+      "color": "rgb(168, 152, 122)",
+      "opacity": "1"
+    },
+    "scrollers": [
+      {
+        "sel": "div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0",
+        "ownOX": "auto",
+        "sw": 330,
+        "cw": 228
+      },
+      {
+        "sel": "div.popup-shell.frame-double>div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start",
+        "ownOX": "visible",
+        "sw": 300,
+        "cw": 298
+      },
+      {
+        "sel": "div.popup-shell.frame-double>div.parchment.p-lg>div.mb-base.flex>h2#_r_3_.flex-1.text-heading-md>span.sr-only",
+        "ownOX": "hidden",
+        "sw": 12,
+        "cw": 1
+      }
+    ],
+    "heading": {
+      "text": "S S ửa việc",
+      "w": 254,
+      "scrollW": 254,
+      "clientW": 254,
+      "font": "\"Cormorant Garamond\", Georgia, \"Times New Roman\", serif",
+      "size": "24px"
+    }
+  },
+  "pomodoroPopup": {
+    "click": "{\"label\":\"Bắt đầu học\",\"box\":{\"w\":32,\"h\":32}}",
+    "state": {
+      "timerLabel": "Tạm dừng",
+      "readout": "24:59",
+      "phaseText": [
+        "Giờ học · chuỗi 2 ngày"
+      ],
+      "ring": false,
+      "timerBox": {
+        "w": 32,
+        "h": 32
+      }
+    },
+    "bytes": 133162
+  },
+  "pomodoroNewtab": {
+    "click": "clicked",
+    "state": {
+      "readout": "24:59",
+      "pauseLabel": true,
+      "ringOpacity": "1"
+    },
+    "bytes": 185860
+  },
+  "scrollers1023": {
+    "docOverflow": 0,
+    "scrollers": [
+      {
+        "sel": "main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only",
+        "ownOX": "hidden",
+        "sw": 39,
+        "cw": 1
+      },
+      {
+        "sel": "main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start",
+        "ownOX": "visible",
+        "sw": 566,
+        "cw": 563
+      },
+      {
+        "sel": "div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial",
+        "ownOX": "visible",
+        "sw": 216,
+        "cw": 212
+      }
+    ],
+    "shelfStrip": {
+      "box": {
+        "w": 921,
+        "h": 113.5
+      },
+      "display": "block",
+      "grid": "597px 300px"
+    },
+    "shelfRibbon": {
+      "ownOX": "auto",
+      "sw": 921,
+      "cw": 921,
+      "firstTab": {
+        "w": 117.2,
+        "h": 42.5,
+        "x": 51,
+        "y": 191
+      }
+    }
+  },
+  "scrollers320": {
+    "docOverflow": 0,
+    "scrollers": [
+      {
+        "sel": "div.board-page>div.board.frame-double>div.board-shelf-strip>section.stack.gap-sm>div.ribbon",
+        "ownOX": "auto",
+        "sw": 571,
+        "cw": 268
+      },
+      {
+        "sel": "main.board-scroll>header.flex.items-start>div.min-w-0.flex-1>h1.greeting-title>span.sr-only",
+        "ownOX": "hidden",
+        "sw": 22,
+        "cw": 1
+      },
+      {
+        "sel": "main.board-scroll>div.mt-lg>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0",
+        "ownOX": "auto",
+        "sw": 393,
+        "cw": 172
+      },
+      {
+        "sel": "main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start",
+        "ownOX": "visible",
+        "sw": 240,
+        "cw": 234
+      },
+      {
+        "sel": "div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1",
+        "ownOX": "visible",
+        "sw": 184,
+        "cw": 178
+      },
+      {
+        "sel": "div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex",
+        "ownOX": "visible",
+        "sw": 184,
+        "cw": 178
+      },
+      {
+        "sel": "main.board-scroll>div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start",
+        "ownOX": "visible",
+        "sw": 237,
+        "cw": 234
+      },
+      {
+        "sel": "div.mt-lg>div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1",
+        "ownOX": "visible",
+        "sw": 127,
+        "cw": 102
+      },
+      {
+        "sel": "div.stack.gap-lg>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>div.mt-xs.flex",
+        "ownOX": "visible",
+        "sw": 127,
+        "cw": 102
+      },
+      {
+        "sel": "div.board.frame-double>div.board-grid>aside.board-desk>section.focus-card.sheen>div.timer-dial",
+        "ownOX": "visible",
+        "sw": 216,
+        "cw": 212
+      },
+      {
+        "sel": "div.board-grid>aside.board-desk>div.mt-lg>section.streak-card>div.streak-row",
+        "ownOX": "visible",
+        "sw": 244,
+        "cw": 234
+      }
+    ],
+    "shelfStrip": {
+      "box": {
+        "w": 268,
+        "h": 113.5
+      },
+      "display": "block",
+      "grid": "268px"
+    },
+    "shelfRibbon": {
+      "ownOX": "auto",
+      "sw": 571,
+      "cw": 268,
+      "firstTab": {
+        "w": 117.2,
+        "h": 42.5,
+        "x": 26,
+        "y": 197.5
+      }
+    }
+  },
+  "newtabSettings": {
+    "click": "clicked",
+    "bytes": 191655
+  }
+}

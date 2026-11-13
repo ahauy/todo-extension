@@ -1,0 +1,252 @@
+{
+ "steps": [],
+ "shots": [],
+ "popupDefault": {
+  "scrollers": [
+   {
+    "sel": "div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0",
+    "ownOX": "auto",
+    "sw": 330,
+    "cw": 228
+   },
+   {
+    "sel": "div.popup-shell.frame-double>div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start",
+    "ownOX": "visible",
+    "sw": 300,
+    "cw": 298
+   }
+  ],
+  "buttons": [
+   {
+    "sel": "div#root>div.popup-shell.frame-double>header.flex.h-14>div.flex.flex-none>button.btn-icon",
+    "label": "Bật chuông và tiếng giấy",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 40,
+     "h": 40,
+     "x": 210,
+     "y": 11.8
+    }
+   },
+   {
+    "sel": "div#root>div.popup-shell.frame-double>header.flex.h-14>div.flex.flex-none>button.btn-icon",
+    "label": "Mở bảng Học Đường ở tab mới",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 40,
+     "h": 40,
+     "x": 256,
+     "y": 11.8
+    }
+   },
+   {
+    "sel": "div#root>div.popup-shell.frame-double>header.flex.h-14>div.flex.flex-none>button.btn-icon",
+    "label": "Cài đặt",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 40,
+     "h": 40,
+     "x": 302,
+     "y": 11.8
+    }
+   },
+   {
+    "sel": "div.composer-row.flex>div.min-w-0.flex-1>div.quill>div.flex.flex-none>button.btn-icon.size-9",
+    "label": "Mở chi tiết việc",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 40,
+     "h": 40,
+     "x": 204.6,
+     "y": 69.5
+    }
+   },
+   {
+    "sel": "div.popup-shell.frame-double>div.flex-none.px-base>section.stack.gap-xs>div.composer-row.flex>button.btn.btn-primary",
+    "label": "Ghi",
+    "disabled": true,
+    "ariaDisabled": null,
+    "box": {
+     "w": 82.4,
+     "h": 46,
+     "x": 259.6,
+     "y": 61.5
+    }
+   },
+   {
+    "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+    "label": "Tất cả4",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 71.1,
+     "h": 41,
+     "x": 18,
+     "y": 125.5
+    }
+   },
+   {
+    "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+    "label": "Hôm nay2",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 88,
+     "h": 41,
+     "x": 93.1,
+     "y": 125.5
+    }
+   },
+   {
+    "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+    "label": "Sắp tới1",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 75.8,
+     "h": 41,
+     "x": 185.1,
+     "y": 125.5
+    }
+   },
+   {
+    "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.ribbon.min-w-0>button.ribbon-tab",
+    "label": "Đã xong1",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 83.6,
+     "h": 41,
+     "x": 264.9,
+     "y": 125.5
+    }
+   },
+   {
+    "sel": "div.flex-none.px-base>div.stack.gap-sm>div.filter-line>div.relative.flex-none>button.btn-icon",
+    "label": "Sắp xếp",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 40,
+     "h": 40,
+     "x": 254,
+     "y": 126.5
+    }
+   },
+   {
+    "sel": "div.popup-shell.frame-double>div.flex-none.px-base>div.stack.gap-sm>div.filter-line>button.btn-icon",
+    "label": "Tìm việc",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 40,
+     "h": 40,
+     "x": 302,
+     "y": 126.5
+    }
+   },
+   {
+    "sel": "body>div#root>div.popup-shell.frame-double>div.proclamation.proclamation-compact>button",
+    "label": "Ẩn nhắc nhở",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 28,
+     "h": 28,
+     "x": 306,
+     "y": 241.5
+    }
+   },
+   {
+    "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+    "label": "Đánh dấu xong: Nộp bài tập Toán",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 44,
+     "h": 44,
+     "x": 31,
+     "y": 310.5
+    }
+   },
+   {
+    "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+    "label": "Nộp bài tập Toán",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 242,
+     "h": 26.1,
+     "x": 87,
+     "y": 310.5
+    }
+   },
+   {
+    "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+    "label": "Bỏ dấu xong: Đọc chương 1",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 44,
+     "h": 44,
+     "x": 31,
+     "y": 435
+    }
+   },
+   {
+    "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+    "label": "Đọc chương 1",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 190,
+     "h": 26.1,
+     "x": 87,
+     "y": 435
+    }
+   },
+   {
+    "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+    "label": "Đánh dấu xong: Ôn tập chương 3",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 44,
+     "h": 44,
+     "x": 31,
+     "y": 559.4
+    }
+   },
+   {
+    "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+    "label": "Ôn tập chương 3",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 242,
+     "h": 26.1,
+     "x": 87,
+     "y": 559.4
+    }
+   },
+   {
+    "sel": "div.min-h-0.flex-1>div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>button.seal-button",
+    "label": "Đánh dấu xong: Học từ vựng mỗi ngày",
+    "disabled": false,
+    "ariaDisabled": null,
+    "box": {
+     "w": 44,
+     "h": 44,
+     "x": 31,
+     "y": 683.9
+    }
+   },
+   {
+    "sel": "div.stack.gap-md>article.scroll-task.sheen>div.flex.items-start>div.min-w-0.flex-1>button.scroll-title",
+    "label": "Học từ vựng mỗi ngày",
+    "disabled": false,
+ 
