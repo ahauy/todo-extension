@@ -31,26 +31,23 @@ export default function Menu({
   align = 'left',
 }: MenuProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [entering, setEntering] = useState(false);
-  const [exiting, setExiting] = useState(false);
-  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [transitionState, setTransitionState] = useState<'idle' | 'entering' | 'exiting'>('idle');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (exitTimer.current) {
-      clearTimeout(exitTimer.current);
-      exitTimer.current = null;
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
     }
     if (open) {
-      setExiting(false);
-      setEntering(true);
-      exitTimer.current = setTimeout(() => setEntering(false), 180);
+      setTransitionState('entering');
+      timer.current = setTimeout(() => setTransitionState('idle'), 180);
     } else {
-      setEntering(false);
-      setExiting(true);
-      exitTimer.current = setTimeout(() => setExiting(false), 180);
+      setTransitionState('exiting');
+      timer.current = setTimeout(() => setTransitionState('idle'), 180);
     }
     return () => {
-      if (exitTimer.current) clearTimeout(exitTimer.current);
+      if (timer.current) clearTimeout(timer.current);
     };
   }, [open]);
 
@@ -85,15 +82,15 @@ export default function Menu({
     [onClose]
   );
 
-  if (!open && !entering && !exiting || items.length === 0) return null;
+  if (!open && transitionState === 'idle' || items.length === 0) return null;
 
   return (
     <div
       ref={ref}
       role="menu"
       aria-label={ariaLabel}
-      data-entering={entering ? 'true' : undefined}
-      data-exiting={exiting ? 'true' : undefined}
+      data-entering={transitionState === 'entering' ? 'true' : undefined}
+      data-exiting={transitionState === 'exiting' ? 'true' : undefined}
       onKeyDown={handleKeyDown}
       className={`menu absolute top-[calc(100%+4px)] z-50 ${
         align === 'right' ? 'right-0' : 'left-0'

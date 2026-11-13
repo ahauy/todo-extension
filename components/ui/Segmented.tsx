@@ -3,7 +3,7 @@
  * Điều hướng bằng mũi tên trái/phải, quấn vòng; onChange gọi ngoài updater
  * để StrictMode không gọi hai lần.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 
 interface SegmentedProps {
   options: { value: string; label: string }[];
@@ -20,9 +20,7 @@ export default function Segmented({
   'aria-label': ariaLabel = 'Bộ chọn',
   className,
 }: SegmentedProps) {
-  const [focusIndex, setFocusIndex] = useState(() =>
-    options.findIndex((option) => option.value === value)
-  );
+  const focusIndex = options.findIndex((option) => option.value === value);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
@@ -30,7 +28,6 @@ export default function Segmented({
       event.preventDefault();
       const step = event.key === 'ArrowRight' ? 1 : -1;
       const next = (focusIndex + step + options.length) % options.length;
-      setFocusIndex(next);
       onChange(options[next].value);
     },
     [options, onChange, focusIndex]

@@ -11,21 +11,7 @@
 
 import type { Task } from './types';
 
-export type Tab = 'all' | 'active' | 'done';
-
 export type SortCriterion = 'default';
-
-/** Lọc theo tab */
-export function filterTasks(tasks: Task[], tab: Tab): Task[] {
-  switch (tab) {
-    case 'all':
-      return [...tasks];
-    case 'active':
-      return tasks.filter((t) => !t.done);
-    case 'done':
-      return tasks.filter((t) => t.done);
-  }
-}
 
 /** Tìm kiếm theo title/note/tag, case-insensitive */
 export function searchTasks(tasks: Task[], query: string): Task[] {
@@ -94,15 +80,6 @@ export function sortTasks(
     if (a.id < b.id) return -1;
     if (a.id > b.id) return 1;
     return 0;
-  });
-}
-
-/** Sắp xếp tab "Đã xong": updatedAt desc */
-export function sortDoneTasks(tasks: Task[]): Task[] {
-  return [...tasks].sort((a, b) => {
-    const ta = new Date(a.updatedAt).getTime();
-    const tb = new Date(b.updatedAt).getTime();
-    return tb - ta;
   });
 }
 

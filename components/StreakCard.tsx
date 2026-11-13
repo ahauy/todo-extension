@@ -20,21 +20,12 @@ export default function StreakCard({
 }) {
   const cells = lastSevenDays(log, now);
   const streak = streakLength(log, now);
-  const prevLit = useRef<Set<string>>(new Set());
-  const isFirstRender = useRef(true);
+  const prevLit = useRef<Set<string>>(new Set(cells.filter((cell) => cell.lit).map((cell) => cell.key)));
   const [justLit, setJustLit] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      prevLit.current = new Set(cells.filter((cell) => cell.lit).map((cell) => cell.key));
-      return;
-    }
     const currentLit = new Set(cells.filter((cell) => cell.lit).map((cell) => cell.key));
-    const newlyLit = new Set<string>();
-    for (const key of currentLit) {
-      if (!prevLit.current.has(key)) newlyLit.add(key);
-    }
+    const newlyLit = new Set([...currentLit].filter((key) => !prevLit.current.has(key)));
     prevLit.current = currentLit;
     if (newlyLit.size > 0) {
       setJustLit(newlyLit);
