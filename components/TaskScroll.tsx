@@ -57,7 +57,10 @@ export default function TaskScroll({
       return () => window.clearTimeout(timer);
     }
     wasCompleted.current = completed;
-    if (!completed) setUndoable(false);
+    if (!completed) {
+      setUndoable(false);
+      setStriking(false);
+    }
     return undefined;
   }, [completed]);
 

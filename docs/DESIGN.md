@@ -718,8 +718,8 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 | `--dur-ink` 180ms · `--ease-ink` | Mực thấm từng ký tự: `opacity 0→1`, `blur 1px→0` |
 | `--dur-dry` 800ms (linear) | Mực khô: màu chữ {colors.brown} → {colors.ink} |
 | `--dur-nib` 120ms | Ngòi bút nhún 2px theo ký tự (`nib-tap`), bút trượt theo con trỏ |
-| `--dur-slide` 240ms · `--ease-out` | Cuộn thư mới trượt vào, con dấu đóng (`seal-strike` `scale 1.4→1`, −6°), toast trượt lên, hộp thoại/tờ giấy da mở, thanh tiến độ đổi độ dài |
-| `--dur-fast` 140ms · `--ease-out` | Đổi nền/viền của nút, tab, menu, ô lọc; lớp phủ fade |
+| `--dur-slide` 240ms · `--ease-out` | Cuộn thư mới trượt vào, con dấu đóng (`seal-strike` `scale 1.4→1`, −6°), toast trượt lên, hộp thoại/tờ giấy da mở, thanh tiến độ đổi độ dài, đài sen sáng (`lotus-light` `scale 0.85→1`, opacity 0→1) |
+| `--dur-fast` 140ms · `--ease-out` | Đổi nền/viền của nút, tab, menu, ô lọc; lớp phủ fade; menu thả xuống mở/đóng (`menu-fade-in`/`menu-fade-out` `translateY` −4px→0 + opacity) |
 | `--ease-out` `cubic-bezier(.16,1,.3,1)` | Mặc định cho mọi transition/animation một chiều |
 | `--ease-ink` `cubic-bezier(.22,.61,.36,1)` | Riêng hiệu ứng mực và nhịp thở của skeleton |
 | 900ms linear | Vòng tiến độ đồng hồ (`stroke-dashoffset`) — chạy đều theo giây, không nảy |
@@ -820,5 +820,5 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Motion & chỗ lệch as-built
 
-- **Motion có chủ đích (R-19)**: token đã có và dùng thống nhất (xem **Motion (as-built)**), nhưng đường giảm chuyển động mới kiểm bằng CSS, **chưa bật `prefers-reduced-motion` trong Chrome thật** để xác nhận mọi hiệu ứng tắt hẳn — coi là "có cơ chế, chưa verify".
+- **Motion có chủ đích (R-19)**: token đã có và dùng thống nhất (xem **Motion (as-built)**): `lotus-light` cho đài sen sáng khi chuỗi học đạt mốc mới, `menu-fade-in/out` cho menu thả xuống mở/đóng. Tất cả motion chạy một lần, không dùng thư viện animation, tuân `prefers-reduced-motion` (token `--dur-*` về `0.01ms`, `animation-iteration-count: 1`). Đường giảm chuyển động kiểm bằng CSS, chưa bật `prefers-reduced-motion` trong Chrome thật để xác nhận mọi hiệu ứng tắt hẳn — coi là "có cơ chế, chưa verify trên máy thật".
 - **Drop cap không dùng Pirata One**: `--font-drop` trỏ Cormorant Garamond in hoa màu son (Pirata One đo thử bị hẹp, không đọc ra chữ C). Token `{typography.drop-cap}` ở frontmatter vẫn ghi Pirata One — đó là ý định thiết kế; chữ đang chạy là as-built ở mục Typography/Known Gaps này.

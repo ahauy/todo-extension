@@ -165,8 +165,6 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
-
-/* Người dùng tắt hiệu ứng bút: chữ hiện ngay, mực khô tức thì */
 :root[data-quill='off'] .ink-char,
 :root[data-quill='off'] .ink-wet {
   animation: none !important;
@@ -176,4 +174,14 @@ a {
 }
 :root[data-quill='off'] .quill-nib {
   display: none;
+}
+
+/* Tắt hiệu ứng dấu triền khi tắt bút/mực */
+:root[data-quill='off'] .seal-stamp[data-striking='true'] {
+  animation: none !important;
+}
+
+/* Tắt hiệu ứng sen sáng khi tắt họa tiết */
+:root[data-ornaments='off'] .streak-lotus[data-lit-just='true'] {
+  animation: none !important;
 }
