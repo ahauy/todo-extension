@@ -60,6 +60,8 @@ function QuietNewTab({ onOpenBoard }: { onOpenBoard: () => void }) {
 export default function App() {
   const board = useBoard();
   const wide = useMediaQuery('(min-width: 1024px)');
+  const narrow = useMediaQuery('(max-width: 1199px)');
+  const horizontal = !wide || narrow;
   const [tab, setTab] = useState<BoardTab>('all');
   const [subjectId, setSubjectId] = useState('all');
   const [sortKey, setSortKey] = useState<SortKey>('deadline');
@@ -173,10 +175,10 @@ export default function App() {
           />
         )}
 
-        {!wide && <div className="board-shelf-strip">{shelf}</div>}
+        {!horizontal && <div className="board-shelf-strip">{shelf}</div>}
 
         <div className="board-grid">
-          {wide && <aside className="board-shelf">{shelf}</aside>}
+          {!horizontal && <aside className="board-shelf">{shelf}</aside>}
 
           <main className="board-scroll">
             {/* Lời chào đã là tiêu đề thị giác của vùng này; giữ h2 cho cấu trúc

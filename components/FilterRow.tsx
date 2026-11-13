@@ -55,6 +55,10 @@ export default function FilterRow({
   const [subjectOpen, setSubjectOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
   const restoreTriggerFocus = useRef(false);
+  const subjectTriggerRef = useRef<HTMLButtonElement>(null);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
+  const prevSortOpen = useRef(sortOpen);
+  const prevSubjectOpen = useRef(subjectOpen);
 
   // Popup truyền subjects + onSubjectChange → có thêm ô chọn môn ở hàng dưới.
   const hasSubject = !!(subjects && onSubjectChange);
@@ -89,10 +93,24 @@ export default function FilterRow({
     rowRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Tìm việc"]')?.focus();
   }, [searchOpen]);
 
+  // Khi menu sắp xếp / chọn môn đóng (Escape hoặc chọn mục), trả focus về nút kích
+  // kích hoạt để người dùng không bị mất ngữ cảnh trong popup 360px.
+  useEffect(() => {
+    if (prevSortOpen.current && !sortOpen) {
+      sortTriggerRef.current?.focus({ preventScroll: true });
+    }
+    if (prevSubjectOpen.current && !subjectOpen) {
+      subjectTriggerRef.current?.focus({ preventScroll: true });
+    }
+    prevSortOpen.current = sortOpen;
+    prevSubjectOpen.current = subjectOpen;
+  }, [sortOpen, subjectOpen]);
+
   // Sắp xếp: hiện rõ tiêu chí đang dùng (data-active khi khác mặc định).
   const sortControl = (
     <div className="relative flex-none">
       <IconButton
+        ref={sortTriggerRef}
         aria-label={`Sắp xếp theo: ${SORT_LABEL[sortKey]}`}
         title={`Sắp xếp: ${SORT_LABEL[sortKey]}`}
         aria-haspopup="menu"
@@ -154,6 +172,7 @@ export default function FilterRow({
     hasSubject && !searchOpen ? (
       <div className="relative min-w-0 flex-1">
         <button
+          ref={subjectTriggerRef}
           type="button"
           className="filter-subject"
           aria-label={`Lọc theo môn học: ${subjectLabel}`}

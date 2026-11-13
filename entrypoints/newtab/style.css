@@ -107,6 +107,18 @@
   }
 }
 
+/* 1024–1199px: gộp thành 2 cột (cuộn nhiệm vụ + bàn học) và đưa Giá sách lên
+   dải ngang phía trên, tránh cột giữa bị hẹp khi cửa sổ vừa qua 1024px. */
+@media (max-width: 1199px) {
+  .board-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--spacing-lg);
+  }
+  .board-scroll {
+    max-width: none;
+  }
+}
+
 /* 720–1023: hai cột, Giá sách thành dải ngang phía trên */
 @media (max-width: 1023px) {
   .board-grid {
