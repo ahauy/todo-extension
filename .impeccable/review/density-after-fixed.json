@@ -1,0 +1,193 @@
+{
+  "tag": "after-fixed",
+  "ext": "/Users/vutuanhau/Dev/todo-extension/.output/chrome-mv3",
+  "measuredAt": "2026-11-12T04:34:09.835Z",
+  "popup": {
+    "viewport": {
+      "w": 360,
+      "h": 560
+    },
+    "totalCards": 8,
+    "fullyVisible": 2,
+    "cards": [
+      {
+        "top": 247,
+        "bottom": 385,
+        "height": 139
+      },
+      {
+        "top": 397,
+        "bottom": 536,
+        "height": 139
+      },
+      {
+        "top": 548,
+        "bottom": 686,
+        "height": 139
+      },
+      {
+        "top": 698,
+        "bottom": 837,
+        "height": 139
+      },
+      {
+        "top": 849,
+        "bottom": 987,
+        "height": 139
+      },
+      {
+        "top": 999,
+        "bottom": 1138,
+        "height": 139
+      },
+      {
+        "top": 1150,
+        "bottom": 1288,
+        "height": 139
+      },
+      {
+        "top": 1300,
+        "bottom": 1381,
+        "height": 80
+      }
+    ],
+    "chipRowsPerCard": {
+      "1": 8
+    }
+  },
+  "board": {
+    "cards": [
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 276,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 2
+          }
+        ],
+        "height": 147
+      },
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 200,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 200,
+            "chips": 1
+          }
+        ],
+        "height": 147
+      },
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 200,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 200,
+            "chips": 1
+          }
+        ],
+        "height": 147
+      },
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 276,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 3
+          }
+        ],
+        "height": 147
+      },
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 276,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 1
+          }
+        ],
+        "height": 120
+      },
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 276,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 1
+          }
+        ],
+        "height": 147
+      },
+      {
+        "rows": [
+          {
+            "h": 26,
+            "w": 276,
+            "chips": 2
+          },
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 3
+          }
+        ],
+        "height": 147
+      },
+      {
+        "rows": [
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 1
+          },
+          {
+            "h": 22,
+            "w": 276,
+            "chips": 1
+          }
+        ],
+        "height": 116
+      }
+    ],
+    "cardCount": 8,
+    "rowsPerCard": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ]
+  }
+}

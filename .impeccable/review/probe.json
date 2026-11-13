@@ -1,0 +1,110 @@
+{
+  "popup": {
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "scrollHeight": 560,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 0
+  },
+  "popup-subject-menu": {
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "scrollHeight": 560,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 0
+  },
+  "desktop": {
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "scrollHeight": 1897,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 7
+  },
+  "board-1024": {
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "scrollHeight": 2067,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 7
+  },
+  "board-1100": {
+    "scrollWidth": 1100,
+    "innerWidth": 1100,
+    "scrollHeight": 1872,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 7
+  },
+  "board-1280": {
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "scrollHeight": 1847,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 7
+  },
+  "board-900": {
+    "scrollWidth": 900,
+    "innerWidth": 900,
+    "scrollHeight": 2011,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 0
+  },
+  "board-800": {
+    "scrollWidth": 800,
+    "innerWidth": 800,
+    "scrollHeight": 2179,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 0
+  },
+  "mobile": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "scrollHeight": 3045,
+    "coarse": true,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 0
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "popup": {
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "scrollHeight": 560,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 0
+  },
+  "desktop": {
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "scrollHeight": 1991,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 7
+  },
+  "board-1024": {
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "scrollHeight": 2269,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [],
+    "scrolls": 8,
+    "spines": 7
+  },
+  "board-800": {
+    "scrollWidth": 800,
+    "innerWidth": 800,
+    "scrollHeight": 2203,
+    "coarse": false,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [
+      "flex flex-none | 721..872",
+      "ribbon-tab | 721..872",
+      "truncate | 738..841",
+      "tnum ml-xs text-umber | 847..855",
+      "ribbon-tab | 876..1016",
+      "tnum ml-xs text-umber | 991..999"
+    ],
+    "scrolls": 8,
+    "spines": 0
+  },
+  "mobile": {
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "scrollHeight": 2993,
+    "coarse": true,
+    "fontsLoaded": "loaded",
+    "bodyFont": "\"EB Garamond\", Georgia, \"Times New Roman\", serif",
+    "canvas": "rgb(246, 235, 211)",
+    "overflow": [
+      "flex flex-none | 265..396",
+      "ribbon-tab | 265..396",
+      "flex flex-none | 400..537",
+      "ribbon-tab | 400..537",
+      "truncate | 417..506",
+      "tnum ml-xs text-umber | 512..520",
+      "flex flex-none | 541..692",
+      "ribbon-tab | 541..692",
+      "truncate | 558..661",
+      "tnum ml-xs text-umber | 667..675",
+      "flex flex-none | 696..847",
+      "ribbon-tab | 696..847"
+    ],
+    "scrolls": 8,
+    "spines": 0
+  }
+}

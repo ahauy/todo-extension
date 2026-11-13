@@ -1,0 +1,180 @@
+{
+  "tag": "pa2",
+  "ext": "/Users/vutuanhau/Dev/todo-extension/.output/chrome-mv3",
+  "measuredAt": "2026-11-12T05:31:59.906Z",
+  "open": [
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Học từ vựng Tiếng anh",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "lặp",
+        "Hôm nay 23:59"
+      ]
+    }
+  ],
+  "doneToday": [
+    {
+      "state": "done",
+      "pressed": "true",
+      "label": "Bỏ dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Bỏ dấu xong",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Học từ vựng Tiếng anh",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "lặp",
+        "Hôm nay 23:59"
+      ]
+    }
+  ],
+  "undo": [
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Học từ vựng Tiếng anh",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "lặp",
+        "Hôm nay 23:59"
+      ]
+    }
+  ],
+  "reload": [
+    {
+      "state": "done",
+      "pressed": "true",
+      "label": "Bỏ dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Bỏ dấu xong",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Học từ vựng Tiếng anh",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "lặp",
+        "Hôm nay 23:59"
+      ]
+    }
+  ],
+  "done": [
+    {
+      "state": "done",
+      "pressed": "true",
+      "label": "Bỏ dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Bỏ dấu xong",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "done-today",
+      "pressed": "true",
+      "label": "Bỏ dấu hôm nay: Học từ vựng Tiếng anh",
+      "title": "Bỏ dấu hôm nay",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "đã làm hôm nay",
+        "Ngày mai 23:59"
+      ]
+    }
+  ],
+  "undoToday": [
+    {
+      "state": "done",
+      "pressed": "true",
+      "label": "Bỏ dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Bỏ dấu xong",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "open",
+      "pressed": "false",
+      "label": "Đóng dấu xong: Học từ vựng Tiếng anh",
+      "title": "Đóng dấu xong",
+      "glyph": true,
+      "stamp": null,
+      "chips": [
+        "lặp",
+        "Hôm nay 23:59"
+      ]
+    }
+  ],
+  "reloadToday": [
+    {
+      "state": "done",
+      "pressed": "true",
+      "label": "Bỏ dấu xong: Nộp báo cáo thí nghiệm",
+      "title": "Bỏ dấu xong",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "Hôm nay 23:58"
+      ]
+    },
+    {
+      "state": "done-today",
+      "pressed": "true",
+      "label": "Bỏ dấu hôm nay: Học từ vựng Tiếng anh",
+      "title": "Bỏ dấu hôm nay",
+      "glyph": false,
+      "stamp": "XONG",
+      "chips": [
+        "đã làm hôm nay",
+        "Ngày mai 23:59"
+      ]
+    }
+  ]
+}
