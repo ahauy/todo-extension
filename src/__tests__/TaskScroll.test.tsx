@@ -1,5 +1,5 @@
 /**
- * Test TaskScroll (một cuộn thư): data-state open/overdue/done, nút dấu son
+ * Test TaskScroll (một cuộn thư): data-state open/overdue/done/done-today, nút dấu son
  * + tiêu đề gọi đúng callback, PriorityBadge/SubjectBadge, tiến độ việc nhỏ,
  * chip hạn chót, và vòng đời done: dấu XONG + nút "Hoàn tác" rồi biến mất
  * khi bỏ dấu.
@@ -128,7 +128,9 @@ describe('TaskScroll', () => {
 
     const seal = container.querySelector('.seal-button') as HTMLButtonElement;
     expect(seal.getAttribute('aria-pressed')).toBe('false');
-    expect(seal.getAttribute('aria-label')).toBe('Đánh dấu xong: Học từ vựng');
+    expect(seal.getAttribute('aria-label')).toBe('Đóng dấu xong: Học từ vựng');
+    expect(seal.getAttribute('title')).toBe('Đóng dấu xong');
+    expect(seal.querySelector('.seal-button-glyph')).not.toBeNull();
     act(() => {
       seal.click();
     });
@@ -374,5 +376,48 @@ describe('TaskScroll', () => {
     expect(container.querySelector('.seal-stamp')).toBeNull();
     expect(article(container).dataset.state).toBe('open');
     expect(container.textContent).not.toContain('Hoàn tác');
+  });
+});
+
+describe('TaskScroll — done-today & affordance (BUG-002)', () => {
+  const recurring = (extra: Partial<Task> = {}) =>
+    fixture({ recurrence: { kind: 'daily' }, dueAt: '2026-01-16T10:40', ...extra });
+
+  it('việc lặp sắp tới: state open + chip "lặp" + seal có mộc affordance, aria-pressed false', () => {
+    const { container } = renderScroll(recurring());
+    expect(article(container).dataset.state).toBe('open');
+    expect(container.textContent).toContain('lặp');
+    const seal = container.querySelector('.seal-button') as HTMLButtonElement;
+    expect(seal.getAttribute('aria-pressed')).toBe('false');
+    expect(seal.querySelector('.seal-button-glyph')).not.toBeNull();
+    expect(seal.getAttribute('title')).toBe('Đóng dấu xong');
+  });
+
+  it('việc lặp đã đóng dấu hôm nay: done-today + chip "đã làm hôm nay" + XONG + seal pressed', () => {
+    const { container } = renderScroll(recurring({ lastDoneAt: '2026-01-15T09:00' }));
+    expect(article(container).dataset.state).toBe('done-today');
+    expect(container.textContent).toContain('đã làm hôm nay');
+    expect(container.querySelector('.seal-stamp')?.textContent).toBe('XONG');
+    const seal = container.querySelector('.seal-button') as HTMLButtonElement;
+    expect(seal.getAttribute('aria-pressed')).toBe('true');
+    expect(seal.getAttribute('aria-label')).toContain('Bỏ dấu hôm nay');
+    expect(container.querySelector('time')).not.toBeNull();
+  });
+
+  it('sang ngày kế tiếp: lastDoneAt hôm qua → trở về open, hết done-today', () => {
+    const { container } = renderScroll(recurring({ lastDoneAt: '2026-01-14T09:00' }));
+    expect(article(container).dataset.state).toBe('open');
+    expect(container.textContent).not.toContain('đã làm hôm nay');
+    expect(container.querySelector('.seal-stamp')).toBeNull();
+  });
+
+  it('done-today: bấm seal gọi onToggle (Hoàn tác hôm nay, không cuộn hạn nữa)', () => {
+    const onToggle = vi.fn();
+    const { container } = renderScroll(recurring({ lastDoneAt: '2026-01-15T09:00' }), { onToggle });
+    const seal = container.querySelector('.seal-button') as HTMLButtonElement;
+    act(() => {
+      seal.click();
+    });
+    expect(onToggle).toHaveBeenCalledWith('task-1');
   });
 });

@@ -180,6 +180,49 @@
   border: 2px solid var(--primary-deep);
   box-shadow: none;
 }
+/* Affordance: hover nhuộm đỏ nhạt + mộc rõ hơn để vòng tròn đọc thành NÚT bấm,
+   không phải họa tiết trang trí (BUG-002). */
+.seal-button:not([aria-pressed='true']):hover {
+  background: var(--primary-wash);
+  transform: translateY(-1px);
+}
+.seal-button-glyph {
+  opacity: 0.5;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.seal-button:not([aria-pressed='true']):hover .seal-button-glyph {
+  opacity: 0.95;
+}
+/* Seal đã đóng dấu giữ nền đỏ đậm khi hover để CheckIcon (cream) không chìm. */
+.seal-button[aria-pressed='true']:hover {
+  background: var(--primary-deep);
+}
+
+/* Việc lặp ĐÃ đóng dấu hôm nay (done-today): nền giấy như done nhưng viền vàng
+   + chip "đã làm hôm nay · hẹn ngày kế tiếp" → tách với done hẳn và với open. */
+.scroll-task[data-state='done-today'] {
+  background: var(--surface-paper);
+  border-color: var(--gold);
+  box-shadow: none;
+  color: var(--umber);
+}
+.scroll-task[data-state='done-today']::before,
+.scroll-task[data-state='done-today']::after {
+  opacity: 0.3;
+}
+.scroll-task[data-state='done-today'] .scroll-title {
+  font-weight: 400;
+  color: var(--umber);
+}
+
+/* Chip trạng thái: "lặp" (việc lặp sắp tới) và "đã làm hôm nay" — nền vàng nhạt
+   để phân biệt với chip hạn thường và chip quá hạn đỏ. */
+.chip-recurring,
+.chip-done-today {
+  background: var(--gold-pale);
+  border-color: var(--gold);
+  color: var(--ink);
+}
 
 /* ── Ô nhập bút lông ─────────────────────────────────────────────────── */
 .quill {

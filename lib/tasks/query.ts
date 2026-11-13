@@ -120,6 +120,17 @@ function sameLocalDay(iso: string, now: Date): boolean {
   );
 }
 
+/** Việc lặp đã đóng dấu HÔM NAY (lastDoneAt cùng ngày local) nhưng chưa sang
+ *  occurrence kế tiếp → trạng thái "done-today", phân biệt với open và done. */
+export function isRecurringDoneToday(task: Task, now: Date): boolean {
+  return (
+    task.recurrence.kind !== 'none' &&
+    !task.done &&
+    !!task.lastDoneAt &&
+    sameLocalDay(task.lastDoneAt, now)
+  );
+}
+
 /** "Hôm nay" gồm cả việc quá hạn chưa xong — chúng vẫn đang chờ hôm nay */
 export function filterByBoard(tasks: Task[], tab: BoardTab, now: Date): Task[] {
   switch (tab) {

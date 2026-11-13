@@ -39,6 +39,17 @@ function make(
   return Component;
 }
 
+/** Con dấu mộc — affordance cho nút đóng dấu khi việc chưa xong: cán mộc +
+ *  đế dấu, để vòng tròn không còn bị đọc như họa tiết trang trí. */
+export const SealIcon = make(
+  <>
+    <path d="M12 3.6a2.3 2.3 0 0 1 2.3 2.3c0 1.5-.9 2.4-.9 3.6h-2.8c0-1.2-.9-2.1-.9-3.6A2.3 2.3 0 0 1 12 3.6Z" />
+    <path d="M8.4 9.5h7.2l1 3.4H7.4l1-3.4Z" />
+    <path d="M6.4 16.4h11.2v2.2H6.4z" />
+    <path d="M9 19.8h6" opacity="0.55" />
+  </>
+);
+
 /** Kính lúp — cán nghiêng, vòng thấu kính lệch tâm như ống kính đồng */
 export const SearchIcon = make(
   <>

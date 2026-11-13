@@ -49,6 +49,13 @@ export interface Task {
   /** Môn học (gáy sách). Task cũ chưa có trường này → coi như null. */
   subjectId?: string | null;
   done: boolean;
+  /** ISO 8601 (UTC) lần đóng dấu gần nhất. Việc lặp dùng để hiện trạng thái
+   *  "đã làm hôm nay · hẹn ngày kế tiếp" (done-today) cho tới khi sang ngày.
+   *  Task cũ chưa có trường này → undefined (coi như chưa đóng dấu hôm nay). */
+  lastDoneAt?: string | null;
+  /** dueAt ngay trước khi cuộn hạn sang occurrence kế tiếp — để Hoàn tác
+   *  việc lặp trả về đúng occurrence vừa đóng dấu, không cuộn lần nữa. */
+  prevDueAt?: string | null;
   createdAt: string;    // ISO 8601
   updatedAt: string;    // ISO 8601
 }

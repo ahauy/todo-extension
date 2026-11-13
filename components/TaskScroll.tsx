@@ -15,7 +15,8 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { DeadlineChip, PriorityBadge, SubjectBadge } from './ui/Chips';
-import { CheckIcon, RepeatIcon } from './art/Icons';
+import { CheckIcon, RepeatIcon, SealIcon } from './art/Icons';
+import { isRecurringDoneToday } from '../lib/tasks/query';
 import type { Subject, Task } from '../lib/tasks/types';
 
 const UNDO_MS = 5000;
@@ -39,24 +40,26 @@ export default function TaskScroll({
   onToggle,
   onOpen,
 }: TaskScrollProps) {
-  const overdue = !!task.dueAt && !task.done && new Date(task.dueAt) < now;
-  const state = task.done ? 'done' : overdue ? 'overdue' : 'open';
-  const wasDone = useRef(task.done);
+  const doneToday = isRecurringDoneToday(task, now);
+  const completed = task.done || doneToday;
+  const overdue = !!task.dueAt && !completed && new Date(task.dueAt) < now;
+  const state = task.done ? 'done' : doneToday ? 'done-today' : overdue ? 'overdue' : 'open';
+  const wasCompleted = useRef(completed);
   const [striking, setStriking] = useState(false);
   const [undoable, setUndoable] = useState(false);
 
   useEffect(() => {
-    if (task.done && !wasDone.current) {
+    if (completed && !wasCompleted.current) {
       setStriking(true);
       setUndoable(true);
       const timer = window.setTimeout(() => setUndoable(false), UNDO_MS);
-      wasDone.current = task.done;
+      wasCompleted.current = completed;
       return () => window.clearTimeout(timer);
     }
-    wasDone.current = task.done;
-    if (!task.done) setUndoable(false);
+    wasCompleted.current = completed;
+    if (!completed) setUndoable(false);
     return undefined;
-  }, [task.done]);
+  }, [completed]);
 
   const doneSubtasks = task.subtasks.filter((item) => item.done).length;
 
@@ -65,6 +68,10 @@ export default function TaskScroll({
      — chip lặp chỉ là fallback khi việc lặp mà không có hạn chót. */
   const deadlinePriorityChips = (
     <>
+      {doneToday && <span className="chip chip-done-today">đã làm hôm nay</span>}
+      {!completed && task.recurrence.kind !== 'none' && task.dueAt && (
+        <span className="chip chip-recurring">lặp</span>
+      )}
       {task.dueAt && (
         <DeadlineChip
           dueAt={task.dueAt}
@@ -127,18 +134,23 @@ export default function TaskScroll({
         <button
           type="button"
           className="seal-button"
-          aria-pressed={task.done}
+          aria-pressed={completed}
+          title={task.done ? 'Bỏ dấu xong' : doneToday ? 'Bỏ dấu hôm nay' : 'Đóng dấu xong'}
           aria-label={
-            task.done ? `Bỏ dấu xong: ${task.title}` : `Đánh dấu xong: ${task.title}`
+            task.done
+              ? `Bỏ dấu xong: ${task.title}`
+              : doneToday
+                ? `Bỏ dấu hôm nay: ${task.title}`
+                : `Đóng dấu xong: ${task.title}`
           }
           onClick={() => onToggle(task.id)}
         >
-          {task.done ? (
+          {completed ? (
             <CheckIcon size={20} />
           ) : (
-            /* Dấu son chưa đóng: đĩa đỏ son trống — chữ XONG là phần thưởng
+            /* Mộc mờ = affordance "bấm để đóng dấu"; chữ XONG là phần thưởng
                chỉ xuất hiện khi hoàn thành (seal-stamp bên phải). */
-            null
+            <SealIcon size={20} className="seal-button-glyph" />
           )}
         </button>
 
@@ -163,7 +175,7 @@ export default function TaskScroll({
           )}
         </div>
 
-        {task.done && (
+        {completed && (
           <span
             className="seal-stamp -mt-xs"
             data-size={compact ? 'sm' : 'md'}

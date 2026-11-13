@@ -1,6 +1,6 @@
 ---
-spec_version: 1.1.0
-updated_at: 2026-11-12
+spec_version: 1.2.0
+updated_at: 2026-11-13
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -89,6 +89,13 @@ giờ người dùng; đổi múi giờ thiết bị có thể làm lệch ngày
 **R-11 — Hoàn thành task lặp lại**
 Khi tick done task có `recurrence ≠ none` và có `dueAt`: giữ nguyên `id`, đặt `done = false`,
 `dueAt = nextDueAt(dueAt, rule)`, cập nhật `updatedAt`, tạo alarm mới. Không lưu lịch sử occurrence.
+
+Đóng dấu để lại vết trên task bằng hai field additive tuỳ chọn: `lastDoneAt` (mốc đóng dấu, ISO 8601 UTC)
+và `prevDueAt` (hạn của occurrence vừa hoàn thành). Task có `lastDoneAt` cùng ngày local với hiện tại →
+thẻ hiển thị trạng thái **done-today** ("đã làm hôm nay · hẹn <hạn kế tiếp>"), bền qua reload và tự về
+open khi sang ngày kế tiếp. Bấm lại khi đang done-today = **hoàn tác hôm nay**: khôi phục
+`dueAt = prevDueAt`, xoá `lastDoneAt`/`prevDueAt`, không cuộn hạn thêm lần nữa. Task cũ thiếu hai field
+này được coi như open.
 
 **Catch-up:** nếu `nextDueAt` rơi vào quá khứ (user tick muộn nhiều kỳ), lặp `nextDueAt` cho tới khi
 kết quả `> now` (tối đa 1000 vòng để chặn vòng lặp vô hạn với rule lỗi) rồi mới ghi + tạo alarm.

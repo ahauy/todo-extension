@@ -490,7 +490,7 @@ describe('App wiring — dirty confirm & undo (#10, #15)', () => {
     const container = await renderApp();
 
     const seal = container.querySelector(
-      'button[aria-label="Đánh dấu xong: Việc A"]'
+      'button[aria-label="Đóng dấu xong: Việc A"]'
     ) as HTMLButtonElement;
     expect(seal).not.toBeNull();
     await act(async () => {

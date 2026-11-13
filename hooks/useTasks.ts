@@ -33,6 +33,7 @@ import {
 } from '../lib/alarms/scheduler';
 import { loadAll, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
 import { nextFutureDue } from '../lib/tasks/recurrence';
+import { isRecurringDoneToday } from '../lib/tasks/query';
 import type { Task } from '../lib/tasks/types';
 
 const MAX_TITLE = 200;
@@ -213,69 +214,67 @@ export function useTasks() {
       if (!task) return;
 
       const now = new Date();
+      const stamp = nowISO();
+
+      // Việc lặp đã đóng dấu HÔM NAY: bấm lần nữa = Hoàn tác hôm nay — trả về
+      // occurrence vừa làm (prevDueAt), KHÔNG cuộn hạn sang ngày nữa.
+      if (isRecurringDoneToday(task, now)) {
+        clearTaskAlarm(id);
+        const next: Task = {
+          ...task,
+          done: false,
+          dueAt: task.prevDueAt ?? task.dueAt,
+          prevDueAt: null,
+          lastDoneAt: null,
+          updatedAt: stamp,
+        };
+        await put(next);
+        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
+        scheduleTask(next);
+        return;
+      }
 
       if (task.done) {
         // Un-toggle: done = false, giữ dueAt cũ, reschedule
         clearTaskAlarm(id);
-        const next = { ...task, done: false, updatedAt: nowISO() };
-        try {
-          await put(next);
-          setSnapshot(
-            snapshotStore.tasks.map((t) => (t.id === id ? next : t))
-          );
-          scheduleTask(next);
-        } catch (err) {
-          throw err;
-        }
+        const next = { ...task, done: false, lastDoneAt: null, prevDueAt: null, updatedAt: stamp };
+        await put(next);
+        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
+        scheduleTask(next);
         return;
       }
 
       if (task.recurrence.kind === 'none') {
         // Task thường: done = true, clear alarm
         clearTaskAlarm(id);
-        const next = { ...task, done: true, updatedAt: nowISO() };
-        try {
-          await put(next);
-          setSnapshot(
-            snapshotStore.tasks.map((t) => (t.id === id ? next : t))
-          );
-        } catch (err) {
-          throw err;
-        }
+        const next = { ...task, done: true, lastDoneAt: stamp, prevDueAt: null, updatedAt: stamp };
+        await put(next);
+        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
         return;
       }
 
-      // Task lặp: catch-up nextDueAt > now
-      try {
-        const nextDue = nextFutureDue(task.dueAt ?? nowISO(), task.recurrence, now);
-        if (nextDue === null) {
-          // Không lặp nữa → done, clear alarm
-          clearTaskAlarm(id);
-          const next = { ...task, done: true, updatedAt: nowISO() };
-          await put(next);
-          setSnapshot(
-            snapshotStore.tasks.map((t) => (t.id === id ? next : t))
-          );
-          return;
-        }
-        const nextTask: Task = {
-          ...task,
-          done: false,
-          dueAt: nextDue,
-          updatedAt: nowISO(),
-        };
-        try {
-          await put(nextTask);
-          setSnapshot(
-            snapshotStore.tasks.map((t) => (t.id === id ? nextTask : t))
-          );
-          scheduleTask(nextTask);
-        } catch (err) {
-          throw err;
-        }
-      } catch (err) {
-        throw err;
+      // Task lặp: catch-up nextDueAt > now. Ghi lastDoneAt (để hiện "đã làm
+      // hôm nay") + prevDueAt (để Hoàn tác về đúng occurrence vừa đóng dấu).
+      const nextDue = nextFutureDue(task.dueAt ?? stamp, task.recurrence, now);
+      if (nextDue === null) {
+        // Không lặp nữa → done, clear alarm
+        clearTaskAlarm(id);
+        const next = { ...task, done: true, lastDoneAt: stamp, prevDueAt: null, updatedAt: stamp };
+        await put(next);
+        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
+        return;
       }
+      const nextTask: Task = {
+        ...task,
+        done: false,
+        dueAt: nextDue,
+        prevDueAt: task.dueAt,
+        lastDoneAt: stamp,
+        updatedAt: stamp,
+      };
+      await put(nextTask);
+      setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? nextTask : t)));
+      scheduleTask(nextTask);
     },
     []
   );

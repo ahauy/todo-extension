@@ -10,7 +10,7 @@
 |----|---------|------|-----------|-------------|-----|------|
 | BUG-001 | Popup thiếu entrypoint + tailwind chưa cài — extension không bấm được | BUG | done | [2026-11-11-popup-missing-entrypoint.md](2026-11-11-popup-missing-entrypoint.md) | 2026-11-11 | 2026-11-11 |
 | FEAT-001 | Popup: gộp hai hàng chip trong cuộn thư thành một hàng (mật độ) | MODIFY | done | [2026-11-12-popup-task-card-density.md](archive/2026-11-12-popup-task-card-density.md) | 2026-11-12 | 2026-11-12 |
-| BUG-002 | Thẻ việc: nút đóng dấu vô hình + không phân biệt chưa làm / đã làm / việc lặp ngày mai | BUG+MODIFY | in_progress | [2026-11-12-task-seal-states.md](2026-11-12-task-seal-states.md) | 2026-11-12 | — |
+| BUG-002 | Thẻ việc: nút đóng dấu vô hình + không phân biệt chưa làm / đã làm / việc lặp ngày mai | BUG+MODIFY | done | [2026-11-12-task-seal-states.md](archive/2026-11-12-task-seal-states.md) | 2026-11-12 | 2026-11-13 |
 | FEAT-002 | Nâng tầm trải nghiệm Sơn Mài Học Đường: responsive, menu popup, motion và đồng bộ tài liệu | MODIFY | in_progress | [2026-11-12-son-mai-experience-polish.md](2026-11-12-son-mai-experience-polish.md) | 2026-11-12 | — |
 
 ## Quy tắc tracking

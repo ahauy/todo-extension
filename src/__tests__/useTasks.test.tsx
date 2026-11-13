@@ -309,6 +309,43 @@ describe('useTasks — toggle', () => {
     expect(stub.alarms.has('due:a')).toBe(true);
     expect(stub.alarms.get('due:a')!.delayInMinutes).toBeGreaterThan(0);
   });
+
+  it('toggle việc lặp: ghi lastDoneAt + prevDueAt (done-today), done=false (BUG-002)', async () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    stub.seed({ 't:r': fixture({ id: 'r', dueAt: yesterday, recurrence: { kind: 'daily' } }) });
+    await mountHook();
+
+    await act(async () => {
+      await api.toggle('r');
+    });
+
+    const saved = stub.store.get('t:r') as Task;
+    expect(saved.done).toBe(false);
+    expect(saved.lastDoneAt).toBeTruthy();
+    expect(saved.prevDueAt).toBe(yesterday);
+    expect(new Date(saved.dueAt!).getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it('toggle lần 2 khi done-today: Hoàn tác về prevDueAt, clear lastDoneAt, không cuộn nữa (BUG-002)', async () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    stub.seed({ 't:r': fixture({ id: 'r', dueAt: yesterday, recurrence: { kind: 'daily' } }) });
+    await mountHook();
+
+    await act(async () => {
+      await api.toggle('r');
+    });
+    const afterFirst = stub.store.get('t:r') as Task;
+    await act(async () => {
+      await api.toggle('r');
+    });
+
+    const saved = stub.store.get('t:r') as Task;
+    expect(saved.dueAt).toBe(yesterday);
+    expect(saved.lastDoneAt).toBeNull();
+    expect(saved.prevDueAt).toBeNull();
+    expect(saved.done).toBe(false);
+    expect(saved.dueAt).not.toBe(afterFirst.dueAt);
+  });
 });
 
 describe('useTasks — subscription ổn định (#22)', () => {

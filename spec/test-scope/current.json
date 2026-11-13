@@ -1,52 +1,51 @@
 {
-  "specVersion": "1.1.0",
-  "scopeVersion": 20,
-  "generatedAt": "2026-11-12T12:55:00+07:00",
-  "trigger": "feature-update",
-  "workItem": "feature/son-mai-experience-polish",
-  "specRefs": ["R-09", "R-13", "R-14", "R-15", "R-19"],
+  "specVersion": "1.2.0",
+  "scopeVersion": 21,
+  "generatedAt": "2026-11-13T00:05:00+07:00",
+  "trigger": "bug-fix",
+  "workItem": "bug/task-seal-states",
+  "specRefs": ["R-11"],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
-      "spec/updates/2026-11-12-son-mai-experience-polish.md",
-      "docs/DESIGN.md",
-      "docs/ERD.md",
-      "docs/API_SPEC.md",
-      "docs/BRD.md",
-      "docs/USER_FLOW.md",
-      "entrypoints/newtab/style.css",
-      "components/FilterRow.tsx",
-      "components/ui/Menu.tsx",
-      "styles/components.css",
+      "spec/updates/2026-11-12-task-seal-states.md",
+      "lib/tasks/types.ts",
+      "lib/tasks/query.ts",
+      "hooks/useTasks.ts",
       "components/TaskScroll.tsx",
-      "components/StreakCard.tsx",
-      "styles/signature.css"
+      "components/art/Icons.tsx",
+      "styles/signature.css",
+      "src/__tests__/TaskScroll.test.tsx",
+      "src/__tests__/useTasks.test.tsx",
+      "entrypoints/popup/App.wiring.test.tsx"
     ],
-    "modules": ["design-system", "newtab", "popup", "filtering", "task-feedback", "study-streak", "docs"]
+    "modules": ["task-domain", "task-feedback", "popup", "newtab", "design-system"]
   },
   "impact": {
     "direct": [
-      "Responsive layout New Tab tại dải 1024–1199px",
-      "Menu chọn môn popup và affordance ribbon tab hẹp",
-      "Motion phản hồi triện, bộ lọc/menu và milestone chuỗi học",
-      "As-built documentation và intent UI requirement"
+      "Triện (đóng dấu) nhận biết được là nút: icon mộc khi open, hover, tooltip, aria-pressed, vùng bấm 44×44",
+      "Việc lặp đóng dấu → lastDoneAt + prevDueAt, thẻ hiện chip 'đã làm hôm nay · hẹn <hạn kế>' và bền qua reload",
+      "Bấm lại khi done-today = Hoàn tác hôm nay: khôi phục prevDueAt, không cuộn hạn thêm lần nữa",
+      "Phân biệt 3+ trạng thái trên thẻ: open / overdue / done / done-today (+ badge 'lặp' khi việc lặp còn open)"
     ],
     "dependents": [
-      "Popup App wiring, FilterRow/Menu keyboard and focus return",
-      "TaskScroll state/undo and useTasks completion flow",
-      "Settings reduced-motion/effect toggles, existing screenshot harness"
+      "hooks/useTasks.toggle → chrome.alarms reschedule (clear khi done, tạo khi occurrence kế tiếp)",
+      "components/TaskScroll render cả popup (compact) và board New Tab (!compact)",
+      "App wiring test: TaskScroll props/seal label"
     ],
     "regression": [
-      "360px popup, 390px New Tab, 1024px and desktop geometry; no horizontal overflow",
-      "Keyboard navigation, focus-visible and prefers-reduced-motion",
-      "Task deadline/subject/priority legibility and existing task completion semantics",
-      "Build size/performance and no added permission, network or animation dependency"
+      "Board New Tab giữ 2 hàng chip trong cột, không tràn/mất chip",
+      "Query tabs (all/today/upcoming/done): done-today vẫn nằm ở occurrence kế tiếp, không đổi tab",
+      "Việc không lặp: đóng dấu → done, bỏ đóng dấu → open, giữ dueAt",
+      "Task cũ không có lastDoneAt/prevDueAt hiển thị như open, không vỡ dữ liệu",
+      "a11y: role listitem, reading order, aria-pressed/aria-label, contrast chip"
     ]
   },
   "acceptance": [
-    "Requirements and as-built docs no longer describe removed dark mode or obsolete popup/filter/storage contracts.",
-    "New Tab collapses before the task column becomes hard to scan; popup subject selection preserves context.",
-    "Visual feedback is state-driven and reduced-motion safe, without decorative autoplay."
+    "Nút triện nhìn thấy được là nút và bấm có phản hồi ngay trên thẻ.",
+    "Việc lặp đóng dấu hiện trạng thái done-today bền qua reload; bấm lại hoàn tác về occurrence vừa làm.",
+    "Sang ngày kế tiếp việc lặp tự trở về open.",
+    "Không hồi quy board New Tab, a11y, query tabs, typecheck/lint/test/build."
   ],
   "risk": "medium"
 }
