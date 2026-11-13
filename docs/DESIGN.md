@@ -516,18 +516,18 @@ Fallback: Cormorant Garamond → Georgia, "Times New Roman", serif; Dancing Scri
 
 ### Display Modes (Popup / New Tab / Tự động)
 Cài đặt có điều khiển ba lựa chọn dạng {components.segmented-option}: **Popup** · **New Tab** · **Tự động**.
-- **Popup**: bấm biểu tượng extension mở cửa sổ 360×560px (trong giới hạn popup của Chrome). Trang New Tab giữ nguyên mặc định của trình duyệt.
+- **Popup**: bấm biểu tượng extension mở cửa sổ 360×560px (trong giới hạn popup của Chrome). Trang tab mới **không** trả về mặc định của trình duyệt — extension vẫn ghi đè và hiện trang chào yên tĩnh (`QuietNewTab`): lời chào + cửa sổ học tập + nút "Mở sổ Học Đường" + chú thích hướng dẫn tắt quyền ghi đè ở `chrome://extensions`.
 - **New Tab**: extension thay trang tab mới bằng bảng toàn màn hình; bấm biểu tượng sẽ mở/focus tab Học Đường thay vì popup.
 - **Tự động**: bấm biểu tượng → Popup; mở tab mới → New Tab. Người dùng có thể ghim lại bất kỳ lúc nào; lựa chọn được lưu và đồng bộ.
 - Cùng một bộ token và component cho cả hai chế độ; chỉ khác bố cục (bên dưới), không có component riêng cho từng chế độ.
 
 ### Bố cục Popup (360×560)
 Một cột, từ trên xuống, đều nằm trong `{components.card-popup-shell}`:
-1. **Đầu trang** (56px): tên "Học Đường" bằng `{typography.heading-sm}`, nút chuyển chế độ và cài đặt ({components.button-icon-round}).
+1. **Đầu trang** (56px): đèn dầu 36px + tên "Học Đường" bằng `{typography.heading-sm}` + dòng đếm `{typography.caption}` màu {colors.umber} có `aria-live="polite"` ("3 việc đang chờ, 1 quá hạn.") + **ba** nút icon tròn ({components.button-icon-round}): âm thanh bật/tắt, mở bảng lớn ở tab mới, cài đặt. Nút chuyển chế độ hiển thị chỉ nằm trong Cài đặt, không có trên đầu trang.
 2. **Khu ghi việc** (72px): {components.quill-input} + nút "Ghi" ({components.button-primary}).
-3. **Dải tab** (40px): {components.button-tab-ribbon} cuộn ngang — Tất cả · Hôm nay · theo môn.
+3. **Dải lọc** (hai hàng): hàng 1 là dải tab {components.button-tab-ribbon} cuộn ngang — **Tất cả · Hôm nay · Sắp tới · Đã xong**, mỗi tab kèm số việc; hàng 2 là ô chọn môn `.filter-subject` (chấm màu gáy sách + tên môn + mũi tên, mở menu) · nút sắp xếp · nút tìm việc (khi mở, ô tìm kiếm thay chỗ ô chọn môn). Popup không có "Giá sách" nên lọc theo môn nằm ở hàng này.
 4. **Cuộn việc**: vùng cuộn dọc, các {components.card-scroll-task} cách nhau 12px.
-5. **Chân trang cố định** (64px): đồng hồ Pomodoro thu gọn + {components.streak-lotus} 7 ngày.
+5. **Chân trang cố định** (64px): đồng hồ Pomodoro thu gọn bên trái — dial 48px, số `{typography.subtitle-lg}`, một nút play 32px — và 7 đài sen 24px ({components.streak-lotus}, thu từ 28px cho vừa 360px) bên phải.
 
 ### Bố cục New Tab
 Lưới 3 vùng, rộng tối đa 1280px, lề 32px, nằm trong `{components.card-newtab-board}`:
@@ -623,9 +623,11 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 **`card-scroll-task-overdue`** — Nền {colors.primary-wash}, viền {colors.primary}, đi kèm `chip-deadline-overdue`.
 
-**`card-subject-spine`** — Gáy sách môn học, dùng ở "Giá sách" (New Tab) và dải lọc (Popup).
+**`card-subject-spine`** — Gáy sách môn học, **chỉ ở New Tab**: cột "Giá sách" từ 1024px, và dải ngang `.shelf-strip` (wrap thay vì cắt môn) dưới 1024px.
 - Nền {colors.surface-paper}, rounded 4px, viền trái 8px theo màu môn, tên môn `{typography.body-sm-bold}` + số việc còn lại bên phải.
 - Đang chọn: nền chuyển {colors.surface-lacquer}, viền trái giữ màu, thêm gờ vàng kim 1px quanh thẻ.
+- Ở dải ngang, gáy sách đổi thành tab môn: giữ một vạch màu gáy 4px ở cạnh trên (`.ribbon-tab[data-spine]`).
+- **Popup không dùng gáy sách**: lọc theo môn là menu `.filter-subject` (nền giấy, viền mảnh, chấm 8px màu gáy sách, mũi tên nét mảnh) — xem bố cục Popup.
 
 **`card-focus-timer`** — Khu Pomodoro.
 - Nền {colors.surface-lacquer}, rounded `{rounded.xxl}`, khung đôi vàng kim, bóng level 2.
@@ -678,7 +680,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Pomodoro & Streak
 
-**`timer-dial`** — Đồng hồ tròn 220px (Popup thu gọn còn 96px, chỉ số và nút bắt đầu): nền {colors.surface-lacquer}, viền đôi vàng kim, số `{typography.timer-display}`, vòng tiến độ nét {colors.primary} chạy quanh viền khi đang đếm.
+**`timer-dial`** — Đồng hồ tròn 220px cho "Bàn học": nền {colors.surface-lacquer}, viền đôi vàng kim, số `{typography.timer-display}`, vòng tiến độ nét {colors.primary} chạy quanh viền khi đang đếm. **Popup dùng bản 48px riêng** (`data-size='sm'`: viền 2px, số `{typography.subtitle-lg}`) đặt cạnh một nút play 32px — không thu nhỏ dial 220px.
 
 **`progress-ink`** — Thanh tiến độ 8px: rãnh {colors.surface-sunk}, phần đã đi tô {colors.primary}; dùng cho "đã xong 3/7 việc hôm nay".
 
@@ -686,9 +688,9 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Navigation
 
-**Đầu trang (Popup)** — Tên + hai nút icon; không có menu hamburger.
+**Đầu trang (Popup)** — Đèn dầu + tên "Học Đường" + dòng đếm có `aria-live`, rồi ba nút icon: âm thanh, mở bảng lớn, cài đặt; không có menu hamburger.
 **Đầu trang (New Tab)** — Lời chào bên trái, hôm nay là thứ mấy ngày mấy bên phải; nút Cài đặt ở góc.
-**Dải tab** — {components.button-tab-ribbon}: *Tất cả · Hôm nay · Sắp tới · Đã xong*; ở New Tab, môn học nằm ở "Giá sách" thay vì dải tab.
+**Dải tab** — {components.button-tab-ribbon}: *Tất cả · Hôm nay · Sắp tới · Đã xong* (kèm số việc). Ở New Tab, môn học nằm ở "Giá sách" nên dải tab chỉ có hàng này; ở Popup có thêm hàng lọc môn + sắp xếp + tìm việc.
 
 ### Signature Components
 
@@ -706,6 +708,32 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 **`seal-stamp`** — Con dấu "XONG": hình vuông bo 4px, viền đôi {colors.primary}, chữ Cormorant 700 HOA màu {colors.primary}, nghiêng −6°, kích thước 64×64px trên cuộn việc (40×40 trong popup). Thành tích (hoàn thành cả ngày, streak 7 ngày) dùng dấu lớn hơn với chữ khác ("ĐẠT", "BỀN CHÍ").
 
 **`footer-colophon`** — Dòng cuối trang theo kiểu cuối bản thảo: một câu ngắn bằng `{typography.caption}` màu {colors.umber}, trên đường kẻ {colors.hairline}.
+
+## Motion (as-built)
+
+> Token lấy từ `styles/tokens.css`; component không tự đặt số riêng. Mục tiêu: chuyển động **một chiều, ngắn, có mục đích** — mực thấm khi gõ, cuộn thư mở, con dấu đóng — không có animation trang trí lặp.
+
+| Token / giá trị | Dùng cho |
+|---|---|
+| `--dur-ink` 180ms · `--ease-ink` | Mực thấm từng ký tự: `opacity 0→1`, `blur 1px→0` |
+| `--dur-dry` 800ms (linear) | Mực khô: màu chữ {colors.brown} → {colors.ink} |
+| `--dur-nib` 120ms | Ngòi bút nhún 2px theo ký tự (`nib-tap`), bút trượt theo con trỏ |
+| `--dur-slide` 240ms · `--ease-out` | Cuộn thư mới trượt vào, con dấu đóng (`seal-strike` `scale 1.4→1`, −6°), toast trượt lên, hộp thoại/tờ giấy da mở, thanh tiến độ đổi độ dài |
+| `--dur-fast` 140ms · `--ease-out` | Đổi nền/viền của nút, tab, menu, ô lọc; lớp phủ fade |
+| `--ease-out` `cubic-bezier(.16,1,.3,1)` | Mặc định cho mọi transition/animation một chiều |
+| `--ease-ink` `cubic-bezier(.22,.61,.36,1)` | Riêng hiệu ứng mực và nhịp thở của skeleton |
+| 900ms linear | Vòng tiến độ đồng hồ (`stroke-dashoffset`) — chạy đều theo giây, không nảy |
+| 1.6s `infinite` (`--ease-ink`) | Skeleton "cuộn chờ" khi đang đọc sổ (`skeleton-breathe`) |
+
+**Nguyên tắc**
+- Chỉ skeleton lặp; mọi hiệu ứng khác chạy một lần rồi dừng. Không phát lại dấu "XONG" khi cuộn danh sách.
+- Không animate thuộc tính bố cục (`top/left/height`) trừ thanh tiến độ; ưu tiên `transform` + `opacity` + màu.
+- Không dùng `hover` làm tín hiệu duy nhất (xem chính sách ở mục Components).
+
+**Giảm chuyển động** (`prefers-reduced-motion: reduce`, `styles/base.css`)
+- Set 5 token `--dur-*` về `0.01ms` và ép `animation-duration` / `transition-duration` = `0.01ms !important`, `animation-iteration-count: 1` cho mọi phần tử: trạng thái đổi tức thì, mực hiện ngay, dấu đóng ngay, skeleton đứng yên.
+- **Tắt hiệu ứng bút** (`:root[data-quill='off']`): ẩn ngòi bút, huỷ animation mực, chữ hiện ngay màu {colors.ink}.
+- **Tắt họa tiết** (`:root[data-ornaments='off']`): ẩn họa tiết góc và dải mây hai bên bảng New Tab.
 
 ## Do's and Don'ts
 
@@ -733,11 +761,14 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 ### Breakpoints
 | Name | Width | Key Changes |
 |---|---|---|
-| Popup | 360 × 560 (cố định) | Một cột; đầu trang → ô nhập → tab → cuộn việc → chân trang cố định. Họa tiết góc ẩn. |
-| New Tab nhỏ | < 720px | Một cột; "Giá sách" thành dải tab cuộn ngang; "Bàn học" xếp dưới cuộn việc, hoặc trượt vào từ cạnh phải. |
-| New Tab vừa | 720 – 1023px | Hai cột: cuộn việc + "Bàn học"; "Giá sách" thu thành dải tab trên cùng. |
-| New Tab lớn | 1024 – 1439px | Ba vùng đầy đủ: 240 / 1fr / 320. |
-| New Tab rộng | ≥ 1440px | Giữ tối đa 1280px, căn giữa; hai bên hiện họa tiết mây/sen trang trí. |
+| Popup | 360 × 560 (cố định) | Một cột; đầu trang → ô nhập → dải lọc (tab + hàng môn/sắp xếp/tìm) → cuộn việc → chân trang cố định 64px. Khung đôi còn 2px; họa tiết góc ẩn. |
+| New Tab một cột | < 720px | `minmax(0,1fr)`: "Giá sách" thành dải ngang trên cùng (tab môn wrap xuống hàng, không cắt môn cuối); "Bàn học" (đồng hồ + streak) xếp dưới cuộn việc; châm ngôn ẩn; khung đôi 2px; lề bảng 16px, lề trang 8px. |
+| New Tab hai cột | 720 – 1023px | `minmax(0,1fr) 300px`: cuộn việc + "Bàn học"; "Giá sách" là dải ngang phía trên; châm ngôn ẩn; ô bút và nút Ghi xuống hàng riêng. |
+| New Tab ba vùng (hẹp) | 1024 – 1279px | `208px / minmax(0,1fr) / 300px`, gap 24px; cột giữa vẫn tối đa 640px. Dải tab thu gọn từ 1199px để đủ bốn tab một hàng. |
+| New Tab ba vùng | 1280 – 1439px | `240px / minmax(0,1fr) / 320px`, gap 32px; bảng tối đa 1280px. Cột giữa rộng nhất ~592px nên khung vòm lời chào chỉ hiện ở màn ≥ ~1300px. |
+| New Tab rộng | ≥ 1440px | Vẫn tối đa 1280px, căn giữa; hai bên hiện dải mây (`/art/cloud-band.svg`, 64×96px, mờ 0.5), tắt theo `data-ornaments='off'`. |
+
+> Hai ngưỡng phụ độc lập với bề rộng cửa sổ: **container query trên cột giữa** (`@container board (max-width: 570px)` — bỏ khung vòm, lời chào còn `{typography.display-lg}`, ô bút xuống hàng, chữ ô nhập nhỏ lại) và **@media 1199px** cho dải tab. Lý do: cột giữa hẹp hơn cửa sổ, và ba vùng ở 1024px vẫn có thể thiếu chỗ cho bốn tab.
 
 ### Touch Targets
 - Nút chính cao ≥ 44px (padding 12px + chữ 16px). Nút icon 40px, tăng lên 44px trên thiết bị cảm ứng.
@@ -746,10 +777,10 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Collapsing Strategy
 - **Cuộn việc**: trong Popup, mọi chip meta gộp thành 1 hàng flex-wrap trải rộng dưới tên việc (hết chỗ wrap xuống dòng, không ẩn chip); tên việc cắt ở 2 dòng. New Tab giữ 2 hàng chip trong cột nội dung.
-- **Giá sách**: ≥ 1024px là cột dọc, dưới đó thành dải tab ngang.
+- **Giá sách**: ≥ 1024px là cột dọc (dính khi cuộn); dưới đó thành dải tab ngang wrap, giữ vạch màu gáy 4px.
 - **Bàn học**: dưới 1024px đồng hồ Pomodoro giữ lại, streak thu thành một dòng 7 chấm, châm ngôn ẩn.
-- **Lời chào**: `{typography.hero-display}` (56px) giảm còn `{typography.heading-lg}` (32px) dưới 720px.
-- **Khung đôi vàng**: giữ ở mọi kích thước, nhưng giảm từ 3px còn 2px ở Popup.
+- **Lời chào**: `{typography.hero-display}` (56px) giảm còn `{typography.display-lg}` (40px) khi cột giữa ≤ 570px và còn `{typography.heading-lg}` (32px) dưới 720px; drop cap 56px → 48px.
+- **Khung đôi vàng**: 3px trên bảng New Tab; Popup (360px) và bảng New Tab dưới 720px dùng 2px.
 - **Hộp thoại**: ở Popup chiếm toàn chiều rộng dạng tờ trượt từ dưới lên; ở New Tab là hộp căn giữa tối đa 560px.
 
 ### Image Behavior
@@ -773,9 +804,21 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - **Chế độ tối** chưa định nghĩa (yêu cầu hiện tại là tông sáng). Nếu cần, gợi ý một bản "đêm sơn mài": nền {colors.ink}, chữ {colors.gold-pale}, giữ đỏ son cho hành động.
 - **Độ phủ tiếng Việt của phông**: cần kiểm tra thực tế các ký tự có dấu kép (ế, ặ, ữ, ợ…) trong Cormorant Garamond, EB Garamond, Pirata One và Dancing Script trước khi phát hành; phương án dự phòng cho từng phông đã ghi ở mục Typography. Pirata One là rủi ro cao nhất; có thể thay bằng chữ in hoa Cormorant màu đỏ son nếu thiếu glyph.
 - **Bộ họa tiết SVG** (bút lông ngỗng, bàn tay cầm bút, lọ mực, cuộn thư, sen, mây, dấu "XONG") chưa được vẽ; file này chỉ mô tả kích thước, điểm neo và màu.
-- **Thời gian chuyển động** ở mục `quill-input` là đề xuất ban đầu (180/120/240/800ms); cần thử trên máy yếu và với người gõ nhanh.
+- **Thời gian chuyển động**: các mốc 180/120/240/800ms giờ là token as-built (xem **Motion (as-built)**); phần còn thiếu chỉ là phép đo cảm giác trên máy yếu và với người gõ nhanh.
 - **Âm thanh nhắc** (chuông đồng, tiếng giấy) chưa quy định; mặc định tắt, bật trong Cài đặt.
 - **Thông báo hệ điều hành** không tạo kiểu được; chỉ đồng bộ giọng văn và biểu tượng.
 - **Hiệu năng**: vệt sáng gradient và hạt khảm trên Popup có thể ảnh hưởng thời gian mở; đo trước khi bật mặc định.
 - **Ngôn ngữ khác**: chuỗi và dấu "XONG" cần bản địa hóa nếu hỗ trợ tiếng Anh; phông có thể cần đổi phần nhãn nút HOA.
 - **Họa tiết theo mùa/ngày lễ** (Tết, khai giảng) chưa có; nên coi như nội dung trang trí, không thêm token màu mới.
+
+### Responsive & menu — R-19 còn mở
+
+- **Dải 1024–1199px chưa verify**: bảng dùng `208 / minmax(0,1fr) / 300` nên cột giữa chỉ còn khoảng 480–560px; dải tab đã thu gọn (padding 8px, chữ 14px) từ 1199px và bốn tab vẫn đủ một hàng, nhưng chưa soi/đo trên màn thật. R-19 (responsive 1024–1199) **chưa đóng**.
+- **Menu lọc môn có thể che chân popup**: `.menu` cao tối đa 320px, `overflow-y: auto`, absolute ngay dưới trigger và **không lật lên**. Hàng lọc nằm ở nửa trên popup 560px, nên danh sách dài (12 môn + "Cả giá sách" + "Chưa xếp môn") có thể chạm hoặc vượt chân popup và bị che — người dùng phải cuộn trong menu mới tới mục cuối. R-19 yêu cầu menu môn không che chân popup: **chưa đạt**.
+- **Affordance dải tab chưa đo**: `.ribbon` có mask fade 16px bên phải và scrollbar 4px (`scrollbar-width: thin`) để báo "còn tab nữa", nhưng chưa đo/soi trên 360px và 1024px thật; scrollbar hệ thống trên Windows khác macOS nên chưa kết luận. R-19 yêu cầu affordance rõ ràng: **chưa xác nhận**.
+- **Chưa đo browser thật**: toàn bộ bảng breakpoint ở trên suy ra từ CSS + container query, chưa chụp/đo ở 360/390/1024 thật.
+
+### Motion & chỗ lệch as-built
+
+- **Motion có chủ đích (R-19)**: token đã có và dùng thống nhất (xem **Motion (as-built)**), nhưng đường giảm chuyển động mới kiểm bằng CSS, **chưa bật `prefers-reduced-motion` trong Chrome thật** để xác nhận mọi hiệu ứng tắt hẳn — coi là "có cơ chế, chưa verify".
+- **Drop cap không dùng Pirata One**: `--font-drop` trỏ Cormorant Garamond in hoa màu son (Pirata One đo thử bị hẹp, không đọc ra chữ C). Token `{typography.drop-cap}` ở frontmatter vẫn ghi Pirata One — đó là ý định thiết kế; chữ đang chạy là as-built ở mục Typography/Known Gaps này.
