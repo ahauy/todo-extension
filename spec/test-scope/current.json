@@ -1,7 +1,7 @@
 {
   "specVersion": "1.2.1",
   "scopeVersion": 22,
-  "generatedAt": "2026-11-16T14:55:54+07:00",
+  "generatedAt": "2026-11-16T15:20:00+07:00",
   "trigger": "change-request",
   "workItem": "feature-package-0-time-foundation",
   "specRefs": ["R-09", "R-10", "R-11"],
@@ -27,13 +27,13 @@
       "dueAt canonical: mọi chỗ sinh dueAt (form, recurrence nextDueAt, toggle việc lặp) trả YYYY-MM-DDTHH:mm local, không hậu tố Z",
       "Migration khi đọc: task cũ có dueAt kết thúc Z được chuẩn hoá về local wall-clock trong loadAll (in-memory, không ghi lại toàn bộ)",
       "G3: weekly nextDueAt với weekdays [1,3,5] sinh occurrence đúng các thứ đó (kể cả catch-up nextFutureDue), giữ HH:mm; weekdays rỗng/thiếu → fallback +7 ngày",
-      "createdAt/updatedAt/lastDoneAt/prevDueAt giữ ISO UTC có Z (comment hợp đồng trong lib/tasks/types.ts)"
+      "createdAt/updatedAt/lastDoneAt giữ ISO UTC có Z (comment hợp đồng trong lib/tasks/types.ts); dueAt + prevDueAt là wall-clock local không Z"
     ],
     "dependents": [
       "hooks/useTasks.toggle → scheduleTask/chrome.alarms nhận dueAt local (new Date parse đúng, alarm đúng giờ)",
-      "Hoàn tác hôm nay: dueAt khôi phục từ prevDueAt (instant UTC) → phải quy đổi về local wall-clock qua helper",
+      "Hoàn tác hôm nay: dueAt = prevDueAt gán thẳng (cả hai cùng wall-clock local, 0 quy đổi)",
       "components DeadlineChip / deadlineText đọc dueAt qua new Date() — hiển thị giờ đã đặt thay vì giờ UTC",
-      "G8 (tuỳ chọn): sortBoard tie-breaker theo R-15 (thêm id) — sortTasks giữ nguyên"
+      "G8 (đã duyệt, làm trong task 02): sortBoard tie-breaker theo R-15 (thêm id) — sortTasks giữ nguyên"
     ],
     "regression": [
       "Việc lặp daily/monthly vẫn cuộn hạn đúng, catch-up ≤1000 vòng",

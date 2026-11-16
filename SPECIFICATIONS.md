@@ -99,10 +99,10 @@ Khi tick done task có `recurrence ≠ none` và có `dueAt`: giữ nguyên `id`
 `dueAt = nextDueAt(dueAt, rule)`, cập nhật `updatedAt`, tạo alarm mới. Không lưu lịch sử occurrence.
 
 Đóng dấu để lại vết trên task bằng hai field additive tuỳ chọn: `lastDoneAt` (mốc đóng dấu, ISO 8601 UTC)
-và `prevDueAt` (instant ISO 8601 UTC có `Z` — thời điểm của hạn occurrence vừa hoàn thành). Task có `lastDoneAt` cùng ngày local với hiện tại →
+và `prevDueAt` (**wall-clock local**, cùng định dạng `YYYY-MM-DDTHH:mm` với `dueAt` — là bản sao hạn của occurrence vừa hoàn thành, KHÔNG phải instant). Task có `lastDoneAt` cùng ngày local với hiện tại →
 thẻ hiển thị trạng thái **done-today** ("đã làm hôm nay · hẹn <hạn kế tiếp>"), bền qua reload và tự về
 open khi sang ngày kế tiếp. Bấm lại khi đang done-today = **hoàn tác hôm nay**: khôi phục
-`dueAt = prevDueAt` (quy đổi instant về local wall-clock qua helper trước khi ghi), xoá `lastDoneAt`/`prevDueAt`, không cuộn hạn thêm lần nữa. Task cũ thiếu hai field
+`dueAt = prevDueAt` (cả hai cùng wall-clock local nên gán thẳng, không cần quy đổi), xoá `lastDoneAt`/`prevDueAt`, không cuộn hạn thêm lần nữa. Task cũ thiếu hai field
 này được coi như open.
 
 **Catch-up:** nếu `nextDueAt` rơi vào quá khứ (user tick muộn nhiều kỳ), lặp `nextDueAt` cho tới khi
