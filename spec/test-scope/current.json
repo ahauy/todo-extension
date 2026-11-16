@@ -1,51 +1,53 @@
 {
-  "specVersion": "1.2.0",
-  "scopeVersion": 21,
-  "generatedAt": "2026-11-13T00:05:00+07:00",
-  "trigger": "bug-fix",
-  "workItem": "bug/task-seal-states",
-  "specRefs": ["R-11"],
+  "specVersion": "1.2.1",
+  "scopeVersion": 22,
+  "generatedAt": "2026-11-16T14:55:54+07:00",
+  "trigger": "change-request",
+  "workItem": "feature-package-0-time-foundation",
+  "specRefs": ["R-09", "R-10", "R-11"],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
-      "spec/updates/2026-11-12-task-seal-states.md",
+      "spec/updates/2026-11-16-package-0-time-foundation.md",
+      "lib/datetime.ts",
       "lib/tasks/types.ts",
+      "lib/tasks/recurrence.ts",
+      "lib/tasks/form.ts",
       "lib/tasks/query.ts",
+      "lib/storage/adapter.ts",
       "hooks/useTasks.ts",
-      "components/TaskScroll.tsx",
-      "components/art/Icons.tsx",
-      "styles/signature.css",
-      "src/__tests__/TaskScroll.test.tsx",
+      "src/__tests__/recurrence.test.ts",
       "src/__tests__/useTasks.test.tsx",
-      "entrypoints/popup/App.wiring.test.tsx"
+      "src/__tests__/datetime.test.ts"
     ],
-    "modules": ["task-domain", "task-feedback", "popup", "newtab", "design-system"]
+    "modules": ["task-domain", "storage-adapter", "recurrence-domain", "query-domain", "task-feedback"]
   },
   "impact": {
     "direct": [
-      "Triện (đóng dấu) nhận biết được là nút: icon mộc khi open, hover, tooltip, aria-pressed, vùng bấm 44×44",
-      "Việc lặp đóng dấu → lastDoneAt + prevDueAt, thẻ hiện chip 'đã làm hôm nay · hẹn <hạn kế>' và bền qua reload",
-      "Bấm lại khi done-today = Hoàn tác hôm nay: khôi phục prevDueAt, không cuộn hạn thêm lần nữa",
-      "Phân biệt 3+ trạng thái trên thẻ: open / overdue / done / done-today (+ badge 'lặp' khi việc lặp còn open)"
+      "dueAt canonical: mọi chỗ sinh dueAt (form, recurrence nextDueAt, toggle việc lặp) trả YYYY-MM-DDTHH:mm local, không hậu tố Z",
+      "Migration khi đọc: task cũ có dueAt kết thúc Z được chuẩn hoá về local wall-clock trong loadAll (in-memory, không ghi lại toàn bộ)",
+      "G3: weekly nextDueAt với weekdays [1,3,5] sinh occurrence đúng các thứ đó (kể cả catch-up nextFutureDue), giữ HH:mm; weekdays rỗng/thiếu → fallback +7 ngày",
+      "createdAt/updatedAt/lastDoneAt/prevDueAt giữ ISO UTC có Z (comment hợp đồng trong lib/tasks/types.ts)"
     ],
     "dependents": [
-      "hooks/useTasks.toggle → chrome.alarms reschedule (clear khi done, tạo khi occurrence kế tiếp)",
-      "components/TaskScroll render cả popup (compact) và board New Tab (!compact)",
-      "App wiring test: TaskScroll props/seal label"
+      "hooks/useTasks.toggle → scheduleTask/chrome.alarms nhận dueAt local (new Date parse đúng, alarm đúng giờ)",
+      "Hoàn tác hôm nay: dueAt khôi phục từ prevDueAt (instant UTC) → phải quy đổi về local wall-clock qua helper",
+      "components DeadlineChip / deadlineText đọc dueAt qua new Date() — hiển thị giờ đã đặt thay vì giờ UTC",
+      "G8 (tuỳ chọn): sortBoard tie-breaker theo R-15 (thêm id) — sortTasks giữ nguyên"
     ],
     "regression": [
-      "Board New Tab giữ 2 hàng chip trong cột, không tràn/mất chip",
-      "Query tabs (all/today/upcoming/done): done-today vẫn nằm ở occurrence kế tiếp, không đổi tab",
-      "Việc không lặp: đóng dấu → done, bỏ đóng dấu → open, giữ dueAt",
-      "Task cũ không có lastDoneAt/prevDueAt hiển thị như open, không vỡ dữ liệu",
-      "a11y: role listitem, reading order, aria-pressed/aria-label, contrast chip"
+      "Việc lặp daily/monthly vẫn cuộn hạn đúng, catch-up ≤1000 vòng",
+      "Task không lặp: tick done / bỏ done giữ dueAt nguyên vẹn",
+      "Task cũ chỉ có lastDoneAt (không prevDueAt) hiển thị như open, không vỡ dữ liệu",
+      "Storage quota: không phát sinh write khi loadAll (đếm số write trong test adapter nếu có)",
+      "Không đổi UI, không đổi schema key t:<id>, không thêm permission manifest"
     ]
   },
   "acceptance": [
-    "Nút triện nhìn thấy được là nút và bấm có phản hồi ngay trên thẻ.",
-    "Việc lặp đóng dấu hiện trạng thái done-today bền qua reload; bấm lại hoàn tác về occurrence vừa làm.",
-    "Sang ngày kế tiếp việc lặp tự trở về open.",
-    "Không hồi quy board New Tab, a11y, query tabs, typecheck/lint/test/build."
+    "Task tạo ở múi giờ A, mở ở múi giờ B vẫn hiện đúng giờ đã đặt (wall-clock local).",
+    "Weekly weekdays=[1,3,5] chỉ sinh occurrence đúng các thứ đó; weekdays rỗng fallback +7.",
+    "Không có task nào lệch ngày sau migration (fixture có Z và không Z đọc đúng).",
+    "Toggle việc lặp vẫn tạo alarm đúng giờ local; không hồi quy daily/monthly, query tabs, typecheck/lint/test/build."
   ],
   "risk": "medium"
 }

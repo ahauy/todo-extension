@@ -1,6 +1,6 @@
 ---
-spec_version: 1.2.0
-updated_at: 2026-11-13
+spec_version: 1.2.1
+updated_at: 2026-11-16
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -71,7 +71,11 @@ Tick hết subtask KHÔNG tự tick task cha (tránh hành vi ngầm); tick task
 ### Domain: Thời gian & nhắc việc
 
 **R-09 — Due date + giờ**
-Task có thể có `dueAt` (chuỗi ISO 8601 local, gồm cả ngày và giờ) hoặc không có. Không có `dueAt` → không nhắc.
+Task có thể có `dueAt` hoặc không có. `dueAt` là **wall-clock giờ địa phương**, định dạng chuẩn
+`YYYY-MM-DDTHH:mm`, không hậu tố `Z`/offset — "8 giờ sáng mai" phải giữ nguyên 8 giờ địa phương
+dù đổi múi giờ/DST. Không có `dueAt` → không nhắc.
+Task cũ lưu `dueAt` có hậu tố `Z` được chuẩn hoá về local wall-clock **khi đọc** (in-memory,
+không ghi lại toàn bộ — ràng buộc 120 write/phút của `chrome.storage.sync`).
 `dueAt < now` → hiển thị trạng thái "quá hạn" (overdue) trong UI.
 
 **R-10 — Quy tắc lặp lại**
@@ -86,15 +90,19 @@ Weekly/monthly bắt buộc có `dueAt` để làm mốc tính lần kế tiếp
 Mọi phép tính ngày/tuần/tháng dùng **múi giờ local của thiết bị** (không UTC): "thứ 2" là thứ 2 theo
 giờ người dùng; đổi múi giờ thiết bị có thể làm lệch ngày nhắc — chấp nhận (client-only, không server).
 
+Weekly `nextDueAt` phải sinh occurrence **đúng các thứ khai trong `weekdays`** (kể cả qua catch-up
+`nextFutureDue`), giữ nguyên `HH:mm`. Nếu `weekdays` rỗng hoặc thiếu (dữ liệu cũ lỗi) → fallback
+cộng +7 ngày giữ nguyên giờ để không mất mốc.
+
 **R-11 — Hoàn thành task lặp lại**
 Khi tick done task có `recurrence ≠ none` và có `dueAt`: giữ nguyên `id`, đặt `done = false`,
 `dueAt = nextDueAt(dueAt, rule)`, cập nhật `updatedAt`, tạo alarm mới. Không lưu lịch sử occurrence.
 
 Đóng dấu để lại vết trên task bằng hai field additive tuỳ chọn: `lastDoneAt` (mốc đóng dấu, ISO 8601 UTC)
-và `prevDueAt` (hạn của occurrence vừa hoàn thành). Task có `lastDoneAt` cùng ngày local với hiện tại →
+và `prevDueAt` (instant ISO 8601 UTC có `Z` — thời điểm của hạn occurrence vừa hoàn thành). Task có `lastDoneAt` cùng ngày local với hiện tại →
 thẻ hiển thị trạng thái **done-today** ("đã làm hôm nay · hẹn <hạn kế tiếp>"), bền qua reload và tự về
 open khi sang ngày kế tiếp. Bấm lại khi đang done-today = **hoàn tác hôm nay**: khôi phục
-`dueAt = prevDueAt`, xoá `lastDoneAt`/`prevDueAt`, không cuộn hạn thêm lần nữa. Task cũ thiếu hai field
+`dueAt = prevDueAt` (quy đổi instant về local wall-clock qua helper trước khi ghi), xoá `lastDoneAt`/`prevDueAt`, không cuộn hạn thêm lần nữa. Task cũ thiếu hai field
 này được coi như open.
 
 **Catch-up:** nếu `nextDueAt` rơi vào quá khứ (user tick muộn nhiều kỳ), lặp `nextDueAt` cho tới khi
