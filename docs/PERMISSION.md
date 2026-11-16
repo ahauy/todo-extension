@@ -24,8 +24,8 @@
 | Quyền | Dùng để làm gì | Bằng chứng code | Vì sao cần |
 |-------|----------------|-----------------|-----------|
 | `storage` | Lưu task + settings trong `chrome.storage.sync`, đồng bộ theo tài khoản Chrome | `lib/storage/adapter.ts` (get/set/remove/onChanged) | Lưu trữ dữ liệu todo cục bộ + đồng bộ đa thiết bị; không có backend thay thế |
-| `alarms` | Đặt nhắc việc bền vững tên `due:<id>`, sống qua vòng đời service worker MV3 | `lib/alarms/scheduler.ts`, `entrypoints/background.ts:65` | `setTimeout` không bền khi SW bị kill; alarm là cách MV3 chuẩn để nhắc đúng hạn |
-| `notifications` | Hiện thông báo nhắc việc khi alarm fire (title + note rút gọn + hạn) | `entrypoints/background.ts:31` (`notifyTask`) | Hiển thị nhắc việc cho người dùng; không thể tự vẽ notification nếu không có quyền |
+| `alarms` | Đặt nhắc việc bền vững tên `due:<id>`, sống qua vòng đời service worker MV3 | `lib/alarms/scheduler.ts`, `entrypoints/background.ts:92` (`alarms.onAlarm`) | `setTimeout` không bền khi SW bị kill; alarm là cách MV3 chuẩn để nhắc đúng hạn |
+| `notifications` | Hiện thông báo nhắc việc khi alarm fire (title = tên việc; message = note rút gọn, hoặc hạn chót khi không có note) | `entrypoints/background.ts:32` (`notifyTask`) | Hiển thị nhắc việc cho người dùng; không thể tự vẽ notification nếu không có quyền |
 
 > Cả 3 quyền đều **tối thiểu và trực tiếp** phục vụ tính năng cốt lõi. Không quyền nào dùng cho
 > mục đích khác (tracking, quảng cáo, thu thập dữ liệu).
@@ -34,7 +34,7 @@
 
 | Khía cạnh | Thực tế |
 |-----------|---------|
-| Dữ liệu thu thập | Task (title, note, priority, tag, subtask, due, recurrence) + settings (theme, notificationsEnabled) — **do người dùng tự nhập** |
+| Dữ liệu thu thập | Task (title, note, priority, tag, subtask, due, recurrence, subjectId) + settings (8 field: `notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`) + `subjects` + `studyLog` — **do người dùng tự nhập**. **Không** có `theme`. |
 | Nơi lưu | `chrome.storage.sync` (trong trình duyệt + đồng bộ qua tài khoản Chrome của chính người dùng) |
 | Truyền ra ngoài | **Không** — không network request, không server riêng, không third-party |
 | Analytics / tracking | **Không** |
@@ -58,8 +58,7 @@ không rate-limit phía server. Giới hạn ghi (120 write/phút) là **giới 
 
 ## 4. Lưu ý trước khi đăng Web Store
 
-- **Icon:** đã có `public/icon/{16,48,128}.png`, manifest khai `icons`; notification dùng
-  `chrome.runtime.getURL('icon/48.png')`. Gap G5 đã đóng 2026-11-11 (trước Web Store có thể bổ sung
-  32px nếu muốn theo khuyến nghị listing).
+- **Icon:** đã có `public/icon/{16,32,48,128}.png`, manifest khai đủ 4 kích thước
+  (`wxt.config.ts`); notification dùng `chrome.runtime.getURL('icon/48.png')`. Gap G5 đã đóng 2026-11-11.
 - Tab Privacy: dán justification mục 1 + data handling mục 2.
 - Không cần khai báo data collection vì không truyền dữ liệu ra ngoài trình duyệt.

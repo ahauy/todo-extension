@@ -764,11 +764,12 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 | Popup | 360 × 560 (cố định) | Một cột; đầu trang → ô nhập → dải lọc (tab + hàng môn/sắp xếp/tìm) → cuộn việc → chân trang cố định 64px. Khung đôi còn 2px; họa tiết góc ẩn. |
 | New Tab một cột | < 720px | `minmax(0,1fr)`: "Giá sách" thành dải ngang trên cùng (tab môn wrap xuống hàng, không cắt môn cuối); "Bàn học" (đồng hồ + streak) xếp dưới cuộn việc; châm ngôn ẩn; khung đôi 2px; lề bảng 16px, lề trang 8px. |
 | New Tab hai cột | 720 – 1023px | `minmax(0,1fr) 300px`: cuộn việc + "Bàn học"; "Giá sách" là dải ngang phía trên; châm ngôn ẩn; ô bút và nút Ghi xuống hàng riêng. |
-| New Tab ba vùng (hẹp) | 1024 – 1279px | `208px / minmax(0,1fr) / 300px`, gap 24px; cột giữa vẫn tối đa 640px. Dải tab thu gọn từ 1199px để đủ bốn tab một hàng. |
+| New Tab hai cột (hẹp) | 1024 – 1199px | `minmax(0,1fr) 300px`: "Giá sách" thành dải ngang phía trên, cuộn việc + "Bàn học"; cột giữa bỏ giới hạn 640px; dải tab thu gọn (padding 8px, chữ 14px). |
+| New Tab ba vùng (hẹp) | 1200 – 1279px | `208px / minmax(0,1fr) / 300px`, gap 24px; cột giữa vẫn tối đa 640px; dải tab vẫn thu gọn. |
 | New Tab ba vùng | 1280 – 1439px | `240px / minmax(0,1fr) / 320px`, gap 32px; bảng tối đa 1280px. Cột giữa rộng nhất ~592px nên khung vòm lời chào chỉ hiện ở màn ≥ ~1300px. |
 | New Tab rộng | ≥ 1440px | Vẫn tối đa 1280px, căn giữa; hai bên hiện dải mây (`/art/cloud-band.svg`, 64×96px, mờ 0.5), tắt theo `data-ornaments='off'`. |
 
-> Hai ngưỡng phụ độc lập với bề rộng cửa sổ: **container query trên cột giữa** (`@container board (max-width: 570px)` — bỏ khung vòm, lời chào còn `{typography.display-lg}`, ô bút xuống hàng, chữ ô nhập nhỏ lại) và **@media 1199px** cho dải tab. Lý do: cột giữa hẹp hơn cửa sổ, và ba vùng ở 1024px vẫn có thể thiếu chỗ cho bốn tab.
+> Hai ngưỡng phụ độc lập với bề rộng cửa sổ: **container query trên cột giữa** (`@container board (max-width: 570px)` — bỏ khung vòm, lời chào còn `{typography.display-lg}`, ô bút xuống hàng, chữ ô nhập nhỏ lại) và **@media 1199px** cho dải tab + gộp 1024–1199px thành hai cột. Lý do: cột giữa hẹp hơn cửa sổ, và ba vùng ở 1024px không đủ chỗ cho bốn tab.
 
 ### Touch Targets
 - Nút chính cao ≥ 44px (padding 12px + chữ 16px). Nút icon 40px, tăng lên 44px trên thiết bị cảm ứng.
@@ -813,7 +814,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Responsive & menu — R-19 còn mở
 
-- **Dải 1024–1199px chưa verify**: bảng dùng `208 / minmax(0,1fr) / 300` nên cột giữa chỉ còn khoảng 480–560px; dải tab đã thu gọn (padding 8px, chữ 14px) từ 1199px và bốn tab vẫn đủ một hàng, nhưng chưa soi/đo trên màn thật. R-19 (responsive 1024–1199) **chưa đóng**.
+- **Dải 1024–1199px chưa verify**: code dùng **hai cột** `minmax(0,1fr) 300px` và đưa Giá sách lên dải ngang (`entrypoints/newtab/style.css:112-120`); 1200–1279px mới là ba vùng `208 / minmax(0,1fr) / 300`. Dải tab thu gọn (padding 8px, chữ 14px) từ 1199px. Chưa soi/đo trên màn thật ở cả hai dải. R-19 (responsive 1024–1199) **chưa đóng**.
 - **Menu lọc môn có thể che chân popup**: `.menu` cao tối đa 320px, `overflow-y: auto`, absolute ngay dưới trigger và **không lật lên**. Hàng lọc nằm ở nửa trên popup 560px, nên danh sách dài (12 môn + "Cả giá sách" + "Chưa xếp môn") có thể chạm hoặc vượt chân popup và bị che — người dùng phải cuộn trong menu mới tới mục cuối. R-19 yêu cầu menu môn không che chân popup: **chưa đạt**.
 - **Affordance dải tab chưa đo**: `.ribbon` có mask fade 16px bên phải và scrollbar 4px (`scrollbar-width: thin`) để báo "còn tab nữa", nhưng chưa đo/soi trên 360px và 1024px thật; scrollbar hệ thống trên Windows khác macOS nên chưa kết luận. R-19 yêu cầu affordance rõ ràng: **chưa xác nhận**.
 - **Chưa đo browser thật**: toàn bộ bảng breakpoint ở trên suy ra từ CSS + container query, chưa chụp/đo ở 360/390/1024 thật.

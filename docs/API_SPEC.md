@@ -69,10 +69,10 @@ Alarm bền hơn `setTimeout` trong service worker MV3 (SW bị kill giữa ch�
 
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
-| `notifications.create(id, opts)` | `background.ts:32` (`notifyTask`) | Hiện nhắc việc: title task + note rút gọn (≤60 ký tự) + hạn |
+| `notifications.create(id, opts)` | `background.ts:32-39` (`notifyTask`) | Title = tên task (`taskTitle`). Message = note rút gọn ≤60 ký tự (`notePreview`, dòng 24-29) **hoặc** — chỉ khi task không có note — `Đến hạn rồi con ơi: <dueAt>` (dòng 37). Không bao giờ ghép cả hai |
 
 Notification **không** tự đổi trạng thái task (R-12). `iconUrl: chrome.runtime.getURL('icon/48.png')`
-(`background.ts:35`) — icon 16/48/128 nằm trong `public/icon/`, manifest khai `icons`
+(`background.ts:35`) — icon 16/32/48/128 nằm trong `public/icon/`, manifest khai `icons`
 (gap G5 đã đóng 2026-11-11, guard test `src/__tests__/notification-icon.test.ts`).
 
 Background chỉ gọi `notifications.create` khi `shouldNotify(task, settings)` (`lib/notifications.ts`):
@@ -137,20 +137,21 @@ không dùng `rule.weekdays` → gap G3.
 
 | Hàm | Chữ ký | Hành vi |
 |---|---|---|
-| `filterByBoard` | `(tasks, tab: BoardTab, now: Date) => Task[]` | `all` = mọi việc; `today` = chưa xong và (hạn cùng **ngày local** hôm nay **hoặc** đã quá hạn); `upcoming` = chưa xong, hạn > now và không phải hôm nay; `done` = `done === true` (`query.ts:135-153`) |
-| `filterBySubject` | `(tasks, subjectId: string) => Task[]` | `'all'` = mọi môn, `'none'` = việc chưa có `subjectId`, còn lại khớp `subjectId` (`query.ts:156`) |
-| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc; `created` = createdAt desc (`query.ts:162-179`) |
-| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) |
-| `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive |
-| `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:125`) |
-| `dueTodayCount` | `(tasks, now) => number` | `filterByBoard(..., 'today')` length — dùng cho chiếu chỉ + lời chào |
-| `sortDoneTasks` | `(tasks) => Task[]` | Sắp updatedAt desc — helper cũ, không còn nơi nào import |
+| `filterByBoard` | `(tasks, tab: BoardTab, now: Date) => Task[]` | `all` = mọi việc; `today` = chưa xong và (hạn cùng **ngày local** hôm nay **hoặc** đã quá hạn); `upcoming` = chưa xong, hạn > now và không phải hôm nay; `done` = `done === true` (`query.ts:112-130`) |
+| `filterBySubject` | `(tasks, subjectId: string) => Task[]` | `'all'` = mọi môn, `'none'` = việc chưa có `subjectId`, còn lại khớp `subjectId` (`query.ts:133-137`) |
+| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc; `created` = createdAt desc (`query.ts:139-156`) |
+| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) (`query.ts:48-84`) |
+| `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive (`query.ts:17-24`) |
+| `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:102-109`) |
+| `dueTodayCount` | `(tasks, now) => number` | `filterByBoard(..., 'today')` length — dùng cho chiếu chỉ + lời chào (`query.ts:159-161`) |
+| `overdueCount` | `(tasks, now) => number` | Đếm task chưa xong có `dueAt < now` (`query.ts:163-165`) |
 
-Sort precedence deterministic (R-15) — `sortTasks`, dòng 62-98. Task không `dueAt` xếp cuối.
+Sort precedence deterministic (R-15) — `sortTasks`, dòng 48-84. Task không `dueAt` xếp cuối.
 UI dùng `sortBoard` với tiêu chí người dùng chọn (`deadline` mặc định, `priority`, `created`) ở
 `components/FilterRow.tsx`; tab Đã xong cũng đi qua `sortBoard` nên **không** tự sort `updatedAt`.
-`filterTasks`/`Tab`/`SortCriterion` (`query.ts:14-28`) là helper legacy của bản tab 3 lựa chọn —
-**không còn dùng ở UI** và không test nào import; giữ lại chờ dọn (gap G4 đóng: user chọn được tiêu chí sort).
+`SortCriterion` (`query.ts:14`) là dead export duy nhất còn lại của bản tab 3 lựa chọn — **không** nơi
+nào import; `filterTasks` và `Tab` đã bị xoá khỏi code (không còn tồn tại). Giữ `SortCriterion` chờ dọn
+vào lần chạm `query.ts` kế tiếp (G4 đã đóng: user chọn được tiêu chí sort).
 
 ### 3.4 Alarm scheduler — `lib/alarms/scheduler.ts`
 
@@ -168,7 +169,7 @@ tạo (Chrome fire ngay), task hiển thị overdue (R-12).
 ### 3.5 Popup state — `hooks/useTasks.ts`
 
 `useTasks()` → `{ tasks, add, create, update, remove, toggle, restore, loading }` qua
-`useSyncExternalStore` trên adapter (`hooks/useTasks.ts:298`).
+`useSyncExternalStore` trên adapter (`hooks/useTasks.ts:151`).
 
 - `add`: quick-add chỉ title → `create(defaultDraft(title))`.
 - `create`: validate title 1–200 trim, `id = crypto.randomUUID()`, mặc định `priority=medium`,
@@ -210,11 +211,12 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 | G1 | R-09: `dueAt` là **epoch ms** | `types.ts:45`: `dueAt: string \| null`; spec 1.2.0 đã sửa R-09 sang ISO 8601 local | ✅ Đã đóng (spec 1.2.0). Dạng UTC sau khi lặp tách riêng thành G6 |
 | G2 | `settings = { theme }` | `types.ts:76-86`: 8 field (`notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`); spec 1.2.0 đã mô tả đúng; `normalizeSettings` bỏ field `theme` cũ khi đọc | ✅ Đã đóng (spec 1.2.0) |
 | G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:90-94`: weekly chỉ **+7 ngày**, không dùng `weekdays`; `recurrenceForKind` chỉ lưu đúng 1 thứ lấy từ `dueAt` (dòng 28-30) | **Mở** — weekly lặp đúng 7 ngày, bỏ qua thứ đã chọn |
-| G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:112`: `SortKey = 'deadline' \| 'priority' \| 'created'` + `sortBoard`; UI `FilterRow` cho chọn qua menu "Sắp xếp" | ✅ Đã đóng phần **chọn được tiêu chí**. Tie-breaker **không đồng nhất giữa 3 tiêu chí** → xem **G8**; `SortCriterion='default'` còn là dead export (không nơi nào import) |
-| G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
+| G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:88-89`: `SortKey = 'deadline' \| 'priority' \| 'created'` + `sortBoard`; UI `FilterRow` cho chọn qua menu "Sắp xếp" | ✅ Đã đóng phần **chọn được tiêu chí**. Tie-breaker **không đồng nhất giữa 3 tiêu chí** → xem **G8**; `SortCriterion='default'` còn là dead export (không nơi nào import) |
+| G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,32,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 | G6 | R-09/R-10: `dueAt` là ISO 8601 **local** (một dạng duy nhất) | Hạn nhập tay = `YYYY-MM-DDTHH:mm` không `Z` (`lib/datetime.ts`); occurrence do `nextDueAt`/`nextFutureDue` sinh = `toISOString()` **UTC có `Z`** (`recurrence.ts:88,94,107`) | **Mở (BUG-002)** — hai dạng chuỗi cùng tồn tại; parse/so sánh ngày vẫn đúng nhưng dữ liệu không đồng nhất. Xem [`ERD.md`](ERD.md) §2.1 |
 | G7 | R-13: sync **last-write-wins theo `updatedAt`** từng bản ghi | `hooks/useTasks.ts:102-128`: `onChanged` → `loadAll()` reload toàn bộ rồi thay snapshot, không so `updatedAt`; background reschedule theo key | **Mở** — trên 2 thiết bị, thay đổi sau ghi đè trước ở tầng storage nên kết quả vẫn "bản mới nhất thắng" theo Chrome, nhưng UI không tự phân xử merge; intent merge vẫn giữ, code chưa implement |
-| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:162-179` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt`; `priority` → priority desc → `dueAt` asc → `createdAt` desc; `created` → **chỉ** `createdAt` desc, không tie-breaker phụ | **Mở (R-15)** — chuỗi "overdue → dueAt → priority → createdAt" chỉ đúng cho `deadline`; `priority` dùng chuỗi khác; `created` không có tie-breaker nên thứ tự task trùng `createdAt` phụ thuộc thứ tự key của storage (khác nhau giữa thiết bị). Đóng bằng `/change` (chuẩn hoá `sortBoard` theo R-15) hoặc sửa R-15 |
+| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:139-156` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt`; `priority` → priority desc → `dueAt` asc → `createdAt` desc; `created` → **chỉ** `createdAt` desc, không tie-breaker phụ | **Mở (R-15)** — chuỗi "overdue → dueAt → priority → createdAt" chỉ đúng cho `deadline`; `priority` dùng chuỗi khác; `created` không có tie-breaker nên thứ tự task trùng `createdAt` phụ thuộc thứ tự key của storage (khác nhau giữa thiết bị). Đóng bằng `/change` (chuẩn hoá `sortBoard` theo R-15) hoặc sửa R-15 |
+| G9 | R-19: trải nghiệm Sơn Mài có chủ đích — responsive 1024–1199, menu môn không che chân popup, affordance dải tab, motion | `docs/DESIGN.md` §Known Gaps ghi rõ các mục **chưa verify/chưa đạt**: 1024–1199px dùng **2 cột** (`entrypoints/newtab/style.css:112-120`) chứ không phải ba vùng; `.menu` không lật lên (`components/ui/Menu.tsx:95`, `styles/components.css:500-501`); chưa đo trên 360/390/1024 thật | **Mở (R-19)** — đang xử lý trong FEAT-002 (`son-mai-experience-polish`); chỉ đóng khi đo browser thật + menu không che chân popup. Xem `docs/ROADMAP_TIME_MANAGEMENT.md` §8 |
 
 > Gap G6/G7 được `doc-reconcile` ghi nhận, **không** hạ intent: muốn đóng phải qua `/change` (chuẩn hoá
 > `dueAt` một dạng + thêm merge theo `updatedAt`) rồi `/spec-publish`.

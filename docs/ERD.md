@@ -38,7 +38,7 @@
 |---|---|---|---|
 | `id` | `string` | uuid, khoá chính | `crypto.randomUUID()` |
 | `title` | `string` | bắt buộc, trim, **1–200** ký tự | R-01 |
-| `note` | `string` | tuỳ chọn, **≤ 1000** ký tự | R-06 |
+| `note` | `string` | **luôn có**, có thể chuỗi rỗng, **≤ 1000** ký tự | R-06; mặc định `''` (`lib/tasks/form.ts:26-37`) |
 | `priority` | `"low" \| "medium" \| "high"` | mặc định `medium` | R-05 |
 | `dueAt` | `string \| null` | chuỗi ISO 8601, **giờ local** khi người dùng đặt hạn | R-09; null = không hạn → không nhắc |
 | `recurrence` | `RecurrenceRule` | mặc định `{kind:"none"}` | R-10, xem 2.3 |
@@ -62,7 +62,7 @@
   Đây là **gap G6** đang mở (BUG-002), không phải "local thuần".
 - `lastDoneAt` luôn là UTC (`nowISO() = new Date().toISOString()`, `hooks/useTasks.ts:43`).
   Trạng thái **done-today** quy đổi bằng cách so **ngày local** của `lastDoneAt` với hôm nay
-  (`sameLocalDay`, `lib/tasks/query.ts:114-121`), không so chuỗi ngày.
+  (`sameLocalDay`, `lib/tasks/query.ts:91-98`), không so chuỗi ngày.
 
 > `SPECIFICATIONS.md` 1.2.0 R-09 đã sửa từ *epoch ms* sang *ISO 8601 local*; gap G1 cũ đã đóng.
 > Phần còn lệch là dạng UTC sau khi lặp — xem G6 ở [`API_SPEC.md`](API_SPEC.md) §5.
@@ -77,7 +77,8 @@
 
 Quan hệ: **Task 1 — N Subtask** (mảng nhúng, không phải key riêng).
 Business rule (R-08): tick hết subtask **KHÔNG** tự tick task cha; tick task cha không đổi subtask.
-Tiến độ hiển thị `done/total` (`components/ui/SubtaskProgress.tsx`).
+Tiến độ hiển thị `done/total` ngay trên chip meta của cuộn thư (`components/TaskScroll.tsx:67`
+tính `doneSubtasks`, render trong `metaChips`) — không có component riêng.
 
 ### 2.3 `RecurrenceRule` (embedded, discriminated union) — `types.ts:28-32`
 
@@ -125,6 +126,10 @@ Quan hệ: **Subject 1 — N Task** qua `Task.subjectId` (không có FK, chỉ l
 Xoá môn (`useBoard.dropSubject`) gỡ `subjects` rồi gán `subjectId = null` cho mọi task của môn đó —
 task không bị xoá (`hooks/useBoard.ts:135-144`).
 
+Giới hạn áp trong code: `MAX_SUBJECTS = 12`, `MAX_SUBJECT_NAME = 28` (`lib/subjects.ts:51-52`);
+tên trùng nhau (so **không phân biệt hoa/thường**) bị từ chối (`hooks/useSubjects.ts:79-81`,
+`components/SubjectShelf.tsx:42`).
+
 ### 2.6 `StudyLog` / `StudyDay` (key `studyLog`) — `types.ts:99-104`
 
 | Kiểu | Định nghĩa |
@@ -147,6 +152,10 @@ Ghi nhật ký nằm ở `hooks/useBoard.ts:91` (toggle task) và `:44` (hết p
 
 **Không đồng bộ giữa máy** — lưu local, không nằm trong `storage.sync` (`lib/storage/local.ts:2-5`).
 
+`taskId` thực tế **luôn `null`**: hook có API `attach(taskId)` (`hooks/usePomodoro.ts:43,137`) và
+`newtab/App.tsx:142` đọc `taskId` để tìm việc đang gắn, nhưng **chưa component nào gọi `attach()`**.
+Nối UI này là Gói C trong [`ROADMAP_TIME_MANAGEMENT.md`](ROADMAP_TIME_MANAGEMENT.md).
+
 ## 3. Quan hệ tổng thể
 
 ```
@@ -167,7 +176,7 @@ Không có khoá ngoại giữa các key — `Subtask`/`RecurrenceRule` nhúng t
 
 ## 4. Giới hạn quota (Chrome `storage.sync`)
 
-Nguồn: `SPECIFICATIONS.md` §Scalability + `lib/storage/adapter.ts:14`.
+Nguồn: `SPECIFICATIONS.md` §Scalability + `lib/storage/adapter.ts:3-5` (comment quota).
 
 | Giới hạn | Giá trị | Hệ quả thiết kế |
 |---|---|---|
