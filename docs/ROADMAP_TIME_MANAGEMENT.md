@@ -26,7 +26,7 @@ scope: time-management upgrade (habit · Pareto · ABCDE · 6P · Eat That Frog 
 | §4 | Nội dung từng gói (dữ liệu, hành vi, module chạm, chi phí, nghiệm thu sơ bộ) |
 | §5 | Các quyết định đã chốt với user |
 | §6 | Thứ tự triển khai đề xuất + lý do |
-| §7 | Câu hỏi còn mở (phải chốt trước khi mở phase) |
+| §7 | Câu hỏi đã chốt ngày **2026-11-16** (kèm phương án đã chọn + hệ quả) |
 | §8 | Phụ lục: lệch doc↔code liên quan (thuộc một lượt reconcile riêng) |
 
 ## 1. Phân tích 7 phương pháp
@@ -163,7 +163,8 @@ Mỗi gói độc lập về dữ liệu, nhưng cùng phục vụ vòng lặp �
 
 ```ts
 // Task (mở rộng)
-keystone?: boolean;   // A-list — tối đa 3 việc đang mở
+keystone?: boolean;   // A-list — tối đa 3 việc đang mở (chỉ cảnh báo, không chặn)
+archived?: boolean;   // "Cắt bỏ" (E của ABCDE) — ẩn khỏi tab + chip 20%, xem lại ở "Đã cắt"
 
 // 1 key duy nhất trong chrome.storage.sync (KHÔNG phải 1 key/ngày)
 dayPlan: {
@@ -176,14 +177,20 @@ dayPlan: {
 
 **Hành vi & UI:**
 - Trong form/sửa việc: toggle "Việc then chốt" (chỉ hiện với `priority='high'` hoặc tự bật priority Cao).
+- Vượt 3 việc then chốt đang mở → **chỉ cảnh báo** ("Đang giữ 4 việc then chốt"), vẫn lưu bình thường.
 - Card việc: ribbon "THEN CHỐT"; con ếch có thêm dấu riêng (khác màu, không chỉ khác chữ).
 - Lọc: **chip "20%"** bật/tắt trên nền tab hiện tại — **không** thêm tab thứ 5 (4 tab đã kín 360px,
   xem `components/FilterRow.tsx:77-82`).
+- "Cắt bỏ" trong menu việc → `archived=true`: ẩn khỏi cả 4 tab và chip 20%, giữ nguyên dữ liệu;
+  xem lại + phục hồi ở mục "Đã cắt" (đặt trong panel Cài đặt hoặc cuối tab Đã xong — chốt khi code).
 - New Tab: thẻ hero đầu ngày "Con ếch hôm nay" + nút "Tập trung 25 phút" (nối Gói C).
 - Cuối ngày: dòng "Then chốt: 2/3 xong" — suy trực tiếp từ dữ liệu, không tính điểm.
+- **Review tuần**: một dòng trong New Tab (vd "Tuần này: then chốt 4/5 · 12 việc xong") — **không**
+  làm màn riêng ở v1.
 
-**Module chạm:** `lib/tasks/types.ts`, `lib/tasks/form.ts`, `lib/tasks/query.ts` (lọc + sort),
+**Module chạm:** `lib/tasks/types.ts`, `lib/tasks/form.ts`, `lib/tasks/query.ts` (lọc/sort/`archived`),
 `components/TaskFields.tsx`, `components/TaskScroll.tsx`, `components/FilterRow.tsx`,
+`components/SettingsPanel.tsx` (mục "Đã cắt"), `entrypoints/newtab/App.tsx` (hero con ếch + dòng tuần),
 `hooks/useTasks.ts`, `docs/ERD.md`, `docs/API_SPEC.md`, `docs/USER_FLOW.md`.
 
 **Chi phí:** M (schema + 3 chỗ UI + docs). **Rủi ro:** trung bình — sort/filter là shared (reviewer STRICT).
@@ -194,6 +201,8 @@ dayPlan: {
 - [ ] Đánh dấu then chốt → xuất hiện ở chip "20%"; bỏ dấu → biến mất, không mất dữ liệu khác.
 - [ ] Cảnh báo (không chặn) khi vượt 3 việc then chốt đang mở.
 - [ ] Chọn con ếch → thẻ hero hiện đúng; sang ngày mới → con ếch cũ tự hết hiệu lực.
+- [ ] "Cắt bỏ" → task biến khỏi 4 tab + chip 20% nhưng vẫn còn trong storage; "Đã cắt" xem lại + phục hồi được.
+- [ ] Dòng tổng kết tuần khớp số liệu thật (then chốt xong/tổng, việc xong trong tuần).
 - [ ] Sort vẫn deterministic (chạy lại 2 lần cho cùng thứ tự) — R-15.
 
 ---
@@ -211,11 +220,13 @@ dayPlan: {
 plannedFor?: string | null;   // "YYYY-MM-DD" — ngày dự định LÀM (khác dueAt = hạn chót)
 
 // Settings (mở rộng)
-planReminder: { enabled: boolean; at: string };  // "HH:mm", mặc định "21:00"
+planReminder: { enabled: boolean; at: string };  // mặc định { enabled: true, at: "21:00" }
+                                                 // → thêm vào DEFAULT_SETTINGS + normalizeSettings
 ```
 
 **Hành vi & UI:**
 - Alarm hằng ngày lúc `planReminder.at` → notification "10 phút lên kế hoạch ngày mai".
+  **Mặc định bật sẵn 21:00**; user tắt hoặc đổi giờ trong Cài đặt.
 - Cần thêm `chrome.notifications.onClicked` (hiện chưa có) để bấm vào mở đúng sheet — nếu không,
   thông báo chỉ là lời nhắc suông.
 - Sheet "Kế hoạch mai": chọn ≤5 việc từ *Sắp tới* + *Chưa hẹn*, gán `plannedFor = mai`, chọn con ếch.
@@ -250,8 +261,8 @@ planReminder: { enabled: boolean; at: string };  // "HH:mm", mặc định "21:0
 
 **Hành vi & UI:**
 - Nút "Tập trung việc này" trên card → `attach(taskId)` + bắt đầu phiên theo preset.
-- Khi đang chạy và có `taskId`: popup chuyển **focus overlay** — chỉ thẻ việc + đồng hồ + nút kết thúc,
-  ẩn board; New Tab thu gọn board thành cột phụ.
+- Khi đang chạy và có `taskId`: popup chuyển **focus overlay** — đồng hồ bản thu gọn 96px + thẻ việc +
+  2 nút (kết thúc / tạm dừng), ẩn board; New Tab thu gọn board thành cột phụ.
 - Định tick/đổi việc khác khi đang trong phiên → hỏi "Đang trong phiên, đổi việc sẽ phá tập trung?",
   và nếu vẫn đổi thì đếm 1 lần ngắt (local, chỉ hiện trong tổng kết phiên).
 - Hết phiên → hỏi "Xong việc này chưa?" → tick + `record('focus')` (đã có trong `useStudyLog`).
@@ -340,6 +351,13 @@ theo giờ trong New Tab — **không** lưới calendar, **không** kéo-thả.
 | 2026-11-16 | **ABCDE: giữ 3 mức ưu tiên + nhãn A/B/C**, không thêm enum 5 mức | D/E là *hành động* (tự động hoá / cắt bỏ), không phải mức ưu tiên; 5 mức chạm form 360px, badge, sort, notification, docs, tests mà lợi ích thấp |
 | 2026-11-16 | Ghi **toàn bộ 6 gói** vào tài liệu trước, chưa code | User muốn hoàn thiện bộ tài liệu trước khi mở change |
 | 2026-11-16 | `plannedFor` **tách khỏi** `dueAt` | `dueAt` = hạn chót (có nhắc + tô quá hạn); dùng lẫn sẽ phá nghĩa deadline và gây nhắc sai |
+| 2026-11-16 | **A1:** tối đa **3** việc then chốt đang mở, **chỉ cảnh báo** (không chặn lưu) | Chặn cứng dễ gây bí khi user có 4 việc thật; cảnh báo đủ giữ kỷ luật "20%" |
+| 2026-11-16 | **A2:** lối vào 20% là **chip bật/tắt** trên nền tab, không thêm tab thứ 5 | Ribbon 4 tab đã kín 360px; thêm tab sẽ phải thu gọn/cắt chữ → đụng R-19 |
+| 2026-11-16 | **A3:** "Cắt bỏ" (E) = **archive** (`archived=true`, ẩn khỏi tab, xem lại ở "Đã cắt") | Xoá vĩnh viễn làm mất vế E của ABCDE; archive giữ dữ liệu và cho phục hồi |
+| 2026-11-16 | **B1:** nhắc kế hoạch **21:00, bật sẵn** | Có nhắc ngay từ đầu thì 6P mới có tác dụng; user tắt được trong Cài đặt |
+| 2026-11-16 | **B2:** review tuần = **một dòng trong New Tab**, không màn riêng ở v1 | Rẻ, không thêm view/navigation; đủ để thấy tỉ lệ then chốt |
+| 2026-11-16 | **C1:** focus overlay ở **cả popup (bản thu gọn) + New Tab** | Popup là nơi mở nhiều nhất — bỏ qua popup thì đơn nhiệm mất tác dụng |
+| 2026-11-16 | **D1:** `doneDays` giữ **31 ngày** rồi prune | ~350 B/task, an toàn 8 KB/item; đủ lưới 21 ô + streak gần |
 
 ## 6. Thứ tự & ưu tiên đề xuất
 
@@ -361,15 +379,20 @@ theo giờ trong New Tab — **không** lưới calendar, **không** kéo-thả.
 - **D sau cùng trong nhóm chính**: phụ thuộc G3 và là gói nặng nhất về logic lịch.
 - **E chỉ sau khi B có dữ liệu dùng thật.**
 
-## 7. Câu hỏi còn mở (chốt trước khi mở phase)
+## 7. Câu hỏi đã chốt (2026-11-16)
 
-1. **Số việc then chốt tối đa**: 3 (đề xuất) hay 5? Có chặn cứng hay chỉ cảnh báo?
-2. **Chip "20%"**: bật/tắt trên nền tab (đề xuất) hay thêm tab thứ 5?
-3. **Giờ nhắc kế hoạch mặc định**: 21:00 (đề xuất) hay để trống, user tự bật?
-4. **Focus overlay (Gói C)**: chỉ New Tab, hay cả popup? Popup 360px có đủ cho overlay + đồng hồ?
-5. **"Cắt bỏ" (E của ABCDE)**: có làm archive/ẩn không, hay chỉ xoá như hiện tại?
-6. **Review tuần**: làm thành màn riêng hay chỉ một dòng tổng kết trong New Tab?
-7. **Thói quen đã bỏ**: giữ `doneDays` bao lâu trước khi prune (31 ngày đề xuất)?
+Bảy câu dưới đây **đã được user chốt**; giữ nguyên văn câu hỏi để tra cứu, kèm phương án đã chọn và
+hệ quả kỹ thuật. Không còn câu hỏi mở nào chặn Gói 0 hoặc Gói C.
+
+| # | Câu hỏi ban đầu | Đã chốt | Hệ quả kỹ thuật |
+|---|-----------------|---------|-----------------|
+| 1 | Số việc then chốt tối đa: 3 hay 5? Chặn cứng hay chỉ cảnh báo? | **3, chỉ cảnh báo** | Không cần đếm cứng ở adapter; UI hiện nhắc khi >3 nhưng vẫn lưu; có test cho trạng thái 4 việc |
+| 2 | Chip "20%" bật/tắt trên nền tab hay thêm tab thứ 5? | **Chip bật/tắt** | Không đụng `RibbonTabs`; thêm một trạng thái lọc trong `FilterRow`; giữ nguyên 4 tab ở 360px |
+| 3 | Giờ nhắc kế hoạch mặc định: 21:00 hay để trống? | **21:00, bật sẵn** | `DEFAULT_SETTINGS.planReminder = { enabled: true, at: '21:00' }`; `normalizeSettings` điền mặc định cho settings cũ → **user cũ sẽ nhận notification mới sau update**, phải ghi release note |
+| 4 | Focus overlay ở đâu: chỉ New Tab hay cả popup? | **Cả popup + New Tab** | Popup dùng `FocusTimer` bản thu gọn (96px) + thẻ việc + 2 nút; cần test layout 360px và trạng thái đóng/mở lại popup giữa phiên |
+| 5 | "Cắt bỏ" (E): archive/ẩn hay chỉ xoá? | **Archive, ẩn khỏi tab** | Thêm `archived?: boolean`; `filterByBoard`/`filterBySubject`/`searchTasks` phải loại archived; `loadAll` vẫn trả về để xem lại → mọi chỗ hiển thị đều phải lọc, tránh "task ma" |
+| 6 | Review tuần: màn riêng hay một dòng? | **Một dòng trong New Tab** | Không thêm view; tính từ `dayPlan` 7 ngày + task done → hàm thuần + test, không lưu số liệu tổng hợp |
+| 7 | Giữ `doneDays` bao lâu trước prune? | **31 ngày** | Sau mỗi lần ghi: `doneDays = doneDays.slice(-31)`; test đóng dấu 60 ngày liên tục vẫn ≤ 31 phần tử |
 
 ## 8. Phụ lục — lệch doc↔code liên quan
 

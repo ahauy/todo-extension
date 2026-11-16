@@ -41,9 +41,9 @@ Hiện trạng liên quan (đã đối chiếu code):
 ## Acceptance (bắt buộc)
 
 - [ ] Gói 0: `dueAt` canonical wall-clock local; weekly tôn trọng `weekdays`; có test migration.
-- [ ] Gói A: `keystone` + chip lọc "20%" + chọn con ếch mỗi ngày; sort vẫn deterministic (R-15).
-- [ ] Gói B: `plannedFor` tách khỏi `dueAt`; setting giờ nhắc; bấm notification mở đúng sheet.
-- [ ] Gói C: gắn/huỷ việc vào phiên; focus overlay; `studyLog.focus` tăng đúng khi phiên trọn vẹn.
+- [ ] Gói A: `keystone` (tối đa 3 đang mở, **chỉ cảnh báo**) + **chip lọc "20%"** (không thêm tab) + chọn con ếch mỗi ngày; "Cắt bỏ" = `archived` + mục "Đã cắt"; dòng review tuần trong New Tab; sort vẫn deterministic (R-15).
+- [ ] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
+- [ ] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn.
 - [ ] Gói D: streak theo lịch thói quen; `doneDays` ≤ 31; tắt toggle không xoá dữ liệu.
 - [ ] Gói E: chỉ làm bản nhẹ (nếu được duyệt riêng) — không lưới calendar, không kéo-thả.
 - [ ] Mỗi gói: spec delta + `/spec-publish` + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + reviewer PASS.
@@ -51,7 +51,9 @@ Hiện trạng liên quan (đã đối chiếu code):
 
 ## Ghi chú
 
-- Nguồn phân tích + ràng buộc kỹ thuật + câu hỏi mở: `docs/ROADMAP_TIME_MANAGEMENT.md` §3, §7.
+- Nguồn phân tích + ràng buộc kỹ thuật: `docs/ROADMAP_TIME_MANAGEMENT.md` §3; **7 câu hỏi đã chốt** ngày
+  2026-11-16: §7 (then chốt 3 + cảnh báo, chip 20%, archive, nhắc 21:00 bật sẵn, review tuần 1 dòng,
+  overlay cả popup, prune 31 ngày).
 - Thứ tự đề xuất: **0 → C → A → B → D → (E sau)**.
 - Mỗi gói phải giữ: popup 360px chỉ thêm 1 khối UI; dữ liệu theo ngày gom **1 key** + prune
   (không tạo key/ngày vì `chrome.storage.sync` giới hạn 512 item).
