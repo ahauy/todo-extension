@@ -67,7 +67,7 @@
   `lib/tasks/query.ts:91-98`), không so chuỗi ngày.
 
 > `SPECIFICATIONS.md` R-09 bản 1.2.1 quy định `dueAt` là wall-clock local một dạng; R-11 quy định
-> `prevDueAt` cũng là wall-clock local. Gap G3 (weekly `weekdays`) vẫn mở — xem
+> `prevDueAt` cũng là wall-clock local. Gap G3 (weekly `weekdays`) đã đóng ở Gói 0 — xem
 > [`API_SPEC.md`](API_SPEC.md) §5.
 
 ### 2.2 `Subtask` (embedded trong `Task.subtasks`) — `types.ts:34-38`
@@ -94,9 +94,11 @@ tính `doneSubtasks`, render trong `metaChips`) — không có component riêng.
 
 Quan hệ: **Task 1 — 1 RecurrenceRule**. Weekly/monthly bắt buộc có `dueAt` làm mốc (R-10).
 
-> ⚠️ Gap G3: code `nextDueAt` cho `weekly` hiện chỉ **+7 ngày**, chưa dùng `weekdays`
-> (`lib/tasks/recurrence.ts:90-94`). Kiểu dữ liệu vẫn giữ `weekdays` và `recurrenceForKind` chỉ lưu
-> đúng một thứ lấy từ `dueAt` (`recurrence.ts:28-30`). Xem [`API_SPEC.md`](API_SPEC.md) §5.
+> G3 đã đóng (Gói 0, spec 1.2.1): `nextDueAt` cho `weekly` chọn offset nhỏ nhất 1..7 rơi vào một thứ
+> trong `weekdays` (`lib/tasks/recurrence.ts:88-102,125-131`); `weekdays` rỗng/thiếu/không phải array →
+> fallback +7 ngày. `recurrenceForKind` vẫn chỉ lưu đúng một thứ lấy từ `dueAt` (`recurrence.ts:22-38`)
+> vì UI chưa có chỗ chọn nhiều thứ. Kiểu dữ liệu `weekdays: number[]` **không đổi** — ERD chỉ reconcile
+> trạng thái gap + line ref, không đổi field. Xem [`API_SPEC.md`](API_SPEC.md) §5.
 
 ### 2.4 `Settings` (key `settings`) — `types.ts:76-86`
 

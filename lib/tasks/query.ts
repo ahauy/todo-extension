@@ -136,11 +136,20 @@ export function filterBySubject(tasks: Task[], subjectId: string): Task[] {
   return tasks.filter((task) => task.subjectId === subjectId);
 }
 
+/** Tie-breaker cố định theo `id` (chuỗi) — kết quả sort không phụ thuộc thứ tự key storage */
+function compareById(a: Task, b: Task): number {
+  if (a.id < b.id) return -1;
+  if (a.id > b.id) return 1;
+  return 0;
+}
+
 export function sortBoard(tasks: Task[], key: SortKey, now: Date): Task[] {
   if (key === 'created') {
-    return [...tasks].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return [...tasks].sort((a, b) => {
+      const diff =
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return diff !== 0 ? diff : compareById(a, b);
+    });
   }
   if (key === 'priority') {
     return [...tasks].sort((a, b) => {
@@ -149,7 +158,9 @@ export function sortBoard(tasks: Task[], key: SortKey, now: Date): Task[] {
       const ad = a.dueAt ? new Date(a.dueAt).getTime() : Number.POSITIVE_INFINITY;
       const bd = b.dueAt ? new Date(b.dueAt).getTime() : Number.POSITIVE_INFINITY;
       if (ad !== bd) return ad - bd;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      const created =
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return created !== 0 ? created : compareById(a, b);
     });
   }
   return sortTasks(tasks, now);

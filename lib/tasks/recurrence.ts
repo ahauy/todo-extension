@@ -4,7 +4,8 @@
  * Không lưu lịch sử occurrence (R-11).
  *
  * - nextDueAt(prevDue, rule): tính ngày/giờ lần kế tiếp, trả wall-clock local
- *   `YYYY-MM-DDTHH:mm` không hậu tố Z (Gói 0/G6).
+ *   `YYYY-MM-DDTHH:mm` không hậu tố Z (Gói 0/G6). Weekly đọc `rule.weekdays`
+ *   (Gói 0/G3): chọn ngày gần nhất thuộc danh sách thứ, không phải luôn +7.
  * - nextFutureDue(prevDue, rule, now): catch-up — lặp nextDueAt cho tới khi > now
  *   (tối đa 1000 vòng để chặn vòng lặp vô hạn với rule lỗi).
  */
@@ -36,11 +37,22 @@ export function recurrenceForKind(
   return { kind: 'none' };
 }
 
+/** Thành phần local time của một Date (không dùng UTC) */
+interface LocalParts {
+  year: number;
+  month: number; // 0-based
+  date: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  ms: number;
+}
+
 /** Lấy thành phần local time của Date (không dùng UTC) */
-function localParts(d: Date) {
+function localParts(d: Date): LocalParts {
   return {
     year: d.getFullYear(),
-    month: d.getMonth(), // 0-based
+    month: d.getMonth(),
     date: d.getDate(),
     hours: d.getHours(),
     minutes: d.getMinutes(),
@@ -68,6 +80,28 @@ function daysInMonth(year: number, month: number): number {
 }
 
 /**
+ * Số ngày gần nhất (1..7) để từ `parts` rơi vào một thứ trong `weekdays`.
+ * Weekday tính trên ngày **local** (`new Date(y, m, d).getDay()`) để không lệch
+ * khi vắt qua ranh giới tháng/năm hay DST — `makeLocal` tự normalise `date + offset`.
+ * `weekdays` rỗng/thiếu/không hợp lệ (dữ liệu cũ lỗi) → 7, giữ hành vi cũ (+7 ngày).
+ */
+function nextWeekdayOffset(parts: LocalParts, weekdays?: number[]): number {
+  // Data cũ/sync từ máy khác có thể không phải array → coi như rỗng, fallback +7.
+  const list = Array.isArray(weekdays) ? weekdays : [];
+  const targets = list.filter(
+    (day) => Number.isInteger(day) && day >= 0 && day <= 6
+  );
+  if (targets.length === 0) return 7;
+
+  for (let offset = 1; offset <= 7; offset += 1) {
+    const candidate = new Date(parts.year, parts.month, parts.date + offset);
+    if (targets.includes(candidate.getDay())) return offset;
+  }
+  // Không tới được đây khi targets có ≥1 phần tử (7 offset phủ đủ 7 thứ); TS cần return.
+  return 7;
+}
+
+/**
  * Tính ngày/giờ lần kế tiếp sau `prevDue` theo `rule`.
  * Trả về null nếu rule = "none" (không lặp).
  * Tính theo local time thiết bị.
@@ -88,10 +122,13 @@ export function nextDueAt(
         makeLocal(p.year, p.month, p.date + 1, p.hours, p.minutes, p.seconds, p.ms)
       );
 
-    case 'weekly':
+    case 'weekly': {
+      // G3: tôn trọng danh sách thứ; rỗng/thiếu → +7 ngày như hành vi cũ.
+      const offset = nextWeekdayOffset(p, rule.rule?.weekdays);
       return formatLocalInput(
-        makeLocal(p.year, p.month, p.date + 7, p.hours, p.minutes, p.seconds, p.ms)
+        makeLocal(p.year, p.month, p.date + offset, p.hours, p.minutes, p.seconds, p.ms)
       );
+    }
 
     case 'monthly': {
       // Dữ liệu cũ (bug #9) có thể thiếu rule.day → fallback ngày của prevDue.

@@ -120,16 +120,18 @@ thường (không bọc quota). UI hiển thị banner, không swallow (R-16).
 
 | Hàm | Chữ ký | Hành vi |
 |---|---|---|
-| `recurrenceForKind` | `(kind: RecurrenceRule['kind'], dueAt?: string \| null) => RecurrenceRule` | Dựng rule đầy đủ từ kind; weekly/monthly lấy thứ/ngày từ `dueAt`, thiếu thì hôm nay (`recurrence.ts:21-37`) |
-| `nextDueAt` | `(prevDue: string \| Date, rule: RecurrenceRule) => string \| null` | Lần kế tiếp dạng wall-clock local `YYYY-MM-DDTHH:mm`, **không `Z`**; `none` → null |
-| `nextFutureDue` | `(prevDue, rule, now?) => string \| null` | Catch-up: lặp tới khi > now, tối đa 1000 vòng (`MAX_ITERATIONS`, dòng 15) rồi ném lỗi |
+| `recurrenceForKind` | `(kind: RecurrenceRule['kind'], dueAt?: string \| null) => RecurrenceRule` | Dựng rule đầy đủ từ kind; weekly/monthly lấy thứ/ngày từ `dueAt`, thiếu thì hôm nay (`recurrence.ts:22-38`) |
+| `nextDueAt` | `(prevDue: string \| Date, rule: RecurrenceRule) => string \| null` | Lần kế tiếp dạng wall-clock local `YYYY-MM-DDTHH:mm`, **không `Z`**; `none` → null. Weekly: chọn **offset nhỏ nhất 1..7** để rơi vào một thứ trong `rule.weekdays` (không phải luôn +7); `weekdays` rỗng/thiếu/không phải array → fallback +7 ngày (`recurrence.ts:88-102,125-131`) |
+| `nextFutureDue` | `(prevDue, rule, now?) => string \| null` | Catch-up: lặp tới khi > now, tối đa 1000 vòng (`MAX_ITERATIONS`, dòng 16) rồi ném lỗi |
 
-Wall-clock tính theo **múi giờ local thiết bị** — `localParts`/`makeLocal` (`recurrence.ts:40-64`, R-10),
+Wall-clock tính theo **múi giờ local thiết bị** — `localParts`/`makeLocal` (`recurrence.ts:51-75`, R-10),
 giá trị trả về dựng bằng `formatLocalInput()` (`lib/datetime.ts`) nên cùng một dạng với hạn người dùng
 nhập `YYYY-MM-DDTHH:mm` không `Z` → gap **G6 đã đóng** (Gói 0, spec 1.2.1). `nextFutureDue` parse lại
 chuỗi local đó bằng `new Date()` (local) nên so sánh với `now` vẫn đúng.
-Monthly clamp ngày không tồn tại về ngày cuối tháng (`daysInMonth`, dòng 66). Weekly hiện chỉ **+7 ngày**,
-không dùng `rule.weekdays` → gap G3 (task riêng của Gói 0).
+Monthly clamp ngày không tồn tại về ngày cuối tháng (`daysInMonth`, dòng 78). Weekly đọc `rule.weekdays`
+qua `nextWeekdayOffset` (`recurrence.ts:88-102`): weekday tính trên **ngày local** (`new Date(y, m, date + d).getDay()`)
+nên qua ranh giới tháng/năm vẫn đúng → gap **G3 đã đóng** (Gói 0, spec 1.2.1). `recurrenceForKind` vẫn chỉ
+lưu 1 thứ (`weekdays: [weekday của dueAt]`) vì UI chưa có chỗ chọn nhiều thứ (Gói D).
 
 ### 3.3 Query — `lib/tasks/query.ts` (pure functions)
 
@@ -137,7 +139,7 @@ không dùng `rule.weekdays` → gap G3 (task riêng của Gói 0).
 |---|---|---|
 | `filterByBoard` | `(tasks, tab: BoardTab, now: Date) => Task[]` | `all` = mọi việc; `today` = chưa xong và (hạn cùng **ngày local** hôm nay **hoặc** đã quá hạn); `upcoming` = chưa xong, hạn > now và không phải hôm nay; `done` = `done === true` (`query.ts:112-130`) |
 | `filterBySubject` | `(tasks, subjectId: string) => Task[]` | `'all'` = mọi môn, `'none'` = việc chưa có `subjectId`, còn lại khớp `subjectId` (`query.ts:133-137`) |
-| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc; `created` = createdAt desc (`query.ts:139-156`) |
+| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc → **id** (tie-breaker); `created` = createdAt desc → **id** (`query.ts:140-166`) |
 | `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) (`query.ts:48-84`) |
 | `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive (`query.ts:17-24`) |
 | `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:102-109`) |
@@ -147,6 +149,8 @@ không dùng `rule.weekdays` → gap G3 (task riêng của Gói 0).
 Sort precedence deterministic (R-15) — `sortTasks`, dòng 48-84. Task không `dueAt` xếp cuối.
 UI dùng `sortBoard` với tiêu chí người dùng chọn (`deadline` mặc định, `priority`, `created`) ở
 `components/FilterRow.tsx`; tab Đã xong cũng đi qua `sortBoard` nên **không** tự sort `updatedAt`.
+Cả 3 tiêu chí của `sortBoard` kết thúc bằng tie-breaker `id` (chuỗi) — `compareById`, dòng 140-144 —
+nên kết quả không phụ thuộc thứ tự key trong storage (gap **G8 đã đóng**, Gói 0).
 `SortCriterion` (`query.ts:14`) là dead export duy nhất còn lại của bản tab 3 lựa chọn — **không** nơi
 nào import; `filterTasks` và `Tab` đã bị xoá khỏi code (không còn tồn tại). Giữ `SortCriterion` chờ dọn
 vào lần chạm `query.ts` kế tiếp (G4 đã đóng: user chọn được tiêu chí sort).
@@ -208,16 +212,17 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 |---|---|---|---|
 | G1 | R-09: `dueAt` là **epoch ms** | `types.ts:45`: `dueAt: string \| null`; spec 1.2.0 đã sửa R-09 sang ISO 8601 local | ✅ Đã đóng (spec 1.2.0). Dạng UTC sau khi lặp tách riêng thành G6 |
 | G2 | `settings = { theme }` | `types.ts:76-86`: 8 field (`notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`); spec 1.2.0 đã mô tả đúng; `normalizeSettings` bỏ field `theme` cũ khi đọc | ✅ Đã đóng (spec 1.2.0) |
-| G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:91-94`: weekly chỉ **+7 ngày**, không dùng `weekdays`; `recurrenceForKind` chỉ lưu đúng 1 thứ lấy từ `dueAt` (dòng 30-32) | **Mở** — weekly lặp đúng 7 ngày, bỏ qua thứ đã chọn |
+| G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:125-131` weekly dùng `nextWeekdayOffset` (`recurrence.ts:88-102`): offset nhỏ nhất 1..7 tới một thứ trong `weekdays`, giữ `HH:mm`; `weekdays` rỗng/thiếu/không phải array → +7 ngày; `recurrenceForKind` vẫn lưu 1 thứ lấy từ `dueAt` (dòng 31-33, UI chưa chọn nhiều thứ) | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — test `src/__tests__/recurrence.test.ts` (T2/T4/T6 qua nhiều tuần, ranh giới tháng, catch-up, fallback rỗng + giá trị lạ) |
 | G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:88-89`: `SortKey = 'deadline' \| 'priority' \| 'created'` + `sortBoard`; UI `FilterRow` cho chọn qua menu "Sắp xếp" | ✅ Đã đóng phần **chọn được tiêu chí**. Tie-breaker **không đồng nhất giữa 3 tiêu chí** → xem **G8**; `SortCriterion='default'` còn là dead export (không nơi nào import) |
 | G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,32,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 | G6 | R-09/R-10: `dueAt` là ISO 8601 **local** (một dạng duy nhất) | `lib/datetime.ts:92/109` `formatLocalInput` + `normalizeDueAt`; `recurrence.ts:75-111` trả wall-clock local không `Z`; `adapter.ts:84-91` normalize in-memory khi đọc | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — một dạng chuỗi duy nhất; task cũ dạng `Z` được quy về local khi đọc, không ghi lại. Xem [`ERD.md`](ERD.md) §2.1 |
 | G7 | R-13: sync **last-write-wins theo `updatedAt`** từng bản ghi | `hooks/useTasks.ts:102-128`: `onChanged` → `loadAll()` reload toàn bộ rồi thay snapshot, không so `updatedAt`; background reschedule theo key | **Mở** — trên 2 thiết bị, thay đổi sau ghi đè trước ở tầng storage nên kết quả vẫn "bản mới nhất thắng" theo Chrome, nhưng UI không tự phân xử merge; intent merge vẫn giữ, code chưa implement |
-| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:139-156` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt`; `priority` → priority desc → `dueAt` asc → `createdAt` desc; `created` → **chỉ** `createdAt` desc, không tie-breaker phụ | **Mở (R-15)** — chuỗi "overdue → dueAt → priority → createdAt" chỉ đúng cho `deadline`; `priority` dùng chuỗi khác; `created` không có tie-breaker nên thứ tự task trùng `createdAt` phụ thuộc thứ tự key của storage (khác nhau giữa thiết bị). Đóng bằng `/change` (chuẩn hoá `sortBoard` theo R-15) hoặc sửa R-15 |
+| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:140-166` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt` → id; `priority` → priority desc → `dueAt` asc → `createdAt` desc → id; `created` → `createdAt` desc → id | ✅ Đã đóng 2026-11-17 (Gói 0) — mọi tiêu chí đều có tie-breaker `id` (chuỗi) nên hai lần chạy / hai thứ tự key storage cho cùng kết quả. Test `src/__tests__/query.test.ts`. Ghi chú: `priority` vẫn dùng chuỗi riêng **có chủ đích** (người dùng chọn "Ưu tiên" thì ưu tiên đứng trước hạn), không phải chuỗi `deadline` |
 | G9 | R-19: trải nghiệm Sơn Mài có chủ đích — responsive 1024–1199, menu môn không che chân popup, affordance dải tab, motion | `docs/DESIGN.md` §Known Gaps ghi rõ các mục **chưa verify/chưa đạt**: 1024–1199px dùng **2 cột** (`entrypoints/newtab/style.css:112-120`) chứ không phải ba vùng; `.menu` không lật lên (`components/ui/Menu.tsx:95`, `styles/components.css:500-501`); chưa đo trên 360/390/1024 thật | **Mở (R-19)** — đang xử lý trong FEAT-002 (`son-mai-experience-polish`); chỉ đóng khi đo browser thật + menu không che chân popup. Xem `docs/ROADMAP_TIME_MANAGEMENT.md` §8 |
 
-> Gap G3/G7 được `doc-reconcile` ghi nhận, **không** hạ intent: muốn đóng phải qua `/change`
-> (thêm merge theo `updatedAt`) rồi `/spec-publish`.
+> Gap còn **mở**: G7 (merge theo `updatedAt`) và G9 (responsive Sơn Mài). G3/G6/G8 đã đóng.
+> Gap đã đóng được `doc-reconcile` ghi nhận, **không** hạ intent: đóng bằng code qua `/change`
+> rồi `/spec-publish`, không sửa `SPECIFICATIONS.md` cho khớp code.
 
 ## 6. Versioning
 

@@ -101,3 +101,98 @@ describe('nextFutureDue', () => {
     );
   });
 });
+
+describe('nextDueAt — weekly tôn trọng weekdays (G3)', () => {
+  const monWedFri: RecurrenceRule = {
+    kind: 'weekly',
+    rule: { weekdays: [1, 3, 5] },
+  };
+
+  it('T2 → T4 → T6 → T2 tuần sau, giữ HH:mm qua nhiều tuần', () => {
+    const wed = nextDueAt('2035-01-15T09:00', monWedFri); // 2035-01-15 là thứ 2
+    expect(wed).toBe('2035-01-17T09:00');
+    expect(new Date(wed!).getDay()).toBe(3);
+
+    const fri = nextDueAt(wed!, monWedFri);
+    expect(fri).toBe('2035-01-19T09:00');
+    expect(new Date(fri!).getDay()).toBe(5);
+
+    const nextMon = nextDueAt(fri!, monWedFri);
+    expect(nextMon).toBe('2035-01-22T09:00');
+    expect(new Date(nextMon!).getDay()).toBe(1);
+
+    // Tuần kế tiếp vẫn giữ chuỗi T2/T4/T6 và giờ 09:00.
+    expect(nextDueAt(nextMon!, monWedFri)).toBe('2035-01-24T09:00');
+    expect(nextDueAt('2035-01-24T09:00', monWedFri)).toBe('2035-01-26T09:00');
+  });
+
+  it('offset vắt qua ranh giới tháng (T4 31/01 → T6 02/02)', () => {
+    expect(nextDueAt('2035-01-31T09:00', monWedFri)).toBe('2035-02-02T09:00');
+  });
+
+  it('không hardcode +7: thứ đã qua trong tuần phải nhảy sang tuần sau', () => {
+    // 2035-01-17 là thứ 4, weekdays chỉ có thứ 2 → thứ 2 kế tiếp là 22/01.
+    const onlyMonday: RecurrenceRule = {
+      kind: 'weekly',
+      rule: { weekdays: [1] },
+    };
+    expect(nextDueAt('2035-01-17T18:15', onlyMonday)).toBe('2035-01-22T18:15');
+  });
+
+  it('weekdays rỗng → fallback +7 ngày, giữ giờ', () => {
+    expect(
+      nextDueAt('2035-01-15T09:00', { kind: 'weekly', rule: { weekdays: [] } })
+    ).toBe('2035-01-22T09:00');
+  });
+
+  it('rule thiếu (dữ liệu cũ lỗi) → fallback +7 ngày, không ném', () => {
+    const legacy = { kind: 'weekly' } as unknown as RecurrenceRule;
+    expect(nextDueAt('2035-01-15T09:00', legacy)).toBe('2035-01-22T09:00');
+  });
+
+  it('weekdays lẫn giá trị ngoài 0..6 → chỉ dùng thứ hợp lệ, giữ HH:mm', () => {
+    // 2035-01-17 là thứ 4; [1, 9, -1] → chỉ thứ 2 (1) hợp lệ → T2 22/01 18:15.
+    const mixed: RecurrenceRule = {
+      kind: 'weekly',
+      rule: { weekdays: [1, 9, -1] },
+    };
+    expect(nextDueAt('2035-01-17T18:15', mixed)).toBe('2035-01-22T18:15');
+  });
+
+  it('weekdays toàn giá trị lạ hoặc không phải array → fallback +7 ngày', () => {
+    const allInvalid: RecurrenceRule = {
+      kind: 'weekly',
+      rule: { weekdays: [9, 42] },
+    };
+    expect(nextDueAt('2035-01-15T09:00', allInvalid)).toBe('2035-01-22T09:00');
+
+    // Data corrupt từ máy khác: `weekdays` không phải array → không được ném TypeError.
+    const corrupted = {
+      kind: 'weekly',
+      rule: { weekdays: 'mon' },
+    } as unknown as RecurrenceRule;
+    expect(nextDueAt('2035-01-15T09:00', corrupted)).toBe('2035-01-22T09:00');
+  });
+});
+
+describe('nextFutureDue — weekly catch-up (G3)', () => {
+  const monWedFri: RecurrenceRule = {
+    kind: 'weekly',
+    rule: { weekdays: [1, 3, 5] },
+  };
+
+  it('tick muộn 2 tuần: từ T6 ghim đúng T6 kế tiếp > now, giữ HH:mm', () => {
+    const now = new Date('2035-02-01T12:00'); // thứ 5
+    const next = nextFutureDue('2035-01-19T09:00', monWedFri, now); // T6 19/01
+    expect(next).toBe('2035-02-02T09:00');
+    expect(new Date(next!).getDay()).toBe(5);
+    expect(new Date(next!).getTime()).toBeGreaterThan(now.getTime());
+  });
+
+  it('now rơi đúng ngày có lịch nhưng sau giờ hẹn → nhảy sang thứ kế tiếp', () => {
+    const now = new Date('2035-01-22T10:00'); // T2 10:00, hẹn 09:00 đã qua
+    expect(nextFutureDue('2035-01-19T09:00', monWedFri, now)).toBe(
+      '2035-01-24T09:00'
+    );
+  });
+});
