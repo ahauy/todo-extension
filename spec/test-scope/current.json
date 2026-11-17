@@ -1,64 +1,72 @@
 {
-  "specVersion": "1.3.0",
-  "scopeVersion": 24,
-  "generatedAt": "2026-11-17T16:24:00+07:00",
-  "trigger": "bug-fix",
-  "workItem": "fup-package-c-residual-accuracy",
-  "specRefs": ["R-20"],
+  "specVersion": "1.4.0",
+  "scopeVersion": 25,
+  "generatedAt": "2026-11-17T16:54:50+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature-keystone-frog",
+  "specRefs": ["R-21", "R-15"],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
-      "spec/updates/2026-11-17-single-handling-focus.md",
-      "hooks/usePomodoro.ts",
-      "hooks/useBoard.ts",
-      "hooks/useStudyLog.ts",
+      "spec/updates/2026-11-17-keystone-frog.md",
+      "spec/CHANGELOG.md",
       "lib/tasks/types.ts",
-      "components/FocusTimer.tsx",
-      "components/FocusConfirms.tsx",
+      "lib/tasks/form.ts",
+      "lib/tasks/query.ts",
+      "lib/datetime.ts",
+      "lib/storage/adapter.ts",
+      "hooks/useTasks.ts",
+      "components/FilterRow.tsx",
+      "components/TaskFields.tsx",
       "components/TaskScroll.tsx",
       "components/TaskScrollList.tsx",
-      "entrypoints/popup/App.tsx",
-      "entrypoints/popup/App.wiring.test.tsx",
+      "components/TaskParchment.tsx",
+      "components/SettingsPanel.tsx",
       "entrypoints/newtab/App.tsx",
-      "entrypoints/newtab/App.focus.test.tsx",
-      "entrypoints/newtab/style.css",
       "styles/board.css",
-      "src/__tests__/helpers/chrome-stub.ts",
-      "src/__tests__/usePomodoro.focus.test.tsx",
-      "src/__tests__/focusOverlay.test.tsx"
+      "src/__tests__/keystone-frog.test.ts",
+      "src/__tests__/FilterRow.test.tsx",
+      "src/__tests__/TaskScroll.test.tsx",
+      "entrypoints/newtab/App.focus.test.tsx"
     ],
-    "modules": ["pomodoro-session", "task-feedback", "popup-shell", "newtab-shell", "study-log"]
+    "modules": [
+      "task-schema",
+      "task-query",
+      "day-plan-storage",
+      "popup-filter",
+      "task-card",
+      "settings-archive",
+      "newtab-hero",
+      "weekly-review"
+    ]
   },
   "impact": {
     "direct": [
-      "Gắn/huỷ việc vào phiên Pomodoro: attach(taskId) / attach(null); taskId + interruptions nằm trong PomodoroState (chrome.storage.local), bền qua đóng/mở popup",
-      "FUP-001: nút 'Huỷ gắn việc' trong focus overlay (popup + New Tab) — xác nhận riêng, gọi detachFocus() rồi noteInterruption() đúng vòng đời phase 1",
-      "Focus overlay popup: đồng hồ 112px (>=96px) + thẻ việc + 3 nút Tạm dừng / Kết thúc / Huỷ gắn việc, ẩn board; New Tab thu board thành cột phụ",
-      "Đổi việc/tick việc khác/huỷ gắn trong phiên → xác nhận; nếu vẫn đổi → interruptions += 1 (local-only, chỉ hiện tổng kết phiên, không ghi StudyLog)",
-      "Kết thúc tự nhiên có taskId → hỏi 'Xong việc này chưa?'; chỉ xác nhận mới tick task (R-11 nếu lặp) + record('focus',1) đúng 1 lần",
-      "Sửa hành vi hiện tại: skip focus đang gọi completion → phải không còn tăng studyLog.focus"
+      "Task.keystone?/archived? additive + form/hook flow; bật then chốt tự gán priority='high', tắt không hạ",
+      "Chip '20%' bật/tắt trên nền tab (không thêm tab thứ 5); lọc keystone && !archived sau tab/subject/search, trước sort",
+      "archived bị loại khỏi filterByBoard/filterBySubject/searchTasks, overdueCount/activeCount, empty-state reason và SubjectShelf — không để task ma",
+      "dayPlan là 1 key sync duy nhất dạng { [dayKey]: { frogTaskId } }, dayKey local YYYY-MM-DD, prune ≤14 ngày, quota guard 8192B",
+      "New Tab hero 'Con ếch hôm nay' + nút dùng lại attach()/xác nhận của R-20; dòng then chốt hôm nay + review tuần Thứ 2→hiện tại suy từ dữ liệu"
     ],
     "dependents": [
-      "useBoard.onFocusComplete được hoãn tới ConfirmDialog; detachFocus dùng sentinel pendingInterruptId như switchTaskMidSession để tránh ghi đè commit cùng render",
-      "StudyLog/StreakCard: focus chỉ tăng khi phiên trọn vẹn; interruptions không bao giờ vào StudyLog",
-      "TaskScroll/TaskScrollList: callback onFocusTask + activeTaskId, giữ DOM parity compact/full",
-      "Popup và New Tab App: overlay state, Escape/keyboard map, responsive 360×560 + 1024–1199"
+      "R-15 sort deterministic: không sửa sortTasks/sortBoard/compareById; chip chỉ là filter bổ sung",
+      "TaskScroll DOM parity compact/full cho ribbon THEN CHỐT + dấu con ếch (khác màu lẫn khác chữ)",
+      "SettingsPanel 'Đã cắt' hiển thị ở cả popup lẫn New Tab, 360px vẫn không tràn",
+      "chrome.storage.onChanged phải hydrate cả key dayPlan để đổi frog từ surface khác có hiệu lực"
     ],
     "regression": [
-      "Không có taskId → UI và hành vi Pomodoro/FocusTimer y hệt hiện tại",
-      "Không đổi chrome.storage.sync schema, không thêm key/ngày, không đổi permission manifest (R-17)",
-      "Không network request; interruptions chỉ local",
-      "Tick task thường / task lặp / hoàn tác hôm nay (R-11) không bị ảnh hưởng bởi focus overlay",
-      "G10 (double-focus 2 surface) vẫn là residual có kế hoạch xử lý tại roadmap §9.3 — không làm nặng thêm bởi FUP-001",
+      "Không đổi manifest/permission (R-17), không network request, không analytics/điểm năng suất",
+      "Task cũ thiếu keystone/archived vẫn hiển thị bình thường; dueAt wall-clock R-09 và lặp R-10/R-11 không đổi",
+      "R-20 focus: hero dùng lại luồng gắn việc hiện có, không tạo phiên focus thứ hai; skip vẫn không ghi studyLog.focus",
+      "Quyết định A1/A2/A3 và thứ tự roadmap 0→C→A→B→D→E giữ nguyên; Gói B/D/E chưa triển khai",
       "Verify tsc / eslint / vitest / wxt build PASS"
     ]
   },
   "acceptance": [
-    "Gắn việc → đóng popup, mở lại vẫn thấy đúng việc đang gắn (state bền qua endsAt).",
-    "Có nút 'Huỷ gắn việc' trong overlay; xác nhận → taskId=null + interruptions+1; huỷ bỏ không đổi gì.",
-    "Trong phiên, board popup không bấm được; New Tab board thu gọn không tràn ngang.",
-    "Kết thúc phiên → studyLog.focus tăng đúng 1 khi xác nhận; skip / phiên bỏ dở không tăng.",
-    "Scope 24 dùng đúng đường dẫn src/__tests__/helpers/chrome-stub.ts; verify 4 lệnh PASS."
+    "Bật/tắt keystone → vào/ra chip 20% đúng, dữ liệu khác không đổi; >3 việc mở vẫn lưu và chỉ cảnh báo",
+    "Chọn con ếch → hero đúng việc; sang ngày mới hết hiệu lực; archive ẩn khỏi mọi tab/đếm nhưng phục hồi được",
+    "dayPlan chỉ 1 key, prune ≤14 ngày, không key/ngày; sort chạy 2 lần cùng thứ tự (R-15)",
+    "Dòng then chốt hôm nay + review tuần khớp dữ liệu thật; không lưu tổng hợp; verify 4 lệnh PASS"
   ],
-  "risk": "low"
+  "risk": "medium"
 }

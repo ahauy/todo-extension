@@ -1,5 +1,5 @@
 ---
-spec_version: 1.3.0
+spec_version: 1.4.0
 updated_at: 2026-11-17
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
@@ -68,6 +68,33 @@ khớp tag.
 `subtasks: {id, title, done}[]`, tối đa 50. Task item hiển thị tiến độ `done/total`.
 Tick hết subtask KHÔNG tự tick task cha (tránh hành vi ngầm); tick task cha không đổi subtask.
 
+**R-21 — Việc then chốt, con ếch & cắt bỏ (Gói A)**
+`Task` có hai field additive tuỳ chọn: `keystone?: boolean` (mặc định `false`) và
+`archived?: boolean` (mặc định `false`). Bật then chốt tự gán `priority='high'`; tắt then chốt
+**không** tự hạ priority. Tối đa **3 việc then chốt đang mở** (`!done && !archived`); vượt 3 chỉ
+hiện cảnh báo, vẫn lưu bình thường (quyết định A1). Nhãn A/B/C vẫn ánh xạ vào 3 mức priority hiện có,
+không thêm enum 5 mức.
+
+Chip **"20%"** là bộ lọc bật/tắt trên nền tab hiện tại, **không** thêm tab thứ 5 (quyết định A2).
+Chip lọc `keystone && !archived`, xếp sau tab/subject/search và trước sort; không đổi thứ tự sort
+R-15. Task `archived=true` bị loại khỏi cả 4 tab, chip 20%, tìm kiếm và **mọi bộ đếm/empty-state/danh
+sách môn**; dữ liệu vẫn nằm trong storage. Mục "Đã cắt" trong SettingsPanel liệt kê và cho phục hồi
+(`archived=false`) — không xoá vĩnh viễn (quyết định A3).
+
+"Con ếch hôm nay" là **một** `Task` được chọn cho ngày local hiện tại, lưu trong **1 key duy nhất**
+`dayPlan` của `chrome.storage.sync` dạng `{ [dayKey]: { frogTaskId: string | null } }` với
+`dayKey = YYYY-MM-DD` local; prune còn **14 ngày gần nhất** mỗi lần ghi, cấm tạo key theo ngày
+(giới hạn 512 item / 8192 B mỗi item). Thay đổi key `dayPlan` từ bề mặt/thiết bị khác phải hydrate
+qua `chrome.storage.onChanged` như key `t:<id>` (R-13). Chọn việc khác trong cùng ngày thì thay thế;
+sang ngày khác việc cũ tự hết hiệu lực. Thẻ bài có ribbon "THEN CHỐT"; con ếch có dấu riêng phân biệt **cả màu lẫn
+chữ**, giữ nguyên cấu trúc DOM giữa bản compact và bản đầy.
+
+New Tab hiển thị hero "Con ếch hôm nay" với nút "Tập trung 25 phút" dùng lại luồng gắn việc của
+R-20 (không tạo phiên focus thứ hai), dòng "Then chốt: x/y xong" cho hôm nay và một dòng review tuần
+"Tuần này: then chốt a/b · n việc xong" tính từ thứ 2 local tới hiện tại. Các con số được suy thuần
+từ task + `dayPlan` (việc xong lấy `lastDoneAt` hoặc `updatedAt` khi `done=true`); **không** lưu số
+tổng hợp, không tính điểm, không network request.
+
 ### Domain: Thời gian & nhắc việc
 
 **R-09 — Due date + giờ**
@@ -129,6 +156,8 @@ tiếng chuông và thông báo. Dark mode không thuộc phạm vi hiện tại
 
 **R-15 — Lọc / tìm / sắp xếp**
 Tab `all | today | upcoming | done`, lọc theo môn học, tìm kiếm theo title/note/tag (không phân biệt hoa thường).
+Chip "20%" (R-21) bật/tắt như một bộ lọc xếp trên nền tab hiện tại; task `archived=true` luôn bị
+loại khỏi mọi tab, bộ lọc và bộ đếm. Việc bổ sung bộ lọc không được làm đổi thứ tự sort.
 
 Sort mặc định: **overdue trước → `dueAt` gần nhất → `priority` high→low → `createdAt` mới nhất**.
 Task không có `dueAt` xếp sau task có `dueAt`. User chọn được tiêu chí chính (`dueAt` | `priority` |
@@ -191,6 +220,7 @@ Không có DB. Storage layout `chrome.storage.sync`:
 | `settings` | `Settings` | display mode, tuỳ chọn hiệu ứng, Pomodoro, âm thanh, thông báo |
 | `subjects` | `Subject[]` | giá sách môn học |
 | `studyLog` | `StudyLog` | chuỗi ngày học |
+| `dayPlan` | `{ [dayKey]: { frogTaskId: string \| null } }` | 1 key duy nhất cho con ếch; `dayKey=YYYY-MM-DD` local, prune 14 ngày (R-21) |
 
 Pomodoro là trạng thái local, không đồng bộ. `PomodoroState` gồm `taskId` (việc đang gắn) và
 `interruptions` (số lần ngắt trong phiên) — cả hai chỉ nằm ở `chrome.storage.local`. Chi tiết hợp đồng

@@ -34,13 +34,13 @@ không thêm enum 5 mức.
 |---|---|---|
 | 0 | ✅ done | `fc9e26e` + `c890de2`; change doc riêng đã archive, BACKLOG `FEAT-003/0 = done` |
 | C | ✅ done | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync`; close-out ở phase-3-task-03 |
-| A | pending | sau C |
+| A | in_progress (plan) | Change doc riêng: `spec/changes/2026-11-17-keystone-frog.md`; spec 1.4.0 / scope 25; chờ human duyệt plan |
 | B | pending | sau A |
 | D | pending | sau B (phụ thuộc G3 — đã có từ Gói 0) |
 | E | pending | hoãn, cần B dùng thật |
 
-**Phạm vi `/change` lần này: chỉ Gói C — Đơn nhiệm.** Các gói còn lại giữ nguyên trạng thái,
-sẽ mở change riêng khi đến lượt.
+**Phạm vi `/change` gần nhất: Gói A — Then chốt + Con ếch** (đã tách change doc riêng ở trên).
+Các gói B/D/E giữ nguyên trạng thái, sẽ mở change riêng khi đến lượt. Gói C đã đóng ở `e75ec48`.
 
 ## Bối cảnh / tái hiện (bug)
 
