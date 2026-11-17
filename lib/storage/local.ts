@@ -12,6 +12,7 @@ export const DEFAULT_POMODORO: PomodoroState = {
   endsAt: null,
   remaining: 25 * 60_000,
   taskId: null,
+  interruptions: 0,
 };
 
 function area(): chrome.storage.LocalStorageArea | null {

@@ -3,10 +3,16 @@
  *
  * Khớp đúng shape mà `lib/storage/adapter.ts` + `lib/alarms/scheduler.ts` sử dụng:
  * - `chrome.storage.sync.get(keys, cb)` / `set(items, cb)` / `remove(keys, cb)`
- * - `chrome.storage.onChanged.addListener/removeListener` + `emitChange(keys)`
+ * - `chrome.storage.local.get/set/remove` + riêng `chrome.storage.local.onChanged`
+ * - `chrome.storage.onChanged.addListener/removeListener` + `emitChange(keys)` (sync)
  * - `chrome.runtime.lastError`
  * - `chrome.alarms.create/clear/getAll(cb)`
  * - `chrome.notifications.create` (no-op)
+ *
+ * local và sync là 2 area ĐỘC LẬP (store/localStore, listeners/localListeners).
+ * `local.set` phát local onChanged như Chrome thật — nên 2 surface dùng chung stub
+ * hydrate được lẫn nhau. Dùng `localStore` + `emitLocalChange` khi cần giả lập
+ * "surface khác ghi" mà không đi qua API storage.local.
  */
 
 export interface AlarmRecord {
@@ -21,10 +27,14 @@ export type StorageChangeListener = (
 export interface ChromeStub {
   /** Nội dung chrome.storage.sync (key → value) */
   store: Map<string, unknown>;
+  /** Nội dung chrome.storage.local (key → value) — độc lập với sync */
+  localStore: Map<string, unknown>;
   /** Alarm đang có (name → info) */
   alarms: Map<string, AlarmRecord>;
-  /** Listener của chrome.storage.onChanged */
+  /** Listener của chrome.storage.onChanged (sync) */
   listeners: Set<StorageChangeListener>;
+  /** Listener của chrome.storage.local.onChanged (area local) */
+  localListeners: Set<StorageChangeListener>;
   /** Số lần addListener được gọi (đo resubscribe — defect #22) */
   subscribeCalls: number;
   /** Mức quyền thông báo trả về từ chrome.notifications.getPermissionLevel */
@@ -33,6 +43,8 @@ export interface ChromeStub {
   seed(items: Record<string, unknown>): void;
   /** Phát onChanged cho danh sách key (shape tối thiểu mà adapter cần) */
   emitChange(keys: string[]): void;
+  /** Phát chrome.storage.local.onChanged cho danh sách key (1 đối số changes) */
+  emitLocalChange(keys: string[]): void;
   /** Xoá sạch store/alarms/listeners */
   reset(): void;
   /** Gán stub vào globalThis.chrome */
@@ -64,12 +76,20 @@ function pickValues(
 
 export function createChromeStub(): ChromeStub {
   const store = new Map<string, unknown>();
+  const localStore = new Map<string, unknown>();
   const alarms = new Map<string, AlarmRecord>();
   const listeners = new Set<StorageChangeListener>();
+  const localListeners = new Set<StorageChangeListener>();
   const notificationState: { level: 'granted' | 'denied' } = {
     level: 'granted',
   };
   const subscribeCallsState = { calls: 0 };
+
+  /** Phát local onChanged — shape đúng của area-local event: (changes) => void */
+  const fireLocal = (changes: Record<string, chrome.storage.StorageChange>) => {
+    if (Object.keys(changes).length === 0) return;
+    for (const listener of localListeners) listener(changes);
+  };
 
   const stub = {
     storage: {
@@ -87,6 +107,40 @@ export function createChromeStub(): ChromeStub {
         remove(keys: string | string[], cb?: () => void) {
           for (const key of Array.isArray(keys) ? keys : [keys]) store.delete(key);
           if (cb) cb();
+        },
+      },
+      local: {
+        get(
+          keys: string | string[] | Record<string, unknown> | null,
+          cb: (result: Record<string, unknown>) => void
+        ) {
+          cb(pickValues(localStore, keys));
+        },
+        set(items: Record<string, unknown>, cb?: () => void) {
+          const changes: Record<string, chrome.storage.StorageChange> = {};
+          for (const [key, value] of Object.entries(items)) {
+            changes[key] = { oldValue: localStore.get(key), newValue: value };
+            localStore.set(key, value);
+          }
+          if (cb) cb();
+          fireLocal(changes);
+        },
+        remove(keys: string | string[], cb?: () => void) {
+          const changes: Record<string, chrome.storage.StorageChange> = {};
+          for (const key of Array.isArray(keys) ? keys : [keys]) {
+            if (localStore.has(key)) changes[key] = { oldValue: localStore.get(key) };
+            localStore.delete(key);
+          }
+          if (cb) cb();
+          fireLocal(changes);
+        },
+        onChanged: {
+          addListener(cb: StorageChangeListener) {
+            localListeners.add(cb);
+          },
+          removeListener(cb: StorageChangeListener) {
+            localListeners.delete(cb);
+          },
         },
       },
       onChanged: {
@@ -122,8 +176,10 @@ export function createChromeStub(): ChromeStub {
 
   return {
     store,
+    localStore,
     alarms,
     listeners,
+    localListeners,
     get subscribeCalls() {
       return subscribeCallsState.calls;
     },
@@ -141,10 +197,17 @@ export function createChromeStub(): ChromeStub {
       for (const key of keys) changes[key] = { newValue: store.get(key) };
       for (const listener of listeners) listener(changes);
     },
+    emitLocalChange(keys) {
+      const changes: Record<string, chrome.storage.StorageChange> = {};
+      for (const key of keys) changes[key] = { newValue: localStore.get(key) };
+      fireLocal(changes);
+    },
     reset() {
       store.clear();
+      localStore.clear();
       alarms.clear();
       listeners.clear();
+      localListeners.clear();
       subscribeCallsState.calls = 0;
     },
     install() {

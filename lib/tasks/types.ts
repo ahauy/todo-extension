@@ -118,6 +118,13 @@ export interface PomodoroState {
   remaining: number;
   /** Việc đang học cùng, nếu có */
   taskId: string | null;
+  /**
+   * R-20 — LOCAL-ONLY: số lần đổi việc/tick việc khác trong phiên focus hiện tại.
+   * Chỉ sống trong phiên: khởi tạo 0 khi bắt đầu focus, +1 qua noteInterruption(),
+   * xoá khi reset/skip/kết thúc phiên. KHÔNG ghi vào StudyLog, KHÔNG sync.
+   * Field optional để state cũ (chưa có R-20) vẫn load được — consumer dùng `?? 0`.
+   */
+  interruptions?: number;
 }
 
 /** Storage key prefix cho task (1 key/task) */

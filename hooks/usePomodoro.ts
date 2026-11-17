@@ -5,6 +5,11 @@
  *
  * Hết phiên tập trung → chuông + sang giờ nghỉ và tự chạy.
  * Hết giờ nghỉ → chuông + về phiên tập trung và chờ người dùng bấm bắt đầu.
+ *
+ * R-20 (state layer): phiên focus có thể gắn 1 việc (`taskId`) và đếm số lần
+ * đổi việc (`interruptions`, local-only). Chỉ completion TỰ NHIÊN mới gọi
+ * `onFocusComplete`; `skip` không bao giờ gọi — dùng `advance(reason)` để phân biệt.
+ * Hai surface mở cùng lúc hydrate qua `chrome.storage.local.onChanged`.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -13,7 +18,11 @@ import {
   savePomodoro,
 } from '../lib/storage/local';
 import { playBell } from '../lib/sound';
-import type { PomodoroPreset, PomodoroState } from '../lib/tasks/types';
+import {
+  POMODORO_KEY,
+  type PomodoroPreset,
+  type PomodoroState,
+} from '../lib/tasks/types';
 
 export const PRESET_MINUTES: Record<PomodoroPreset, { focus: number; break: number }> = {
   '25/5': { focus: 25, break: 5 },
@@ -30,6 +39,9 @@ interface Options {
   onFocusComplete: () => void;
 }
 
+/** 'natural' = đếm về 0; 'skip' = người dùng bấm qua. Chỉ 'natural' + focus bắn callback. */
+type AdvanceReason = 'natural' | 'skip';
+
 export interface PomodoroApi {
   phase: 'focus' | 'break';
   running: boolean;
@@ -41,6 +53,8 @@ export interface PomodoroApi {
   skip: () => void;
   reset: () => void;
   attach: (taskId: string | null) => void;
+  /** R-20: +1 mỗi lần gọi (đổi việc/tick việc khác trong phiên focus). */
+  noteInterruption: () => void;
 }
 
 export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options): PomodoroApi {
@@ -60,24 +74,43 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
     });
   }, []);
 
+  // Surface khác ghi local (attach/skip/...) → hydrate lại phiên đang xem.
+  // Dùng onChanged của RIÊNG area local (chỉ 1 đối số `changes`, không có areaName).
+  useEffect(() => {
+    if (typeof chrome === 'undefined' || !chrome.storage?.local?.onChanged) return;
+    const onLocalChanged = (changes: Record<string, chrome.storage.StorageChange>) => {
+      const change = changes[POMODORO_KEY];
+      if (!change) return;
+      const next = change.newValue as PomodoroState | undefined;
+      hydrated.current = true;
+      setState(next ? { ...DEFAULT_POMODORO, ...next } : { ...DEFAULT_POMODORO });
+      setNow(Date.now());
+    };
+    chrome.storage.local.onChanged.addListener(onLocalChanged);
+    return () => chrome.storage.local.onChanged.removeListener(onLocalChanged);
+  }, []);
+
   const commit = useCallback((next: PomodoroState) => {
     setState(next);
     if (hydrated.current) void savePomodoro(next);
   }, []);
 
   const advance = useCallback(
-    (from: PomodoroState) => {
+    (from: PomodoroState, reason: AdvanceReason) => {
       const nextPhase = from.phase === 'focus' ? 'break' : 'focus';
       const duration = presetDuration(preset, nextPhase);
       if (soundRef.current) playBell();
-      if (from.phase === 'focus') completeRef.current();
+      // R-20: skip KHÔNG record. Chỉ natural + rời focus mới báo completion.
+      if (reason === 'natural' && from.phase === 'focus') completeRef.current();
       commit({
         phase: nextPhase,
         // Giờ nghỉ tự chạy; phiên học mới thì chờ người dùng bấm bắt đầu
         running: nextPhase === 'break',
         endsAt: nextPhase === 'break' ? Date.now() + duration : null,
         remaining: duration,
-        taskId: from.taskId,
+        // R-20: rời focus = clear việc + bộ đếm; sang focus mới = reset bộ đếm về 0
+        taskId: null,
+        interruptions: nextPhase === 'focus' ? 0 : undefined,
       });
     },
     [preset, commit]
@@ -98,7 +131,7 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
   useEffect(() => {
     if (!state.running || state.endsAt === null) return;
     if (state.endsAt - now > 0) return;
-    advance(state);
+    advance(state, 'natural');
   }, [state, now, advance]);
 
   // Đổi preset khi đang dừng thì nạp lại thời lượng của pha hiện tại.
@@ -122,7 +155,7 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
     commit({ ...state, running: false, endsAt: null, remaining: left });
   }, [state, commit]);
 
-  const skip = useCallback(() => advance(state), [state, advance]);
+  const skip = useCallback(() => advance(state, 'skip'), [state, advance]);
 
   const reset = useCallback(() => {
     commit({
@@ -130,6 +163,8 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
       running: false,
       endsAt: null,
       remaining: presetDuration(preset, state.phase),
+      // R-20: reset kết thúc phiên hiện tại → xoá bộ đếm
+      interruptions: undefined,
     });
   }, [state, preset, commit]);
 
@@ -137,6 +172,10 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
     (taskId: string | null) => commit({ ...state, taskId }),
     [state, commit]
   );
+
+  const noteInterruption = useCallback(() => {
+    commit({ ...state, interruptions: (state.interruptions ?? 0) + 1 });
+  }, [state, commit]);
 
   return {
     phase: state.phase,
@@ -149,5 +188,6 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
     skip,
     reset,
     attach,
+    noteInterruption,
   };
 }
