@@ -528,6 +528,7 @@ Một cột, từ trên xuống, đều nằm trong `{components.card-popup-shel
 3. **Dải lọc** (hai hàng): hàng 1 là dải tab {components.button-tab-ribbon} cuộn ngang — **Tất cả · Hôm nay · Sắp tới · Đã xong**, mỗi tab kèm số việc; hàng 2 là ô chọn môn `.filter-subject` (chấm màu gáy sách + tên môn + mũi tên, mở menu) · nút sắp xếp · nút tìm việc (khi mở, ô tìm kiếm thay chỗ ô chọn môn). Popup không có "Giá sách" nên lọc theo môn nằm ở hàng này.
 4. **Cuộn việc**: vùng cuộn dọc, các {components.card-scroll-task} cách nhau 12px.
 5. **Chân trang cố định** (64px): đồng hồ Pomodoro thu gọn bên trái — dial 48px, số `{typography.subtitle-lg}`, một nút play 32px — và 7 đài sen 24px ({components.streak-lotus}, thu từ 28px cho vừa 360px) bên phải.
+6. **Focus overlay (R-20)**: khi phiên focus đang chạy và đã gắn việc, bốn vùng trên bị thay bằng một overlay chiếm toàn vùng nội dung (dial 112px + thẻ việc + "Tạm dừng" / "Kết thúc"); board bị ẩn để không tick nhầm việc khác. Chi tiết ở component `focus-overlay` mục Components.
 
 ### Bố cục New Tab
 Lưới 3 vùng, rộng tối đa 1280px, lề 32px, nằm trong `{components.card-newtab-board}`:
@@ -535,6 +536,8 @@ Lưới 3 vùng, rộng tối đa 1280px, lề 32px, nằm trong `{components.ca
 - **Cột giữa (1fr, tối đa 640px) — "Cuộn nhiệm vụ"**: trên cùng lời chào `{typography.hero-display}` với drop cap, ô {components.quill-input} cỡ lớn, rồi dải tab, rồi danh sách cuộn.
 - **Cột phải (320px) — "Bàn học"**: {components.card-focus-timer}, {components.card-streak}, rồi {components.card-maxim} đóng cột.
 - **Chân trang**: {components.footer-colophon} một dòng ("Học, nhớ, rồi lại học.") và liên kết cài đặt.
+
+Khi focus chạy có việc gắn, `.board-grid--focus` đưa "Bàn học" lên **cột chính** và thu "Cuộn nhiệm vụ" thành **cột phụ** (vẫn giữ ngữ cảnh); "Giá sách" ẩn. Xem component `focus-overlay` mục Components.
 
 ### Whitespace Philosophy
 Khoảng trắng là *mặt giấy*, không phải khoảng trống: giữ lề rộng quanh cuộn việc để mỗi việc "đứng riêng". Trong Popup ưu tiên mật độ; trong New Tab ưu tiên cảm giác tĩnh, mỗi vùng có khung đôi riêng và không quá ba loại thẻ trên một màn hình.
@@ -680,7 +683,13 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Pomodoro & Streak
 
-**`timer-dial`** — Đồng hồ tròn 220px cho "Bàn học": nền {colors.surface-lacquer}, viền đôi vàng kim, số `{typography.timer-display}`, vòng tiến độ nét {colors.primary} chạy quanh viền khi đang đếm. **Popup dùng bản 48px riêng** (`data-size='sm'`: viền 2px, số `{typography.subtitle-lg}`) đặt cạnh một nút play 32px — không thu nhỏ dial 220px.
+**`timer-dial`** — Đồng hồ tròn 220px cho "Bàn học": nền {colors.surface-lacquer}, viền đôi vàng kim, số `{typography.timer-display}`, vòng tiến độ nét {colors.primary} chạy quanh viền khi đang đếm. **Popup dùng bản 48px riêng** (`data-size='sm'`: viền 2px, số `{typography.subtitle-lg}`) đặt cạnh một nút play 32px — không thu nhỏ dial 220px. **Focus overlay dùng bản 112px** (`data-size='overlay'`: viền 3px, số 30px, giữ vòng tiến độ) — đạt ngưỡng tối thiểu 96px của R-20 (`styles/board.css:79-86`).
+
+**`focus-overlay` (R-20)** — Trạng thái thay thế board khi phiên focus đang chạy **và** đã gắn việc (`entrypoints/popup/App.tsx:41-43,124-135`; `entrypoints/newtab/App.tsx:81-83,266-275`). Điều kiện: `running && phase === 'focus' && taskId`; không có taskId → giữ nguyên giao diện §Bố cục Popup / Bố cục New Tab.
+
+- **Popup**: `.popup-focus-overlay` (`styles/board.css:129-136`) chiếm toàn vùng nội dung, ẩn Header / ô ghi / dải lọc / cuộn việc / chân trang để không tick nhầm việc khác. Bên trong là `.focus-overlay` (`.focus-overlay-title` "Đang tập trung") với dial 112px, thẻ việc `.focus-overlay-task` (nhãn `.focus-overlay-task-label` "Việc đang học" + tên `.focus-overlay-task-title`), và `.focus-overlay-actions` gồm **hai nút riêng**: "Tạm dừng" (`variant='primary'` → `api.pause`, giữ phiên) và "Kết thúc" (`variant='secondary'` → `api.reset`, bỏ phiên). "Kết thúc" **không** phải "Bỏ qua"/skip và không ghi `focus`. `data-interruptions` + `.focus-overlay-interruptions` hiện "Đã đổi việc N lần trong phiên này."; `.focus-overlay-task--missing` hiện "Việc không còn tồn tại" thay vì crash khi `taskId` trỏ việc đã xoá (`components/FocusTimer.tsx:69-110`).
+- **New Tab**: `.board-grid--focus` (`entrypoints/newtab/style.css:213-241`) đổi lưới thành `minmax(0,1fr) minmax(0,320px)`; **"Bàn học" (`.board-desk`, `order: -1`) là cột chính**, cuộn việc (`.board-scroll`, `order: 0`) thu thành **cột phụ** nhưng vẫn giữ ngữ cảnh; Giá sách (`.board-shelf` / `.board-shelf-strip`) ẩn để đúng hai cột. Dưới 720px lưới về một cột, "Bàn học" đứng trước. Nút "Tập trung việc này" trên thẻ việc (`.focus-task-button`, `article[data-focus-active='true']`, `styles/board.css:88-112`) là điểm vào overlay.
+- **Bàn phím & motion**: khi `focusActive`, `Escape` / `n` / `/` bị bỏ qua ở cả hai bề mặt (`entrypoints/popup/App.tsx:87-112`, `entrypoints/newtab/App.tsx:101-127`) — không đóng overlay ngoài ý muốn. Overlay dùng lại token sáng hiện có (nền `{colors.surface-lacquer}`, khung đôi {colors.gold}, chữ {colors.ink}) — **không thêm chế độ tối**; mọi transition tuân `prefers-reduced-motion: reduce` (`styles/base.css:153-168`, token `--dur-*` về `0.01ms`) như phần còn lại của hệ thiết kế.
 
 **`progress-ink`** — Thanh tiến độ 8px: rãnh {colors.surface-sunk}, phần đã đi tô {colors.primary}; dùng cho "đã xong 3/7 việc hôm nay".
 

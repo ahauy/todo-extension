@@ -18,11 +18,11 @@
 
 | Key | Area | Value | Cardinality | Nguồn |
 |---|---|---|---|---|
-| `t:<uuid>` | `sync` | `Task` | 1 key / task | `types.ts:118` `TASK_KEY_PREFIX = "t:"`, `taskKey()` |
-| `settings` | `sync` | `Settings` | 1 key duy nhất | `types.ts:119` `SETTINGS_KEY` |
-| `subjects` | `sync` | `Subject[]` | 1 key (danh sách nhỏ, ghi cả mảng) | `types.ts:120` `SUBJECTS_KEY`, `adapter.ts:183` |
-| `studyLog` | `sync` | `StudyLog` | 1 key, prune còn 60 ngày | `types.ts:121` `STUDY_LOG_KEY`, `adapter.ts:201` |
-| `pomodoro` | `local` | `PomodoroState` | 1 key / máy | `types.ts:122`, `lib/storage/local.ts:21` |
+| `t:<uuid>` | `sync` | `Task` | 1 key / task | `types.ts:131` `TASK_KEY_PREFIX = "t:"`, `taskKey()` |
+| `settings` | `sync` | `Settings` | 1 key duy nhất | `types.ts:132` `SETTINGS_KEY` |
+| `subjects` | `sync` | `Subject[]` | 1 key (danh sách nhỏ, ghi cả mảng) | `types.ts:133` `SUBJECTS_KEY`, `adapter.ts:183` |
+| `studyLog` | `sync` | `StudyLog` | 1 key, prune còn 60 ngày | `types.ts:134` `STUDY_LOG_KEY`, `adapter.ts:201` |
+| `pomodoro` | `local` | `PomodoroState` | 1 key / máy | `types.ts:112` (`PomodoroState`), `types.ts:135` (`POMODORO_KEY`), `lib/storage/local.ts:22-37` |
 | `boardTabId` | `session` | `number` | 1 key, mất khi đóng Chrome | `lib/storage/local.ts:42` |
 
 - `<uuid>` sinh bằng `crypto.randomUUID()` khi tạo task (`hooks/useTasks.ts:63`, R-01).
@@ -129,7 +129,7 @@ Gap G2 cũ đã đóng (R-14 1.2.0 mô tả đúng bộ field này).
 
 Quan hệ: **Subject 1 — N Task** qua `Task.subjectId` (không có FK, chỉ là id tham chiếu).
 Xoá môn (`useBoard.dropSubject`) gỡ `subjects` rồi gán `subjectId = null` cho mọi task của môn đó —
-task không bị xoá (`hooks/useBoard.ts:135-144`).
+task không bị xoá (`hooks/useBoard.ts:207-216`).
 
 Giới hạn áp trong code: `MAX_SUBJECTS = 12`, `MAX_SUBJECT_NAME = 28` (`lib/subjects.ts:51-52`);
 tên trùng nhau (so **không phân biệt hoa/thường**) bị từ chối (`hooks/useSubjects.ts:79-81`,
@@ -143,9 +143,11 @@ tên trùng nhau (so **không phân biệt hoa/thường**) bị từ chối (`h
 | `StudyLog` | `Record<dayKey, StudyDay>`; `dayKey` là `YYYY-MM-DD` **theo giờ local** (`lib/datetime.ts:18-23`) |
 
 `putStudyLog` chỉ giữ **60 ngày gần nhất** (`STUDY_LOG_DAYS`, `adapter.ts:201-222`) để key không phình.
-Ghi nhật ký nằm ở `hooks/useBoard.ts:91` (toggle task) và `:44` (hết phiên focus).
+Ghi nhật ký nằm ở `hooks/useBoard.ts:119` (toggle task, `record('tasks', ±1)` trong `toggleTask`
+`:110-133`) và `hooks/useBoard.ts:50` (`record('focus', 1)` trong `recordFocus` `:49-52` — chỉ gọi
+khi xác nhận completion tự nhiên, xem §2.7).
 
-### 2.7 `PomodoroState` (key `pomodoro`, `chrome.storage.local`) — `types.ts:106-115`
+### 2.7 `PomodoroState` (key `pomodoro`, `chrome.storage.local`) — `types.ts:112-128`
 
 | Field | Kiểu | Ý nghĩa |
 |---|---|---|
@@ -153,13 +155,22 @@ Ghi nhật ký nằm ở `hooks/useBoard.ts:91` (toggle task) và `:44` (hết p
 | `running` | `boolean` | đồng hồ đang chạy |
 | `endsAt` | `number \| null` | epoch ms lúc hết phiên; `null` khi tạm dừng |
 | `remaining` | `number` | ms còn lại khi tạm dừng |
-| `taskId` | `string \| null` | việc đang học cùng, nếu có |
+| `taskId` | `string \| null` | R-20: việc đang gắn với phiên (xem bên dưới); `null` khi không gắn / đã rời focus |
+| `interruptions` | `number \| undefined` (optional) | R-20, **local-only**: số lần đổi việc trong phiên focus hiện tại. Khởi tạo `0` khi bắt đầu focus, `+1` qua `noteInterruption()` (`hooks/usePomodoro.ts:178-180`), xoá (`undefined`) khi reset/skip/kết thúc phiên (`hooks/usePomodoro.ts:107-116,162-171`). Consumer đọc `?? 0`. |
 
-**Không đồng bộ giữa máy** — lưu local, không nằm trong `storage.sync` (`lib/storage/local.ts:2-5`).
+**Không đồng bộ giữa máy** — cả `taskId` lẫn `interruptions` chỉ nằm trong `chrome.storage.local`
+(`types.ts:120,127`, `POMODORO_KEY = "pomodoro"` ở `types.ts:135`, `lib/storage/local.ts:22-37`).
+**Không có field `sync` tương ứng**: `chrome.storage.sync` giữ nguyên bốn key (`t:<uuid>`,
+`settings`, `subjects`, `studyLog`) — không thêm key/ngày. `interruptions` **không** ghi vào `StudyLog`,
+không lên thiết bị khác, chỉ hiện trong tổng kết phiên.
 
-`taskId` thực tế **luôn `null`**: hook có API `attach(taskId)` (`hooks/usePomodoro.ts:43,137`) và
-`newtab/App.tsx:142` đọc `taskId` để tìm việc đang gắn, nhưng **chưa component nào gọi `attach()`**.
-Nối UI này là Gói C trong [`ROADMAP_TIME_MANAGEMENT.md`](ROADMAP_TIME_MANAGEMENT.md).
+As-built Gói C: `taskId` không còn là placeholder. `useBoard.startFocusOn(id)`
+(`hooks/useBoard.ts:146-160`) gọi `attach(id)` rồi `start()`: `switchTaskMidSession(id)`
+(`:162-177`) gọi `attach(id)` rồi `noteInterruption()` ở render kế tiếp. Cả popup và New Tab đọc
+`taskId` để dựng focus overlay (`entrypoints/popup/App.tsx:41-43,124-135`,
+`entrypoints/newtab/App.tsx:81-83,266-275`). Hai surface mở cùng lúc hydrate lại qua
+`chrome.storage.local.onChanged` (`hooks/usePomodoro.ts:81-93`). Việc bị xoá/dangling → overlay
+hiện "Việc không còn tồn tại" thay vì crash (`components/FocusTimer.tsx:84-93`).
 
 ## 3. Quan hệ tổng thể
 
@@ -173,6 +184,8 @@ Subject[] (1 key "subjects")       StudyLog (1 key "studyLog")
   id / name / order / createdAt      dayKey(YYYY-MM-DD local) → {tasks, focus}
 
 PomodoroState (1 key local "pomodoro") — chỉ thuộc máy hiện tại, không sync
+  taskId ──► Task.id (tham chiếu id, có thể dangling nếu việc bị xoá)
+  interruptions (local-only, chỉ sống trong phiên focus)
 ```
 
 Không có khoá ngoại giữa các key — `Subtask`/`RecurrenceRule` nhúng thẳng trong JSON của `Task`;

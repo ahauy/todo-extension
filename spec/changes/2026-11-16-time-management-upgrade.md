@@ -33,7 +33,7 @@ không thêm enum 5 mức.
 | Gói | Trạng thái | Ghi chú |
 |---|---|---|
 | 0 | ✅ done | `fc9e26e` + `c890de2`; change doc riêng đã archive, BACKLOG `FEAT-003/0 = done` |
-| C | 🔄 đang xử lý | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync` |
+| C | ✅ done | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync`; close-out ở phase-3-task-03 |
 | A | pending | sau C |
 | B | pending | sau A |
 | D | pending | sau B (phụ thuộc G3 — đã có từ Gói 0) |
@@ -59,7 +59,7 @@ Hiện trạng liên quan (đã đối chiếu code):
       (Xong 2026-11-17 — commit `c890de2`, reviewer STRICT round 2 PASS.)
 - [ ] Gói A: `keystone` (tối đa 3 đang mở, **chỉ cảnh báo**) + **chip lọc "20%"** (không thêm tab) + chọn con ếch mỗi ngày; "Cắt bỏ" = `archived` + mục "Đã cắt"; dòng review tuần trong New Tab; sort vẫn deterministic (R-15).
 - [ ] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
-- [ ] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn.
+- [x] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn. (2026-11-17 — phase 1 `02e3737` + phase 2 `aa3c78a` STRICT PASS; docs reconcile + verify ở phase-3-task-03.)
 - [ ] Gói D: streak theo lịch thói quen; `doneDays` ≤ 31; tắt toggle không xoá dữ liệu.
 - [ ] Gói E: chỉ làm bản nhẹ (nếu được duyệt riêng) — không lưới calendar, không kéo-thả.
 - [ ] Mỗi gói: spec delta + `/spec-publish` + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + reviewer PASS.

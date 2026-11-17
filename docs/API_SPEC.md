@@ -24,16 +24,18 @@ Storage layout `chrome.storage.sync` — chi tiết đầy đủ ở [`ERD.md`](
 
 | Key | Area | Value | Nguồn |
 |---|---|---|---|
-| `t:<uuid>` | `sync` | `Task` (1 key/task, ghi atomic theo key) | `lib/tasks/types.ts:118` (`TASK_KEY_PREFIX`) |
-| `settings` | `sync` | `Settings` | `lib/tasks/types.ts:119` (`SETTINGS_KEY`) |
-| `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:120` (`SUBJECTS_KEY`) |
-| `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:121` (`STUDY_LOG_KEY`) |
-| `pomodoro` | **`local`** | `PomodoroState` | `lib/tasks/types.ts:122`, `lib/storage/local.ts` |
+| `t:<uuid>` | `sync` | `Task` (1 key/task, ghi atomic theo key) | `lib/tasks/types.ts:131` (`TASK_KEY_PREFIX`) |
+| `settings` | `sync` | `Settings` | `lib/tasks/types.ts:132` (`SETTINGS_KEY`) |
+| `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:133` (`SUBJECTS_KEY`) |
+| `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:134` (`STUDY_LOG_KEY`) |
+| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` local-only, R-20) | `lib/tasks/types.ts:112,135`, `lib/storage/local.ts:22-37` |
 
 Kiểu `Task`, `Settings`, `Subtask`, `RecurrenceRule`, `Subject`, `StudyLog`, `PomodoroState` định nghĩa
 duy nhất tại `lib/tasks/types.ts` — adapter, recurrence, query, UI đều import từ đây (single source of truth).
-Pomodoro **không** nằm trong `storage.sync` (đồng hồ đổi liên tục + thuộc một máy). Chi tiết bảng field:
-[`ERD.md`](ERD.md) §2.
+Pomodoro **không** nằm trong `storage.sync` (đồng hồ đổi liên tục + thuộc một máy). Riêng R-20:
+`taskId` (việc đang gắn) và `interruptions` (số lần đổi việc trong phiên) là **local-only** — không đổi
+schema sync, không thêm key/ngày, không ghi `StudyLog`, không sync thiết bị. Chi tiết bảng field:
+[`ERD.md`](ERD.md) §2.7.
 
 ## 2. Chrome extension APIs sử dụng
 
@@ -90,6 +92,17 @@ Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notificat
 | `action.setPopup` | `background.ts:57` (`applyDisplayMode`) | `displayMode=popup\|auto` → gắn `popup.html`; `newtab` → gỡ popup để `action.onClicked` chạy |
 | `action.onClicked` | `background.ts:87` | Chỉ fire khi popup đã gỡ → mở/focus tab Học Đường |
 | `tabs.create` / `tabs.update` | `background.ts:74,80` | Mở bảng lớn hoặc focus lại tab đã nhớ trong `storage.session` (`lib/storage/local.ts`) |
+
+### 2.5 `chrome.storage.local` (R-20 — Pomodoro)
+
+| API | Dùng ở đâu | Mục đích |
+|---|---|---|
+| `local.get([POMODORO_KEY], cb)` | `lib/storage/local.ts:22-31` (`loadPomodoro`) | Hydrate `PomodoroState` (gồm `taskId`, `interruptions`) lúc mount |
+| `local.set({ [POMODORO_KEY]: state }, cb)` | `lib/storage/local.ts:33-38` (`savePomodoro`) | Ghi khi **đổi trạng thái** — không ghi mỗi nhịp đếm (giới hạn 120 write/phút) |
+| `local.onChanged.addListener` | `hooks/usePomodoro.ts:81-93` | Popup và New Tab hydrate lại phiên khi surface kia ghi (local change chỉ có 1 đối số `changes`) |
+
+`storage.session` (`boardTabId`, `lib/storage/local.ts:40-48`) vẫn chỉ để focus tab bảng đang mở.
+**Không thêm permission**: `local` / `session` đã nằm trong quyền `"storage"` (R-17). Không network.
 
 ## 3. Internal module interfaces
 
@@ -191,6 +204,50 @@ tạo (Chrome fire ngay), task hiển thị overdue (R-12).
   `settings` đổi → `syncAlarms` lại toàn bộ (`hooks/useTasks.ts:102-128`) → gap G7.
 - Không autosave từng keystroke (giới hạn 120 write/phút) — chỉ ghi khi Lưu / toggle.
 
+### 3.6 Pomodoro & focus — `hooks/usePomodoro.ts`, `hooks/useBoard.ts` (R-20)
+
+`usePomodoro({ preset, soundEnabled, onFocusComplete })` trả `PomodoroApi`
+(`hooks/usePomodoro.ts:45-60,182-195`):
+
+| Thành viên | Kiểu | Hành vi |
+|---|---|---|
+| `phase`, `running`, `remaining`, `progress` | derived | Nhịp đếm 250ms chỉ chạy khi `running` (`:121-137`); `endsAt` về 0 → `advance('natural')` |
+| `taskId` | `string \| null` | Việc đang gắn, đọc từ `PomodoroState` local |
+| `interruptions` | `number` | Chỉ đọc: `state.interruptions ?? 0` (`:188`) |
+| `attach(taskId \| null)` | `(id) => void` | Gắn / huỷ gắn việc; `commit` ghi `chrome.storage.local` (`:173-176`) |
+| `noteInterruption()` | `() => void` | `interruptions = (current ?? 0) + 1` (`:178-180`); chỉ gọi sau khi user xác nhận đổi việc |
+| `start()` / `pause()` | `() => void` | Đặt `endsAt` / lưu `remaining` rồi `endsAt = null` (`:150-158`) |
+| `skip()` | `() => void` | `advance(state, 'skip')` (`:160`) — **không** gọi completion |
+| `reset()` | `() => void` | Dừng, nạp lại thời lượng, xoá `interruptions` thành `undefined` (`:162-171`) |
+
+`advance(from, reason: 'natural' | 'skip')` (`:100-119`) là điểm phân luồng: **chỉ** khi
+`reason === 'natural' && from.phase === 'focus'` mới gọi `onFocusComplete` (`:106`); mọi nhánh khác
+(kể cả skip) chỉ đổi phase/endsAt. Khi rời focus, `taskId` bị clear và `interruptions` về `0` nếu sang
+focus mới, hoặc bị xoá nếu sang nghỉ (`:113-116`).
+
+`useBoard()` (`hooks/useBoard.ts:24-256`) bọc `usePomodoro` để **hoãn completion**:
+
+- `onFocusComplete` (`:54-63`) — có việc gắn (đọc qua `focusTaskIdRef`, cập nhật trong render `:73`) thì
+  **không** ghi ngay mà đặt `pendingCompletion = { taskId, interruptions }`; không có việc gắn →
+  `record('focus', 1)` ngay (`recordFocus`, `:49-52`). Ref được cập nhật trong render vì hook clear
+  `taskId` ngay sau callback (`:71-75`).
+- `pendingCompletion` / `confirmFocusCompletion()` (`:136-142`) — xác nhận "Xong việc này chưa?" →
+  `toggleTask(taskId)` (tick việc; task lặp đi theo R-11 qua `useTasks.toggle`) **và** `record('focus', 1)`
+  đúng một lần.
+- `declineFocusCompletion()` (`:144`) — "Chưa xong" → xoá pending, **không** tick, **không** ghi focus.
+- `startFocusOn(id)` (`:146-160`) — `attach(id)` rồi effect chờ render thấy `taskId` mới mới gọi `start()`.
+- `switchTaskMidSession(id)` (`:162-177`) — `attach(id)` rồi effect gọi `noteInterruption()` ở render sau
+  (comment `:162-163`: hai `commit` trong cùng closure ghi đè nếu gọi chung một render). UI gọi qua
+  `components/FocusConfirms.tsx` và `handleInterrupt` ở hai entrypoint.
+- `toggleTask(id)` (`:110-133`) — tick việc, ghi `record('tasks', ±1)`; khi `focusActive` và `id` khác
+  việc đang gắn, New Tab chặn ở `handleToggle` (`entrypoints/newtab/App.tsx:160-166`) để hiện xác nhận
+  trước.
+
+**"Kết thúc" vs "Bỏ qua" (điểm dễ nhầm):** nút **"Kết thúc"** trong focus overlay gọi `api.reset`
+(`components/FocusTimer.tsx:99-107`) — bỏ phiên, không sang giờ nghỉ, không ghi focus; nút **"Bỏ qua"**
+ở bản đầy gọi `api.skip` (`:169-174`) — chuyển sang giờ nghỉ nhưng cũng **không** ghi focus. Cả hai đều
+khác completion tự nhiên có xác nhận — nơi duy nhất gọi `record('focus', 1)`.
+
 ## 4. Sync & conflict resolution (R-13)
 
 | Sự kiện `storage.onChanged` (area `sync`) | Xử lý |
@@ -226,6 +283,6 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 ## 6. Versioning
 
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện `1.2.1` — khớp frontmatter `SPECIFICATIONS.md`).
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện `1.3.0` — khớp frontmatter `SPECIFICATIONS.md`; scopeVersion 23). R-20 chỉ thêm field local `PomodoroState.taskId` / `interruptions`, **không** đổi schema sync.
 Đổi schema `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

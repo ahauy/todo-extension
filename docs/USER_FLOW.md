@@ -1,7 +1,7 @@
 # User Flows — Todo Extension
 
 > **Derived doc.** Các luồng người dùng chính, suy ra từ [`SPECIFICATIONS.md`](../SPECIFICATIONS.md)
-> (R-01…R-19) + [`.context/design-spec.md`](../.context/design-spec.md) (interaction model §8).
+> (R-01…R-20) + [`.context/design-spec.md`](../.context/design-spec.md) (interaction model §8).
 > Đây là mô tả hành vi mục tiêu; đối chiếu code thật khi validate. Đổi behavior → qua `/change`.
 
 ## 0. Bối cảnh
@@ -127,13 +127,42 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 3. Task chưa lưu vẫn trong RAM, đánh dấu trong banner; không nuốt lỗi.
 4. "Ẩn" thu banner thành icon cảnh ở header (vẫn còn dấu hiệu); lỗi mới thì hiện lại.
 
+## 11. Phiên tập trung đơn nhiệm (R-20)
+
+> As-built sau Gói C. `PomodoroState.taskId` + `interruptions` chỉ nằm ở `chrome.storage.local`;
+> không đổi schema `chrome.storage.sync`, không thêm permission/network (R-17).
+
+1. Trên thẻ việc bấm **"Tập trung việc này"** (`.focus-task-button`) → `attach(taskId)` rồi `start()`.
+   Việc đang gắn được viền vàng `article[data-focus-active='true']`; đóng/mở popup giữa phiên vẫn thấy
+   đúng việc (state bền qua `endsAt`).
+2. Khi `running && phase === 'focus' && taskId`: popup thay toàn bộ board bằng **focus overlay** (dial
+   112px + thẻ việc + "Tạm dừng" / "Kết thúc"), New Tab đưa "Bàn học" lên cột chính và thu cuộn việc
+   thành cột phụ (`.board-grid--focus`). Không có taskId → giao diện/hành vi y hệt §1–§10.
+3. Trong phiên, bấm "Tập trung việc này" ở việc khác, hoặc tick việc khác → hộp thoại
+   **"Đổi việc đang tập trung? / Đang trong phiên, đổi việc sẽ phá tập trung?"** (nút "Đổi việc" /
+   "Giữ việc cũ"). "Giữ việc cũ" → không đổi, không đếm. "Đổi việc" → `interruptions += 1`
+   (local-only); số này hiện ở tổng kết phiên, **không** ghi `StudyLog`, **không** sync thiết bị.
+4. **Kết thúc tự nhiên** (đếm về 0) có taskId → hỏi **"Xong việc này chưa?"** (confirm "Xong rồi" /
+   cancel "Chưa xong", kèm số lần đổi việc trong phiên).
+   - "Xong rồi" → tick việc (task lặp đi theo R-11, §3) **và** `record('focus', 1)` đúng một lần.
+   - "Chưa xong" → không tick, không ghi focus, coi như bỏ dở.
+5. **Bỏ dở / rời phiên** → không tính `focus`:
+   - Overlay "Kết thúc" = `reset()` (xoá `taskId` + `interruptions`, dừng đồng hồ, **không** sang giờ
+     nghỉ, **không** gọi completion) — khác với nút "Bỏ qua"/skip ở bản đầy.
+   - "Tạm dừng" giữ nguyên phiên; bấm reset sau đó vẫn là bỏ dở.
+   - `skip` (bản đầy) dùng `advance('skip')` → **không** gọi completion, không tăng `studyLog.focus`.
+   - Đóng popup mà không xác nhận → phiên vẫn chạy ở `chrome.storage.local`; không ghi focus.
+6. `interruptions` khởi tạo 0 khi bắt đầu phiên focus mới, bị xoá khi reset/skip/kết thúc phiên —
+   không tồn tại ngoài phiên. Việc đã xoá khi đang mở overlay → hiện "Việc không còn tồn tại" thay vì
+   crash.
+
 ## Keyboard map
 
 | Phím | Hành vi |
 |------|---------|
 | `n` | Focus ô ghi việc |
 | `/` | Mở tìm kiếm |
-| `Escape` | Đóng/back: menu → search → detail/panel |
+| `Escape` | Đóng/back: menu → search → detail/panel. **Bị bỏ qua khi focus overlay đang chạy** (R-20) |
 | `Enter` (ô ghi việc) | Ghi việc — IME-safe (không ghi khi đang bộ gõ) |
 | `Cmd/Ctrl+Enter` (detail) | Lưu detail |
 | `←` / `→` | Điều hướng ribbon tab + segmented control |
@@ -142,6 +171,8 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 | `Enter`/`Space` (title) | Mở detail |
 
 > Shortcut đơn (`n`, `/`) không kích hoạt khi focus đang trong input/textarea. Không shortcut xoá (tránh tai nạn).
+> Khi `focusActive` (R-20), cả ba phím `n` / `/` / `Escape` đều bị bỏ qua để không thoát overlay ngoài
+> ý muốn; chỉ dùng nút "Tạm dừng" / "Kết thúc" trên overlay.
 
 ## Motion
 
@@ -150,5 +181,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 - Token thời lượng: `--dur-nib 120ms` (nét bút) · `--dur-fast 140ms` (phản hồi nhanh) ·
   `--dur-ink 180ms` (mực) · `--dur-slide 240ms` (chuyển panel) · triện đóng 240ms · `--dur-dry 800ms`
   (mực khô sau khi đóng dấu); easing `ease-out` / `ease-ink`.
-- `prefers-reduced-motion: reduce` tắt toàn bộ transition/animation (`styles/base.css:152-167`).
+- `prefers-reduced-motion: reduce` tắt toàn bộ transition/animation (`styles/base.css:153-168`).
+- Focus overlay (R-20) chỉ đổi trạng thái: dial dùng vòng tiến độ 900ms linear như bản đầy, không thêm
+  animation lặp; vẫn tuân `prefers-reduced-motion` như phần còn lại.
 - Settings `quillEffect=false` → `data-quill='off'` tắt hiệu ứng mực khi gõ.

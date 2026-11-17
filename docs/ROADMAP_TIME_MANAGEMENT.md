@@ -257,7 +257,8 @@ planReminder: { enabled: boolean; at: string };  // mặc định { enabled: tru
 **Mục tiêu:** một phiên tập trung = một việc; giảm chuyển ngữ cảnh; ghi nhận phiên vào nhật ký.
 
 **Dữ liệu:** **không đổi `chrome.storage.sync`.** Dùng `PomodoroState.taskId` đã có
-(`lib/tasks/types.ts:114`, `hooks/usePomodoro.ts:137`) — hiện **chưa có UI nào gọi `attach()`**.
+(`lib/tasks/types.ts:120`, `hooks/usePomodoro.ts:173`) — Gói C đã nối UI: `useBoard.startFocusOn` /
+`switchTaskMidSession` gọi `attach()`, với `interruptions` là field local mới (`types.ts:127`).
 
 **Hành vi & UI:**
 - Nút "Tập trung việc này" trên card → `attach(taskId)` + bắt đầu phiên theo preset.
@@ -267,8 +268,14 @@ planReminder: { enabled: boolean; at: string };  // mặc định { enabled: tru
   và nếu vẫn đổi thì đếm 1 lần ngắt (local, chỉ hiện trong tổng kết phiên).
 - Hết phiên → hỏi "Xong việc này chưa?" → tick + `record('focus')` (đã có trong `useStudyLog`).
 
-**Module chạm:** `components/FocusTimer.tsx`, `components/TaskScroll.tsx`, `entrypoints/popup/App.tsx`,
-`entrypoints/newtab/App.tsx`, `hooks/usePomodoro.ts`, `styles/components.css`, `docs/USER_FLOW.md`.
+**Module chạm** (đồng bộ `changed.files` đã phát hành trong `spec/test-scope/current.json`, scopeVersion 23):
+`hooks/usePomodoro.ts`, `hooks/useBoard.ts`, `hooks/useStudyLog.ts`, `lib/tasks/types.ts`,
+`components/FocusTimer.tsx`, `components/TaskScroll.tsx`, `components/TaskScrollList.tsx`,
+`entrypoints/popup/App.tsx`, `entrypoints/newtab/App.tsx`, `styles/board.css`,
+`src/test/chrome-stub.ts` (tên trong bản phát hành; trên disk là `src/__tests__/helpers/chrome-stub.ts`, đã có `storage.local`). Artifact phát hành kèm:
+`SPECIFICATIONS.md`, `spec/updates/2026-11-17-single-handling-focus.md`. Focus overlay nằm ở
+`styles/board.css` (không phải `styles/components.css`); reconcile `docs/USER_FLOW.md` và các as-built
+doc khác là công việc đóng gói theo acceptance của change doc, không nằm trong `changed.files` của code.
 
 **Chi phí:** **S–M** (rẻ nhất trong 6 gói). **Rủi ro:** thấp — `chrome.storage.local`, không chạm schema sync.
 
