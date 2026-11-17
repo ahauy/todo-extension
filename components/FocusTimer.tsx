@@ -6,7 +6,8 @@
  *
  * R-20: bản `overlay` dùng khi phiên focus đang chạy và đã gắn việc — dial
  * ≥96px, thẻ việc + hai nút riêng "Tạm dừng" / "Kết thúc" (Kết thúc = reset,
- * không chuyển break, không ghi focus).
+ * không chuyển break, không ghi focus). FUP-001: thêm nút "Huỷ gắn việc" khi
+ * có việc gắn và truyền `onDetach`.
  */
 import React from 'react';
 import Button from './ui/Button';
@@ -63,6 +64,8 @@ interface FocusTimerProps {
   dangling?: boolean;
   /** R-20: số lần đổi việc trong phiên (local-only). */
   interruptions?: number;
+  /** FUP-001: huỷ gắn việc giữa phiên (attach(null) + 1 interruption). */
+  onDetach?: () => void;
 }
 
 /** Overlay view tách riêng để FocusTimer giữ dưới ngưỡng 50 dòng/hàm. */
@@ -71,8 +74,10 @@ function OverlayView({
   taskTitle,
   dangling,
   interruptions = 0,
-}: Pick<FocusTimerProps, 'api' | 'taskTitle' | 'dangling' | 'interruptions'>) {
+  onDetach,
+}: Pick<FocusTimerProps, 'api' | 'taskTitle' | 'dangling' | 'interruptions' | 'onDetach'>) {
   const title = (taskTitle ?? '').trim();
+  const canDetach = !!onDetach && !dangling && !!title;
   return (
     <section
       className="focus-overlay"
@@ -104,6 +109,11 @@ function OverlayView({
         <Button variant="secondary" onClick={api.reset}>
           Kết thúc
         </Button>
+        {canDetach && (
+          <Button variant="secondary" onClick={onDetach}>
+            Huỷ gắn việc
+          </Button>
+        )}
       </div>
     </section>
   );
@@ -118,6 +128,7 @@ export default function FocusTimer({
   overlay = false,
   dangling = false,
   interruptions = 0,
+  onDetach,
 }: FocusTimerProps) {
   const label = api.running ? 'Tạm dừng' : 'Bắt đầu học';
 
@@ -128,6 +139,7 @@ export default function FocusTimer({
         taskTitle={taskTitle}
         dangling={dangling}
         interruptions={interruptions}
+        onDetach={onDetach}
       />
     );
   }

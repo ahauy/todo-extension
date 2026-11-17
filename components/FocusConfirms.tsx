@@ -2,12 +2,13 @@
  * R-20: hai hộp xác nhận dùng chung cho Popup và New Tab.
  * - Đổi việc/tick việc khác giữa phiên → phá tập trung (+1 interruption).
  * - Hết phiên tự nhiên có việc gắn → hỏi "Xong việc này chưa?".
+ * FUP-001: cùng hộp đầu phục vụ huỷ gắn việc (kind 'detach'), label riêng.
  */
 import React from 'react';
 import ConfirmDialog from './ConfirmDialog';
 
 export interface FocusInterrupt {
-  kind: 'attach' | 'toggle';
+  kind: 'attach' | 'toggle' | 'detach';
   id: string;
 }
 
@@ -30,14 +31,19 @@ export default function FocusConfirms({
   onCancelCompletion,
   onConfirmCompletion,
 }: FocusConfirmsProps) {
+  const isDetach = interrupt?.kind === 'detach';
   return (
     <>
       <ConfirmDialog
         isOpen={!!interrupt}
         sheet={sheet}
-        title="Đổi việc đang tập trung?"
-        description="Đang trong phiên, đổi việc sẽ phá tập trung?"
-        confirmLabel="Đổi việc"
+        title={isDetach ? 'Huỷ gắn việc đang tập trung?' : 'Đổi việc đang tập trung?'}
+        description={
+          isDetach
+            ? 'Đang trong phiên, huỷ gắn việc sẽ phá tập trung và tính là đổi việc?'
+            : 'Đang trong phiên, đổi việc sẽ phá tập trung?'
+        }
+        confirmLabel={isDetach ? 'Huỷ gắn' : 'Đổi việc'}
         cancelLabel="Giữ việc cũ"
         onCancel={onCancelInterrupt}
         onConfirm={() => {

@@ -207,3 +207,47 @@ describe('FocusTimer — overlay (R-20)', () => {
     expect(container.querySelectorAll('button')).toHaveLength(1);
   });
 });
+
+describe('FocusTimer — FUP-001 nút "Huỷ gắn việc"', () => {
+  const baseProps = {
+    preset: '25/5' as const,
+    onPresetChange: vi.fn(),
+    overlay: true,
+    taskTitle: 'Học bài sử',
+    interruptions: 1,
+  };
+  const labelsOf = (scope: ParentNode) =>
+    [...scope.querySelectorAll('button')].map((b) => b.textContent?.trim());
+
+  it('có onDetach + việc gắn → nút thứ ba hiện, click gọi onDetach (không đụng pause/reset/skip)', () => {
+    const onDetach = vi.fn();
+    const api = fakeApi();
+    const container = render(<FocusTimer {...baseProps} api={api} onDetach={onDetach} />);
+
+    const labels = labelsOf(container);
+    expect(labels).toContain('Tạm dừng');
+    expect(labels).toContain('Kết thúc');
+    expect(labels).toContain('Huỷ gắn việc');
+    expect(labels.filter((label) => label === 'Huỷ gắn việc')).toHaveLength(1);
+
+    const detach = [...container.querySelectorAll('button')].find(
+      (b) => b.textContent?.trim() === 'Huỷ gắn việc'
+    ) as HTMLButtonElement;
+    act(() => detach.click());
+    expect(onDetach).toHaveBeenCalledTimes(1);
+    expect(api.pause).not.toHaveBeenCalled();
+    expect(api.reset).not.toHaveBeenCalled();
+    expect(api.skip).not.toHaveBeenCalled();
+  });
+
+  it('không có onDetach hoặc việc dangling → KHÔNG hiện nút huỷ gắn', () => {
+    const noHandler = render(<FocusTimer {...baseProps} api={fakeApi()} />);
+    expect(labelsOf(noHandler)).not.toContain('Huỷ gắn việc');
+
+    const dangling = render(
+      <FocusTimer {...baseProps} api={fakeApi()} dangling onDetach={vi.fn()} />
+    );
+    expect(labelsOf(dangling)).not.toContain('Huỷ gắn việc');
+    expect(dangling.textContent).toContain('Việc không còn tồn tại');
+  });
+});

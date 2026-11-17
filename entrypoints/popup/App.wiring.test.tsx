@@ -682,4 +682,47 @@ describe('App wiring — R-20 focus overlay & completion', () => {
     });
     expect(focusTotal()).toBe(0);
   });
+
+  it('FUP-001: "Huỷ gắn việc" → xác nhận Huỷ gắn → attach(null) + 1 ngắt; Giữ việc cũ → không đổi', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc đang học' }) });
+    stub.localStore.set(POMODORO_KEY, activeState('a'));
+    const container = await renderApp();
+
+    expect(findButton(container, 'Huỷ gắn việc')).not.toBeNull();
+    expect(container.querySelector('[data-testid="focus-overlay"]')).not.toBeNull();
+
+    await act(() => {
+      findButton(container, 'Huỷ gắn việc').click();
+    });
+    expect(container.textContent).toContain('Huỷ gắn việc đang tập trung?');
+    expect(container.textContent).toContain('Huỷ gắn');
+    expect(container.textContent).toContain('Giữ việc cũ');
+
+    // Từ chối: việc vẫn gắn, không đếm ngắt, overlay còn nguyên
+    await act(() => {
+      findButton(container, 'Giữ việc cũ').click();
+    });
+    expect(savedPomodoro()?.taskId).toBe('a');
+    expect(savedPomodoro()?.interruptions).toBe(0);
+    expect(container.querySelector('[data-testid="focus-overlay"]')).not.toBeNull();
+
+    // Xác nhận: huỷ gắn + đúng 1 interruption; phiên vẫn chạy (không reset/skip/ghi focus)
+    await act(() => {
+      findButton(container, 'Huỷ gắn việc').click();
+    });
+    await act(() => {
+      findButton(container, 'Huỷ gắn').click();
+    });
+    await act(async () => {
+      await flush();
+      await flush();
+      await flush();
+    });
+    const saved = savedPomodoro();
+    expect(saved?.taskId).toBeNull();
+    expect(saved?.interruptions).toBe(1);
+    expect(saved?.running).toBe(true);
+    expect(saved?.phase).toBe('focus');
+    expect(focusTotal()).toBe(0);
+  });
 });

@@ -146,9 +146,10 @@ Mỗi gói độc lập về dữ liệu, nhưng cùng phục vụ vòng lặp �
 **Chi phí:** S. **Rủi ro:** trung bình — đụng dữ liệu cũ, phải có migration + test cho task đã có `dueAt`.
 
 **Nghiệm thu sơ bộ:**
-- [ ] Task tạo mới ở múi giờ A, mở ở múi giờ B vẫn hiện đúng giờ *đã đặt* (wall-clock).
-- [ ] Weekly với `weekdays=[1,3,5]` chỉ sinh occurrence đúng các thứ đó.
-- [ ] Không có task nào bị lệch ngày sau migration (test trên fixture có `Z` và không `Z`).
+- [x] Task tạo mới ở múi giờ A, mở ở múi giờ B vẫn hiện đúng giờ *đã đặt* (wall-clock).
+- [x] Weekly với `weekdays=[1,3,5]` chỉ sinh occurrence đúng các thứ đó.
+- [x] Không có task nào bị lệch ngày sau migration (test trên fixture có `Z` và không `Z`).
+  (Đóng 2026-11-17 — Gói 0 commit `c890de2`, reviewer STRICT round 2 PASS.)
 
 ---
 
@@ -272,7 +273,7 @@ planReminder: { enabled: boolean; at: string };  // mặc định { enabled: tru
 `hooks/usePomodoro.ts`, `hooks/useBoard.ts`, `hooks/useStudyLog.ts`, `lib/tasks/types.ts`,
 `components/FocusTimer.tsx`, `components/TaskScroll.tsx`, `components/TaskScrollList.tsx`,
 `entrypoints/popup/App.tsx`, `entrypoints/newtab/App.tsx`, `styles/board.css`,
-`src/test/chrome-stub.ts` (tên trong bản phát hành; trên disk là `src/__tests__/helpers/chrome-stub.ts`, đã có `storage.local`). Artifact phát hành kèm:
+`src/__tests__/helpers/chrome-stub.ts` (đã có `storage.local`; scope 23 ghi nhầm `src/test/chrome-stub.ts`, đã sửa ở scope 24 — xem §9.5). Artifact phát hành kèm:
 `SPECIFICATIONS.md`, `spec/updates/2026-11-17-single-handling-focus.md`. Focus overlay nằm ở
 `styles/board.css` (không phải `styles/components.css`); reconcile `docs/USER_FLOW.md` và các as-built
 doc khác là công việc đóng gói theo acceptance của change doc, không nằm trong `changed.files` của code.
@@ -282,10 +283,11 @@ doc khác là công việc đóng gói theo acceptance của change doc, không 
 **Phụ thuộc:** không. Có thể chạy **song song** Gói 0.
 
 **Nghiệm thu sơ bộ:**
-- [ ] Gắn việc → đóng popup, mở lại vẫn thấy đúng việc đang gắn (state bền qua `endsAt`).
-- [ ] Trong phiên, board không còn bấm được (không tick nhầm việc khác).
-- [ ] Kết thúc phiên → `studyLog.focus` tăng đúng 1, không tăng khi phiên bị bỏ dở.
-- [ ] Không có taskId → hành vi giống hệt hiện tại (không hồi quy).
+- [x] Gắn việc → đóng popup, mở lại vẫn thấy đúng việc đang gắn (state bền qua `endsAt`).
+- [x] Trong phiên, board không còn bấm được (không tick nhầm việc khác).
+- [x] Kết thúc phiên → `studyLog.focus` tăng đúng 1, không tăng khi phiên bị bỏ dở.
+- [x] Không có taskId → hành vi giống hệt hiện tại (không hồi quy).
+  (Đóng 2026-11-17 — phase 1 `02e3737` + phase 2 `aa3c78a` STRICT PASS; details §9.)
 
 ---
 
@@ -408,11 +410,12 @@ Các mục dưới đây **không thuộc** roadmap này; chúng là đầu vào
 
 | ID | Lệch | Evidence | Ảnh hưởng gói nào |
 |----|------|----------|-------------------|
-| G3 | Weekly recurrence bỏ qua `weekdays`, chỉ +7 ngày | `lib/tasks/recurrence.ts:90-94` | D (bắt buộc), 0 |
-| G6 | `dueAt` trộn local `YYYY-MM-DDTHH:mm` và UTC `toISOString()` | `lib/tasks/types.ts:45` vs write path | B, D, E, 0 |
+| G3 | ~~Weekly recurrence bỏ qua `weekdays`, chỉ +7 ngày~~ → **ĐÃ ĐÓNG** 2026-11-17: `nextWeekdayOffset` chọn offset 1..7, fallback +7 | `lib/tasks/recurrence.ts:88-102,125-131`; commit `c890de2` | 0, D (nền tảng) |
+| G6 | ~~`dueAt` trộn local `YYYY-MM-DDTHH:mm` và UTC `toISOString()`~~ → **ĐÃ ĐÓNG** 2026-11-17: canonical wall-clock + migration in-memory khi đọc | `lib/datetime.ts`, `lib/storage/adapter.ts`; commit `fc9e26e` | 0, B, D, E |
 | G7 | `onChanged` reload toàn bộ, không merge theo `updatedAt` | `hooks/useTasks.ts:102-128` | đa thiết bị (mọi gói) |
-| G8 | Tie-breaker `sortTasks` vs `sortBoard` chưa nhất quán | `lib/tasks/query.ts:139-156` | A |
+| G8 | ~~Tie-breaker `sortTasks` vs `sortBoard` chưa nhất quán~~ → **ĐÃ ĐÓNG** 2026-11-17: `compareById` là tie-breaker cuối cho mọi key | `lib/tasks/query.ts:139-167`; commit `c890de2` | A (đã có sẵn nền tảng) |
 | G9 | Hạng mục R-19 responsive/menu/motion còn mở | `docs/DESIGN.md` §Known Gaps | ảnh hưởng layout mọi gói |
+| G10 | **Double-focus giữa popup & New Tab** (kế thừa phase 1, xem §9.3) | `hooks/usePomodoro.ts` local storage, 2 surface hydrate độc lập | C (follow-up), mọi gói có background session |
 
 Ngoài ra (doc drift thuần, không chặn roadmap):
 
@@ -423,3 +426,59 @@ Ngoài ra (doc drift thuần, không chặn roadmap):
 | `docs/PERMISSION.md` | Ghi icon 16/48/128, manifest có 16/32/48/128 (`wxt.config.ts`) |
 | `docs/generated/inventory.md` | Stale (git `0e2a674`, 0 file) — cần chạy lại tooling |
 | `docs/INDEX.md` | Trỏ `DESIGN.md` nguồn `.context/design-spec.md` (legacy: cobalt/cool-gray, 360×600) |
+
+## 9. Follow-up kỹ thuật sau Gói C (cập nhật 2026-11-17)
+
+> Đây là phần **đối chiếu thực tế**, không đổi requirement. Nguồn: FUP-001
+> (`spec/changes/2026-11-17-package-c-residual-accuracy.md`).
+
+### 9.1 Số dòng — cần đính chính
+
+Số liệu đo bằng `wc -l` — cột giữa tại commit `e75ec48` (close Gói C), cột cuối sau FUP-001:
+
+| File | Tại `e75ec48` | Sau FUP-001 | Trước Gói C | Kết luận |
+|---|---|---|---|---|
+| `hooks/usePomodoro.ts` | 196 | 196 | — | **Không vượt 300** — residual cũ nói "hook vượt ngưỡng" là không chính xác |
+| `hooks/useBoard.ts` | 257 | 272 | — | **Không vượt 300** (FUP-001 thêm `detachFocus`) |
+| `entrypoints/popup/App.tsx` | 313 | 318 | 256 | Vượt 300 **mới ở phase 2 Gói C**; FUP-001 +5 |
+| `entrypoints/newtab/App.tsx` | 400 | 405 | 345 | Đã vượt 300 **từ trước**, Gói C +55, FUP-001 +5 |
+| `components/FocusTimer.tsx` | 193 | 205 | — | Dưới 300 (FUP-001 thêm nút detach) |
+| `components/FocusConfirms.tsx` | 59 | 65 | — | Dưới 300 (FUP-001 thêm dialog detach) |
+
+Hành động: giữ nguyên code (không refactor ngoài scope), nhưng ghi đúng nguồn gốc ở bảng này và trong
+task residual. Việc tách `popup/App.tsx` xuống ≤300 dòng đưa vào backlog kỹ thuật riêng, không chặn gói A.
+
+### 9.2 Responsive — mức kiểm chứng hiện tại
+
+Test hiện tại chỉ asserts **CSS-contract** (tên class `.board-grid--focus`, breakpoint, `minmax(0,…)`)
+chứ **chưa đo layout trong Chrome thật** ở 360/1024/1199. Đây là residual thật, không phải "đã xong".
+
+Kế hoạch: mỗi gói có UI mới (bắt đầu từ Gói A) phải kèm 1 lượt eyeball/screenshot Chrome ở
+**360×560, 1024×768, 1280×800** trước khi reviewer PASS; ghi kết quả vào task file. Với Gói C, gắn
+lượt đo này vào FUP-001 (khi môi trường browser có sẵn) — không tự coi là đã xong.
+
+### 9.3 G10 — double-focus giữa hai surface (kế thừa phase 1)
+
+Phase 1 đã có `chrome.storage.local.onChanged` hydration, nhưng vẫn có cửa sổ race: popup và New Tab
+mở cùng lúc, cả hai có thể cùng nhận natural completion và gọi `record('focus', 1)` hai lần.
+Đây là **kế thừa từ phase 1**, không do phase 2 gây ra; reviewer phase 2 xác nhận không làm nặng thêm.
+
+Kế hoạch xử lý (ưu tiên trước Gói A vì A thêm luồng chấm điểm/tuần):
+1. Thêm `focusSessionId: string` vào `PomodoroState` (local), sinh mới mỗi lần `start()` focus.
+2. `pendingCompletion` trong `useBoard` mang theo `focusSessionId`; `confirmFocusCompletion` chỉ gọi
+   `record('focus')` nếu id khớp và chưa tiêu thụ (idempotency key trong ref/local).
+3. Test 2 hook instance cùng hydrate từ 1 local store → chỉ 1 `record('focus')`.
+4. Reviewer STRICT + verify 4 lệnh; cập nhật G10 → đóng trong roadmap §8.
+
+### 9.4 Nút huỷ gắn (`attach(null)`)
+
+R-20 đã cho phép `attach(null)` nhưng Gói C chỉ có API + test hook, chưa có nút UI riêng. FUP-001 bổ sung
+nút **"Huỷ gắn việc"** trong focus overlay (popup + New Tab), đi cùng xác nhận "đổi việc" và
+`noteInterruption()` — đúng ngữ nghĩa "đổi việc gắn" đã chốt ở phase 1. Không đổi R-20, không bump
+`spec_version`; chỉ cập nhật `scopeVersion` 23 → 24.
+
+### 9.5 Sai đường dẫn stub trong scope
+
+`spec/test-scope/current.json` scope 23 ghi `src/test/chrome-stub.ts`; file thật trên disk là
+`src/__tests__/helpers/chrome-stub.ts` (đã có `storage.local` + `onChanged`). FUP-001 phát hành scope 24
+với đường dẫn đúng; roadmap §4 Gói C và task phase 1 cũng được sửa cho nhất quán.

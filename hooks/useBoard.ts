@@ -14,6 +14,9 @@ import { dayKey } from '../lib/datetime';
 import { playPaper, unlockAudio } from '../lib/sound';
 import type { Task } from '../lib/tasks/types';
 
+/** FUP-001: sentinel cho pendingInterruptId khi huỷ gắn (taskId về null). */
+const DETACH_SENTINEL = '';
+
 export interface BoardToast {
   message: string;
   detail?: string;
@@ -170,11 +173,22 @@ export function useBoard() {
   );
 
   useEffect(() => {
-    if (!pendingInterruptId) return;
-    if (pomodoro.taskId !== pendingInterruptId) return;
+    if (pendingInterruptId === null) return;
+    const matched =
+      pendingInterruptId === DETACH_SENTINEL
+        ? pomodoro.taskId === null
+        : pomodoro.taskId === pendingInterruptId;
+    if (!matched) return;
     pomodoro.noteInterruption();
     setPendingInterruptId(null);
   }, [pendingInterruptId, pomodoro.taskId, pomodoro.noteInterruption]);
+
+  /** FUP-001: huỷ gắn việc giữa phiên — attach(null) rồi noteInterruption ở render SAU
+      (cùng pattern với switchTaskMidSession, tránh commit sau ghi đè commit trước). */
+  const detachFocus = useCallback(() => {
+    pomodoro.attach(null);
+    setPendingInterruptId(DETACH_SENTINEL);
+  }, [pomodoro]);
 
   const deleteTask = useCallback(
     async (id: string) => {
@@ -239,6 +253,7 @@ export function useBoard() {
     declineFocusCompletion,
     startFocusOn,
     switchTaskMidSession,
+    detachFocus,
     freshId,
     setFreshId,
     toast,

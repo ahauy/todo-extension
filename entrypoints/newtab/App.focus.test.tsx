@@ -205,4 +205,44 @@ describe('New Tab — R-20 focus layout', () => {
     expect((stub.store.get('t:b') as Task).done).toBe(true);
     expect((stub.localStore.get(POMODORO_KEY) as PomodoroState).interruptions).toBe(1);
   });
+
+  it('FUP-001: "Huỷ gắn việc" → xác nhận → attach(null) + 1 ngắt; từ chối → không đổi', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });
+    stub.localStore.set(POMODORO_KEY, activeState('a'));
+    const container = await renderApp();
+
+    const desk = container.querySelector('.board-desk') as HTMLElement;
+    expect(findButton(desk, 'Huỷ gắn việc')).not.toBeNull();
+
+    await act(() => {
+      findButton(container, 'Huỷ gắn việc').click();
+    });
+    expect(container.textContent).toContain('Huỷ gắn việc đang tập trung?');
+    expect((stub.localStore.get(POMODORO_KEY) as PomodoroState).taskId).toBe('a');
+
+    // Từ chối: việc vẫn gắn, không đếm ngắt
+    await act(() => {
+      findButton(container, 'Giữ việc cũ').click();
+    });
+    expect((stub.localStore.get(POMODORO_KEY) as PomodoroState).taskId).toBe('a');
+    expect((stub.localStore.get(POMODORO_KEY) as PomodoroState).interruptions).toBe(0);
+
+    // Xác nhận: huỷ gắn + đúng 1 interruption; phiên vẫn chạy
+    await act(() => {
+      findButton(container, 'Huỷ gắn việc').click();
+    });
+    await act(() => {
+      findButton(container, 'Huỷ gắn').click();
+    });
+    await act(async () => {
+      await flush();
+      await flush();
+      await flush();
+    });
+    const saved = stub.localStore.get(POMODORO_KEY) as PomodoroState;
+    expect(saved.taskId).toBeNull();
+    expect(saved.interruptions).toBe(1);
+    expect(saved.running).toBe(true);
+    expect(saved.phase).toBe('focus');
+  });
 });

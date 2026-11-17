@@ -166,6 +166,10 @@ export default function App() {
   };
 
   const handleInterrupt = (next: FocusInterrupt) => {
+    if (next.kind === 'detach') {
+      board.detachFocus();
+      return;
+    }
     if (next.kind === 'attach') {
       board.switchTaskMidSession(next.id);
       return;
@@ -272,6 +276,7 @@ export default function App() {
                 taskTitle={attached?.title ?? null}
                 dangling={!attached}
                 interruptions={board.pomodoro.interruptions}
+                onDetach={() => setInterrupt({ kind: 'detach', id: '' })}
               />
             ) : (
               <FocusTimer
