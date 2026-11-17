@@ -3,6 +3,10 @@
  * quanh viền theo phiên. Bản thu gọn 96px dùng ở chân Popup, chỉ số và một
  * nút; bản đầy đủ 220px ở Bàn học có đủ bắt đầu / tạm dừng / bỏ qua và bộ
  * chọn 25/5 · 50/10.
+ *
+ * R-20: bản `overlay` dùng khi phiên focus đang chạy và đã gắn việc — dial
+ * ≥96px, thẻ việc + hai nút riêng "Tạm dừng" / "Kết thúc" (Kết thúc = reset,
+ * không chuyển break, không ghi focus).
  */
 import React from 'react';
 import Button from './ui/Button';
@@ -19,12 +23,14 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 function Dial({
   api,
   small,
+  overlay,
 }: {
   api: PomodoroApi;
   small?: boolean;
+  overlay?: boolean;
 }) {
   return (
-    <div className="timer-dial" data-size={small ? 'sm' : undefined}>
+    <div className="timer-dial" data-size={overlay ? 'overlay' : small ? 'sm' : undefined}>
       {!small && (
         <svg className="timer-ring" viewBox="0 0 216 216" aria-hidden="true">
           <circle
@@ -51,6 +57,56 @@ interface FocusTimerProps {
   onPresetChange: (preset: PomodoroPreset) => void;
   taskTitle?: string | null;
   compact?: boolean;
+  /** R-20: focus overlay (dial ≥96px + 2 nút điều khiển riêng). */
+  overlay?: boolean;
+  /** R-20: taskId trỏ việc đã xoá/đổi — hiện placeholder thay vì crash. */
+  dangling?: boolean;
+  /** R-20: số lần đổi việc trong phiên (local-only). */
+  interruptions?: number;
+}
+
+/** Overlay view tách riêng để FocusTimer giữ dưới ngưỡng 50 dòng/hàm. */
+function OverlayView({
+  api,
+  taskTitle,
+  dangling,
+  interruptions = 0,
+}: Pick<FocusTimerProps, 'api' | 'taskTitle' | 'dangling' | 'interruptions'>) {
+  const title = (taskTitle ?? '').trim();
+  return (
+    <section
+      className="focus-overlay"
+      aria-label="Phiên tập trung"
+      data-interruptions={interruptions}
+    >
+      <h2 className="focus-overlay-title">Đang tập trung</h2>
+      <Dial api={api} overlay />
+      {dangling || !title ? (
+        <p className="focus-overlay-task focus-overlay-task--missing" role="status">
+          Việc không còn tồn tại
+        </p>
+      ) : (
+        <div className="focus-overlay-task">
+          <span className="focus-overlay-task-label">Việc đang học</span>
+          <span className="focus-overlay-task-title">{title}</span>
+        </div>
+      )}
+      {interruptions > 0 && (
+        <p className="focus-overlay-interruptions" role="status">
+          Đã đổi việc {interruptions} lần trong phiên này.
+        </p>
+      )}
+      <div className="focus-overlay-actions">
+        {/* Hai nút riêng biệt: Tạm dừng giữ phiên, Kết thúc = reset/abandon. */}
+        <Button variant="primary" onClick={api.pause}>
+          Tạm dừng
+        </Button>
+        <Button variant="secondary" onClick={api.reset}>
+          Kết thúc
+        </Button>
+      </div>
+    </section>
+  );
 }
 
 export default function FocusTimer({
@@ -59,8 +115,22 @@ export default function FocusTimer({
   onPresetChange,
   taskTitle,
   compact = false,
+  overlay = false,
+  dangling = false,
+  interruptions = 0,
 }: FocusTimerProps) {
   const label = api.running ? 'Tạm dừng' : 'Bắt đầu học';
+
+  if (overlay) {
+    return (
+      <OverlayView
+        api={api}
+        taskTitle={taskTitle}
+        dangling={dangling}
+        interruptions={interruptions}
+      />
+    );
+  }
 
   if (compact) {
     return (

@@ -15,7 +15,12 @@ import {
   createChromeStub,
   type ChromeStub,
 } from '../../src/__tests__/helpers/chrome-stub';
-import type { Task } from '../../lib/tasks/types';
+import {
+  POMODORO_KEY,
+  STUDY_LOG_KEY,
+  type PomodoroState,
+  type Task,
+} from '../../lib/tasks/types';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -505,5 +510,176 @@ describe('App wiring — dirty confirm & undo (#10, #15)', () => {
     });
 
     expect((stub.store.get('t:a') as Task).done).toBe(false);
+  });
+});
+
+describe('App wiring — R-20 focus overlay & completion', () => {
+  const activeState = (taskId: string, interruptions = 0): PomodoroState => ({
+    phase: 'focus',
+    running: true,
+    endsAt: Date.now() + 600_000,
+    remaining: 600_000,
+    taskId,
+    interruptions,
+  });
+  const savedPomodoro = () => stub.localStore.get(POMODORO_KEY) as PomodoroState | undefined;
+  const focusTotal = () => {
+    const log = stub.store.get(STUDY_LOG_KEY) as Record<string, { focus?: number }> | undefined;
+    return Object.values(log ?? {}).reduce((sum, day) => sum + (day.focus ?? 0), 0);
+  };
+
+  it('focus chạy + taskId → overlay thay board; Escape không đóng; mở lại vẫn đúng việc', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc đang học' }) });
+    stub.localStore.set(POMODORO_KEY, activeState('a'));
+    const container = await renderApp();
+
+    expect(container.querySelector('[data-testid="focus-overlay"]')).not.toBeNull();
+    expect(container.textContent).toContain('Việc đang học');
+    expect(container.querySelector('[role="list"]')).toBeNull(); // board không bấm được
+
+    await act(() => {
+      pressKey('Escape');
+    });
+    expect(container.querySelector('[data-testid="focus-overlay"]')).not.toBeNull();
+  });
+
+  it('"Kết thúc" = reset về chờ, không skip, không ghi focus', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc đang học' }) });
+    stub.localStore.set(POMODORO_KEY, activeState('a'));
+    const container = await renderApp();
+
+    await act(() => {
+      findButton(container, 'Kết thúc').click();
+    });
+    await act(async () => {
+      await flush();
+    });
+    expect(savedPomodoro()?.running).toBe(false);
+    expect(savedPomodoro()?.phase).toBe('focus'); // không sang break như skip
+    expect(focusTotal()).toBe(0);
+    expect(container.querySelector('[data-testid="focus-overlay"]')).toBeNull();
+  });
+
+  it('bấm "Tập trung việc này" → attach + start đúng preset rồi vào overlay', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });
+    const container = await renderApp();
+    const focusButton = container.querySelector(
+      'button[aria-label="Tập trung việc này: Việc A"]'
+    ) as HTMLButtonElement;
+    expect(focusButton).not.toBeNull();
+
+    await act(() => {
+      focusButton.click();
+    });
+    await act(async () => {
+      await flush();
+    });
+    expect(savedPomodoro()?.taskId).toBe('a');
+    expect(savedPomodoro()?.running).toBe(true);
+    expect(container.querySelector('[data-testid="focus-overlay"]')).not.toBeNull();
+  });
+
+  it('hết phiên tự nhiên + taskId → "Xong việc này chưa?"; xác nhận tick + focus +1', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });
+    stub.localStore.set(POMODORO_KEY, {
+      phase: 'focus',
+      running: true,
+      endsAt: Date.now() - 10,
+      remaining: 0,
+      taskId: 'a',
+      interruptions: 1,
+    });
+    const container = await renderApp();
+    await act(async () => {
+      await flush();
+      await flush();
+    });
+    expect(container.textContent).toContain('Xong việc này chưa?');
+    expect(container.textContent).toContain('1 lần'); // tổng kết có số lần ngắt
+
+    await act(() => {
+      findButton(container, 'Xong rồi').click();
+    });
+    await act(async () => {
+      await flush();
+      await flush();
+    });
+    expect((stub.store.get('t:a') as Task).done).toBe(true);
+    expect(focusTotal()).toBe(1);
+  });
+
+  it('từ chối completion → không tick, không focus', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc A' }) });
+    stub.localStore.set(POMODORO_KEY, {
+      phase: 'focus',
+      running: true,
+      endsAt: Date.now() - 10,
+      remaining: 0,
+      taskId: 'a',
+      interruptions: 0,
+    });
+    const container = await renderApp();
+    await act(async () => {
+      await flush();
+      await flush();
+    });
+    await act(() => {
+      findButton(container, 'Chưa xong').click();
+    });
+    await act(async () => {
+      await flush();
+    });
+    expect((stub.store.get('t:a') as Task).done).toBe(false);
+    expect(focusTotal()).toBe(0);
+  });
+
+  it('completion xác nhận với việc lặp → theo R-11: vẫn mở, dời hạn, focus +1', async () => {
+    stub.seed({
+      't:a': fixture({
+        id: 'a',
+        title: 'Việc lặp',
+        dueAt: '2035-01-01T08:00',
+        recurrence: { kind: 'daily' },
+      }),
+    });
+    stub.localStore.set(POMODORO_KEY, {
+      phase: 'focus',
+      running: true,
+      endsAt: Date.now() - 10,
+      remaining: 0,
+      taskId: 'a',
+      interruptions: 0,
+    });
+    const container = await renderApp();
+    await act(async () => {
+      await flush();
+      await flush();
+    });
+    await act(() => {
+      findButton(container, 'Xong rồi').click();
+    });
+    await act(async () => {
+      await flush();
+      await flush();
+    });
+    const saved = stub.store.get('t:a') as Task;
+    expect(saved.done).toBe(false);
+    expect(saved.dueAt).toBe('2035-01-02T08:00');
+    expect(focusTotal()).toBe(1);
+  });
+
+  it('taskId trỏ việc đã xoá → placeholder "Việc không còn tồn tại", End không crash', async () => {
+    stub.localStore.set(POMODORO_KEY, activeState('ghost'));
+    const container = await renderApp();
+    expect(container.textContent).toContain('Việc không còn tồn tại');
+    expect(container.querySelector('[data-testid="focus-overlay"]')).not.toBeNull();
+
+    await act(() => {
+      findButton(container, 'Kết thúc').click();
+    });
+    await act(async () => {
+      await flush();
+    });
+    expect(focusTotal()).toBe(0);
   });
 });

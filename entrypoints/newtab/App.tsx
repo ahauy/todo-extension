@@ -16,6 +16,7 @@ import TaskScrollList from '../../components/TaskScrollList';
 import TaskParchment from '../../components/TaskParchment';
 import SettingsPanel from '../../components/SettingsPanel';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import FocusConfirms, { type FocusInterrupt } from '../../components/FocusConfirms';
 import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
@@ -75,6 +76,11 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
   const [bannerHidden, setBannerHidden] = useState(false);
+  const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
+
+  const attached = board.tasks.find((task) => task.id === board.pomodoro.taskId) ?? null;
+  const focusActive =
+    board.pomodoro.running && board.pomodoro.phase === 'focus' && !!board.pomodoro.taskId;
 
   useEffect(() => {
     void chrome.tabs?.getCurrent?.((current) => {
@@ -96,6 +102,8 @@ export default function App() {
     const onKey = (event: KeyboardEvent) => {
       // Hộp thoại đang mở thì nhường phím cho nó — không giật focus ra sau lớp modal
       if (document.querySelector('[role="dialog"]')) return;
+      // R-20: overlay focus không thoát bằng Escape.
+      if (focusActive) return;
       const target = event.target as HTMLElement | null;
       if (
         target instanceof HTMLInputElement ||
@@ -115,8 +123,8 @@ export default function App() {
       }
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [searchOpen, handleSearchOpen]);
+    return () =>     document.removeEventListener('keydown', onKey);
+  }, [searchOpen, handleSearchOpen, focusActive]);
 
   const openBoardTab = useCallback(() => {
     void chrome.tabs?.create?.({ url: chrome.runtime.getURL('newtab.html') });
@@ -139,7 +147,32 @@ export default function App() {
   );
 
   const submit = (draft: TaskDraft) => void board.createDraft(draft);
-  const attached = board.tasks.find((task) => task.id === board.pomodoro.taskId);
+
+  const handleFocusTask = (id: string) => {
+    if (id === board.pomodoro.taskId) return;
+    if (board.pomodoro.running && board.pomodoro.phase === 'focus') {
+      setInterrupt({ kind: 'attach', id });
+      return;
+    }
+    board.startFocusOn(id);
+  };
+
+  const handleToggle = (id: string) => {
+    if (focusActive && id !== board.pomodoro.taskId) {
+      setInterrupt({ kind: 'toggle', id });
+      return;
+    }
+    void board.toggleTask(id);
+  };
+
+  const handleInterrupt = (next: FocusInterrupt) => {
+    if (next.kind === 'attach') {
+      board.switchTaskMidSession(next.id);
+      return;
+    }
+    void board.toggleTask(next.id);
+    board.pomodoro.noteInterruption();
+  };
 
   return (
     <div className="board-page">
@@ -177,7 +210,7 @@ export default function App() {
 
         {!horizontal && <div className="board-shelf-strip">{shelf}</div>}
 
-        <div className="board-grid">
+        <div className={`board-grid${focusActive ? ' board-grid--focus' : ''}`}>
           {!horizontal && <aside className="board-shelf">{shelf}</aside>}
 
           <main className="board-scroll">
@@ -220,20 +253,34 @@ export default function App() {
                 freshId={board.freshId}
                 quotaError={board.quotaError}
                 onQuotaRetry={() => board.setQuotaError(null)}
-                onToggle={(id) => void board.toggleTask(id)}
+                onToggle={handleToggle}
                 onOpen={setDetailId}
+                onFocusTask={handleFocusTask}
+                activeTaskId={board.pomodoro.taskId}
               />
             </div>
           </main>
 
           <aside className="board-desk">
             <h2 className="region-title mb-base">Bàn học</h2>
-            <FocusTimer
-              api={board.pomodoro}
-              preset={board.settings.pomodoroPreset}
-              onPresetChange={(preset) => void board.updateSettings({ pomodoroPreset: preset })}
-              taskTitle={attached?.title ?? null}
-            />
+            {focusActive ? (
+              <FocusTimer
+                api={board.pomodoro}
+                preset={board.settings.pomodoroPreset}
+                onPresetChange={(preset) => void board.updateSettings({ pomodoroPreset: preset })}
+                overlay
+                taskTitle={attached?.title ?? null}
+                dangling={!attached}
+                interruptions={board.pomodoro.interruptions}
+              />
+            ) : (
+              <FocusTimer
+                api={board.pomodoro}
+                preset={board.settings.pomodoroPreset}
+                onPresetChange={(preset) => void board.updateSettings({ pomodoroPreset: preset })}
+                taskTitle={attached?.title ?? null}
+              />
+            )}
             <div className="mt-lg">
               <StreakCard log={board.log} now={board.now} />
             </div>
@@ -319,6 +366,15 @@ export default function App() {
           if (dropSubject && subjectId === dropSubject.id) setSubjectId('all');
           setDropSubject(null);
         }}
+      />
+
+      <FocusConfirms
+        interrupt={interrupt}
+        pendingCompletion={board.pendingCompletion}
+        onCancelInterrupt={() => setInterrupt(null)}
+        onConfirmInterrupt={handleInterrupt}
+        onCancelCompletion={board.declineFocusCompletion}
+        onConfirmCompletion={board.confirmFocusCompletion}
       />
 
       {/* Live region thường trú: toast mount kèm nội dung nên tự nó không được đọc */}

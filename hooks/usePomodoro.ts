@@ -48,6 +48,8 @@ export interface PomodoroApi {
   remaining: number;
   progress: number;
   taskId: string | null;
+  /** R-20: chỉ đọc — số lần đổi việc trong phiên (local-only, hiển thị overlay/tổng kết). */
+  interruptions: number;
   start: () => void;
   pause: () => void;
   skip: () => void;
@@ -183,6 +185,7 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
     remaining,
     progress: total === 0 ? 0 : Math.min(1, Math.max(0, 1 - remaining / total)),
     taskId: state.taskId,
+    interruptions: state.interruptions ?? 0,
     start,
     pause,
     skip,

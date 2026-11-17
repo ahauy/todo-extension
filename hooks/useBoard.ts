@@ -3,7 +3,7 @@
  * Gộp tasks + môn học + cài đặt + nhật ký + đồng hồ, và bọc các hành động để
  * mọi nơi đều ghi nhật ký, phát tiếng và báo khôi phục theo một cách.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTasks, type TaskDraft } from './useTasks';
 import { useSubjects } from './useSubjects';
 import { useSettings } from './useSettings';
@@ -30,6 +30,15 @@ export function useBoard() {
   const [freshId, setFreshId] = useState<string | null>(null);
   const [toast, setToast] = useState<BoardToast | null>(null);
   const [quotaError, setQuotaError] = useState<string | null>(null);
+  // R-20: completion được hoãn tới khi UI xác nhận "Xong việc này chưa?".
+  const [pendingCompletion, setPendingCompletion] = useState<{
+    taskId: string;
+    interruptions: number;
+  } | null>(null);
+  const [pendingStartId, setPendingStartId] = useState<string | null>(null);
+  const [pendingInterruptId, setPendingInterruptId] = useState<string | null>(null);
+  const focusTaskIdRef = useRef<string | null>(null);
+  const interruptionRef = useRef(0);
 
   // Hạn chót và lời chào đổi theo phút, không cần nhịp giây
   useEffect(() => {
@@ -37,14 +46,33 @@ export function useBoard() {
     return () => window.clearInterval(id);
   }, []);
 
+  const recordFocus = useCallback(() => {
+    void record('focus', 1);
+    setToast({ message: 'Hết giờ học. Đứng dậy uống ngụm nước đã.' });
+  }, [record]);
+
+  const onFocusComplete = useCallback(() => {
+    // Phase 1 đảm bảo callback này chỉ bắn ở natural completion (không phải skip).
+    // R-20: có việc gắn → hoãn record/tick cho ConfirmDialog ở UI; từ chối = không ghi.
+    const attached = focusTaskIdRef.current;
+    if (attached) {
+      setPendingCompletion({ taskId: attached, interruptions: interruptionRef.current });
+      return;
+    }
+    recordFocus();
+  }, [recordFocus]);
+
   const pomodoro = usePomodoro({
     preset: settings.pomodoroPreset,
     soundEnabled: settings.soundEnabled,
-    onFocusComplete: () => {
-      void record('focus', 1);
-      setToast({ message: 'Hết giờ học. Đứng dậy uống ngụm nước đã.' });
-    },
+    onFocusComplete,
   });
+
+  // Hook clear taskId NGAY SAU khi gọi callback → cập nhật ref trong render
+  // (effect chạy SAU completion effect của usePomodoro nên đọc sẽ trễ 1 nhịp).
+  focusTaskIdRef.current = pomodoro.taskId;
+  // Hook xoá bộ đếm khi rời focus → snapshot lại để hiện trong tổng kết.
+  interruptionRef.current = pomodoro.interruptions;
 
   const counts = useMemo(() => {
     const result = {} as Record<BoardTab, number>;
@@ -104,6 +132,50 @@ export function useBoard() {
     [tasks, toggle, record, settings.soundEnabled]
   );
 
+  /** R-20: xác nhận "Xong việc này chưa?" → tick (R-11 qua toggle) + focus +1. */
+  const confirmFocusCompletion = useCallback(() => {
+    const pending = pendingCompletion;
+    if (!pending) return;
+    setPendingCompletion(null);
+    void toggleTask(pending.taskId);
+    recordFocus();
+  }, [pendingCompletion, toggleTask, recordFocus]);
+
+  const declineFocusCompletion = useCallback(() => setPendingCompletion(null), []);
+
+  /** R-20: gắn việc rồi start — start phải chạy ở render đã thấy taskId mới. */
+  const startFocusOn = useCallback(
+    (id: string) => {
+      pomodoro.attach(id);
+      setPendingStartId(id);
+    },
+    [pomodoro]
+  );
+
+  useEffect(() => {
+    if (!pendingStartId) return;
+    if (pomodoro.taskId !== pendingStartId || pomodoro.running) return;
+    pomodoro.start();
+    setPendingStartId(null);
+  }, [pendingStartId, pomodoro.taskId, pomodoro.running, pomodoro.start]);
+
+  /** R-20: đổi việc giữa phiên — attach r mới noteInterruption (cùng 1 render thì
+      commit sau ghi đè commit trước vì cả 2 dùng chung state closure cũ). */
+  const switchTaskMidSession = useCallback(
+    (id: string) => {
+      pomodoro.attach(id);
+      setPendingInterruptId(id);
+    },
+    [pomodoro]
+  );
+
+  useEffect(() => {
+    if (!pendingInterruptId) return;
+    if (pomodoro.taskId !== pendingInterruptId) return;
+    pomodoro.noteInterruption();
+    setPendingInterruptId(null);
+  }, [pendingInterruptId, pomodoro.taskId, pomodoro.noteInterruption]);
+
   const deleteTask = useCallback(
     async (id: string) => {
       const deleted = tasks.find((item) => item.id === id) ?? null;
@@ -162,6 +234,11 @@ export function useBoard() {
     doneToday,
     log,
     pomodoro,
+    pendingCompletion,
+    confirmFocusCompletion,
+    declineFocusCompletion,
+    startFocusOn,
+    switchTaskMidSession,
     freshId,
     setFreshId,
     toast,

@@ -12,6 +12,7 @@ import TaskScrollList from '../../components/TaskScrollList';
 import TaskParchment from '../../components/TaskParchment';
 import SettingsPanel from '../../components/SettingsPanel';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import FocusConfirms, { type FocusInterrupt } from '../../components/FocusConfirms';
 import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
@@ -35,6 +36,35 @@ export default function App() {
   const [dirty, setDirty] = useState(false);
   const [dirtyConfirm, setDirtyConfirm] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
+  const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
+
+  const attached = board.tasks.find((task) => task.id === board.pomodoro.taskId) ?? null;
+  const focusActive =
+    board.pomodoro.running && board.pomodoro.phase === 'focus' && !!board.pomodoro.taskId;
+
+  const handleFocusTask = useCallback(
+    (id: string) => {
+      if (id === board.pomodoro.taskId) return;
+      if (board.pomodoro.running && board.pomodoro.phase === 'focus') {
+        setInterrupt({ kind: 'attach', id });
+        return;
+      }
+      board.startFocusOn(id);
+    },
+    [board]
+  );
+
+  const handleInterrupt = useCallback(
+    (next: FocusInterrupt) => {
+      if (next.kind === 'attach') {
+        board.switchTaskMidSession(next.id);
+      } else {
+        void board.toggleTask(next.id);
+        board.pomodoro.noteInterruption();
+      }
+    },
+    [board]
+  );
 
   const closeDetail = useCallback(() => {
     if (dirty) {
@@ -58,6 +88,8 @@ export default function App() {
     const onKey = (event: KeyboardEvent) => {
       // Hộp thoại đang mở thì nhường phím cho nó — không giật focus ra sau lớp modal
       if (document.querySelector('[role="dialog"]')) return;
+      // R-20: overlay focus không được đóng bằng Escape (tránh bỏ phiên ngoài ý muốn).
+      if (focusActive) return;
       const target = event.target as HTMLElement | null;
       const typing =
         target instanceof HTMLInputElement ||
@@ -76,8 +108,8 @@ export default function App() {
       }
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [view, searchOpen, handleSearchOpen]);
+    return () =>     document.removeEventListener('keydown', onKey);
+  }, [view, searchOpen, handleSearchOpen, focusActive]);
 
   const submit = useCallback(
     (draft: TaskDraft) => {
@@ -89,7 +121,20 @@ export default function App() {
   return (
     <div className="popup-shell frame-double">
       {view === 'list' ? (
-        <>
+        focusActive ? (
+          <div className="popup-focus-overlay" data-testid="focus-overlay">
+            <FocusTimer
+              api={board.pomodoro}
+              preset={board.settings.pomodoroPreset}
+              onPresetChange={(preset) => void board.updateSettings({ pomodoroPreset: preset })}
+              overlay
+              taskTitle={attached?.title ?? null}
+              dangling={!attached}
+              interruptions={board.pomodoro.interruptions}
+            />
+          </div>
+        ) : (
+          <>
           <Header
             activeCount={board.activeCount}
             overdueCount={board.overdue}
@@ -147,6 +192,8 @@ export default function App() {
               onQuotaRetry={() => board.setQuotaError(null)}
               onToggle={(id) => void board.toggleTask(id)}
               onOpen={setDetailId}
+              onFocusTask={handleFocusTask}
+              activeTaskId={board.pomodoro.taskId}
             />
           </div>
 
@@ -166,7 +213,8 @@ export default function App() {
               />
             </div>
           </footer>
-        </>
+          </>
+        )
       ) : (
         <>
           <header className="flex h-14 flex-none items-center gap-sm px-base">
@@ -230,6 +278,16 @@ export default function App() {
           setDirty(false);
           setDetailId(null);
         }}
+      />
+
+      <FocusConfirms
+        sheet
+        interrupt={interrupt}
+        pendingCompletion={board.pendingCompletion}
+        onCancelInterrupt={() => setInterrupt(null)}
+        onConfirmInterrupt={handleInterrupt}
+        onCancelCompletion={board.declineFocusCompletion}
+        onConfirmCompletion={board.confirmFocusCompletion}
       />
 
       {/* Live region thường trú: toast mount kèm nội dung nên tự nó không được đọc */}

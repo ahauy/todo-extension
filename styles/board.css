@@ -74,6 +74,104 @@
   background: var(--primary-wash);
 }
 
+/* ── R-20: focus overlay & nút tập trung ───────────────────────────────── */
+/* Dial overlay 112px (≥96px theo R-20) — vẫn dùng vòng mực như bản đầy. */
+.timer-dial[data-size='overlay'] {
+  width: 112px;
+  height: 112px;
+  border-width: 3px;
+}
+.timer-dial[data-size='overlay'] .timer-readout {
+  font-size: 30px;
+}
+
+/* Nút focus nằm cùng hàng hành động với dấu triện, ngoài [data-chip-row]. */
+.focus-task-button {
+  flex: none;
+  align-self: center;
+  padding: 4px 8px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: var(--surface-paper);
+  color: var(--primary-deep);
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.focus-task-button:hover,
+.focus-task-button.is-active {
+  background: var(--primary-wash);
+}
+.focus-task-button.is-active {
+  border-color: var(--primary);
+}
+article[data-focus-active='true'] {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
+.focus-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 340px;
+  margin-inline: auto;
+  padding: var(--spacing-lg);
+  border: 3px double var(--gold);
+  border-radius: var(--radius-xxl);
+  background: var(--surface-lacquer);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), var(--elev-raised);
+  text-align: center;
+}
+.popup-focus-overlay {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  margin: var(--spacing-base);
+}
+.focus-overlay-title {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-sm);
+  color: var(--ink-deep);
+}
+.focus-overlay-task {
+  display: grid;
+  gap: 2px;
+  max-width: 100%;
+  padding: var(--spacing-sm) var(--spacing-base);
+  border: 1px solid var(--hairline-soft);
+  border-radius: 8px;
+  background: var(--surface-paper);
+}
+.focus-overlay-task-label {
+  font-size: 12px;
+  color: var(--umber);
+}
+.focus-overlay-task-title {
+  font-size: var(--text-body-md);
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.focus-overlay-task--missing {
+  color: var(--brown);
+}
+.focus-overlay-interruptions {
+  font-size: 12px;
+  color: var(--umber);
+}
+.focus-overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
 /* ── Chuỗi ngày học ──────────────────────────────────────────────────── */
 .streak-card {
   padding: var(--spacing-base);

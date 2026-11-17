@@ -32,6 +32,9 @@ interface TaskScrollListProps {
   onQuotaRetry?: () => void;
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
+  /** R-20: truyền xuống TaskScroll; không truyền = giữ DOM cũ (0 regression). */
+  onFocusTask?: (id: string) => void;
+  activeTaskId?: string | null;
 }
 
 function reasonFor(tab: BoardTab, search: string, subjectId: string, total: number): EmptyReason {
@@ -59,6 +62,8 @@ export default function TaskScrollList({
   onQuotaRetry,
   onToggle,
   onOpen,
+  onFocusTask,
+  activeTaskId,
 }: TaskScrollListProps) {
   const visible = useMemo(() => {
     const byTab = filterByBoard(tasks, tab, now);
@@ -121,6 +126,8 @@ export default function TaskScrollList({
             fresh={task.id === freshId}
             onToggle={onToggle}
             onOpen={onOpen}
+            onFocusTask={onFocusTask}
+            activeTaskId={activeTaskId}
           />
         ))}
       </div>

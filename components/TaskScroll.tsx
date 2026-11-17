@@ -29,6 +29,10 @@ interface TaskScrollProps {
   fresh?: boolean;
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
+  /** R-20: nút "Tập trung việc này" chỉ hiện khi surface truyền handler. */
+  onFocusTask?: (id: string) => void;
+  /** R-20: việc đang gắn vào phiên focus — dùng để tô trạng thái. */
+  activeTaskId?: string | null;
 }
 
 export default function TaskScroll({
@@ -39,7 +43,10 @@ export default function TaskScroll({
   fresh = false,
   onToggle,
   onOpen,
+  onFocusTask,
+  activeTaskId,
 }: TaskScrollProps) {
+  const focusActive = !!onFocusTask && activeTaskId === task.id;
   const doneToday = isRecurringDoneToday(task, now);
   const completed = task.done || doneToday;
   const overdue = !!task.dueAt && !completed && new Date(task.dueAt) < now;
@@ -132,6 +139,7 @@ export default function TaskScroll({
       className={`scroll-task sheen ${compact ? '' : 'px-lg py-base'}`}
       data-state={state}
       data-fresh={fresh}
+      data-focus-active={focusActive}
     >
       <div className="flex items-start gap-md">
         <button
@@ -177,6 +185,20 @@ export default function TaskScroll({
             </>
           )}
         </div>
+
+        {/* R-20: nút focus nằm cùng hàng hành động với dấu triện, ngoài
+            [data-chip-row] nên không đụng gate parity compact/full. */}
+        {onFocusTask && (
+          <button
+            type="button"
+            className={`focus-task-button${focusActive ? ' is-active' : ''}`}
+            aria-pressed={focusActive}
+            aria-label={`Tập trung việc này: ${task.title}`}
+            onClick={() => onFocusTask(task.id)}
+          >
+            Tập trung việc này
+          </button>
+        )}
 
         {completed && (
           <span

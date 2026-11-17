@@ -206,3 +206,36 @@
     font-size: var(--text-button);
   }
 }
+
+/* ── R-20: focus chạy → bàn học là cột chính, cuộn việc thu thành cột phụ ──
+   Đặt CUỐI file để thắng các @media ở trên ở cùng mức specificity. Mọi cột
+   đều minmax(0, …) nên không tràn ngang ở 360 / 1024 / 1199px. */
+.board-grid--focus {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--spacing-lg);
+}
+.board-grid--focus .board-desk {
+  order: -1;
+  position: static;
+  min-width: 0;
+}
+.board-grid--focus .board-scroll {
+  order: 0;
+  min-width: 0;
+  max-width: none;
+}
+/* Giá sách là điều hướng, không phải board việc — ẩn để đúng 2 cột, không
+   tạo cột implicit gây tràn ngang. */
+.board-grid--focus .board-shelf,
+.board-grid--focus .board-shelf-strip {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .board-grid--focus {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .board-grid--focus .board-desk {
+    order: 0;
+  }
+}
