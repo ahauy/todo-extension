@@ -1,0 +1,90 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .workbuddy/hooks/guard-bash.mjs",
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "matcher": "Agent",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .workbuddy/hooks/guard-agent.mjs",
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "matcher": "Agent|Task|SendMessage",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .claude/hooks/live-studio.mjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Agent|Task|SendMessage",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .claude/hooks/live-studio.mjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "SubagentStop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .claude/hooks/live-studio.mjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .claude/hooks/live-studio.mjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .claude/hooks/live-studio.mjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "PreCompact": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .workbuddy/hooks/session-handoff.mjs",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+}

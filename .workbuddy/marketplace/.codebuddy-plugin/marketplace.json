@@ -1,0 +1,15 @@
+{
+  "name": "todo-extension-local",
+  "description": "Local WorkBuddy adapter for the todo-extension opencode workflow",
+  "owner": {
+    "name": "todo-extension"
+  },
+  "plugins": [
+    {
+      "name": "todo-extension-workflow",
+      "description": "Exposes the canonical opencode subagents as WorkBuddy agents",
+      "version": "0.1.0",
+      "source": "./todo-extension-workflow"
+    }
+  ]
+}

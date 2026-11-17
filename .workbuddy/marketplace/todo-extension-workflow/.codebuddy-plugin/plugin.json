@@ -1,0 +1,8 @@
+{
+  "name": "todo-extension-workflow",
+  "version": "0.1.0",
+  "description": "Adapter that mirrors .opencode/agent/*.md into WorkBuddy subagents",
+  "agents": [
+    "./agents"
+  ]
+}
