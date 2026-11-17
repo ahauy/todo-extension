@@ -29,10 +29,16 @@ import { GearIcon, SoundOffIcon, SoundOnIcon } from '../../components/art/Icons'
 import { StudyWindow } from '../../components/art/Scenes';
 import { useBoard } from '../../hooks/useBoard';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
-import { greetingFor, longDate } from '../../lib/datetime';
+import { greetingFor, longDate, dayKey } from '../../lib/datetime';
 import { rememberBoardTab } from '../../lib/storage/local';
 import type { Subject } from '../../lib/tasks/types';
-import type { BoardTab, SortKey } from '../../lib/tasks/query';
+import {
+  isRecurringDoneToday,
+  todayKeystoneSummary,
+  weeklySummary,
+  type BoardTab,
+  type SortKey,
+} from '../../lib/tasks/query';
 import { openKeystoneCount, type TaskDraft } from '../../lib/tasks/form';
 import './style.css';
 
@@ -158,6 +164,19 @@ export default function App() {
     board.startFocusOn(id);
   };
 
+  // R-21 — hero + dòng tổng kết suy thuần từ task/dayPlan đã hydrate, KHÔNG đọc
+  // studyLog hay board.doneToday (aggregate đã lưu).
+  const todayKey = dayKey(board.now);
+  const frogTaskId = board.dayPlan[todayKey]?.frogTaskId ?? null;
+  const frogTask = frogTaskId
+    ? board.tasks.find((task) => task.id === frogTaskId) ?? null
+    : null;
+  // id cũ (stale) trỏ tới task đã xoá → frogTask null → hero rỗng, không crash.
+  const frogDone =
+    !!frogTask && (frogTask.done || isRecurringDoneToday(frogTask, board.now));
+  const dailySummary = todayKeystoneSummary(board.tasks, board.now);
+  const weekSummary = weeklySummary(board.tasks, board.dayPlan, board.now);
+
   const handleToggle = (id: string) => {
     if (focusActive && id !== board.pomodoro.taskId) {
       setInterrupt({ kind: 'toggle', id });
@@ -223,6 +242,41 @@ export default function App() {
                 tài liệu và trình đọc màn hình nhưng không bày thêm một dòng chữ. */}
             <h2 className="sr-only">Cuộn nhiệm vụ</h2>
             <Greeting now={board.now} todayCount={board.counts.today} doneToday={board.doneToday} />
+
+            {/* R-21 — một khối UI duy nhất: hero con ếch hôm nay. Không thêm
+                màn/navigation; nút focus đi qua handleFocusTask (R-20). */}
+            <section className="frog-hero" aria-labelledby="frog-hero-title">
+              <h3 id="frog-hero-title" className="frog-hero-title">
+                Con ếch hôm nay
+              </h3>
+              {frogTask && !frogTask.archived && !frogDone ? (
+                <>
+                  <p className="frog-hero-task" data-frog-id={frogTask.id}>
+                    {frogTask.title}
+                  </p>
+                  <Button
+                    variant="primary"
+                    className="frog-hero-focus"
+                    aria-label={`Tập trung ếch hôm nay: ${frogTask.title}`}
+                    onClick={() => handleFocusTask(frogTask.id)}
+                  >
+                    Tập trung 25 phút
+                  </Button>
+                </>
+              ) : (
+                <p
+                  className="frog-hero-empty"
+                  data-frog-state={frogTask?.archived ? 'cut' : frogTask ? 'done' : 'empty'}
+                >
+                  {frogTask?.archived
+                    ? `Đã cắt · ${frogTask.title}`
+                    : frogTask
+                      ? `Đã xong · ${frogTask.title}`
+                      : 'Chưa chọn ếch cho hôm nay. Chọn một việc trong sổ để bắt đầu.'}
+                </p>
+              )}
+            </section>
+
             <CloudRule className="my-lg" />
             <Composer
               subjects={board.subjects}
@@ -293,6 +347,15 @@ export default function App() {
                 taskTitle={attached?.title ?? null}
               />
             )}
+            <div className="frog-summary" data-summary>
+              <p className="frog-summary-line">
+                Then chốt: {dailySummary.done}/{dailySummary.total} xong
+              </p>
+              <p className="frog-summary-line">
+                Tuần này: then chốt {weekSummary.keystoneDone}/{weekSummary.keystoneTotal} ·{' '}
+                {weekSummary.tasksDone} việc xong
+              </p>
+            </div>
             <div className="mt-lg">
               <StreakCard log={board.log} now={board.now} />
             </div>

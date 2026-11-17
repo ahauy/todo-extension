@@ -207,6 +207,48 @@
   }
 }
 
+/* ── R-21: hero con ếch + dòng tổng kết — tĩnh, không hiệu ứng lặp.
+   min-width:0 + overflow-wrap giữ không tràn ngang ở 1024–1199 và 390px. */
+.frog-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: 0;
+  padding: var(--spacing-sm) var(--spacing-base);
+  border: 1px solid var(--sepia);
+  border-radius: var(--radius-lg);
+}
+.frog-hero-title {
+  color: var(--primary-deep);
+  font-size: var(--text-heading-sm);
+}
+.frog-hero-task,
+.frog-hero-empty {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--umber);
+}
+.frog-hero-focus {
+  flex: none;
+  margin-left: auto;
+}
+.frog-summary {
+  display: grid;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+}
+.frog-summary-line {
+  overflow-wrap: anywhere;
+  color: var(--umber);
+}
+@media (max-width: 719px) {
+  .frog-hero-focus {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
 /* ── R-20: focus chạy → bàn học là cột chính, cuộn việc thu thành cột phụ ──
    Đặt CUỐI file để thắng các @media ở trên ở cùng mức specificity. Mọi cột
    đều minmax(0, …) nên không tràn ngang ở 360 / 1024 / 1199px. */

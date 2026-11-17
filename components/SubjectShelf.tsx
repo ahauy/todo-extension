@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import Button from './ui/Button';
 import { BookIcon, CloseIcon, PlusIcon } from './art/Icons';
 import { MAX_SUBJECTS, MAX_SUBJECT_NAME, spineColor } from '../lib/subjects';
+import { activeCount } from '../lib/tasks/query';
 import type { Subject, Task } from '../lib/tasks/types';
 
 interface SubjectShelfProps {
@@ -32,9 +33,13 @@ export default function SubjectShelf({
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // R-21 — dùng bộ đếm đã guard archived: task đã cắt không hiện trong giá sách.
   const remaining = (id: string) =>
-    tasks.filter((task) => !task.done && (id === 'all' ? true : id === 'none' ? !task.subjectId : task.subjectId === id))
-      .length;
+    activeCount(
+      tasks.filter((task) =>
+        id === 'all' ? true : id === 'none' ? !task.subjectId : task.subjectId === id
+      )
+    );
 
   const commit = async () => {
     const name = draft.trim();
