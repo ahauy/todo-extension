@@ -398,7 +398,7 @@ components:
     backgroundColor: "{colors.surface-sunk}"
     rounded: "{rounded.circle}"
     size: 28px
-  streak-lotus-lit:
+  streak-lotus[data-lit='true']:
     backgroundColor: "{colors.gold-leaf}"
     border: "2px solid {colors.gold}"
   footer-colophon:
@@ -684,7 +684,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 **`progress-ink`** — Thanh tiến độ 8px: rãnh {colors.surface-sunk}, phần đã đi tô {colors.primary}; dùng cho "đã xong 3/7 việc hôm nay".
 
-**`streak-lotus`** + **`streak-lotus-lit`** — Ô ngày 28px; ngày đã học nền {colors.gold-leaf}, viền {colors.gold}, kèm hình đài sen nhỏ. Ô chưa tới dùng {colors.surface-sunk}.
+**`streak-lotus`** (state `data-lit` / `data-today` / `data-lit-just`) — Ô ngày 28px; ngày đã học nền {colors.gold-leaf}, viền {colors.gold}, kèm hình đài sen nhỏ. Ô chưa tới dùng {colors.surface-sunk}.
 
 ### Navigation
 

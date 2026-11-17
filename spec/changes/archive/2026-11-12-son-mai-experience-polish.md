@@ -1,7 +1,7 @@
 ---
 id: son-mai-experience-polish
 type: feature
-status: in_progress
+status: done
 created: 2026-11-12
 ---
 
@@ -36,3 +36,33 @@ Phạm vi đã đồng ý:
 - Hướng thiết kế: “wow” bằng khoảnh khắc có ngữ nghĩa (mực thấm, triện đóng, vệt sơn phản hồi, sen sáng theo milestone), không thêm gradient/glassmorphism hoặc animation vô cớ.
 - Dark mode không nằm trong scope hiện tại. Nếu được chọn sau này, phải là palette giấy đêm/sơn mài tối được thiết kế riêng, không đảo màu tự động.
 - UI review evidence: `.impeccable/review/popup-subject-menu.png`, `.impeccable/review/density-after3-board1024.png`, `.impeccable/review/before/mobile.png`.
+
+## Kết quả (2026-11-17) — đóng feature
+
+Hoàn thành 4 phase, mỗi phase reviewer STRICT PASS round 1:
+
+| Phase | Nội dung | Commit | Review |
+|---|---|---|---|
+| 1 | Reconcile as-built docs ↔ code (BRD/USER_FLOW/ERD/API_SPEC/DESIGN) | `f90a698` | STRICT PASS + Spec Validator PASS |
+| 2 | Responsive New Tab 1024–1199, ribbon keyboard 390px, subject menu bounded | `44a4be3` | STRICT PASS |
+| 3 | Micro-interaction trạng thái (triện, filter/menu, sen sáng theo milestone) | `7a1c2f7` | STRICT PASS |
+| 4 | Reconcile motion tokens + Known Gaps R-19 | `e89e92b` | Spec Validator PASS (`.context/review-reports/feature-son-mai-experience-polish-phase-4-task-01-spec-validation.md`) |
+
+Close-out bổ sung 2026-11-17 (sau Spec Validator phase-4):
+
+- Dọn **defect trùng selector**: `.streak-lotus[data-lit-just='true']` được khai 2 lần với 2 keyframe khác
+  nhau (`lotus-lit` ở `styles/signature.css`, `lotus-light` ở `styles/board.css`; board.css import sau nên
+  `lotus-lit` là dead code). Bỏ bản trong `signature.css`, giữ `lotus-light` (`scale 0.85→1`) đúng
+  `docs/DESIGN.md` §Motion.
+- `docs/DESIGN.md`: bỏ tên component không tồn tại `streak-lotus-lit` → `streak-lotus` + state
+  `data-lit` / `data-today` / `data-lit-just`.
+- Verify sau sửa: `tsc --noEmit` PASS · `eslint .` PASS · `vitest run` 24 file/136 test PASS ·
+  `wxt build` PASS 620.53 kB.
+
+**Residual risk (ghi rõ, không claim quá):**
+
+- R-19 sub-gaps còn mở theo `docs/DESIGN.md` §Known Gaps: 1024–1199px vẫn dùng 2 cột (không phải 3 vùng),
+  `.menu` không tự lật lên khi thiếu chỗ, chưa đo lại 360/390/1024 trên Chrome thật trong lần close-out này.
+- Chưa bật `prefers-reduced-motion` trong Chrome thật để xác nhận tắt hẳn; đã kiểm bằng CSS + test.
+- Kiểm chứng 1024–1199 dựa trên audit artifacts cũ, không phải đo mới.
+
