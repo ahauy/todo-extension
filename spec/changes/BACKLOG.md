@@ -13,7 +13,8 @@
 | BUG-002 | Thẻ việc: nút đóng dấu vô hình + không phân biệt chưa làm / đã làm / việc lặp ngày mai | BUG+MODIFY | done | [2026-11-12-task-seal-states.md](archive/2026-11-12-task-seal-states.md) | 2026-11-12 | 2026-11-13 |
 | FEAT-002 | Nâng tầm trải nghiệm Sơn Mài Học Đường: responsive, menu popup, motion và đồng bộ tài liệu | MODIFY | in_progress | [2026-11-12-son-mai-experience-polish.md](2026-11-12-son-mai-experience-polish.md) | 2026-11-12 | — |
 | FEAT-003 | Nâng cấp quản lý thời gian: then chốt/con ếch · 6P · đơn nhiệm · thói quen 21 ngày · time blocking | ADDITIVE/MODIFY | pending | [2026-11-16-time-management-upgrade.md](2026-11-16-time-management-upgrade.md) | 2026-11-16 | — |
-| FEAT-003/0 | Gói 0 — chuẩn hoá `dueAt` (G6) + weekly `weekdays` (G3) | MODIFY | in_progress | [2026-11-16-package-0-time-foundation.md](2026-11-16-package-0-time-foundation.md) | 2026-11-16 | — |
+| FEAT-003/0 | Gói 0 — chuẩn hoá `dueAt` (G6) + weekly `weekdays` (G3) | MODIFY | done | [2026-11-16-package-0-time-foundation.md](archive/2026-11-16-package-0-time-foundation.md) | 2026-11-16 | 2026-11-17 |
+| TOOL-001 | Adapter WorkBuddy tương đương workflow opencode (agents/commands/skills/hooks) | ADDITIVE | done | [2026-11-17-workbuddy-compat-adapter.md](archive/2026-11-17-workbuddy-compat-adapter.md) | 2026-11-17 | 2026-11-17 |
 
 ## Quy tắc tracking
 

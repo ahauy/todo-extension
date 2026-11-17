@@ -1,8 +1,9 @@
 ---
 id: package-0-time-foundation
 type: feature
-status: in_progress
+status: done
 created: 2026-11-16
+completed: 2026-11-17
 ---
 
 # Gói 0 — Nền tảng thời gian & lặp lại (chuẩn hoá `dueAt` + weekly `weekdays`)
@@ -47,24 +48,25 @@ Số liệu đã đối chiếu code (2026-11-16):
 
 ## Acceptance (bắt buộc)
 
-- [ ] **Canonical `dueAt`**: mọi chỗ *sinh* `dueAt` (form, recurrence, toggle việc lặp) trả
+- [x] **Canonical `dueAt`**: mọi chỗ *sinh* `dueAt` (form, recurrence, toggle việc lặp) trả
       `YYYY-MM-DDTHH:mm` local, không `Z`; có helper encode/decode duy nhất trong `lib/datetime.ts`
       (vd `toLocalInput` / `fromLocalInput`) và **không** nơi nào tự `toISOString()` cho `dueAt`.
-- [ ] **`createdAt`/`updatedAt`/`lastDoneAt`/`prevDueAt` giữ UTC `Z`** — có comment hợp đồng trong
-      `lib/tasks/types.ts` nói rõ 2 nhóm field khác nhau.
-- [ ] **Migration dữ liệu cũ**: task có `dueAt` kết thúc bằng `Z` được quy về local wall-clock khi đọc.
+- [x] **`createdAt`/`updatedAt`/`lastDoneAt` giữ UTC `Z`; `prevDueAt` = wall-clock local**
+      (quyết định user 2026-11-16, ghi trong `humanCheckpoint` của progress) — có comment hợp đồng
+      trong `lib/tasks/types.ts` nói rõ 2 nhóm field khác nhau.
+- [x] **Migration dữ liệu cũ**: task có `dueAt` kết thúc bằng `Z` được quy về local wall-clock khi đọc.
       Chọn 1 trong 2 hướng và ghi rõ lý do trong task file:
       (a) normalize **in-memory** trong `loadAll` (không ghi → không đụng quota 120 write/phút);
       (b) rewrite thật khi task được `put` lần kế tiếp (lazy) — **không** rewrite toàn bộ một lượt.
       Dứt khoát **không** chọn "ghi lại tất cả task ngay khi load".
-- [ ] **G3 weekly**: `nextDueAt` với `weekdays: [1,3,5]` sinh occurrence đúng các thứ đó (qua
+- [x] **G3 weekly**: `nextDueAt` với `weekdays: [1,3,5]` sinh occurrence đúng các thứ đó (qua
       `nextFutureDue` catch-up), giữ nguyên `HH:mm`; `weekdays: []` hoặc thiếu → fallback hành vi cũ
       (+7 ngày) để không mất dữ liệu cũ.
-- [ ] **Test**: fixture có `dueAt` dạng `Z` và không `Z`; test weekly nhiều thứ; test catch-up qua
+- [x] **Test**: fixture có `dueAt` dạng `Z` và không `Z`; test weekly nhiều thứ; test catch-up qua
       cuối tuần; test `toggle` việc lặp vẫn tạo alarm đúng giờ local.
-- [ ] **Không đổi** schema storage, **không** thêm quyền manifest (`storage`, `alarms`, `notifications`).
-- [ ] **Không đổi UI** (Gói 0 thuần nền tảng) — nếu phải sửa UI để hiển thị đúng thì ghi rõ lý do.
-- [ ] Docs reconcile: `docs/ERD.md` (biểu diễn `dueAt` vs instant), `docs/API_SPEC.md` (gap G6/G3 →
+- [x] **Không đổi** schema storage, **không** thêm quyền manifest (`storage`, `alarms`, `notifications`).
+- [x] **Không đổi UI** (Gói 0 thuần nền tảng) — nếu phải sửa UI để hiển thị đúng thì ghi rõ lý do.
+- [x] Docs reconcile: `docs/ERD.md` (biểu diễn `dueAt` vs instant), `docs/API_SPEC.md` (gap G6/G3 →
       đóng, `nextDueAt` contract), `docs/USER_FLOW.md` **chỉ** nếu hành vi người dùng thật đổi.
 
 ## Ghi chú
@@ -75,3 +77,13 @@ Số liệu đã đối chiếu code (2026-11-16):
 - Rủi ro trung bình: đụng dữ liệu người dùng đã có → reviewer mức **STRICT** (schema/migration + shared).
 - Ràng buộc storage: 8 KB/item, ~100 KB tổng, **512 item**, 120 write/phút
   (`lib/storage/adapter.ts:3-5`) — lý do loại phương án rewrite-all.
+
+## Close-out (2026-11-17)
+
+- Task 01: `fc9e26e` — canonical `dueAt` wall-clock local + migration in-memory (reviewer STRICT round 2 PASS).
+- Task 02: `c890de2` — G3 weekly `weekdays` + G8 tie-breaker `sortBoard` (reviewer STRICT round 2 PASS).
+- Verify cuối: `tsc` / `eslint` sạch · `vitest 25 files / 149 tests` · `wxt build 620.92 kB`.
+- G3/G6/G8 đã đóng trong `docs/API_SPEC.md` + `docs/ERD.md`; spec_version 1.2.1 và test-scope
+  scopeVersion 22 giữ nguyên (không đổi requirement so với spec delta đã publish).
+- Follow-up không chặn: NaN `dueAt`/`createdAt` làm `sortBoard` mất deterministic (pre-existing),
+  DST-gap, `MAX_ITERATIONS` với `weekdays` nhiều thứ. Các gói A–E của umbrella FEAT-003 vẫn pending.
