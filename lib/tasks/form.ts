@@ -19,6 +19,9 @@ export interface TaskForm {
   tags: string[];
   subtasks: Subtask[];
   subjectId: string | null;
+  /** R-21 — additive: tờ việc cũ/chưa có field vẫn load, coi như false. */
+  keystone?: boolean;
+  archived?: boolean;
 }
 
 export type TaskDraft = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
@@ -33,6 +36,8 @@ export function emptyForm(subjectId: string | null): TaskForm {
     tags: [],
     subtasks: [],
     subjectId,
+    keystone: false,
+    archived: false,
   };
 }
 
@@ -94,6 +99,8 @@ export function formToDraft(form: TaskForm): TaskDraft {
     tags: [...new Set(form.tags.map((tag) => tag.trim()).filter(Boolean))].slice(0, MAX_TAGS),
     subtasks: form.subtasks,
     subjectId: form.subjectId,
+    keystone: form.keystone ?? false,
+    archived: form.archived ?? false,
     done: false,
   };
 }

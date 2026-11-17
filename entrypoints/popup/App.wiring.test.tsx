@@ -161,6 +161,47 @@ describe('App wiring — empty & loading state (#12)', () => {
   });
 });
 
+describe('App wiring — archived không vào Header counter (R-21 / F-01)', () => {
+  const headerSummary = (container: HTMLElement): string =>
+    container.querySelector('header p[aria-live="polite"]')?.textContent ?? '';
+
+  it('việc archived quá hạn không bị đếm vào "đang chờ" / "quá hạn"', async () => {
+    stub.seed({
+      't:archived': fixture({
+        id: 'archived',
+        title: 'Việc cắt bỏ quá hạn',
+        dueAt: '2000-01-01T08:00',
+        archived: true,
+      }),
+      't:visible': fixture({
+        id: 'visible',
+        title: 'Việc đang chờ',
+        dueAt: '2000-01-02T08:00',
+        archived: false,
+      }),
+    });
+    const container = await renderApp();
+
+    // Trước khi wire helper: "2 việc đang chờ, 2 quá hạn." (task ma ở Header).
+    expect(headerSummary(container)).toBe('1 việc đang chờ, 1 quá hạn.');
+    expect(container.textContent).not.toContain('Việc cắt bỏ quá hạn');
+  });
+
+  it('chỉ còn việc archived → Header thảnh thơi, không current task ma', async () => {
+    stub.seed({
+      't:archived': fixture({
+        id: 'archived',
+        title: 'Việc cắt bỏ duy nhất',
+        dueAt: '2000-01-01T08:00',
+        archived: true,
+      }),
+    });
+    const container = await renderApp();
+
+    expect(headerSummary(container)).toBe('Sổ đang thảnh thơi.');
+  });
+});
+
 describe('App wiring — tab board (#6)', () => {
   it('tab "Đã xong" chỉ hiện việc xong; "Hôm nay" ẩn việc xong', async () => {
     stub.seed({

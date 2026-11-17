@@ -132,6 +132,8 @@ describe('Composer', () => {
       tags: [],
       subtasks: [],
       subjectId: 'subj-1',
+      keystone: false,
+      archived: false,
       done: false,
     });
   });

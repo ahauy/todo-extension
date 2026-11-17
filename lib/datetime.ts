@@ -24,6 +24,22 @@ export function dayKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/** R-21 — Thứ 2 00:00 giờ địa phương của tuần chứa `date` (KHÔNG UTC).
+ *  Dùng `getDay`/`getDate` local nên đúng quy tắc "thứ 2 theo giờ người dùng". */
+export function startOfWeekLocal(date: Date): Date {
+  const daysFromMonday = (date.getDay() + 6) % 7; // CN=0 → 6, T2=1 → 0
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() - daysFromMonday
+  );
+}
+
+/** Khoá tuần local = dayKey của Thứ 2 (tái dùng dayKey, không UTC). */
+export function weekKey(date: Date): string {
+  return dayKey(startOfWeekLocal(date));
+}
+
 function startOfDay(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }

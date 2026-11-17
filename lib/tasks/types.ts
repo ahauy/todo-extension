@@ -59,6 +59,12 @@ export interface Task {
    *  "đã làm hôm nay · hẹn ngày kế tiếp" (done-today) cho tới khi sang ngày.
    *  Task cũ chưa có trường này → undefined (coi như chưa đóng dấu hôm nay). */
   lastDoneAt?: string | null;
+  /** R-21 — Việc then chốt ("20%"). Mặc định `false` khi thiếu. Bật tự gán
+   *  `priority='high'`; TẮT KHÔNG tự hạ priority. Chỉ là nhãn lọc, không đổi enum. */
+  keystone?: boolean;
+  /** R-21 — Việc bị cắt bỏ. Mặc định `false` khi thiếu. Luôn bị loại khỏi mọi
+   *  tab/filter/search/bộ đếm/danh sách môn nhưng VẪN nằm trong storage để phục hồi. */
+  archived?: boolean;
   /** Bản sao **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa
    *  hoàn thành — Hoàn tác hôm nay gán thẳng `dueAt = prevDueAt`, 0 quy đổi. */
   prevDueAt?: string | null;
@@ -133,6 +139,17 @@ export const SETTINGS_KEY = "settings";
 export const SUBJECTS_KEY = "subjects";
 export const STUDY_LOG_KEY = "studyLog";
 export const POMODORO_KEY = "pomodoro";
+/** R-21 — 1 key duy nhất cho "con ếch hôm nay" (KHÔNG tạo key theo ngày). */
+export const DAY_PLAN_KEY = "dayPlan";
+
+/**
+ * R-21 — Kế hoạch ngày, lưu trong 1 key `dayPlan`.
+ * `dayKey = YYYY-MM-DD` local; prune còn 14 ngày gần nhất mỗi lần ghi.
+ * Shape additive: Gói B sẽ mở rộng cùng key này (không đưa `plannedIds` vào Gói A).
+ */
+export interface DayPlan {
+  [dayKey: string]: { frogTaskId: string | null };
+}
 
 /** Tạo storage key từ task id */
 export function taskKey(id: string): string {

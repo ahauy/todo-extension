@@ -8,8 +8,9 @@
  * Vitest mock `chrome.storage` (không gọi extension API thật trong unit test).
  */
 
-import type { Settings, StudyLog, Subject, Task } from '../tasks/types';
+import type { DayPlan, Settings, StudyLog, Subject, Task } from '../tasks/types';
 import {
+  DAY_PLAN_KEY,
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
   STUDY_LOG_KEY,
@@ -231,6 +232,32 @@ export async function putStudyLog(log: StudyLog): Promise<void> {
   } catch (err) {
     if (isQuotaError(err)) {
       throw new StorageQuotaError(`putStudyLog quota: ${err}`);
+    }
+    throw err;
+  }
+}
+
+/** R-21 — Kế hoạch ngày (con ếch): 1 key `dayPlan`, prune 14 ngày gần nhất.
+ *  dayKey = YYYY-MM-DD local nên sort từ điển = sort thời gian. */
+export const DAY_PLAN_DAYS = 14;
+
+export async function loadDayPlan(): Promise<DayPlan> {
+  const all = await storageGet<Record<string, unknown>>([DAY_PLAN_KEY]);
+  const raw = all[DAY_PLAN_KEY];
+  return raw && typeof raw === 'object' ? (raw as DayPlan) : {};
+}
+
+export async function putDayPlan(plan: DayPlan): Promise<void> {
+  const keys = Object.keys(plan).sort();
+  const kept = keys.slice(-DAY_PLAN_DAYS);
+  const pruned: DayPlan = {};
+  for (const key of kept) pruned[key] = plan[key];
+  try {
+    // Ghi ĐÚNG 1 key — không tạo key theo ngày (giới hạn 512 item sync).
+    await storageSet({ [DAY_PLAN_KEY]: pruned });
+  } catch (err) {
+    if (isQuotaError(err)) {
+      throw new StorageQuotaError(`putDayPlan quota: ${err}`);
     }
     throw err;
   }

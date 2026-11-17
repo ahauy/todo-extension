@@ -9,7 +9,12 @@ import { useSubjects } from './useSubjects';
 import { useSettings } from './useSettings';
 import { useStudyLog } from './useStudyLog';
 import { usePomodoro } from './usePomodoro';
-import { filterByBoard, type BoardTab } from '../lib/tasks/query';
+import {
+  activeCount as countActive,
+  filterByBoard,
+  overdueCount,
+  type BoardTab,
+} from '../lib/tasks/query';
 import { dayKey } from '../lib/datetime';
 import { playPaper, unlockAudio } from '../lib/sound';
 import type { Task } from '../lib/tasks/types';
@@ -85,13 +90,12 @@ export function useBoard() {
     return result;
   }, [tasks, now]);
 
-  const overdue = useMemo(
-    () => tasks.filter((task) => !task.done && task.dueAt && new Date(task.dueAt) < now).length,
-    [tasks, now]
-  );
+  // R-21/R-15 — dùng bộ đếm đã guard archived ở query.ts, không recompute inline
+  // (nếu không, archived=true vẫn lọt vào dòng "X việc đang chờ, Y quá hạn").
+  const overdue = useMemo(() => overdueCount(tasks, now), [tasks, now]);
 
   const doneToday = log[dayKey(now)]?.tasks ?? 0;
-  const activeCount = tasks.filter((task) => !task.done).length;
+  const activeCount = useMemo(() => countActive(tasks), [tasks]);
 
   const createDraft = useCallback(
     async (draft: TaskDraft) => {

@@ -1,6 +1,7 @@
 /**
  * useTasks hook (L6-T18). Nguồn state popup qua useSyncExternalStore trên
- * storage adapter — { tasks, add, create, update, remove, toggle, restore, loading }.
+ * storage adapter — { tasks, dayPlan, add, create, update, remove, toggle,
+ * restore, selectFrog, loading }.
  *
  * Logic:
  * - add(title): quick-add chỉ title → create(default draft).
@@ -14,7 +15,8 @@
  * - update: updatedAt now → put.
  * - chrome.storage.onChanged: key t:<id> đổi → merge theo updatedAt lớn hơn
  *   thắng (last-write-wins), cập nhật UI + reschedule alarm; key bị xoá →
- *   xoá local + clear alarm; key settings → resync alarm.
+ *   xoá local + clear alarm; key settings → resync alarm; key `dayPlan` →
+ *   hydrate frog (R-21).
  * Ghi 1 key/task (không ghi cả danh sách), không autosave keystroke
  * (giới hạn 120 write/phút).
  * Lỗi quota ném từ adapter → không swallow.
@@ -31,10 +33,18 @@ import {
   scheduleTask,
   syncAlarms,
 } from '../lib/alarms/scheduler';
-import { loadAll, put, remove as storageRemove, subscribe } from '../lib/storage/adapter';
+import {
+  DAY_PLAN_DAYS,
+  loadAll,
+  loadDayPlan,
+  put,
+  putDayPlan,
+  remove as storageRemove,
+  subscribe,
+} from '../lib/storage/adapter';
 import { nextFutureDue } from '../lib/tasks/recurrence';
 import { isRecurringDoneToday } from '../lib/tasks/query';
-import type { Task } from '../lib/tasks/types';
+import { DAY_PLAN_KEY, type DayPlan, type Task } from '../lib/tasks/types';
 
 const MAX_TITLE = 200;
 
@@ -54,6 +64,8 @@ function defaultDraft(title: string): TaskDraft {
     tags: [],
     subtasks: [],
     subjectId: null,
+    keystone: false,
+    archived: false,
     done: false,
   };
 }
@@ -70,7 +82,10 @@ function buildTask(draft: TaskDraft): Task {
 
 /** Snapshot mutable để useSyncExternalStore đọc đồng bộ (module-level mutable
  * object — KHÔNG dùng useRef ở module scope, vi phạm Rules of Hooks). */
-const snapshotStore: { tasks: Task[] } = { tasks: [] };
+const snapshotStore: { tasks: Task[]; dayPlan: DayPlan } = {
+  tasks: [],
+  dayPlan: {},
+};
 
 /** Callback listeners cho React re-render */
 let listeners: (() => void)[] = [];
@@ -78,11 +93,18 @@ let unsubscribeStorage: (() => void) | null = null;
 
 /** getServerSnapshot trả cùng 1 tham chiếu — tránh render dư (defect #22). */
 const EMPTY_TASKS: Task[] = [];
+const EMPTY_DAY_PLAN: DayPlan = {};
 function getSnapshot(): Task[] {
   return snapshotStore.tasks;
 }
 function getServerSnapshot(): Task[] {
   return EMPTY_TASKS;
+}
+function getDayPlanSnapshot(): DayPlan {
+  return snapshotStore.dayPlan;
+}
+function getServerDayPlanSnapshot(): DayPlan {
+  return EMPTY_DAY_PLAN;
 }
 
 export function useTasks() {
@@ -101,6 +123,15 @@ export function useTasks() {
 
   const handleStorageChanged = useCallback(
     async (changedKeys: string[]) => {
+      // R-21 — key `dayPlan` đổi từ bề mặt/thiết bị khác → hydrate con ếch.
+      if (changedKeys.includes(DAY_PLAN_KEY)) {
+        try {
+          snapshotStore.dayPlan = await loadDayPlan();
+        } catch {
+          // không throw trong onChanged listener
+        }
+      }
+
       const current = await loadAll();
       setSnapshot(current);
 
@@ -149,6 +180,11 @@ export function useTasks() {
   );
 
   const tasks = useSyncExternalStore(subscribeStore, getSnapshot, getServerSnapshot);
+  const dayPlan = useSyncExternalStore(
+    subscribeStore,
+    getDayPlanSnapshot,
+    getServerDayPlanSnapshot
+  );
 
   const create = useCallback(
     async (draft: TaskDraft) => {
@@ -206,6 +242,25 @@ export function useTasks() {
       }
     },
     []
+  );
+
+  /** R-21 — chọn/bỏ con ếch cho một ngày local. Cùng ngày → thay thế; sang
+   *  ngày khác thì entry cũ tự hết hiệu lực (consumer đọc dayPlan[dayKey hiện tại]). */
+  const selectFrog = useCallback(
+    async (dayKey: string, taskId: string | null): Promise<void> => {
+      const next: DayPlan = {
+        ...snapshotStore.dayPlan,
+        [dayKey]: { frogTaskId: taskId },
+      };
+      await putDayPlan(next);
+      // putDayPlan chỉ ghi 14 ngày mới nhất — cache phải khớp shape đã lưu (F-02).
+      const kept = Object.keys(next).sort().slice(-DAY_PLAN_DAYS);
+      const pruned: DayPlan = {};
+      for (const key of kept) pruned[key] = next[key];
+      snapshotStore.dayPlan = pruned;
+      notify();
+    },
+    [notify]
   );
 
   const toggle = useCallback(
@@ -282,6 +337,8 @@ export function useTasks() {
     void (async () => {
       try {
         const current = await loadAll();
+        // hydrate dayPlan trước khi notify để 1 lần render thấy cả 2 snapshot.
+        snapshotStore.dayPlan = await loadDayPlan().catch(() => snapshotStore.dayPlan);
         setSnapshot(current);
         syncAlarms(current);
       } catch {
@@ -292,5 +349,16 @@ export function useTasks() {
     })();
   }, []);
 
-  return { tasks, add, create, update, remove, toggle, restore, loading };
+  return {
+    tasks,
+    dayPlan,
+    add,
+    create,
+    update,
+    remove,
+    toggle,
+    restore,
+    selectFrog,
+    loading,
+  };
 }
