@@ -1,8 +1,9 @@
 ---
 id: time-management-upgrade
 type: feature
-status: pending
+status: in_progress
 created: 2026-11-16
+updated: 2026-11-17
 ---
 
 # Nâng cấp quản lý thời gian: 6 gói (then chốt/con ếch · 6P · đơn nhiệm · thói quen · time blocking)
@@ -27,6 +28,20 @@ Các gói:
 Quyết định đã chốt: **ABCDE giữ 3 mức ưu tiên + nhãn A/B/C**, D/E là hành động (tự động hoá / cắt bỏ),
 không thêm enum 5 mức.
 
+## Tiến độ các gói (cập nhật 2026-11-17)
+
+| Gói | Trạng thái | Ghi chú |
+|---|---|---|
+| 0 | ✅ done | `fc9e26e` + `c890de2`; change doc riêng đã archive, BACKLOG `FEAT-003/0 = done` |
+| C | 🔄 đang xử lý | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync` |
+| A | pending | sau C |
+| B | pending | sau A |
+| D | pending | sau B (phụ thuộc G3 — đã có từ Gói 0) |
+| E | pending | hoãn, cần B dùng thật |
+
+**Phạm vi `/change` lần này: chỉ Gói C — Đơn nhiệm.** Các gói còn lại giữ nguyên trạng thái,
+sẽ mở change riêng khi đến lượt.
+
 ## Bối cảnh / tái hiện (bug)
 
 Không phải bug. Bối cảnh: người dùng tìm được 7 phương pháp quản lý thời gian (21 ngày/thói quen,
@@ -40,7 +55,8 @@ Hiện trạng liên quan (đã đối chiếu code):
 
 ## Acceptance (bắt buộc)
 
-- [ ] Gói 0: `dueAt` canonical wall-clock local; weekly tôn trọng `weekdays`; có test migration.
+- [x] Gói 0: `dueAt` canonical wall-clock local; weekly tôn trọng `weekdays`; có test migration.
+      (Xong 2026-11-17 — commit `c890de2`, reviewer STRICT round 2 PASS.)
 - [ ] Gói A: `keystone` (tối đa 3 đang mở, **chỉ cảnh báo**) + **chip lọc "20%"** (không thêm tab) + chọn con ếch mỗi ngày; "Cắt bỏ" = `archived` + mục "Đã cắt"; dòng review tuần trong New Tab; sort vẫn deterministic (R-15).
 - [ ] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
 - [ ] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn.

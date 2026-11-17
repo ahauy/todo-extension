@@ -1,53 +1,56 @@
 {
-  "specVersion": "1.2.1",
-  "scopeVersion": 22,
-  "generatedAt": "2026-11-16T15:20:00+07:00",
-  "trigger": "change-request",
-  "workItem": "feature-package-0-time-foundation",
-  "specRefs": ["R-09", "R-10", "R-11"],
+  "specVersion": "1.3.0",
+  "scopeVersion": 23,
+  "generatedAt": "2026-11-17T15:22:00+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature-time-management-upgrade/package-c-single-handling",
+  "specRefs": ["R-20"],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
-      "spec/updates/2026-11-16-package-0-time-foundation.md",
-      "lib/datetime.ts",
+      "spec/updates/2026-11-17-single-handling-focus.md",
+      "hooks/usePomodoro.ts",
+      "hooks/useBoard.ts",
+      "hooks/useStudyLog.ts",
       "lib/tasks/types.ts",
-      "lib/tasks/recurrence.ts",
-      "lib/tasks/form.ts",
-      "lib/tasks/query.ts",
-      "lib/storage/adapter.ts",
-      "hooks/useTasks.ts",
-      "src/__tests__/recurrence.test.ts",
-      "src/__tests__/useTasks.test.tsx",
-      "src/__tests__/datetime.test.ts"
+      "components/FocusTimer.tsx",
+      "components/TaskScroll.tsx",
+      "components/TaskScrollList.tsx",
+      "entrypoints/popup/App.tsx",
+      "entrypoints/newtab/App.tsx",
+      "styles/board.css",
+      "src/test/chrome-stub.ts"
     ],
-    "modules": ["task-domain", "storage-adapter", "recurrence-domain", "query-domain", "task-feedback"]
+    "modules": ["pomodoro-session", "task-feedback", "popup-shell", "newtab-shell", "study-log"]
   },
   "impact": {
     "direct": [
-      "dueAt canonical: mọi chỗ sinh dueAt (form, recurrence nextDueAt, toggle việc lặp) trả YYYY-MM-DDTHH:mm local, không hậu tố Z",
-      "Migration khi đọc: task cũ có dueAt kết thúc Z được chuẩn hoá về local wall-clock trong loadAll (in-memory, không ghi lại toàn bộ)",
-      "G3: weekly nextDueAt với weekdays [1,3,5] sinh occurrence đúng các thứ đó (kể cả catch-up nextFutureDue), giữ HH:mm; weekdays rỗng/thiếu → fallback +7 ngày",
-      "createdAt/updatedAt/lastDoneAt giữ ISO UTC có Z (comment hợp đồng trong lib/tasks/types.ts); dueAt + prevDueAt là wall-clock local không Z"
+      "Thêm attach(taskId)/attach(null) có UI thật trên thẻ task; taskId + interruptions nằm trong PomodoroState (chrome.storage.local), bền qua đóng/mở popup giữa phiên",
+      "Focus overlay popup: đồng hồ thu gọn >=96px + thẻ việc + nút tạm dừng/kết thúc, ẩn board; New Tab thu board thành cột phụ nhưng vẫn giữ ngữ cảnh",
+      "Đổi việc/tick việc khác trong phiên → xác nhận; nếu vẫn đổi → interruptions += 1 (local-only, chỉ hiện tổng kết phiên, không ghi StudyLog)",
+      "Kết thúc tự nhiên có taskId → hỏi 'Xong việc này chưa?'; chỉ xác nhận mới tick task (R-11 nếu lặp) + record('focus',1) đúng 1 lần",
+      "Sửa hành vi hiện tại: skip focus đang gọi completion → phải không còn tăng studyLog.focus"
     ],
     "dependents": [
-      "hooks/useTasks.toggle → scheduleTask/chrome.alarms nhận dueAt local (new Date parse đúng, alarm đúng giờ)",
-      "Hoàn tác hôm nay: dueAt = prevDueAt gán thẳng (cả hai cùng wall-clock local, 0 quy đổi)",
-      "components DeadlineChip / deadlineText đọc dueAt qua new Date() — hiển thị giờ đã đặt thay vì giờ UTC",
-      "G8 (đã duyệt, làm trong task 02): sortBoard tie-breaker theo R-15 (thêm id) — sortTasks giữ nguyên"
+      "useBoard.onFocusComplete truyen vao usePomodoro.advance — can phan biet completion tu nhien vs skip",
+      "StudyLog/StreakCard: focus chi tang khi phien tron ven, khong dem ngat",
+      "TaskScroll/TaskScrollList: them callback onFocusTask va activeTaskId, giu DOM parity compact/full (gate STRICT cu)",
+      "Popup va New Tab App: them view/overlay state, Escape/keyboard map, responsive 360x560 + 1024-1199"
     ],
     "regression": [
-      "Việc lặp daily/monthly vẫn cuộn hạn đúng, catch-up ≤1000 vòng",
-      "Task không lặp: tick done / bỏ done giữ dueAt nguyên vẹn",
-      "Task cũ chỉ có lastDoneAt (không prevDueAt) hiển thị như open, không vỡ dữ liệu",
-      "Storage quota: không phát sinh write khi loadAll (đếm số write trong test adapter nếu có)",
-      "Không đổi UI, không đổi schema key t:<id>, không thêm permission manifest"
+      "Khong co taskId -> UI va hanh vi Pomodoro/FocusTimer y het hien tai",
+      "Khong doi chrome.storage.sync schema, khong them key/ngay, khong doi permission manifest (R-17)",
+      "Khong network request, khong analytics; interruptions chi local",
+      "Tick task thuong / task lap / hoan tac hom nay (R-11) khong bi anh huong boi focus overlay",
+      "typecheck / lint / vitest / wxt build PASS"
     ]
   },
   "acceptance": [
-    "Task tạo ở múi giờ A, mở ở múi giờ B vẫn hiện đúng giờ đã đặt (wall-clock local).",
-    "Weekly weekdays=[1,3,5] chỉ sinh occurrence đúng các thứ đó; weekdays rỗng fallback +7.",
-    "Không có task nào lệch ngày sau migration (fixture có Z và không Z đọc đúng).",
-    "Toggle việc lặp vẫn tạo alarm đúng giờ local; không hồi quy daily/monthly, query tabs, typecheck/lint/test/build."
+    "Gan viec -> dong popup, mo lai van thay dung viec dang gan (state ben qua endsAt).",
+    "Trong phien, board popup khong bam duoc (khong tick nham viec khac); New Tab board thu gon.",
+    "Ket thuc phien -> studyLog.focus tang dung 1 khi xac nhan; skip/phien bo do khong tang.",
+    "Doi viec giua phien co xac nhan va dem 1 lan ngắt khi van doi; khong ghi vao StudyLog.",
+    "Khong co taskId -> khong hoi quy giao dien/hanh vi hien tai; verify tsc/eslint/vitest/wxt build PASS."
   ],
-  "risk": "medium"
+  "risk": "low"
 }

@@ -1,6 +1,6 @@
 ---
-spec_version: 1.2.1
-updated_at: 2026-11-16
+spec_version: 1.3.0
+updated_at: 2026-11-17
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -155,6 +155,28 @@ Motion chỉ được dùng để phản hồi thao tác hoặc đổi trạng t
 chuyển bộ lọc/menu, và mốc chuỗi học. Không có autoplay, marquee, parallax hay hiệu ứng lặp vô cớ.
 Tất cả motion phải tuân `prefers-reduced-motion`; không được thêm thư viện animation hoặc quyền/network mới.
 
+### Domain: Đơn nhiệm (Single-handling)
+
+**R-20 — Phiên tập trung gắn với một việc**
+Người dùng có thể gắn một task vào phiên Pomodoro đang chạy ("Tập trung việc này" trên thẻ việc) hoặc
+huỷ gắn (`attach(null)`). Mã việc nằm trong `PomodoroState.taskId`, lưu ở `chrome.storage.local` —
+**không đổi schema `chrome.storage.sync`**; đóng/mở popup giữa phiên vẫn thấy đúng việc đã gắn.
+
+Khi phiên focus đang chạy và đã gắn việc: popup chuyển sang **focus overlay** (đồng hồ bản thu gọn
+tối thiểu 96px + thẻ việc + nút tạm dừng/kết thúc), ẩn board để không tick nhầm việc khác; New Tab
+thu board thành cột phụ nhưng vẫn giữ ngữ cảnh. Không có taskId → giao diện và hành vi y hệt hiện tại.
+
+Trong phiên đang chạy, thao tác tick việc khác hoặc đổi việc gắn phải hiện xác nhận "Đang trong phiên,
+đổi việc sẽ phá tập trung?". Nếu user vẫn đổi, ghi **1 lần ngắt** vào bộ đếm `interruptions` của
+`PomodoroState` (local-only) — chỉ hiển thị trong tổng kết phiên, không ghi vào `StudyLog`, không
+đồng bộ thiết bị. Bộ đếm đặt lại về 0 khi bắt đầu một phiên focus mới và bị xoá khi reset/skip/kết
+thúc phiên; nó không tồn tại ngoài phiên.
+
+Khi phiên focus **kết thúc tự nhiên** (đếm về 0) và có taskId → hỏi "Xong việc này chưa?". Chỉ khi user
+xác nhận mới tick task (task lặp đi theo R-11) và gọi `record('focus', 1)` **đúng một lần**. Phiên bỏ
+dở (tạm dừng rồi reset, skip, đóng mà không xác nhận) **không** được tính `focus`; riêng `skip` phiên
+focus phải được sửa để không gọi completion. Không thêm permission (R-17), không network request.
+
 ## API Endpoints
 
 Không có — extension không có backend/API.
@@ -170,7 +192,9 @@ Không có DB. Storage layout `chrome.storage.sync`:
 | `subjects` | `Subject[]` | giá sách môn học |
 | `studyLog` | `StudyLog` | chuỗi ngày học |
 
-Pomodoro là trạng thái local, không đồng bộ. Chi tiết hợp đồng dữ liệu: `docs/ERD.md`.
+Pomodoro là trạng thái local, không đồng bộ. `PomodoroState` gồm `taskId` (việc đang gắn) và
+`interruptions` (số lần ngắt trong phiên) — cả hai chỉ nằm ở `chrome.storage.local`. Chi tiết hợp đồng
+dữ liệu: `docs/ERD.md`.
 
 ## Authentication
 
