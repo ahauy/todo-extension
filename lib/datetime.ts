@@ -1,6 +1,8 @@
 /**
  * Ngày giờ và chữ hiển thị hạn chót. Mọi mốc so sánh dùng giờ địa phương của
- * thiết bị — dueAt trong storage là ISO local, không quy về UTC.
+ * thiết bị — dueAt trong storage là wall-clock local `YYYY-MM-DDTHH:mm` (không
+ * hậu tố Z, không quy về UTC); instant thật (`createdAt`/`updatedAt`/
+ * `lastDoneAt`) mới dùng ISO UTC có Z.
  */
 export type DayPart = 'morning' | 'afternoon' | 'evening' | 'night';
 
@@ -86,12 +88,28 @@ export function greetingFor(date: Date): Greeting {
   return { title: 'Đêm đã khuya', part: 'night' };
 }
 
+/** Dựng `YYYY-MM-DDTHH:mm` từ thành phần local của Date (bỏ giây/mili-giây). */
+export function formatLocalInput(date: Date): string {
+  return `${dayKey(date)}T${hourMinute(date)}`;
+}
+
 /** dueAt lưu local, không có hậu tố Z — cắt chuỗi cho input datetime-local */
 export function toLocalInput(iso: string | null): string {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return `${dayKey(date)}T${hourMinute(date)}`;
+  return formatLocalInput(date);
+}
+
+/**
+ * Chuẩn hoá `dueAt`/`prevDueAt` (wall-clock) về `YYYY-MM-DDTHH:mm` local, không `Z`.
+ * Idempotent: giá trị đã canonical trả nguyên văn; chuỗi không parse được cũng trả
+ * nguyên văn để không nuốt dữ liệu lạ (UI vẫn hiện "Hạn không hợp lệ").
+ */
+export function normalizeDueAt(raw: string | null): string | null {
+  if (!raw) return raw;
+  // toLocalInput trả '' khi invalid → giữ nguyên bản gốc thay vì xoá hạn.
+  return toLocalInput(raw) || raw;
 }
 
 export function fromLocalInput(value: string): string | null {

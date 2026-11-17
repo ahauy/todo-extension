@@ -40,32 +40,35 @@
 | `title` | `string` | bắt buộc, trim, **1–200** ký tự | R-01 |
 | `note` | `string` | **luôn có**, có thể chuỗi rỗng, **≤ 1000** ký tự | R-06; mặc định `''` (`lib/tasks/form.ts:26-37`) |
 | `priority` | `"low" \| "medium" \| "high"` | mặc định `medium` | R-05 |
-| `dueAt` | `string \| null` | chuỗi ISO 8601, **giờ local** khi người dùng đặt hạn | R-09; null = không hạn → không nhắc |
+| `dueAt` | `string \| null` | **wall-clock local** `YYYY-MM-DDTHH:mm`, KHÔNG hậu tố `Z`/offset | R-09; null = không hạn → không nhắc; Gói 0/G6 đã chuẩn hoá một dạng |
 | `recurrence` | `RecurrenceRule` | mặc định `{kind:"none"}` | R-10, xem 2.3 |
 | `tags` | `string[]` | **≤ 5** tag, mỗi tag 1–20 ký tự, trim + khử trùng | R-07 |
 | `subtasks` | `Subtask[]` | **≤ 50** | R-08, xem 2.2 |
 | `subjectId` | `string \| null` (optional) | trỏ tới `Subject.id`; task cũ thiếu field → coi như `null` | 2.4 |
 | `done` | `boolean` | mặc định `false` | R-04 |
 | `lastDoneAt` | `string \| null` (optional) | **ISO 8601 UTC** (`toISOString`) lần đóng dấu gần nhất | additive, R-11 |
-| `prevDueAt` | `string \| null` (optional) | `dueAt` ngay trước khi cuộn sang occurrence kế | additive, R-11 |
+| `prevDueAt` | `string \| null` (optional) | **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa hoàn thành | additive, R-11; Hoàn tác gán thẳng `dueAt = prevDueAt` |
 | `createdAt` | `string` | ISO 8601 UTC (`nowISO`) | = now khi tạo |
 | `updatedAt` | `string` | ISO 8601 UTC (`nowISO`) | cập nhật mỗi lần sửa |
 
-**Encoding thực tế của `dueAt`** (đọc từ code, không suy từ spec):
+**Encoding thực tế của `dueAt` / `prevDueAt`** (đọc từ code, không suy từ spec):
 
-- Hạn người dùng nhập qua `datetime-local` → `fromLocalInput()` giữ nguyên chuỗi
-  `YYYY-MM-DDTHH:mm` **không hậu tố Z** (`lib/datetime.ts:97-102`). `new Date()` đọc chuỗi này
-  theo giờ local thiết bị.
-- Khi việc lặp cuộn sang occurrence kế, `nextDueAt()` trả `Date.toISOString()` → chuỗi **UTC có `Z`**
-  (`lib/tasks/recurrence.ts:88,94,107`). Vì vậy `dueAt` có thể tồn tại ở **hai dạng**; cả hai đều
-  parse được bằng `new Date()` nên so sánh/`sameLocalDay` vẫn đúng, nhưng chuỗi lưu không đồng nhất.
-  Đây là **gap G6** đang mở (BUG-002), không phải "local thuần".
-- `lastDoneAt` luôn là UTC (`nowISO() = new Date().toISOString()`, `hooks/useTasks.ts:43`).
-  Trạng thái **done-today** quy đổi bằng cách so **ngày local** của `lastDoneAt` với hôm nay
-  (`sameLocalDay`, `lib/tasks/query.ts:91-98`), không so chuỗi ngày.
+- **Nhóm wall-clock local** — `dueAt`, `prevDueAt`: `YYYY-MM-DDTHH:mm` **không hậu tố `Z`**.
+  `new Date()` đọc chuỗi này theo giờ local thiết bị. Hạn người dùng nhập qua `datetime-local`
+  được `formToDraft` giữ nguyên văn (`lib/tasks/form.ts:92`); occurrence lặp do `nextDueAt()` sinh
+  cũng dùng `formatLocalInput()` (cùng helper với `toLocalInput`, `lib/datetime.ts`) →
+  **một dạng duy nhất** kể từ Gói 0 (`spec 1.2.1`, gap G6 đã đóng).
+- **Migration dữ liệu cũ:** `loadAll()` chuẩn hoá in-memory `dueAt`/`prevDueAt` qua
+  `normalizeDueAt` (`lib/storage/adapter.ts:84-110`) — task cũ có chuỗi `Z` được đọc ra local,
+  **không ghi lại** (quota 120 write/phút); `put` kế tiếp của task tự ghi bản canonical.
+- **Nhóm instant thật** — `createdAt`/`updatedAt`/`lastDoneAt`: ISO UTC có `Z`
+  (`nowISO() = new Date().toISOString()`, `hooks/useTasks.ts`). Trạng thái **done-today** quy đổi
+  bằng cách so **ngày local** của `lastDoneAt` với hôm nay (`sameLocalDay`,
+  `lib/tasks/query.ts:91-98`), không so chuỗi ngày.
 
-> `SPECIFICATIONS.md` 1.2.0 R-09 đã sửa từ *epoch ms* sang *ISO 8601 local*; gap G1 cũ đã đóng.
-> Phần còn lệch là dạng UTC sau khi lặp — xem G6 ở [`API_SPEC.md`](API_SPEC.md) §5.
+> `SPECIFICATIONS.md` R-09 bản 1.2.1 quy định `dueAt` là wall-clock local một dạng; R-11 quy định
+> `prevDueAt` cũng là wall-clock local. Gap G3 (weekly `weekdays`) vẫn mở — xem
+> [`API_SPEC.md`](API_SPEC.md) §5.
 
 ### 2.2 `Subtask` (embedded trong `Task.subtasks`) — `types.ts:34-38`
 

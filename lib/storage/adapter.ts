@@ -17,6 +17,7 @@ import {
   TASK_KEY_PREFIX,
   taskKey,
 } from '../tasks/types';
+import { normalizeDueAt } from '../datetime';
 
 const MAX_ITEM_BYTES = 8192;
 
@@ -74,6 +75,20 @@ async function storageRemove(keys: string | string[]): Promise<void> {
   });
 }
 
+/**
+ * Chuẩn hoá biểu diễn thời gian khi đọc (Gói 0/G6): `dueAt`/`prevDueAt` về
+ * wall-clock local `YYYY-MM-DDTHH:mm` (task cũ có thể đang là UTC `Z`).
+ * Chỉ sửa in-memory — KHÔNG ghi lại ở đây (quota 120 write/phút, 512 item);
+ * `put` kế tiếp của chính task đó sẽ ghi bản canonical nên storage tự hội tụ.
+ */
+function normalizeTaskTimes(task: Task): Task {
+  const next: Task = { ...task, dueAt: normalizeDueAt(task.dueAt) };
+  if (typeof task.prevDueAt === 'string') {
+    next.prevDueAt = normalizeDueAt(task.prevDueAt);
+  }
+  return next;
+}
+
 /** Đọc toàn bộ task từ storage (các key `t:*`) */
 export async function loadAll(): Promise<Task[]> {
   try {
@@ -81,7 +96,7 @@ export async function loadAll(): Promise<Task[]> {
     const tasks: Task[] = [];
     for (const [key, value] of Object.entries(all)) {
       if (typeof key === 'string' && key.startsWith(TASK_KEY_PREFIX)) {
-        tasks.push(value as Task);
+        tasks.push(normalizeTaskTimes(value as Task));
       }
     }
     return tasks;

@@ -10,6 +10,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createChromeStub, type ChromeStub } from './helpers/chrome-stub';
+import { toLocalInput } from '../../lib/datetime';
 import type { Task } from '../../lib/tasks/types';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -26,6 +27,11 @@ interface UseTasksApi {
 }
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+/** Wall-clock local `YYYY-MM-DDTHH:mm` cách bây giờ `days` ngày — đúng hợp đồng dueAt. */
+function localDaysAgo(days: number): string {
+  return toLocalInput(new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+}
 
 function fixture(overrides: Partial<Task> = {}): Task {
   return {
@@ -170,7 +176,7 @@ describe('useTasks — create & restore', () => {
         title: '  Họp nhóm  ',
         note: 'chuẩn bị slide',
         priority: 'high',
-        dueAt: '2035-01-01T08:00:00.000Z',
+        dueAt: '2035-01-01T08:00',
         recurrence: { kind: 'daily' },
         tags: ['work', 'urgent'],
         subtasks: [{ id: 's1', title: 'Chuẩn bị', done: false }],
@@ -182,7 +188,7 @@ describe('useTasks — create & restore', () => {
     expect(saved.title).toBe('Họp nhóm');
     expect(saved.note).toBe('chuẩn bị slide');
     expect(saved.priority).toBe('high');
-    expect(saved.dueAt).toBe('2035-01-01T08:00:00.000Z');
+    expect(saved.dueAt).toBe('2035-01-01T08:00');
     expect(saved.recurrence).toEqual({ kind: 'daily' });
     expect(saved.tags).toEqual(['work', 'urgent']);
     expect(saved.subtasks).toEqual([
@@ -289,10 +295,10 @@ describe('useTasks — toggle', () => {
   });
 
   it('toggle task lặp daily: dời dueAt sang tương lai, done=false, tạo alarm mới', async () => {
-    const yesterday = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const twoDaysAgo = localDaysAgo(2);
     const task = fixture({
       id: 'a',
-      dueAt: yesterday,
+      dueAt: twoDaysAgo,
       recurrence: { kind: 'daily' },
     });
     stub.seed({ 't:a': task });
@@ -311,7 +317,7 @@ describe('useTasks — toggle', () => {
   });
 
   it('toggle việc lặp: ghi lastDoneAt + prevDueAt (done-today), done=false (BUG-002)', async () => {
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const yesterday = localDaysAgo(1);
     stub.seed({ 't:r': fixture({ id: 'r', dueAt: yesterday, recurrence: { kind: 'daily' } }) });
     await mountHook();
 
@@ -322,12 +328,26 @@ describe('useTasks — toggle', () => {
     const saved = stub.store.get('t:r') as Task;
     expect(saved.done).toBe(false);
     expect(saved.lastDoneAt).toBeTruthy();
+    // prevDueAt giữ NGUYÊN VĂN wall-clock local (không convert sang Z).
     expect(saved.prevDueAt).toBe(yesterday);
+    expect(saved.prevDueAt).not.toContain('Z');
     expect(new Date(saved.dueAt!).getTime()).toBeGreaterThan(Date.now());
+
+    // Hạn mới cũng là wall-clock local, giữ nguyên HH:mm đã đặt.
+    expect(saved.dueAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    expect(saved.dueAt).not.toContain('Z');
+    expect(saved.dueAt!.slice(11)).toBe(yesterday.slice(11));
+
+    // Alarm mới đúng giờ local của hạn mới (scheduleTask đọc new Date(dueAt)).
+    const alarm = stub.alarms.get('due:r')!;
+    const delayMs = alarm.delayInMinutes! * 60_000;
+    expect(Math.abs(new Date(saved.dueAt!).getTime() - (Date.now() + delayMs))).toBeLessThan(
+      60_000
+    );
   });
 
   it('toggle lần 2 khi done-today: Hoàn tác về prevDueAt, clear lastDoneAt, không cuộn nữa (BUG-002)', async () => {
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const yesterday = localDaysAgo(1);
     stub.seed({ 't:r': fixture({ id: 'r', dueAt: yesterday, recurrence: { kind: 'daily' } }) });
     await mountHook();
 

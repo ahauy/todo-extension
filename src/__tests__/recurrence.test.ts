@@ -56,11 +56,48 @@ describe('nextDueAt — monthly (#9)', () => {
   });
 });
 
+describe('nextDueAt — wall-clock local không Z (G6)', () => {
+  it('daily giữ nguyên HH:mm, trả YYYY-MM-DDTHH:mm', () => {
+    expect(nextDueAt('2035-01-15T09:00', { kind: 'daily' })).toBe(
+      '2035-01-16T09:00'
+    );
+  });
+
+  it('weekly cộng 7 ngày, giữ nguyên HH:mm', () => {
+    const next = nextDueAt('2035-01-15T09:00', {
+      kind: 'weekly',
+      rule: { weekdays: [1] },
+    });
+    expect(next).toBe('2035-01-22T09:00');
+  });
+
+  it('monthly giữ ngày/giờ local', () => {
+    expect(
+      nextDueAt('2035-01-15T09:00', { kind: 'monthly', rule: { day: 15 } })
+    ).toBe('2035-02-15T09:00');
+  });
+
+  it('không có hậu tố Z ở mọi kind', () => {
+    const next = nextDueAt('2035-01-15T23:30', { kind: 'daily' });
+    expect(next).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    expect(next).not.toContain('Z');
+  });
+});
+
 describe('nextFutureDue', () => {
-  it('catch-up daily trả mốc > now', () => {
-    const now = new Date('2035-01-10T09:00:00');
-    const next = nextFutureDue('2035-01-01T09:00:00', { kind: 'daily' }, now);
+  it('catch-up daily trả mốc > now dạng local', () => {
+    const now = new Date('2035-01-10T09:00');
+    const next = nextFutureDue('2035-01-01T09:00', { kind: 'daily' }, now);
     expect(next).not.toBeNull();
     expect(new Date(next!).getTime()).toBeGreaterThan(now.getTime());
+    expect(next).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    expect(next).not.toContain('Z');
+  });
+
+  it('catch-up daily trả đúng occurrence kế tiếp giữ HH:mm', () => {
+    const now = new Date('2035-01-10T09:00');
+    expect(nextFutureDue('2035-01-01T09:00', { kind: 'daily' }, now)).toBe(
+      '2035-01-11T09:00'
+    );
   });
 });

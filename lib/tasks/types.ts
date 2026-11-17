@@ -42,7 +42,13 @@ export interface Task {
   title: string;
   note: string;         // tối đa 1000 ký tự
   priority: Priority;
-  dueAt: string | null; // ISO 8601, local time thiết bị (không UTC)
+  /**
+   * Hạn chót — **wall-clock local** `YYYY-MM-DDTHH:mm`, KHÔNG có hậu tố `Z`/offset
+   * ("8 giờ sáng mai" vẫn là 8 giờ địa phương khi đổi múi giờ/DST).
+   * Hai nhóm field thời gian, đừng trộn: wall-clock local = `dueAt`, `prevDueAt`;
+   * instant thật ISO UTC có `Z` = `createdAt`, `updatedAt`, `lastDoneAt`.
+   */
+  dueAt: string | null;
   recurrence: RecurrenceRule;
   tags: string[];       // ≤ 5 chip
   subtasks: Subtask[];  // ≤ 50
@@ -53,11 +59,11 @@ export interface Task {
    *  "đã làm hôm nay · hẹn ngày kế tiếp" (done-today) cho tới khi sang ngày.
    *  Task cũ chưa có trường này → undefined (coi như chưa đóng dấu hôm nay). */
   lastDoneAt?: string | null;
-  /** dueAt ngay trước khi cuộn hạn sang occurrence kế tiếp — để Hoàn tác
-   *  việc lặp trả về đúng occurrence vừa đóng dấu, không cuộn lần nữa. */
+  /** Bản sao **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa
+   *  hoàn thành — Hoàn tác hôm nay gán thẳng `dueAt = prevDueAt`, 0 quy đổi. */
   prevDueAt?: string | null;
-  createdAt: string;    // ISO 8601
-  updatedAt: string;    // ISO 8601
+  createdAt: string;    // ISO 8601 UTC có `Z` (instant) — khác nhóm với dueAt
+  updatedAt: string;    // ISO 8601 UTC có `Z` (instant)
 }
 
 /** Môn học — một gáy sách trên Giá sách */

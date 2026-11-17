@@ -3,11 +3,13 @@
  * Thuật toán lặp lại theo múi giờ local thiết bị (không UTC).
  * Không lưu lịch sử occurrence (R-11).
  *
- * - nextDueAt(prevDue, rule): tính ngày/giờ lần kế tiếp.
+ * - nextDueAt(prevDue, rule): tính ngày/giờ lần kế tiếp, trả wall-clock local
+ *   `YYYY-MM-DDTHH:mm` không hậu tố Z (Gói 0/G6).
  * - nextFutureDue(prevDue, rule, now): catch-up — lặp nextDueAt cho tới khi > now
  *   (tối đa 1000 vòng để chặn vòng lặp vô hạn với rule lỗi).
  */
 
+import { formatLocalInput } from '../datetime';
 import type { RecurrenceRule } from './types';
 
 const MAX_ITERATIONS = 1000;
@@ -82,16 +84,14 @@ export function nextDueAt(
       return null;
 
     case 'daily':
-      return makeLocal(
-        p.year, p.month, p.date + 1,
-        p.hours, p.minutes, p.seconds, p.ms
-      ).toISOString();
+      return formatLocalInput(
+        makeLocal(p.year, p.month, p.date + 1, p.hours, p.minutes, p.seconds, p.ms)
+      );
 
     case 'weekly':
-      return makeLocal(
-        p.year, p.month, p.date + 7,
-        p.hours, p.minutes, p.seconds, p.ms
-      ).toISOString();
+      return formatLocalInput(
+        makeLocal(p.year, p.month, p.date + 7, p.hours, p.minutes, p.seconds, p.ms)
+      );
 
     case 'monthly': {
       // Dữ liệu cũ (bug #9) có thể thiếu rule.day → fallback ngày của prevDue.
@@ -104,7 +104,7 @@ export function nextDueAt(
         p.hours, p.minutes, p.seconds, p.ms
       );
       // Nếu sang năm mới (month + 1 = 12), Date tự xử lý año++
-      return next.toISOString();
+      return formatLocalInput(next);
     }
   }
 }

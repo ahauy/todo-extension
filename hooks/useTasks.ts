@@ -216,8 +216,7 @@ export function useTasks() {
       const now = new Date();
       const stamp = nowISO();
 
-      // Việc lặp đã đóng dấu HÔM NAY: bấm lần nữa = Hoàn tác hôm nay — trả về
-      // occurrence vừa làm (prevDueAt), KHÔNG cuộn hạn sang ngày nữa.
+      // Hoàn tác hôm nay: trả về occurrence vừa làm (prevDueAt), KHÔNG cuộn thêm; gán thẳng vì cùng wall-clock local.
       if (isRecurringDoneToday(task, now)) {
         clearTaskAlarm(id);
         const next: Task = {
@@ -253,8 +252,7 @@ export function useTasks() {
         return;
       }
 
-      // Task lặp: catch-up nextDueAt > now. Ghi lastDoneAt (để hiện "đã làm
-      // hôm nay") + prevDueAt (để Hoàn tác về đúng occurrence vừa đóng dấu).
+      // Task lặp: catch-up nextDueAt > now; prevDueAt giữ nguyên văn hạn cũ (wall-clock local) để Hoàn tác gán thẳng.
       const nextDue = nextFutureDue(task.dueAt ?? stamp, task.recurrence, now);
       if (nextDue === null) {
         // Không lặp nữa → done, clear alarm
