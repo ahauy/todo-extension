@@ -222,11 +222,18 @@ export function useTasks() {
 
   const update = useCallback(
     async (task: Task) => {
+      const previous = snapshotStore.tasks.find((t) => t.id === task.id);
       const next = { ...task, updatedAt: nowISO() };
       await put(next);
       setSnapshot(
         snapshotStore.tasks.map((t) => (t.id === task.id ? next : t))
       );
+      // R-21 — chỉ đổi alarm khi trạng thái archived đổi so với bản đã lưu:
+      // cắt bỏ xoá alarm, phục hồi tạo lại. Edit thường không đụng alarm
+      // (tránh write churn). snapshotStore.tasks đã được setSnapshot cập nhật.
+      if (!!previous?.archived !== !!next.archived) {
+        syncAlarms(snapshotStore.tasks);
+      }
     },
     [setSnapshot]
   );

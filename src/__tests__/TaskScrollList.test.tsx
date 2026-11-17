@@ -266,3 +266,71 @@ describe('TaskScrollList', () => {
     );
   });
 });
+
+describe('TaskScrollList — chip 20% & archived (R-21)', () => {
+  it('onlyKeystone lọc SAU tab/subject/search và TRƯỚC sort (sort không đổi)', () => {
+    const tasks = [
+      fixture({
+        id: 'late',
+        title: 'Keyst muộn',
+        keystone: true,
+        priority: 'low',
+        dueAt: '2026-01-20T08:00',
+      }),
+      fixture({
+        id: 'early',
+        title: 'Keyst sớm',
+        keystone: true,
+        priority: 'high',
+        dueAt: '2026-01-18T08:00',
+      }),
+      fixture({ id: 'plain', title: 'Việc thường', dueAt: '2026-01-16T08:00' }),
+    ];
+    const container = renderNode(
+      <TaskScrollList {...listProps({ tasks, onlyKeystone: true, sortKey: 'deadline' })} />
+    );
+
+    // "thường" bị loại dù hạn sớm nhất; 2 keystone vẫn sort theo deadline.
+    expect(titles(container)).toEqual(['Keyst sớm', 'Keyst muộn']);
+    expect(container.querySelectorAll('.keystone-ribbon')).toHaveLength(2);
+  });
+
+  it('chip áp TRÊN NỀN tab hiện tại: "done" + 20% chỉ việc then chốt đã xong', () => {
+    const tasks = [
+      fixture({ id: 'a', title: 'Keyst xong', keystone: true, done: true }),
+      fixture({ id: 'b', title: 'Xong thường', done: true }),
+      fixture({ id: 'c', title: 'Keyst mở', keystone: true }),
+    ];
+    const container = renderNode(
+      <TaskScrollList {...listProps({ tasks, tab: 'done', onlyKeystone: true })} />
+    );
+
+    expect(titles(container)).toEqual(['Keyst xong']);
+    expect(container.textContent).not.toContain('Keyst mở');
+  });
+
+  it('archived bị loại khỏi mọi tab/chip ngay cả khi bật 20%', () => {
+    const tasks = [
+      fixture({ id: 'gone', title: 'Đã cắt', keystone: true, archived: true }),
+      fixture({ id: 'keep', title: 'Còn giữ', keystone: true }),
+    ];
+    const container = renderNode(
+      <TaskScrollList {...listProps({ tasks, onlyKeystone: true })} />
+    );
+    expect(titles(container)).toEqual(['Còn giữ']);
+    expect(container.textContent).not.toContain('Đã cắt');
+  });
+
+  it('20% không khớp thì hiện copy riêng, không nói "chưa có điều gì cần ghi"', () => {
+    const container = renderNode(
+      <TaskScrollList
+        {...listProps({
+          tasks: [fixture({ id: 'a', title: 'Việc thường' })],
+          onlyKeystone: true,
+        })}
+      />
+    );
+    expect(container.textContent).toContain('Chưa có việc then chốt nào ở bộ lọc này.');
+    expect(container.textContent).not.toContain('Chưa có điều gì cần ghi.');
+  });
+});

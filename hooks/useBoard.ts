@@ -30,7 +30,17 @@ export interface BoardToast {
 }
 
 export function useBoard() {
-  const { tasks, create, update, remove, toggle, restore, loading } = useTasks();
+  const {
+    tasks,
+    dayPlan,
+    create,
+    update,
+    remove,
+    toggle,
+    restore,
+    selectFrog,
+    loading,
+  } = useTasks();
   const { subjects, create: createSubject, remove: removeSubject } = useSubjects();
   const { settings, update: updateSettings } = useSettings();
   const { log, record } = useStudyLog();
@@ -241,6 +251,7 @@ export function useBoard() {
 
   return {
     tasks,
+    dayPlan,
     subjects,
     settings,
     updateSettings,
@@ -268,6 +279,7 @@ export function useBoard() {
     toggleTask,
     deleteTask,
     updateTask,
+    selectFrog,
     createSubject,
     dropSubject,
     toggleSound,

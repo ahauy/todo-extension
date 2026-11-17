@@ -16,11 +16,14 @@ import {
   type ChromeStub,
 } from '../../src/__tests__/helpers/chrome-stub';
 import {
+  DAY_PLAN_KEY,
   POMODORO_KEY,
   STUDY_LOG_KEY,
+  type DayPlan,
   type PomodoroState,
   type Task,
 } from '../../lib/tasks/types';
+import { dayKey } from '../../lib/datetime';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -551,6 +554,94 @@ describe('App wiring — dirty confirm & undo (#10, #15)', () => {
     });
 
     expect((stub.store.get('t:a') as Task).done).toBe(false);
+  });
+});
+
+describe('App wiring — R-21 chip 20% / ếch / archive', () => {
+  const chip = (container: HTMLElement) =>
+    container.querySelector(
+      'button[aria-label="Chỉ hiện việc then chốt (20%)"]'
+    ) as HTMLButtonElement;
+  const titles = (container: HTMLElement) =>
+    [...container.querySelectorAll('[role="listitem"] .scroll-title')].map(
+      (element) => element.textContent
+    );
+
+  it('chip 20% bật trên nền tab hiện tại, ribbon chỉ hiện ở thẻ then chốt', async () => {
+    stub.seed({
+      't:a': fixture({ id: 'a', title: 'Keyst A', keystone: true }),
+      't:b': fixture({ id: 'b', title: 'Việc B' }),
+    });
+    const container = await renderApp();
+
+    expect(chip(container).getAttribute('aria-pressed')).toBe('false');
+    expect(titles(container)).toEqual(['Keyst A', 'Việc B']);
+    expect(container.querySelectorAll('.keystone-ribbon')).toHaveLength(1);
+
+    await act(() => {
+      chip(container).click();
+    });
+    expect(chip(container).getAttribute('aria-pressed')).toBe('true');
+    expect(titles(container)).toEqual(['Keyst A']);
+  });
+
+  it('ếch cùng ngày: chọn việc khác thì thay thế, bấm ếch hiện tại thì clear(null)', async () => {
+    const today = dayKey(new Date());
+    stub.seed({
+      dayPlan: { [today]: { frogTaskId: 'a' } },
+      't:a': fixture({ id: 'a', title: 'Việc A' }),
+      't:b': fixture({ id: 'b', title: 'Việc B' }),
+    });
+    const container = await renderApp();
+    const frogOfB = () =>
+      container.querySelector(
+        'button[aria-label="Chọn làm ếch hôm nay: Việc B"]'
+      ) as HTMLButtonElement;
+
+    expect(
+      container.querySelector('button[aria-label="Bỏ ếch hôm nay: Việc A"]')
+    ).not.toBeNull();
+    expect(frogOfB()).not.toBeNull();
+
+    await act(() => {
+      frogOfB().click();
+    });
+    expect((stub.store.get(DAY_PLAN_KEY) as DayPlan)[today].frogTaskId).toBe('b');
+
+    const clearB = container.querySelector(
+      'button[aria-label="Bỏ ếch hôm nay: Việc B"]'
+    ) as HTMLButtonElement;
+    expect(clearB).not.toBeNull();
+    await act(() => {
+      clearB.click();
+    });
+    expect((stub.store.get(DAY_PLAN_KEY) as DayPlan)[today].frogTaskId).toBeNull();
+  });
+
+  it('archived ẩn khỏi board; Phục hồi trong Cài đặt đưa việc trở lại', async () => {
+    stub.seed({ 't:a': fixture({ id: 'a', title: 'Việc cắt', archived: true }) });
+    const container = await renderApp();
+    expect(container.textContent).not.toContain('Việc cắt');
+
+    await act(() => {
+      (container.querySelector('button[aria-label="Cài đặt"]') as HTMLButtonElement).click();
+    });
+    const section = container.querySelector('[data-section="archived"]');
+    expect(section?.textContent).toContain('Việc cắt');
+
+    await act(() => {
+      (
+        section!.querySelector(
+          'button[aria-label="Phục hồi việc Việc cắt"]'
+        ) as HTMLButtonElement
+      ).click();
+    });
+    expect((stub.store.get('t:a') as Task).archived).toBe(false);
+
+    await act(() => {
+      findButton(container, 'Về sổ').click();
+    });
+    expect(container.textContent).toContain('Việc cắt');
   });
 });
 

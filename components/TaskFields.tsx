@@ -17,6 +17,7 @@ import {
   MAX_SUBTASKS,
   MAX_TAGS,
   MAX_TAG_LEN,
+  keystoneWarning,
   type TaskForm,
   type TaskFormErrors,
 } from '../lib/tasks/form';
@@ -27,11 +28,23 @@ interface TaskFieldsProps {
   errors?: TaskFormErrors;
   onChange: (patch: Partial<TaskForm>) => void;
   withNote?: boolean;
+  /** Số việc then chốt đang mở ngoài tờ này — để cảnh báo không đếm đôi. */
+  keystoneCount?: number;
 }
 
-export default function TaskFields({ form, subjects, errors, onChange, withNote = true }: TaskFieldsProps) {
+export default function TaskFields({
+  form,
+  subjects,
+  errors,
+  onChange,
+  withNote = true,
+  keystoneCount = 0,
+}: TaskFieldsProps) {
   const [tagDraft, setTagDraft] = useState('');
   const [subtaskDraft, setSubtaskDraft] = useState('');
+
+  // R-21 — tổng then chốt đang mở SAU khi tờ này bật; chỉ cảnh báo, không chặn lưu.
+  const warning = keystoneWarning(keystoneCount + (form.keystone ? 1 : 0));
 
   const setDue = (value: string | null) => {
     const recurrence =
@@ -108,6 +121,35 @@ export default function TaskFields({ form, subjects, errors, onChange, withNote 
           value={form.priority}
           onChange={(value) => onChange({ priority: value as Priority })}
         />
+      </Field>
+
+      <Field label="Việc then chốt" helper="Bật tự đẩy ưu tiên Cao; tắt không hạ ưu tiên">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={!!form.keystone}
+          aria-label="Việc then chốt"
+          className="keystone-switch"
+          onClick={() =>
+            onChange(
+              form.keystone
+                ? { keystone: false }
+                : { keystone: true, priority: 'high' }
+            )
+          }
+        >
+          <span className="keystone-switch-track" aria-hidden="true">
+            <span className="keystone-switch-knob" />
+          </span>
+          <span className="text-body-sm text-ink">
+            {form.keystone ? 'Đang giữ then chốt' : 'Không then chốt'}
+          </span>
+        </button>
+        {warning && (
+          <p className="keystone-warning text-caption text-critical" role="status">
+            {warning}
+          </p>
+        )}
       </Field>
 
       <Field

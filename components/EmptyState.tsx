@@ -5,7 +5,7 @@
 import React from 'react';
 import { BlankScroll } from './art/Scenes';
 
-export type EmptyReason = 'fresh' | 'today' | 'upcoming' | 'done' | 'search' | 'subject';
+export type EmptyReason = 'fresh' | 'today' | 'upcoming' | 'done' | 'search' | 'subject' | 'keystone';
 
 const COPY: Record<EmptyReason, string> = {
   fresh: 'Chưa có điều gì cần ghi. Hãy cầm bút lên.',
@@ -14,6 +14,7 @@ const COPY: Record<EmptyReason, string> = {
   done: 'Chưa đóng được dấu son nào. Bắt đầu từ một việc nhỏ thôi.',
   search: 'Không tìm thấy việc nào khớp. Thử chữ khác ngắn hơn xem sao.',
   subject: 'Gáy sách này còn trắng. Ghi việc đầu tiên cho môn này nhé.',
+  keystone: 'Chưa có việc then chốt nào ở bộ lọc này. Bật "Việc then chốt" trong chi tiết việc nhé.',
 };
 
 export default function EmptyState({

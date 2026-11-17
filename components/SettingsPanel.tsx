@@ -9,8 +9,9 @@ import Segmented from './ui/Segmented';
 import Toggle from './ui/Toggle';
 import Button from './ui/Button';
 import { useSettings } from '../hooks/useSettings';
+import { useTasks } from '../hooks/useTasks';
 import { unlockAudio, playBell } from '../lib/sound';
-import type { DisplayMode, PomodoroPreset, QuillStyle } from '../lib/tasks/types';
+import type { DisplayMode, PomodoroPreset, QuillStyle, Task } from '../lib/tasks/types';
 
 const MODE_HINT: Record<DisplayMode, string> = {
   popup: 'Bấm biểu tượng mở sổ nhỏ 360×560. Trang tab mới chỉ hiện lời chào.',
@@ -20,6 +21,9 @@ const MODE_HINT: Record<DisplayMode, string> = {
 
 export default function SettingsPanel() {
   const { settings, update } = useSettings();
+  // R-21 — dùng chung useTasks để mục "Đã cắt" hydrate qua onChanged như board.
+  const { tasks, update: updateTask } = useTasks();
+  const archived = tasks.filter((task) => task.archived);
   const [permission, setPermission] = useState<'granted' | 'denied' | 'unknown'>('unknown');
   const [copied, setCopied] = useState(false);
   const [usage, setUsage] = useState<{ used: number; total: number } | null>(null);
@@ -51,6 +55,16 @@ export default function SettingsPanel() {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   }, []);
+
+  /** R-21 — phục hồi = archived:false, KHÔNG xoá khỏi storage. */
+  const restore = useCallback(
+    (task: Task) => {
+      void updateTask({ ...task, archived: false }).catch(
+        (error: Error) => setSaveError(error.message)
+      );
+    },
+    [updateTask]
+  );
 
   return (
     <div className="stack gap-lg">
@@ -156,6 +170,34 @@ export default function SettingsPanel() {
               {copied && <span className="text-caption text-jade">Đã sao chép</span>}
             </div>
           </div>
+        )}
+      </div>
+
+      <div className="stack gap-md" data-section="archived">
+        <span className="text-caption font-bold tracking-[0.4px] text-brown">
+          Đã cắt
+        </span>
+        {archived.length === 0 ? (
+          <p className="text-caption text-umber">Chưa có việc nào bị cắt bỏ.</p>
+        ) : (
+          <ul className="archived-list stack gap-xs">
+            {archived.map((task) => (
+              <li key={task.id} className="archived-item flex items-center gap-sm">
+                <span className="min-w-0 flex-1 truncate text-body-sm text-ink">
+                  {task.title}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex-none"
+                  onClick={() => restore(task)}
+                  aria-label={`Phục hồi việc ${task.title}`}
+                >
+                  Phục hồi
+                </Button>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

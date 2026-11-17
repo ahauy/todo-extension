@@ -21,9 +21,11 @@ export function taskIdFromAlarm(name: string): string | null {
   return name.slice(ALARM_PREFIX.length);
 }
 
-/** Kiểm tra task có nên tạo alarm không (dueAt > now && !done) */
+/** Kiểm tra task có nên tạo alarm không (dueAt > now && !done && !archived).
+ *  R-21: việc bị cắt bỏ (archived) vẫn nằm trong storage nhưng KHÔNG được nhắc. */
 function shouldCreateAlarm(task: Task, now: Date): boolean {
   if (task.done) return false;
+  if (task.archived) return false;
   if (!task.dueAt) return false;
   return new Date(task.dueAt) > now;
 }
@@ -34,7 +36,7 @@ export function syncAlarms(tasks: Task[], now: Date = new Date()): void {
 
   for (const task of tasks) {
     if (!shouldCreateAlarm(task, now)) {
-      // Task done, không có dueAt, hoặc quá hạn (dueAt <= now) → xoá alarm
+      // Task done, archived, không có dueAt, hoặc quá hạn (dueAt <= now) → xoá alarm
       chrome.alarms.clear(alarmName(task.id));
       continue;
     }

@@ -21,6 +21,8 @@ interface TaskParchmentProps {
   subjects: Subject[];
   sheet?: boolean;
   suspended?: boolean;
+  /** R-21 — việc then chốt đang mở khác tờ này, để cảnh báo >3 mà không đếm đôi. */
+  keystoneCount?: number;
   onSave: () => void;
   onDelete: () => void;
   onClose: () => void;
@@ -39,6 +41,8 @@ function toForm(task: Task): TaskForm {
     tags: task.tags,
     subtasks: task.subtasks,
     subjectId: task.subjectId ?? null,
+    keystone: task.keystone ?? false,
+    archived: task.archived ?? false,
   };
 }
 
@@ -47,6 +51,7 @@ export default function TaskParchment({
   subjects,
   sheet = false,
   suspended = false,
+  keystoneCount = 0,
   onSave,
   onDelete,
   onClose,
@@ -122,6 +127,23 @@ export default function TaskParchment({
       setSaving(false);
     }
   }, [task, form, dirty, problem, onUpdateTask, onSave, onQuotaError]);
+
+  /** R-21 — cắt bỏ = archive, KHÔNG xoá vĩnh viễn; có phục hồi ở SettingsPanel. */
+  const archive = useCallback(async () => {
+    if (!task) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await onUpdateTask({ ...task, archived: true });
+      onSave();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setSaveError(message);
+      onQuotaError?.(message);
+    } finally {
+      setSaving(false);
+    }
+  }, [task, onUpdateTask, onSave, onQuotaError]);
 
   const toggleSubtask = useCallback(
     async (id: string) => {
@@ -218,6 +240,7 @@ export default function TaskParchment({
           form={form}
           subjects={subjects}
           errors={problems}
+          keystoneCount={keystoneCount}
           onChange={(next) => {
             if (next.subtasks) {
               const before = form.subtasks;
@@ -233,14 +256,24 @@ export default function TaskParchment({
           }}
         />
 
-        <button
-          type="button"
-          onClick={onDelete}
-          className="btn btn-danger btn-sm self-start"
-        >
-          <TrashIcon size={16} />
-          Xoá việc
-        </button>
+        <div className="flex flex-wrap items-center gap-sm">
+          <button
+            type="button"
+            onClick={() => void archive()}
+            disabled={saving}
+            className="btn btn-secondary btn-sm self-start"
+          >
+            Cắt bỏ
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="btn btn-danger btn-sm self-start"
+          >
+            <TrashIcon size={16} />
+            Xoá việc
+          </button>
+        </div>
 
         {saveError && (
           <p role="alert" className="text-body-sm text-critical">

@@ -4,10 +4,13 @@
  * chip hạn chót, và vòng đời done: dấu XONG + nút "Hoàn tác" rồi biến mất
  * khi bỏ dấu.
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import TaskScroll from '../../components/TaskScroll';
+import { dayKey } from '../../lib/datetime';
 import type { Subject, Task } from '../../lib/tasks/types';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -419,5 +422,105 @@ describe('TaskScroll — done-today & affordance (BUG-002)', () => {
       seal.click();
     });
     expect(onToggle).toHaveBeenCalledWith('task-1');
+  });
+});
+
+describe('TaskScroll — ribbon then chốt & dấu ếch (R-21)', () => {
+  const TODAY = dayKey(NOW);
+
+  it('thẻ then chốt có ribbon "THEN CHỐT" ngay trong data-chip-row', () => {
+    const { container } = renderScroll(fixture({ keystone: true }), {
+      selectFrog: vi.fn(),
+    });
+    const ribbon = container.querySelector('.keystone-ribbon') as HTMLElement;
+    expect(ribbon).not.toBeNull();
+    expect(ribbon.textContent).toBe('THEN CHỐT');
+    expect(ribbon.closest('[data-chip-row]')).not.toBeNull();
+  });
+
+  it('dấu ếch KHÁC chữ LẪN khác màu: "Ếch hôm nay"/jade vs "Chọn ếch"/neutral', () => {
+    const off = renderScroll(fixture({ id: 'a' }), {
+      dayPlan: { [TODAY]: { frogTaskId: null } },
+      selectFrog: vi.fn(),
+    });
+    const on = renderScroll(fixture({ id: 'a' }), {
+      dayPlan: { [TODAY]: { frogTaskId: 'a' } },
+      selectFrog: vi.fn(),
+    });
+    const offButton = off.container.querySelector('.frog-toggle') as HTMLButtonElement;
+    const onButton = on.container.querySelector('.frog-toggle') as HTMLButtonElement;
+
+    expect(offButton.textContent).toBe('Chọn ếch');
+    expect(onButton.textContent).toBe('Ếch hôm nay');
+    expect(offButton.classList.contains('is-frog')).toBe(false);
+    expect(onButton.classList.contains('is-frog')).toBe(true);
+    expect(offButton.getAttribute('aria-pressed')).toBe('false');
+    expect(onButton.getAttribute('aria-pressed')).toBe('true');
+    // Ribbon và ếch cũng khác chữ + khác token màu.
+    expect(on.container.querySelector('.keystone-ribbon')).toBeNull();
+    const css = readFileSync(resolve(process.cwd(), 'styles/board.css'), 'utf8');
+    expect(css).toMatch(/\.frog-toggle\.is-frog\s*\{[^}]*var\(--jade\)/);
+    expect(css).toMatch(/\.keystone-ribbon\s*\{[^}]*var\(--gold-pale\)/);
+  });
+
+  it('bấm ếch hiện tại → clear(null); bấm ếch việc khác → thay thế, cùng dayKey hôm nay', () => {
+    const selectFrog = vi.fn();
+    const dayPlan = { [TODAY]: { frogTaskId: 'a' } };
+
+    const current = renderScroll(fixture({ id: 'a', title: 'A' }), {
+      dayPlan,
+      selectFrog,
+    });
+    act(() => {
+      (current.container.querySelector('.frog-toggle') as HTMLButtonElement).click();
+    });
+    expect(selectFrog).toHaveBeenCalledWith(TODAY, null);
+
+    selectFrog.mockClear();
+    const other = renderScroll(fixture({ id: 'b', title: 'B' }), {
+      dayPlan,
+      selectFrog,
+    });
+    act(() => {
+      (other.container.querySelector('.frog-toggle') as HTMLButtonElement).click();
+    });
+    expect(selectFrog).toHaveBeenCalledWith(TODAY, 'b');
+    expect(selectFrog).toHaveBeenCalledTimes(1);
+  });
+
+  it('DOM parity compact/full giữ nguyên dù thẻ có ribbon + ếch', () => {
+    const task = fixture({
+      keystone: true,
+      priority: 'high',
+      dueAt: '2026-01-15T18:00',
+      tags: ['bài tập'],
+      subtasks: [
+        { id: 'st-1', title: 'Đọc bài', done: true },
+        { id: 'st-2', title: 'Làm bài', done: false },
+      ],
+    });
+    const props = {
+      subject: SUBJECT,
+      now: NOW,
+      onToggle: vi.fn(),
+      onOpen: vi.fn(),
+      dayPlan: { [TODAY]: { frogTaskId: 'task-1' } },
+      selectFrog: vi.fn(),
+    };
+    const board = renderScroll(task, { ...props, compact: false });
+    const popup = renderScroll(task, { ...props, compact: true });
+
+    const boardChips = [...board.container.querySelectorAll('[data-chip-row]')].reduce(
+      (sum, row) => sum + row.children.length,
+      0
+    );
+    const compactRow = popup.container.querySelector('[data-chip-row="1"]') as HTMLElement;
+    expect(compactRow.children.length).toBe(boardChips);
+    expect(board.container.textContent).toContain('THEN CHỐT');
+    expect(popup.container.textContent).toContain('THEN CHỐT');
+    expect(board.container.querySelectorAll('.frog-toggle')).toHaveLength(1);
+    expect(popup.container.querySelectorAll('.frog-toggle')).toHaveLength(1);
+    expect(board.container.querySelector('.frog-toggle')?.getAttribute('aria-pressed')).toBe('true');
+    expect(popup.container.querySelector('.frog-toggle')?.getAttribute('aria-pressed')).toBe('true');
   });
 });

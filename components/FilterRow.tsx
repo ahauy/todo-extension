@@ -35,6 +35,9 @@ interface FilterRowProps {
   subjects?: Subject[];
   subjectId?: string;
   onSubjectChange?: (id: string) => void;
+  /** R-21 — chip "20%" bật/tắt trên nền tab hiện tại (không thêm tab thứ 5). */
+  onlyKeystone?: boolean;
+  onOnlyKeystoneChange?: (next: boolean) => void;
 }
 
 export default function FilterRow({
@@ -50,6 +53,8 @@ export default function FilterRow({
   subjects,
   subjectId = 'all',
   onSubjectChange,
+  onlyKeystone = false,
+  onOnlyKeystoneChange,
 }: FilterRowProps) {
   const [sortOpen, setSortOpen] = useState(false);
   const [subjectOpen, setSubjectOpen] = useState(false);
@@ -203,10 +208,26 @@ export default function FilterRow({
   // Bảng lớn (không có ô chọn môn): tab + sắp xếp + tìm chung một hàng.
   const inlineControls = !hasSubject && !searchOpen;
 
+  // R-21 — chip "20%" là toggle nằm trong dải nút lọc, KHÔNG phải tab thứ 5.
+  // Chữ "20%" đi cùng aria-pressed/aria-label để không phụ thuộc vào màu (R-19).
+  const keystoneChip = onOnlyKeystoneChange ? (
+    <button
+      type="button"
+      className={`keystone-chip${onlyKeystone ? ' is-active' : ''}`}
+      aria-pressed={onlyKeystone}
+      aria-label="Chỉ hiện việc then chốt (20%)"
+      title="Chỉ hiện việc then chốt (20%)"
+      onClick={() => onOnlyKeystoneChange(!onlyKeystone)}
+    >
+      20%
+    </button>
+  ) : null;
+
   // Hai nút lọc đi cùng nhau: cùng hàng với tab khi đủ chỗ, tự xuống hàng
   // dưới (canh phải) khi cột hẹp — xem `.filter-line` trong components.css.
   const actions = (
     <div className="filter-actions">
+      {keystoneChip}
       {sortControl}
       {!searchOpen && searchButton}
     </div>

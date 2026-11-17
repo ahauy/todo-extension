@@ -24,6 +24,8 @@ interface ComposerProps {
   defaultSubjectId: string | null;
   expandSignal?: number;
   large?: boolean;
+  /** R-21 — việc then chốt đang mở khác tờ này, để cảnh báo >3 mà không đếm đôi. */
+  keystoneCount?: number;
   onSubmit: (draft: TaskDraft) => void;
 }
 
@@ -33,6 +35,7 @@ export default function Composer({
   defaultSubjectId,
   expandSignal,
   large = false,
+  keystoneCount = 0,
   onSubmit,
 }: ComposerProps) {
   const [form, setForm] = useState<TaskForm>(() => emptyForm(defaultSubjectId));
@@ -126,7 +129,12 @@ export default function Composer({
 
       {expanded && (
         <div className="scroll-task mt-xs">
-          <TaskFields form={form} subjects={subjects} onChange={patch} />
+          <TaskFields
+            form={form}
+            subjects={subjects}
+            onChange={patch}
+            keystoneCount={keystoneCount}
+          />
           <div className="mt-base flex justify-end">
             <Button variant="ghost" size="sm" onClick={() => setExpanded(false)}>
               <PlusIcon size={14} />

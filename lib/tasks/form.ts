@@ -41,6 +41,19 @@ export function emptyForm(subjectId: string | null): TaskForm {
   };
 }
 
+/** R-21 — việc then chốt đang mở, trừ tờ đang sửa (sửa lại 2 lần không đếm đôi). */
+export function openKeystoneCount(tasks: Task[], excludeId?: string): number {
+  return tasks.filter(
+    (task) =>
+      !!task.keystone && !task.archived && !task.done && task.id !== excludeId
+  ).length;
+}
+
+/** R-21 — cảnh báo inline khi tổng số then chốt đang mở vượt 3 (vẫn lưu bình thường). */
+export function keystoneWarning(total: number): string | null {
+  return total > 3 ? `Đang giữ ${total} việc then chốt` : null;
+}
+
 export interface TaskFormErrors {
   title?: string;
   recurrence?: string;

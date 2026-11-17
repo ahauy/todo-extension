@@ -17,7 +17,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DeadlineChip, PriorityBadge, SubjectBadge } from './ui/Chips';
 import { CheckIcon, RepeatIcon, SealIcon } from './art/Icons';
 import { isRecurringDoneToday } from '../lib/tasks/query';
-import type { Subject, Task } from '../lib/tasks/types';
+import { dayKey } from '../lib/datetime';
+import type { DayPlan, Subject, Task } from '../lib/tasks/types';
 
 const UNDO_MS = 5000;
 
@@ -33,6 +34,10 @@ interface TaskScrollProps {
   onFocusTask?: (id: string) => void;
   /** R-20: việc đang gắn vào phiên focus — dùng để tô trạng thái. */
   activeTaskId?: string | null;
+  /** R-21 — kế hoạch ngày; đọc con ếch của ngày hiện tại từ đây. */
+  dayPlan?: DayPlan;
+  /** R-21 — chọn/bỏ con ếch: (dayKey, taskId|null), 1 key/ngày. */
+  selectFrog?: (dayKey: string, taskId: string | null) => void;
 }
 
 export default function TaskScroll({
@@ -45,7 +50,12 @@ export default function TaskScroll({
   onOpen,
   onFocusTask,
   activeTaskId,
+  dayPlan,
+  selectFrog,
 }: TaskScrollProps) {
+  const todayKey = dayKey(now);
+  const frogTaskId = dayPlan?.[todayKey]?.frogTaskId ?? null;
+  const isFrog = frogTaskId === task.id;
   const focusActive = !!onFocusTask && activeTaskId === task.id;
   const doneToday = isRecurringDoneToday(task, now);
   const completed = task.done || doneToday;
@@ -73,11 +83,41 @@ export default function TaskScroll({
 
   const doneSubtasks = task.subtasks.filter((item) => item.done).length;
 
+  /* R-21 — ribbon then chốt + dấu ếch. Hai dấu KHÁC màu LẪN khác chữ
+     (R-21/R-19): "THEN CHỐT" vàng kim vs "Ếch hôm nay" xanh ngọc; khi chưa
+     chọn thì nút nói "Chọn ếch". Nằm trong fragment chip dùng chung 2 nhánh
+     nên compact/full cùng số con trong [data-chip-row] (gate parity). */
+  const keystoneMarkers = (
+    <>
+      {task.keystone && (
+        <span className="keystone-ribbon" data-marker="keystone">
+          THEN CHỐT
+        </span>
+      )}
+      {selectFrog && (
+        <button
+          type="button"
+          className={`frog-toggle${isFrog ? ' is-frog' : ''}`}
+          data-marker="frog"
+          aria-pressed={isFrog}
+          aria-label={
+            isFrog ? `Bỏ ếch hôm nay: ${task.title}` : `Chọn làm ếch hôm nay: ${task.title}`
+          }
+          title={isFrog ? 'Bỏ ếch hôm nay' : 'Chọn làm ếch hôm nay'}
+          onClick={() => selectFrog(todayKey, isFrog ? null : task.id)}
+        >
+          {isFrog ? 'Ếch hôm nay' : 'Chọn ếch'}
+        </button>
+      )}
+    </>
+  );
+
   /* Fragment chung cho cả 2 nhánh để DOM board giữ nguyên từng class
      (gate STRICT: board không đổi). Thứ tự: hạn chót · ưu tiên · "Lặp lại"
      — chip lặp chỉ là fallback khi việc lặp mà không có hạn chót. */
   const deadlinePriorityChips = (
     <>
+      {keystoneMarkers}
       {doneToday && <span className="chip chip-done-today">đã làm hôm nay</span>}
       {!completed && task.recurrence.kind !== 'none' && task.dueAt && (
         <span className="chip chip-recurring">lặp</span>

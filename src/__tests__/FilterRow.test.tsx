@@ -31,6 +31,8 @@ function renderFilterRow(extra: Partial<React.ComponentProps<typeof FilterRow>> 
     subjects: defaultSubjects,
     subjectId: 'all',
     onSubjectChange: vi.fn(),
+    onlyKeystone: false,
+    onOnlyKeystoneChange: vi.fn(),
     ...extra,
   };
   act(() => {
@@ -134,6 +136,45 @@ describe('FilterRow subject chooser', () => {
       vi.advanceTimersByTime(180);
     });
     expect(container.querySelector('[role="menu"]')).toBeNull();
+  });
+});
+
+describe('FilterRow chip "20%" (R-21)', () => {
+  it('chip bật/tắt đúng aria-pressed, nằm ngoài tablist và giữ đúng 4 tab', () => {
+    const { container, props } = renderFilterRow({ onlyKeystone: false });
+    const chip = container.querySelector(
+      'button[aria-label="Chỉ hiện việc then chốt (20%)"]'
+    ) as HTMLButtonElement;
+    expect(chip).not.toBeNull();
+    expect(chip.textContent).toBe('20%');
+    expect(chip.getAttribute('aria-pressed')).toBe('false');
+    expect(chip.closest('[role="tablist"]')).toBeNull();
+    expect(container.querySelectorAll('[role="tab"]')).toHaveLength(4);
+
+    click(chip);
+    expect(props.onOnlyKeystoneChange).toHaveBeenCalledWith(true);
+  });
+
+  it('chip đang bật: aria-pressed=true + is-active, click tắt; vẫn 4 tab', () => {
+    const { container, props } = renderFilterRow({ onlyKeystone: true });
+    const chip = container.querySelector(
+      'button[aria-label="Chỉ hiện việc then chốt (20%)"]'
+    ) as HTMLButtonElement;
+    expect(chip.getAttribute('aria-pressed')).toBe('true');
+    expect(chip.classList.contains('is-active')).toBe(true);
+
+    click(chip);
+    expect(props.onOnlyKeystoneChange).toHaveBeenCalledWith(false);
+    expect(container.querySelectorAll('[role="tab"]')).toHaveLength(4);
+  });
+
+  it('chip đi cùng dải nút lọc (filter-actions), không phải nút tab', () => {
+    const { container } = renderFilterRow();
+    const chip = container.querySelector(
+      'button[aria-label="Chỉ hiện việc then chốt (20%)"]'
+    ) as HTMLButtonElement;
+    expect(chip.closest('.filter-actions')).not.toBeNull();
+    expect(container.querySelector('[role="tab"]')?.textContent).not.toContain('20%');
   });
 });
 

@@ -33,7 +33,7 @@ import { greetingFor, longDate } from '../../lib/datetime';
 import { rememberBoardTab } from '../../lib/storage/local';
 import type { Subject } from '../../lib/tasks/types';
 import type { BoardTab, SortKey } from '../../lib/tasks/query';
-import type { TaskDraft } from '../../lib/tasks/form';
+import { openKeystoneCount, type TaskDraft } from '../../lib/tasks/form';
 import './style.css';
 
 /** Chế độ Popup: tab mới chỉ là một trang chào yên tĩnh */
@@ -66,6 +66,7 @@ export default function App() {
   const [tab, setTab] = useState<BoardTab>('all');
   const [subjectId, setSubjectId] = useState('all');
   const [sortKey, setSortKey] = useState<SortKey>('deadline');
+  const [onlyKeystone, setOnlyKeystone] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -228,6 +229,7 @@ export default function App() {
               settings={board.settings}
               defaultSubjectId={subjectId === 'all' || subjectId === 'none' ? null : subjectId}
               expandSignal={expandSignal}
+              keystoneCount={openKeystoneCount(board.tasks)}
               large
               onSubmit={submit}
             />
@@ -242,6 +244,8 @@ export default function App() {
                 onSearchChange={setSearchQuery}
                 sortKey={sortKey}
                 onSortChange={setSortKey}
+                onlyKeystone={onlyKeystone}
+                onOnlyKeystoneChange={setOnlyKeystone}
               />
             </div>
             <div className="mt-lg">
@@ -261,6 +265,9 @@ export default function App() {
                 onOpen={setDetailId}
                 onFocusTask={handleFocusTask}
                 activeTaskId={board.pomodoro.taskId}
+                onlyKeystone={onlyKeystone}
+                dayPlan={board.dayPlan}
+                selectFrog={board.selectFrog}
               />
             </div>
           </main>
@@ -312,6 +319,7 @@ export default function App() {
           taskId={detailId}
           subjects={board.subjects}
           suspended={!!deleteId || dirtyConfirm}
+          keystoneCount={openKeystoneCount(board.tasks, detailId)}
           onClose={closeDetail}
           onDirtyChange={setDirty}
           onSave={() => {

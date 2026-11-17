@@ -452,3 +452,123 @@ article[data-focus-active='true'] {
   background: var(--hairline);
   border: 0;
 }
+
+/* ── R-21: ribbon then chốt · dấu ếch · chip 20% ────────────────────── */
+/* Mọi tín hiệu đều có CHỮ riêng (R-19) — màu chỉ hỗ trợ, không bao giờ là
+   cách duy nhất để đọc trạng thái. Không animation/marquee, không autoplay. */
+.keystone-ribbon,
+.frog-toggle,
+.keystone-chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.keystone-ribbon {
+  padding: 3px 10px;
+  border: 1px solid var(--gold);
+  background: var(--gold-pale);
+  color: var(--on-gold);
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+}
+.frog-toggle {
+  padding: 3px 10px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-paper);
+  color: var(--umber);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+.frog-toggle.is-frog {
+  border-color: var(--jade);
+  background: var(--jade-wash);
+  color: var(--jade);
+}
+.keystone-chip {
+  display: inline-grid;
+  min-width: 40px;
+  min-height: 32px;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface-paper);
+  color: var(--brown);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+.keystone-chip.is-active {
+  border-color: var(--jade);
+  background: var(--jade-wash);
+  color: var(--jade);
+}
+.keystone-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.keystone-switch-track {
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunk);
+}
+.keystone-switch-knob {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--surface-paper);
+  border: 1px solid var(--sepia);
+}
+.keystone-switch[aria-checked='true'] .keystone-switch-track {
+  border-color: var(--jade);
+  background: var(--jade);
+}
+.keystone-switch[aria-checked='true'] .keystone-switch-knob {
+  background: var(--on-primary);
+  border-color: var(--on-primary);
+}
+.keystone-warning {
+  margin-top: var(--spacing-xxs);
+}
+.archived-item {
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--hairline-soft);
+  min-height: 36px;
+}
+.archived-item:last-child {
+  border-bottom: 0;
+}
+
+.keystone-chip:focus-visible,
+.frog-toggle:focus-visible,
+.keystone-switch:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .keystone-chip,
+  .frog-toggle,
+  .keystone-switch,
+  .keystone-ribbon {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -268,3 +268,117 @@ describe('Composer', () => {
     );
   });
 });
+
+describe('Composer — việc then chốt (R-21)', () => {
+  const openDetail = (container: HTMLElement) => {
+    act(() => {
+      (container.querySelector(
+        'button[aria-label="Mở chi tiết việc"]'
+      ) as HTMLButtonElement).click();
+    });
+  };
+  const keystoneSwitch = (container: HTMLElement) =>
+    container.querySelector(
+      'button[role="switch"][aria-label="Việc then chốt"]'
+    ) as HTMLButtonElement;
+  const selectedPriority = (container: HTMLElement) =>
+    (container.querySelector(
+      '[role="group"][aria-label="Ưu tiên"] [role="radio"][aria-checked="true"]'
+    ) as HTMLElement).textContent;
+  const priorityOption = (container: HTMLElement, label: string) =>
+    [...container.querySelectorAll('[role="group"][aria-label="Ưu tiên"] [role="radio"]')].find(
+      (radio) => radio.textContent === label
+    ) as HTMLButtonElement;
+  const renderWith = (onSubmit: ReturnType<typeof vi.fn>, keystoneCount = 0) =>
+    renderNode(
+      <Composer
+        subjects={[]}
+        settings={DEFAULT_SETTINGS}
+        defaultSubjectId={null}
+        keystoneCount={keystoneCount}
+        onSubmit={onSubmit}
+      />
+    );
+
+  it('bật then chốt → draft keystone=true và priority tự nhảy Cao', () => {
+    const onSubmit = vi.fn();
+    const { container } = renderWith(onSubmit);
+    act(() => {
+      setInputValue(quillInput(container), 'Việc then chốt');
+    });
+    openDetail(container);
+
+    const toggle = keystoneSwitch(container);
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(selectedPriority(container)).toBe('Vừa');
+    act(() => {
+      toggle.click();
+    });
+
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    expect(selectedPriority(container)).toBe('Cao');
+    act(() => {
+      findButton(container, 'Ghi').click();
+    });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({
+      keystone: true,
+      priority: 'high',
+    });
+  });
+
+  it('tắt then chốt → keystone=false, priority giữ nguyên (không tự hạ)', () => {
+    const onSubmit = vi.fn();
+    const { container } = renderWith(onSubmit);
+    act(() => {
+      setInputValue(quillInput(container), 'Không còn then chốt');
+    });
+    openDetail(container);
+
+    const toggle = keystoneSwitch(container);
+    act(() => {
+      toggle.click();
+    }); // ON → high
+    act(() => {
+      priorityOption(container, 'Thấp').click();
+    }); // user chọn Thấp trong lúc đang then chốt
+    act(() => {
+      toggle.click();
+    }); // OFF
+
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    expect(selectedPriority(container)).toBe('Thấp');
+    act(() => {
+      findButton(container, 'Ghi').click();
+    });
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({
+      keystone: false,
+      priority: 'low',
+    });
+  });
+
+  it('có 3 then chốt khác: hiện "Đang giữ 4 việc then chốt" nhưng submit vẫn lưu', () => {
+    const onSubmit = vi.fn();
+    const { container } = renderWith(onSubmit, 3);
+    act(() => {
+      setInputValue(quillInput(container), 'Việc thứ tư');
+    });
+    openDetail(container);
+
+    expect(container.querySelector('.keystone-warning')).toBeNull();
+    act(() => {
+      keystoneSwitch(container).click();
+    });
+
+    expect(container.querySelector('.keystone-warning')?.textContent).toBe(
+      'Đang giữ 4 việc then chốt'
+    );
+    const submit = findButton(container, 'Ghi');
+    expect(submit.disabled).toBe(false);
+    act(() => {
+      submit.click();
+    });
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({ keystone: true, priority: 'high' });
+  });
+});

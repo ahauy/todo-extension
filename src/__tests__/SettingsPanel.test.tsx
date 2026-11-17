@@ -9,11 +9,28 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createChromeStub, type ChromeStub } from './helpers/chrome-stub';
-import { DEFAULT_SETTINGS, type Settings } from '../../lib/tasks/types';
+import { DEFAULT_SETTINGS, type Settings, type Task } from '../../lib/tasks/types';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+function taskFixture(overrides: Partial<Task> = {}): Task {
+  return {
+    id: 't-archived',
+    title: 'Việc bị cắt',
+    note: '',
+    priority: 'medium',
+    dueAt: null,
+    recurrence: { kind: 'none' },
+    tags: [],
+    subtasks: [],
+    done: false,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
 
 /** Cờ hiệu ứng applyEffectFlags ghi lên <html> — xoá sạch giữa các test. */
 const EFFECT_FLAG_ATTRS = [
@@ -164,5 +181,55 @@ describe('SettingsPanel', () => {
 
     expect(document.documentElement.dataset.quill).toBe('on');
     expect(document.documentElement.dataset.quillStyle).toBe('pen');
+  });
+});
+
+describe('SettingsPanel — mục "Đã cắt" (R-21)', () => {
+  it('liệt kê việc archived với nút Phục hồi, đặt sau thông báo trước dung lượng', async () => {
+    stub.seed({ 't:x': taskFixture({ id: 'x', title: 'Việc bị cắt', archived: true }) });
+    const el = await renderPanel();
+
+    const section = el.querySelector('[data-section="archived"]');
+    expect(section).not.toBeNull();
+    expect(section!.textContent).toContain('Việc bị cắt');
+    expect(
+      section!.querySelector('button[aria-label="Phục hồi việc Việc bị cắt"]')
+    ).not.toBeNull();
+
+    const stack = el.firstElementChild as HTMLElement;
+    const labels = [...stack.children].map((child) => child.textContent ?? '');
+    const notice = labels.findIndex((text) => text.includes('Thông báo của trình duyệt'));
+    const archive = labels.findIndex((text) => text.includes('Đã cắt'));
+    const usage = labels.findIndex((text) => text.includes('Dung lượng đồng bộ'));
+    expect(notice).toBeGreaterThan(-1);
+    expect(archive).toBeGreaterThan(notice);
+    expect(usage).toBeGreaterThan(archive);
+  });
+
+  it('bấm Phục hồi → archived=false trong storage, việc rời mục Đã cắt', async () => {
+    const React = await getReact();
+    stub.seed({ 't:x': taskFixture({ id: 'x', title: 'Việc bị cắt', archived: true }) });
+    const el = await renderPanel();
+
+    const restore = el.querySelector(
+      'button[aria-label="Phục hồi việc Việc bị cắt"]'
+    ) as HTMLButtonElement;
+    expect(restore).not.toBeNull();
+    await React.act(async () => {
+      restore.click();
+      await flush();
+    });
+
+    expect((stub.store.get('t:x') as Task).archived).toBe(false);
+    expect(el.querySelector('[data-section="archived"]')?.textContent).toContain(
+      'Chưa có việc nào bị cắt bỏ.'
+    );
+  });
+
+  it('không có việc archived → mục Đã cắt hiện copy rỗng', async () => {
+    const el = await renderPanel();
+    expect(el.querySelector('[data-section="archived"]')?.textContent).toContain(
+      'Chưa có việc nào bị cắt bỏ.'
+    );
   });
 });

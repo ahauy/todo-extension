@@ -20,7 +20,7 @@ import Button from '../../components/ui/Button';
 import { ChevronLeftIcon } from '../../components/art/Icons';
 import { useBoard } from '../../hooks/useBoard';
 import type { BoardTab, SortKey } from '../../lib/tasks/query';
-import type { TaskDraft } from '../../lib/tasks/form';
+import { openKeystoneCount, type TaskDraft } from '../../lib/tasks/form';
 import './style.css';
 
 export default function App() {
@@ -29,6 +29,7 @@ export default function App() {
   const [tab, setTab] = useState<BoardTab>('all');
   const [subjectId, setSubjectId] = useState('all');
   const [sortKey, setSortKey] = useState<SortKey>('deadline');
+  const [onlyKeystone, setOnlyKeystone] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -160,6 +161,7 @@ export default function App() {
               settings={board.settings}
               defaultSubjectId={subjectId === 'all' || subjectId === 'none' ? null : subjectId}
               expandSignal={expandSignal}
+              keystoneCount={openKeystoneCount(board.tasks)}
               onSubmit={submit}
             />
           </div>
@@ -178,6 +180,8 @@ export default function App() {
               subjects={board.subjects}
               subjectId={subjectId}
               onSubjectChange={setSubjectId}
+              onlyKeystone={onlyKeystone}
+              onOnlyKeystoneChange={setOnlyKeystone}
             />
           </div>
 
@@ -199,6 +203,9 @@ export default function App() {
               onOpen={setDetailId}
               onFocusTask={handleFocusTask}
               activeTaskId={board.pomodoro.taskId}
+              onlyKeystone={onlyKeystone}
+              dayPlan={board.dayPlan}
+              selectFrog={board.selectFrog}
             />
           </div>
 
@@ -241,6 +248,7 @@ export default function App() {
           subjects={board.subjects}
           sheet
           suspended={!!deleteId || dirtyConfirm}
+          keystoneCount={openKeystoneCount(board.tasks, detailId)}
           onClose={closeDetail}
           onDirtyChange={setDirty}
           onSave={() => {

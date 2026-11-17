@@ -8,6 +8,7 @@ import EmptyState, { type EmptyReason } from './EmptyState';
 import Button from './ui/Button';
 import {
   filterByBoard,
+  filterByKeystone,
   filterBySubject,
   searchTasks,
   sortBoard,
@@ -15,7 +16,7 @@ import {
   type SortKey,
 } from '../lib/tasks/query';
 import { findSubject } from '../lib/subjects';
-import type { Subject, Task } from '../lib/tasks/types';
+import type { DayPlan, Subject, Task } from '../lib/tasks/types';
 
 interface TaskScrollListProps {
   tasks: Task[];
@@ -35,11 +36,22 @@ interface TaskScrollListProps {
   /** R-20: truyền xuống TaskScroll; không truyền = giữ DOM cũ (0 regression). */
   onFocusTask?: (id: string) => void;
   activeTaskId?: string | null;
+  /** R-21 — chip "20%": lọc keystone trên nền tab/subject/search, trước sort. */
+  onlyKeystone?: boolean;
+  dayPlan?: DayPlan;
+  selectFrog?: (dayKey: string, taskId: string | null) => void;
 }
 
-function reasonFor(tab: BoardTab, search: string, subjectId: string, total: number): EmptyReason {
+function reasonFor(
+  tab: BoardTab,
+  search: string,
+  subjectId: string,
+  total: number,
+  onlyKeystone = false
+): EmptyReason {
   if (search.trim()) return 'search';
   if (subjectId !== 'all') return 'subject';
+  if (onlyKeystone) return 'keystone';
   if (total === 0) return 'fresh';
   if (tab === 'today') return 'today';
   if (tab === 'upcoming') return 'upcoming';
@@ -64,13 +76,18 @@ export default function TaskScrollList({
   onOpen,
   onFocusTask,
   activeTaskId,
+  onlyKeystone = false,
+  dayPlan,
+  selectFrog,
 }: TaskScrollListProps) {
   const visible = useMemo(() => {
     const byTab = filterByBoard(tasks, tab, now);
     const bySubject = filterBySubject(byTab, subjectId);
     const bySearch = searchTasks(bySubject, searchQuery);
-    return sortBoard(bySearch, sortKey, now);
-  }, [tasks, tab, subjectId, searchQuery, sortKey, now]);
+    // R-21 — chip xếp SAU tab/subject/search và TRƯỚC sort (R-15 không đổi).
+    const byKeystone = onlyKeystone ? filterByKeystone(bySearch) : bySearch;
+    return sortBoard(byKeystone, sortKey, now);
+  }, [tasks, tab, subjectId, searchQuery, onlyKeystone, sortKey, now]);
 
   if (quotaError) {
     return (
@@ -103,7 +120,7 @@ export default function TaskScrollList({
     return (
       <div role="status" aria-live="polite">
         <EmptyState
-          reason={reasonFor(tab, searchQuery, subjectId, tasks.length)}
+          reason={reasonFor(tab, searchQuery, subjectId, tasks.length, onlyKeystone)}
           compact={compact}
         />
       </div>
@@ -128,6 +145,8 @@ export default function TaskScrollList({
             onOpen={onOpen}
             onFocusTask={onFocusTask}
             activeTaskId={activeTaskId}
+            dayPlan={dayPlan}
+            selectFrog={selectFrog}
           />
         ))}
       </div>
