@@ -22,6 +22,7 @@ import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
 import HabitCard from '../../components/HabitCard';
+import Timeline from '../../components/Timeline';
 import { MaximCard, Proclamation } from '../../components/Proclamation';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -327,6 +328,13 @@ export default function App() {
             </section>
 
             <CloudRule className="my-lg" />
+
+            {/* R-24 — thời khoá biểu chỉ có ở New Tab; archived ẩn ở lớp hiển thị. */}
+            <Timeline
+              tasks={board.tasks.filter((task) => !task.archived)}
+              onSetTime={board.setTaskTime}
+            />
+
             <Composer
               subjects={board.subjects}
               settings={board.settings}

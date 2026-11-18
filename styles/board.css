@@ -769,3 +769,173 @@ article[data-focus-active='true'] {
     animation: none !important;
   }
 }
+
+/* R-24 — Thời khoá biểu 06:00–24:00 (New Tab only). 2px/phút; block ngắn vẫn
+   có handle ≥44px; mọi màu cảnh báo đều đi kèm chữ "Chồng lấn" (R-19). */
+.timeline {
+  margin-top: var(--spacing-lg);
+}
+.timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+}
+.timeline-scroll {
+  max-height: 560px;
+  overflow-y: auto;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xs);
+  background: var(--surface-paper);
+}
+.timeline-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px 1fr;
+}
+.timeline-gutter {
+  position: relative;
+  height: 100%;
+  border-right: 1px solid var(--hairline);
+}
+.timeline-hour-label {
+  position: absolute;
+  left: 6px;
+  color: var(--umber);
+  font-size: 11px;
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+.timeline-canvas {
+  position: relative;
+  height: 100%;
+  min-width: 0;
+}
+.timeline-hour-line {
+  position: absolute;
+  inset-inline: 0;
+  border-top: 1px solid var(--hairline-soft);
+  pointer-events: none;
+}
+.timeline-block {
+  position: absolute;
+  inset-inline: 6px;
+  min-height: 44px;
+  overflow: hidden;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-xs);
+  background: var(--surface-paper);
+  transition: transform 120ms ease;
+}
+.timeline-block--overlap {
+  border-color: var(--critical);
+  background: var(--critical-wash);
+}
+.timeline-block-handle {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  align-items: center;
+  align-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 96px 4px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-deep);
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+}
+.timeline-block-handle:active {
+  cursor: grabbing;
+}
+.timeline-block-handle:focus-visible,
+.timeline-time-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.timeline-block-time {
+  font-size: 11px;
+  font-weight: 700;
+}
+.timeline-block-title {
+  flex: 1 1 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.timeline-block-warning {
+  flex: 0 0 auto;
+  color: var(--critical);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.timeline-time-input {
+  width: 84px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 4px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xs);
+  background: var(--surface-paper);
+  color: var(--ink-deep);
+  font: inherit;
+  font-size: 11px;
+}
+.timeline-block .timeline-time-input {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+.timeline-tail {
+  margin-top: var(--spacing-sm);
+}
+.timeline-tail-list {
+  display: grid;
+  gap: var(--spacing-xxs);
+  margin-top: var(--spacing-xs);
+  list-style: none;
+}
+.timeline-tail-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xs);
+}
+.timeline-tail-label {
+  color: var(--umber);
+  font-size: 11px;
+}
+.timeline-tail-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-block,
+  .timeline-block-handle {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+@media (max-width: 719px) {
+  .timeline-scroll {
+    max-height: 420px;
+  }
+  .timeline-track {
+    grid-template-columns: 44px 1fr;
+  }
+}
