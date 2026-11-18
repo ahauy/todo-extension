@@ -1,72 +1,42 @@
 {
   "specVersion": "1.7.0",
-  "scopeVersion": 31,
-  "generatedAt": "2026-11-18T15:00:00+07:00",
-  "trigger": "feature-update",
-  "workItem": "feature-package-e-time-blocking",
-  "specRefs": ["R-24", "R-09", "R-11", "R-15", "R-17", "R-19", "R-20", "R-21", "R-22", "R-23"],
+  "scopeVersion": 32,
+  "generatedAt": "2026-11-18T16:38:00+07:00",
+  "trigger": "bug-fix",
+  "workItem": "bug-ci-timezone-habit-tests",
+  "specRefs": ["R-09", "R-23"],
   "changed": {
     "files": [
-      "SPECIFICATIONS.md",
-      "spec/updates/2026-11-18-package-e-time-blocking.md",
-      "spec/CHANGELOG.md",
-      "lib/tasks/types.ts",
-      "lib/tasks/form.ts",
-      "lib/tasks/timeBlock.ts",
-      "hooks/useTasks.ts",
-      "hooks/useBoard.ts",
-      "components/TaskFields.tsx",
-      "components/Timeline.tsx",
-      "entrypoints/newtab/App.tsx",
-      "styles/board.css",
-      "src/__tests__/timeBlock.test.ts",
-      "src/__tests__/timeBlock-form.test.tsx",
-      "src/__tests__/useTasks.timeBlock.test.ts",
-      "entrypoints/newtab/App.timeBlock.test.tsx",
-      "docs/ERD.md",
-      "docs/API_SPEC.md",
-      "docs/USER_FLOW.md",
-      "docs/DESIGN.md",
-      "docs/ROADMAP_TIME_MANAGEMENT.md"
+      "vitest.config.ts",
+      ".github/workflows/ci.yml",
+      "spec/updates/2026-11-18-ci-timezone-habit-tests.md"
     ],
     "modules": [
-      "timeblock-schema",
-      "timeblock-validate",
-      "timeblock-sort",
-      "overlap-warning",
-      "timeline-newtab",
-      "drag-snap-15m",
-      "keyboard-time-input"
+      "ci-config",
+      "test-env-timezone",
+      "habit-local-day"
     ]
   },
   "impact": {
     "direct": [
-      "Task.startAt?: 'HH:mm' (wall-clock local, validate 00:00–23:59) + estimateMin?: number (15–240, mặc định 30 khi có startAt mà estimateMin trống) nhúng trong t:<id>; task cũ thiếu field vẫn load",
-      "Timeline New Tab 06:00–24:00: có startAt → đúng thứ tự giờ, block cao theo estimateMin; không có giờ → nhóm cuối; giờ 00:00–05:59 → nhóm cuối nhưng giữ nhãn giờ thật",
-      "Kéo block đổi duy nhất startAt, snap 15′, clamp khung 06:00–24:00; không đụng plannedFor/dueAt/lastDoneAt/prevDueAt/habit/alarm",
-      "Lối đổi giờ bằng bàn phím/ô nhập tồn tại, có test; chồng lấn chỉ cảnh báo trực quan trên block liên quan, vẫn lưu, không tự sửa dữ liệu user"
+      "Vitest chạy với TZ=Asia/Ho_Chi_Minh qua test.env → habitStartDay/habitOccurrenceDay nhận ngày local ổn định ở mọi máy/runner",
+      "GitHub Actions job ci pin env.TZ cùng giá trị → step Test không còn phụ thuộc TZ mặc định của ubuntu-latest (UTC)"
     ],
     "dependents": [
-      "R-09 dueAt/overdue và alarm due:<id> giữ nguyên (startAt không phải hạn chót)",
-      "R-15 sort deterministic giữ nguyên; timeline là chế độ xem riêng, không thêm trục sort",
-      "R-20 focus/overlay, R-21 frog/archive (archived vẫn hide-only — data giữ nguyên), R-22 plannedFor/planReminder, R-23 habit/streak đều giữ semantics",
-      "R-19 popup 360×560 không thêm khối UI; eyeball 360/1024/1280 + reduced-motion trước reviewer PASS"
+      "R-09 dueAt wall-clock local — dayKey/getFullYear|getMonth|getDate giữ nguyên, không đổi source",
+      "R-23 habit.doneDays/streak — assertion gốc '18:00Z → ngày 19' giữ nguyên, chỉ môi trường chạy được pin"
     ],
     "regression": [
-      "Không thêm permission/key storage/network (R-17); vẫn storage/alarms/notifications; startAt/estimateMin nằm trong t:<id>",
-      "Task/settings/subjects/dayPlan/studyLog shape cũ không đổi; archived hide-only không bị phá",
-      "Không storage read bổ sung (R-18); motion kéo tuân prefers-reduced-motion: reduce"
+      "Không đổi lib/tasks/habit.ts, lib/datetime.ts, lib/tasks/types.ts, src/__tests__/habit.test.ts",
+      "Không thêm dependency/permission/storage key/network; spec_version vẫn 1.7.0",
+      "Full suite 45 files / 367 tests PASS ở cả TZ=UTC và mặc định; tsc/eslint/wxt build clean"
     ]
   },
   "acceptance": [
-    "Task có startAt validate 00:00–23:59 + estimateMin 15–240 (default 30); task cũ thiếu field vẫn load",
-    "Timeline 06:00–24:00 trên New Tab: thứ tự giờ đúng, block cao theo estimateMin, không mất việc, giờ ngoài khung giữ nhãn",
-    "Kéo đổi startAt snap 15′ → không đổi plannedFor/dueAt/alarm; có lối bàn phím/ô nhập + test",
-    "Chồng lấn: cảnh báo trực quan, vẫn lưu, không tự sửa/xoá dữ liệu",
-    "Biên: estimateMin không có startAt → không vẽ block, giữ dữ liệu; block vượt 24:00 → cắt hiển thị tại 24:00 + nhãn 'vượt khung'; kéo từ nhóm cuối vào khung → snap 15′ + clamp 06:00–24:00; estimateMin ngoài 15–240 trong dữ liệu cũ → kẹp chiều cao, không tự ghi đè",
-    "Popup 360×560 không thêm khối UI; reduced-motion không chạy animation kéo",
-    "Không tăng permission/key storage/network; không regression R-11/R-19/R-20/R-21/R-22/R-23",
-    "Verify tsc/eslint/vitest/wxt build PASS + eyeball 360/1024/1280 có evidence"
+    "TZ=UTC pnpm exec vitest run PASS (repro trước đó fail đúng 2 test habit.test.ts:95,112)",
+    "pnpm exec vitest run mặc định vẫn PASS; assertion '18:00Z → 2026-11-19' giữ nguyên",
+    "CI job ci có env TZ=Asia/Ho_Chi_Minh, khớp test.env trong vitest.config.ts",
+    "Verify 4 lệnh PASS + reviewer FAST PASS 0 finding"
   ],
-  "risk": "high"
+  "risk": "low"
 }

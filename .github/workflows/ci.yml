@@ -12,6 +12,9 @@ permissions:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    # R-09/R-23 — ngày local là wall-clock; pin TZ để CI cùng múi giờ với máy dev.
+    env:
+      TZ: Asia/Ho_Chi_Minh
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
