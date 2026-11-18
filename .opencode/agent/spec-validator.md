@@ -3,7 +3,7 @@ description: Spec Validator độc lập — cross-check spec/phase với requir
 mode: subagent
 # model set ở /brainstorm (project-config.md models:) → models.spec_validator (họ thứ 3).
 # Để comment = kế thừa model chính.
-model: opencode/nemotron-3.5-super-vl-free
+model: opencode/mimo-v2.6-flash-free
 temperature: 0.1
 steps: 20
 permission:

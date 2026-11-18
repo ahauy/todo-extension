@@ -3,7 +3,7 @@ description: Reviewer độc lập — tìm defect trong code/test của 1 task 
 mode: subagent
 # model set ở /brainstorm (project-config.md models:) → models.reviewer (khác họ builder).
 # Để comment = kế thừa model chính.
-model: opencode/minimax-m3.1-flash-free
+model: opencode/hy4-flash-free
 temperature: 0.1
 steps: 30
 permission:
