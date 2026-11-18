@@ -39,7 +39,7 @@ Người dùng: cá nhân cần todo nhanh khi đang lướt web.
 **R-01 — Tạo task**
 Người dùng nhập title (bắt buộc, trim, 1–200 ký tự) và submit. Hệ thống tạo `Task` với
 `id = crypto.randomUUID()`, `done = false`, `priority` mặc định `medium`, `tags = []`,
-`subtasks = []`, `recurrence = {type:'none'}`, `createdAt = updatedAt = now`, lưu vào storage.
+`subtasks = []`, `recurrence = {kind:'none'}`, `createdAt = updatedAt = now`, lưu vào storage.
 Title rỗng/toàn khoảng trắng → không tạo, hiện lỗi inline.
 
 **R-02 — Sửa task**
@@ -259,7 +259,9 @@ Bảng Học Đường có thẻ thói quen gồm lưới **21 ô liên tiếp k
 (đã làm / thiếu / ngoài lịch), streak hiện tại và dấu mốc **7 → 14 → 21**; sau 21 streak tiếp tục
 tăng. 21 ngày là **mốc ăn mừng đầu tiên**, không được trình bày là kết luận khoa học về thời gian
 hình thành thói quen. Popup 360×560 không thêm khối UI mới của gói này: chỉ toggle trong hộp sửa
-việc đã có và một badge streak nhỏ trên dòng meta của thẻ việc. Streak này độc lập `StudyLog`/
+việc đã có và một badge streak nhỏ trên dòng meta của thẻ việc. Badge streak (và lưới) được tính
+**trong bộ nhớ** từ `doneDays` — **O(31)/task**, **không storage read bổ sung** — để giữ nguyên ngân
+sách R-18 (mở popup < 100ms với ~50 task). Streak này độc lập `StudyLog`/
 chuỗi học chung (R-20); không thêm permission (R-17), không network request.
 
 ## API Endpoints

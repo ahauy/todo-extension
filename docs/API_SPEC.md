@@ -41,6 +41,9 @@ schema sync, không thêm key/ngày, không ghi `StudyLog`, không sync thiết 
 [`ERD.md`](ERD.md) §2.7. R-21 thêm key `sync` thứ năm `dayPlan` (`{ [dayKey YYYY-MM-DD local]:
 { frogTaskId } }`) — **khác** `PomodoroState` local ở area, mục đích và vòng đời; hydrate qua
 `onChanged` như `t:<id>`. Chi tiết: [`ERD.md`](ERD.md) §2.8.
+R-23 (spec 1.6.0) **không thêm key**: `Task.habit?` (`{ startedAt, doneDays }`) nằm nhúng trong cùng
+key `t:<id>` — sổ thói quen **opt-in**, không phải lịch sử occurrence của R-11, không key/ngày mới.
+Chi tiết: [`ERD.md`](ERD.md) §2.1 và §3.7 bên dưới.
 
 ## 2. Chrome extension APIs sử dụng
 
@@ -160,8 +163,12 @@ nhập `YYYY-MM-DDTHH:mm` không `Z` → gap **G6 đã đóng** (Gói 0, spec 1.
 chuỗi local đó bằng `new Date()` (local) nên so sánh với `now` vẫn đúng.
 Monthly clamp ngày không tồn tại về ngày cuối tháng (`daysInMonth`, dòng 78). Weekly đọc `rule.weekdays`
 qua `nextWeekdayOffset` (`recurrence.ts:88-102`): weekday tính trên **ngày local** (`new Date(y, m, date + d).getDay()`)
-nên qua ranh giới tháng/năm vẫn đúng → gap **G3 đã đóng** (Gói 0, spec 1.2.1). `recurrenceForKind` vẫn chỉ
-lưu 1 thứ (`weekdays: [weekday của dueAt]`) vì UI chưa có chỗ chọn nhiều thứ (Gói D).
+nên qua ranh giới tháng/năm vẫn đúng → gap **G3 đã đóng** (Gói 0, spec 1.2.1). `recurrenceForKind`
+vẫn seed đúng **1 thứ** lấy từ `dueAt` khi đổi `kind` (`recurrence.ts:22-38`), **nhưng UI không còn
+"chưa có chỗ chọn nhiều thứ"**: `components/TaskFields.tsx:215-242` dựng picker **7 thứ**
+(`.habit-weekday`, `aria-pressed`, `disabled` ở thứ cuối để chặn bỏ hết) — phần UI của G3 đã đóng
+trong Gói D (`2af694d`). `nextDueAt` và `isHabitScheduledDay` đều đọc trực tiếp `rule.weekdays`
+hiện tại; kiểu `weekdays: number[]` **không đổi**. Xem §5 và §3.7.
 
 ### 3.3 Query — `lib/tasks/query.ts` (pure functions)
 
@@ -301,6 +308,33 @@ qua `TaskScroll`; popup dùng chung qua `SettingsPanel`. Ngoài ra `useBoard` c�
 ở bản đầy gọi `api.skip` (`:169-174`) — chuyển sang giờ nghỉ nhưng cũng **không** ghi focus. Cả hai đều
 khác completion tự nhiên có xác nhận — nơi duy nhất gọi `record('focus', 1)`.
 
+### 3.7 Habit ledger — `lib/tasks/habit.ts` (R-23)
+
+Module **pure**: không import storage/chrome/React, mọi hàm chỉ đọc `Task` và trả giá trị/Task mới
+(`habit.ts:1-16`). Hợp đồng: `doneDays` là `YYYY-MM-DD` **local**, unique, sort tăng, tối đa
+`HABIT_MAX_DAYS = 31` (`lib/tasks/types.ts:38-46`); lịch luôn đánh giá theo `recurrence` **hiện tại**
+(không lưu lịch sử rule); streak **chỉ đọc `doneDays`**, không đọc `lastDoneAt` của R-11.
+
+| Hàm | Chữ ký | Hành vi |
+|---|---|---|
+| `normalizeHabitDays` | `(days: unknown) => string[]` | Lọc day-key hợp lệ, khử trùng, sort tăng, cắt `slice(-31)` (`habit.ts:66-73`) |
+| `habitStartDay` | `(task: Task) => string \| null` | Ngày **local** của `startedAt` (ISO UTC) qua `dayKey` — không dùng UTC day (`habit.ts:75-79`) |
+| `isHabitScheduledDay` | `(task, date) => boolean` | Từ `startDay` trở đi: `daily` = mọi ngày; `weekly` = một trong `rule.weekdays`; `monthly` = `rule.day` sau clamp; trước startDay/không khớp → `off-calendar` (`habit.ts:90-135`) |
+| `habitStreak` | `(task, today) => number` | Đếm ngược, ân hạn hôm nay, bỏ qua `off-calendar`, dừng ở `startDay`, trần 31; **CHỈ đọc `doneDays`**, **O(31)/task**, không storage read bổ sung (`habit.ts:137-174`, gồm JSDoc) |
+| `habitCells21` | `(task, today) => HabitCell[]` | 21 ô liên tiếp kết thúc hôm nay, mỗi ô `done \| missed \| off-calendar` (`habit.ts:176-195`) |
+| `withHabitDay` | `(task, day, 'add' \| 'remove', now) => Task` | Pure/idempotent: thêm/bớt 1 ngày; **chỉ skip ngày đã aged-out** (cũ hơn `hôm nay - 30`); **occurrence mang ngày tương lai (tick sớm) vẫn được ghi**; mọi field khác (kể cả `dueAt`/`updatedAt`) giữ nguyên (`habit.ts:197-234`) |
+| `withHabitEnabled` | `(value, enabled, now) => T` | Bật: gán `startedAt = now.toISOString()` + `doneDays: []` khi chưa có, đã có thì giữ nguyên. Tắt: **giữ nguyên** habit (chỉ ẩn ở UI) (`habit.ts:236-250`) |
+
+**Ngày ghi vào `doneDays`** là ngày local của **`dueAt` CŨ** (= `prevDueAt` ngay sau lần ghi R-11),
+lấy qua `habitOccurrenceDay()` (`habit.ts:81-88`): `useTasks.toggle` gọi `withHabitDay` với
+`task.dueAt` **trước** khi cuộn sang occurrence kế (`hooks/useTasks.ts:344,364`) — **không** đọc
+`prevDueAt` cũ, **không** dùng `dueAt` mới, **không** đụng `lastDoneAt`. Hai nhánh gỡ (`'remove'`) là
+ngoại lệ có chủ đích: Hoàn tác hôm nay và un-toggle đọc `prevDueAt` để gỡ đúng ngày đã ghi
+(`hooks/useTasks.ts:286,310`). Bỏ dấu từ lưới New Tab đi qua
+`withHabitDay(..., 'remove', ...)` (`entrypoints/newtab/App.tsx:227`) — chỉ đổi `doneDays`, không đụng
+`dueAt`/alarm/R-11. Badge streak trên thẻ việc (`TaskScroll`) và thẻ lưới (`HabitCard`) đều gọi
+`habitStreak` trên dữ liệu đã hydrate.
+
 ## 4. Sync & conflict resolution (R-13)
 
 | Sự kiện `storage.onChanged` (area `sync`) | Xử lý |
@@ -323,7 +357,7 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 |---|---|---|---|
 | G1 | R-09: `dueAt` là **epoch ms** | `types.ts:45`: `dueAt: string \| null`; spec 1.2.0 đã sửa R-09 sang ISO 8601 local | ✅ Đã đóng (spec 1.2.0). Dạng UTC sau khi lặp tách riêng thành G6 |
 | G2 | `settings = { theme }` | `types.ts:76-86`: 8 field (`notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`); spec 1.2.0 đã mô tả đúng; `normalizeSettings` bỏ field `theme` cũ khi đọc | ✅ Đã đóng (spec 1.2.0) |
-| G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:125-131` weekly dùng `nextWeekdayOffset` (`recurrence.ts:88-102`): offset nhỏ nhất 1..7 tới một thứ trong `weekdays`, giữ `HH:mm`; `weekdays` rỗng/thiếu/không phải array → +7 ngày; `recurrenceForKind` vẫn lưu 1 thứ lấy từ `dueAt` (dòng 31-33, UI chưa chọn nhiều thứ) | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — test `src/__tests__/recurrence.test.ts` (T2/T4/T6 qua nhiều tuần, ranh giới tháng, catch-up, fallback rỗng + giá trị lạ) |
+| G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:125-131` weekly dùng `nextWeekdayOffset` (`recurrence.ts:88-102`): offset nhỏ nhất 1..7 tới một thứ trong `weekdays`, giữ `HH:mm`; `weekdays` rỗng/thiếu/không phải array → +7 ngày; `recurrenceForKind` chỉ seed 1 thứ từ `dueAt` khi đổi `kind`, **nhưng UI đã có picker 7 thứ** (`TaskFields.tsx:215-242`: `.habit-weekday` `aria-pressed`, chặn bỏ thứ cuối) từ Gói D (`2af694d`) | ✅ Đã đóng hoàn toàn 2026-11-18 (Gói 0 `c890de2` + UI Gói D `2af694d`, spec 1.2.1→1.6.0) — test `src/__tests__/recurrence.test.ts` (T2/T4/T6 qua nhiều tuần, ranh giới tháng, catch-up, fallback rỗng + giá trị lạ) + `habit-ui.test.tsx` (picker) |
 | G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:88-89`: `SortKey = 'deadline' \| 'priority' \| 'created'` + `sortBoard`; UI `FilterRow` cho chọn qua menu "Sắp xếp" | ✅ Đã đóng phần **chọn được tiêu chí**. Tie-breaker **không đồng nhất giữa 3 tiêu chí** → xem **G8**; `SortCriterion='default'` còn là dead export (không nơi nào import) |
 | G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,32,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 | G6 | R-09/R-10: `dueAt` là ISO 8601 **local** (một dạng duy nhất) | `lib/datetime.ts:92/109` `formatLocalInput` + `normalizeDueAt`; `recurrence.ts:75-111` trả wall-clock local không `Z`; `adapter.ts:84-91` normalize in-memory khi đọc | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — một dạng chuỗi duy nhất; task cũ dạng `Z` được quy về local khi đọc, không ghi lại. Xem [`ERD.md`](ERD.md) §2.1 |
@@ -337,12 +371,16 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 ## 6. Versioning
 
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.5.0`** — khớp frontmatter
-`SPECIFICATIONS.md`; **scopeVersion 28**). R-20 chỉ thêm field local `PomodoroState.taskId` /
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.6.0`** — khớp frontmatter
+`SPECIFICATIONS.md`; **scopeVersion 29**; v30 sẽ do primary regenerate lúc close-out). R-20 chỉ thêm field local `PomodoroState.taskId` /
 `interruptions`, **không** đổi schema sync. R-21 (spec 1.4.0) thêm `Task.keystone?` / `Task.archived?`
 (flag client-side, mặc định `false`) và **một** key sync `dayPlan` (`DayPlan`, prune 14 ngày,
 `DAY_PLAN_DAYS = 14`, 8192 B/item). R-22 (spec 1.5.0) thêm `Task.plannedFor?` (ngày dự định LÀM,
 tách `dueAt`) + `Settings.planReminder` (`{enabled:true, at:'21:00'}` mặc định) và 1 cờ local
-`planSheetRequest`; **vẫn** không đổi permission (R-17), không network, không aggregate mới. Đổi schema
+`planSheetRequest`; **vẫn** không đổi permission (R-17), không network, không aggregate mới.
+R-23 (spec 1.6.0, commit `ba82621` + `2af694d`) chỉ thêm `Task.habit?` (`Habit`,
+`HABIT_MAX_DAYS = 31`) **nhúng trong key `t:<id>`** — **không** key storage mới, **không** đổi
+permission (R-17), không network, không aggregate mới; module thuần `lib/tasks/habit.ts` + UI
+`HabitCard` / `TaskFields` / `TaskScroll` / `App`. Đổi schema
 `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

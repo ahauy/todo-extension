@@ -36,12 +36,11 @@ không thêm enum 5 mức.
 | C | ✅ done | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync`; close-out ở phase-3-task-03 |
 | A | ✅ done | `2d045cc` → `0ed6f2a` → `80c10f7`; reviewer STRICT/STRICT/NORMAL PASS, docs reconcile + spec-validator cuối PASS; change doc riêng đã archive, BACKLOG `FEAT-003/A = done` |
 | B | ✅ done | `42dd0c2`; spec 1.5.0 / scope 28; notification mở đúng sheet, alarm one-shot + resync DST; change doc riêng đã archive |
-| D | in_progress | spec R-23 đã publish 2026-11-18; chờ user duyệt plan trước khi code |
+| D | ✅ done | spec 1.6.0 / scope 30; `ba82621` (data+streak contract, STRICT round 2) → `2af694d` (UI habit, STRICT round 1) → close-out phase 3 (reviewer NORMAL PASS + spec-validator PASS); change doc riêng đã archive, BACKLOG `FEAT-003/D = done` |
 | E | pending | hoãn, cần B dùng thật |
 
-**Phạm vi `/change` gần nhất: Gói D — Thói quen 21 ngày — đang xử lý** (spec R-23 đã publish, chờ duyệt plan).
-Gói B đã đóng ở `42dd0c2`; Gói E giữ nguyên trạng thái, sẽ mở change riêng khi đến lượt.
-Gói 0/C/A/B đã lần lượt đóng ở `c890de2`/`e75ec48`/`80c10f7`/`42dd0c2`.
+**Phạm vi `/change` gần nhất: Gói D đã đóng 2026-11-18 (spec 1.6.0 / scope 30).** Gói E giữ nguyên trạng thái pending — chỉ mở change riêng khi user duyệt.
+Gói 0/C/A/B/D đã lần lượt đóng ở `c890de2`/`e75ec48`/`80c10f7`/`42dd0c2` + close-out Gói D.
 
 ## Bối cảnh / tái hiện (bug)
 
@@ -63,7 +62,8 @@ Hiện trạng liên quan (đã đối chiếu code):
 - [x] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
       (Xong 2026-11-18 — commit `42dd0c2`, spec 1.5.0 / scope 28, reviewer + spec-validator round 2 PASS.)
 - [x] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn. (2026-11-17 — phase 1 `02e3737` + phase 2 `aa3c78a` STRICT PASS; docs reconcile + verify ở phase-3-task-03.)
-- [ ] Gói D: streak theo lịch thói quen; `doneDays` ≤ 31; tắt toggle không xoá dữ liệu.
+- [x] Gói D: streak theo lịch thói quen; `doneDays` ≤ 31; tắt toggle không xoá dữ liệu.
+      (Xong 2026-11-18 — `ba82621` + `2af694d` + close-out phase 3; spec 1.6.0 / scope 30; reviewer STRICT/STRICT + NORMAL PASS, spec-validator cuối PASS.)
 - [ ] Gói E: chỉ làm bản nhẹ (nếu được duyệt riêng) — không lưới calendar, không kéo-thả.
 - [ ] Mỗi gói: spec delta + `/spec-publish` + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + reviewer PASS.
 - [ ] Không tăng quyền manifest (vẫn `storage`, `alarms`, `notifications` — R-17).

@@ -298,42 +298,63 @@ doc khác là công việc đóng gói theo acceptance của change doc, không 
 
 ### Gói D — "Thói quen 21 ngày"
 
+> **✅ As-built 2026-11-18** — phase 1 commit `ba82621` (schema + calendar/streak contract) và phase 2
+> commit `2af694d` (habit UI + weekday picker) đã PASS/reviewer; spec **1.6.0** / **scopeVersion 29**
+> (v30 sẽ do primary regenerate lúc close-out). Không thêm permission/network; `habit` nhúng trong key
+> `t:<id>` hiện có. **Gói E bên dưới vẫn là đề xuất/hoãn**, không đổi.
+
 **Phương pháp:** 21 ngày / rèn thói quen (đọc kèm ghi chú trung thực §1.3).
 
 **Mục tiêu:** biến việc lặp thành **thói quen có streak riêng**, không lẫn với chuỗi học chung.
 
-**Dữ liệu (đề xuất):**
+**Dữ liệu (as-built):**
 
 ```ts
-// Task (mở rộng, chỉ dùng khi recurrence.kind !== 'none')
+// Task (nhúng trong key t:<id> hiện có — KHÔNG key storage mới, KHÔNG 1 key/ngày)
 habit?: {
-  startedAt: string;      // ISO UTC
-  doneDays: string[];     // "YYYY-MM-DD", tối đa 31 phần tử (~350 B) — an toàn cho 8 KB/item
+  startedAt: string;      // instant ISO 8601 UTC (có Z) lúc bật theo dõi
+  doneDays: string[];     // "YYYY-MM-DD" local, unique, sort tăng, tối đa 31 (HABIT_MAX_DAYS)
 };
 ```
 
 Lý do để trên `Task` thay vì key riêng: 1 task = 1 key đã có, không tốn item budget (512 item).
+`doneDays` là sổ **opt-in**, không phải lịch sử occurrence của R-11. Tắt toggle / `recurrence.kind='none'` /
+`archived` **chỉ ẩn**, data layer không xoá field.
 
-**Hành vi & UI:**
-- Toggle "Theo dõi như thói quen" khi bật lặp lại.
-- Card thói quen: lưới 21 ô (đủ/thiếu/không thuộc lịch), streak hiện tại, seal mốc 7 → 14 → 21.
-- Streak tính **theo lịch của thói quen** (T2–T6 chỉ tính T2–T6) → phụ thuộc G3/Gói 0.
-- `StudyLog` giữ nguyên vai trò chuỗi học chung; thói quen chỉ bổ sung, không thay.
+**Hành vi & UI (as-built):**
+- Trong form/tờ sửa việc, switch "Theo dõi thói quen" chỉ hiện khi lặp ≠ `none`; bật gán
+  `startedAt`/`doneDays: []`, tắt giữ liệu. Khi chọn "Hàng tuần" hiện picker **7 thứ** (`aria-pressed`,
+  chặn bỏ thứ cuối) — đóng luôn phần UI multi-weekday của G3.
+- Tick việc lặp ghi ngày local của **`dueAt` cũ** (= `prevDueAt` sau R-11) vào `doneDays`; chỉ skip
+  ngày đã aged-out, occurrence mang ngày tương lai (tick sớm) vẫn ghi. Hoàn tác/bỏ dấu từ lưới
+  New Tab chỉ đổi `doneDays`.
+- Streak tính trong bộ nhớ từ `doneDays` (O(31)/task, không storage read thêm): lịch theo rule hiện
+  tại, ngày không thuộc lịch không tính thiếu; chip "đã làm hôm nay" (R-11) là tín hiệu riêng.
+- Card thói quen trên **Bàn học New Tab**: tối đa 3 thói quen, lưới **21 ô** 3 trạng thái
+  (đã làm / thiếu / ngoài lịch), seal **7 → 14 → 21**, copy "mốc ăn mừng, không phải kết luận khoa học".
+  Popup 360×560 chỉ nhận toggle + badge streak nhỏ, **không** khối UI mới.
 
-**Module chạm:** `lib/tasks/types.ts`, `lib/tasks/recurrence.ts`, `lib/tasks/form.ts`,
-`components/TaskFields.tsx`, `components/TaskScroll.tsx`, `components/StreakCard.tsx`,
-`hooks/useTasks.ts`, `docs/ERD.md`, `docs/USER_FLOW.md`.
+**Module chạm (đúng `changed.files` của hai commit):** `lib/tasks/habit.ts` (mới, logic thuần),
+`lib/tasks/types.ts`, `lib/tasks/form.ts` (giữ `habit` additive), `hooks/useTasks.ts` (ghi/gỡ ngày),
+`components/TaskFields.tsx` (switch + picker), `components/TaskScroll.tsx` (badge chip row),
+`components/TaskParchment.tsx`, `components/HabitCard.tsx` (mới, Bàn học New Tab),
+`entrypoints/newtab/App.tsx`, `styles/board.css`, `SPECIFICATIONS.md`. Không dùng
+`lib/tasks/recurrence.ts` hay component `StreakCard.tsx` cho streak thói quen.
 
-**Chi phí:** M–L (logic lịch + UI lưới + docs). **Rủi ro:** trung bình — sai lịch = streak sai,
-người dùng mất niềm tin nhanh hơn mọi lỗi khác.
+**Chi phí:** M–L (logic lịch + UI lưới + docs). **Rủi ro:** trung bình — sai lịch = streak sai.
 
-**Phụ thuộc:** Gói 0 **bắt buộc** (G3).
+**Phụ thuộc:** Gói 0 **bắt buộc** (G3) — đã đóng `c890de2`.
 
 **Nghiệm thu sơ bộ:**
-- [ ] Thói quen lặp T2–T6: thứ Bảy/CN không bị tính là "thiếu" và không đứt streak.
-- [ ] Bỏ tick một ngày đã qua (trong 31 ngày) → streak tính lại đúng.
-- [ ] `doneDays` không vượt 31 phần tử sau 60 ngày dùng liên tục.
-- [ ] Tắt toggle thói quen → dữ liệu `doneDays` không bị xoá (chỉ ẩn).
+- [x] Thói quen lặp T2–T6: thứ Bảy/CN là `off-calendar`, không tính "thiếu", không đứt streak.
+- [x] Bỏ dấu một ngày đã ghi trong cửa sổ 31 ngày → streak tính lại đúng; chỉ đổi `doneDays`.
+- [x] `doneDays` không vượt 31 phần tử; ngày aged-out bị skip, occurrence tương lai vẫn ghi.
+- [x] Tắt toggle / `kind='none'` / `archived` → chỉ ẩn, dữ liệu `doneDays` không bị xoá.
+- [x] Badge streak trong `[data-chip-row]` dùng chung compact/full; thẻ lưới 21 ô + seal 7/14/21
+      trên Bàn học New Tab; popup không thêm khối.
+- [x] Eyeball 360×560 / 1024×768 / 1280×800: không overflow, `cell ≥ 44px`, reduced-motion sạch
+      (cosmetic residual: auto-fit 5 cột → hàng cuối 1 ô — giữ cố ý, xem §9.2).
+  (Đóng 2026-11-18 — phase 1 `ba82621` + phase 2 `2af694d`, reviewer/spec-validator PASS.)
 
 ---
 
@@ -474,6 +495,12 @@ lượt đo này vào FUP-001 (khi môi trường browser có sẵn) — không 
 + 3 ảnh `.context/eyeball/g11-newtab-*.png`. DOM: 1280 `aside=1/strip=0`; 1024 và 360 `aside=0/strip=1`
 với `.shelf-strip` bên trong (ribbon ngang thật, không `.spine`); `scrollWidth === clientWidth` ở cả ba.
 Soi ảnh xác nhận mỗi breakpoint đúng 1 Giá sách, không cắt/chồng.
+
+**Eyeball Gói D / habit (2026-11-18 12:35):** `.context/review-reports/eyeball-habit-2026-11-18.md`
++ ảnh `.context/eyeball/habit-*` — 1280×800 / 1024×768 / 360×560 đều có `habitCards=1`, `cells=21`
+(3 state done/missed/off-calendar), `seals=7,14,21`, badge streak, `overflow=0`, `cell ≥ 44px`;
+`prefers-reduced-motion: reduce` → `sealAnim=0s`, `cellAnim=0s`. Cosmetic residual: `auto-fit` xếp
+5 cột nên hàng cuối 1 ô — giữ cố ý (7 cột ép ô < 44px ở 360). Không chặn reviewer.
 
 ### 9.3 G10 — double-focus giữa hai surface — ĐÃ ĐÓNG 2026-11-18
 

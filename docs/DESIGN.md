@@ -782,6 +782,36 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - **A11y/motion (R-19):** checkbox/radio có nhãn, nhóm có `role="group"`, `:focus-visible` theo quy
   ước chung, reduced-motion kế thừa cài đặt toàn cục. Không token thời lượng hay hiệu ứng mới.
 
+### Gói D — Thói quen 21 ngày (R-23)
+
+> As-built spec 1.6.0 (commit `ba82621` + `2af694d`). Mọi trạng thái có **chữ riêng**, màu chỉ hỗ trợ
+> (R-19). Nguồn: `styles/board.css:576-771`, `components/{TaskFields,TaskScroll,HabitCard}.tsx`,
+> `entrypoints/newtab/App.tsx`. **Dùng bộ token riêng cho habit ở bảng dưới — KHÔNG tái dùng trực tiếp
+> `{components.streak-lotus}` của StudyLog**: `streak-lotus` là ô 28px không tương tác, nền
+> `{colors.surface-sunk}`/`{colors.gold-leaf}`, thuộc chuỗi học chung R-20; habit là ô bấm ≥44px với
+> 3 state riêng và seal vàng riêng, phục vụ streak từng thói quen.
+
+| Thành phần | Token / style | Chữ đi kèm |
+|---|---|---|
+| **Picker thứ** (`.habit-weekdays` / `.habit-weekday`, `role="group"`) | grid `repeat(7, minmax(0,1fr))`, gap `{spacing.xxs}`; nút `min-height 36px`, nền `{colors.surface-paper}`, chữ `{colors.umber}`, viền `{colors.hairline}`, radius `{rounded.sm}`. `aria-pressed='true'` → viền/chữ `{colors.jade}`, nền `{colors.jade-wash}`. Thứ cuối bị `disabled` → viền nét đứt | `CN · T2 · T3 · T4 · T5 · T6 · T7`; chú thích "Chọn ít nhất một thứ trong tuần. Thứ không chọn là ngày ngoài lịch."; `disabled` có `title` "Phải giữ ít nhất một thứ" |
+| **Switch thói quen** (`.habit-switch`, `role="switch"` / `aria-checked`) | `min-height 44px`; track 36×20 nền `{colors.surface-sunk}` → `{colors.jade}` khi bật; knob 14px nền `{colors.surface-paper}` → `{colors.on-primary}` | "Không theo dõi thói quen" / "Đang theo dõi thói quen" — chỉ hiện khi lặp ≠ `none`; tắt chỉ ẩn, giữ liệu |
+| **Badge streak** (`.habit-streak-badge`, nằm trong `[data-chip-row]` dùng chung compact/full) | `min-height 24px`, `radius.full`, viền `{colors.jade}`, nền `{colors.jade-wash}`, chữ `{colors.jade}`, `{typography.caption-bold}`, `white-space: nowrap` | "Chuỗi N ngày" — **không** khối UI mới trong popup 360×560, chỉ thêm 1 chip meta; không đụng chip "đã làm hôm nay" của R-11 |
+| **Thẻ thói quen** (`.habit-card`, chỉ Bàn học New Tab) | nền `{colors.surface-lacquer}`, viền `1px {colors.hairline}`, radius `{rounded.lg}`, padding `{spacing.base}`; tiêu đề `{typography.heading-sm}` `{colors.primary-deep}`; tên việc `{typography.body-sm-bold}` `{colors.ink}` (`overflow-wrap: anywhere`); dòng streak `{colors.brown}`. Tối đa **3** thói quen, xếp streak giảm rồi tên | Tiêu đề "Thói quen", dòng "Chuỗi N ngày" — đứng sau thẻ "Chuỗi ngày học", trước châm ngôn; không đẩy cột Bàn học quá 320px (1280) / 300px (1024) |
+| **Seal mốc** (`.habit-seal` / `.habit-seals`) | 28×28, `radius.full`, viền `{colors.gold}`, nền `{colors.gold-pale}`, chữ `{colors.on-gold}`, `{typography.caption-bold}` | 7 / 14 / 21 — hiện dần khi streak đạt; `aria-hidden="true"` (chữ "Chuỗi N ngày" đã nói số) |
+| **Lưới 21 ô** (`.habit-grid` / `.habit-cell`) | grid `repeat(auto-fit, minmax(44px, 1fr))`, gap `{spacing.xxs}`; ô `min 44×44`, radius `{rounded.xs}`. `done` → nền/viền `{colors.jade}`, chữ `{colors.on-primary}`, **là nút bấm** (bỏ dấu). `missed` → nền `{colors.critical-wash}`, viền/chữ `{colors.critical}`. `off-calendar` → nền `{colors.surface-sunk}`, viền `{colors.hairline-soft}`, chữ `{colors.disabled-text}` | `role="group"` `aria-label="Lưới 21 ngày: <tên>"`; mỗi ô `aria-label`/`title` = "Bỏ dấu <ngày> cho <tên>" hoặc "<ngày>: Đã làm / Thiếu / Ngoài lịch" |
+| **Copy giải thích** (`.habit-card-copy`) | `{typography.caption}` `{colors.umber}`, `line-height 1.5`, `overflow-wrap: anywhere` | "21 ô là cửa sổ hiển thị, chuỗi có thể dài hơn. 21 ngày là mốc ăn mừng, không phải kết luận khoa học." — 21 ngày là **mốc văn hoá**, không phải kết luận thực nghiệm |
+
+- **A11y & motion (R-19/R-23):** `:focus-visible` trên `.habit-cell`, `.habit-weekday`, `.habit-switch` →
+  `outline: 2px solid {colors.primary}`, `outline-offset: 2px`. Ô lưới bấm có vùng **≥ 44×44px**
+  (touch target), ô `missed`/`off-calendar` là `<span role="img">` có nhãn, không bấm được (không cho
+  thêm tay ngày chưa làm). `@media (prefers-reduced-motion: reduce)` ép `transition`/`animation: none
+  !important` cho cell/weekday/switch/seal. **Không token thời lượng hay animation mới** — badge,
+  switch, ô và seal đổi trạng thái tức thì như Gói A/B; reduced-motion kế thừa cài đặt toàn cục.
+- **Cosmetic residual (đã eyeball 2026-11-18):** `repeat(auto-fit, minmax(44px, 1fr))` cho **5 cột**
+  ở cả 360/1024/1280 nên **hàng cuối chỉ có 1 ô**. Giữ nguyên cố ý: ép 7 cột thì ô < 44px ở 360px,
+  vi phạm touch target. Không overflow, không mất dữ liệu — xem
+  `.context/review-reports/eyeball-habit-2026-11-18.md`.
+
 ### Signature Components
 
 **`quill-input` — Bút lông viết chữ theo người gõ.** Ô nhập thật vẫn là một `<input>` chuẩn (để IME, đọc màn hình, dán, hoàn tác hoạt động); lớp bút chỉ là phần trang trí đặt chồng lên, `aria-hidden="true"`.
@@ -868,6 +898,9 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - Nút chính cao ≥ 44px (padding 12px + chữ 16px). Nút icon 40px, tăng lên 44px trên thiết bị cảm ứng.
 - `button-seal-done` 44px; `checkbox-seal` 28px nhưng vùng bấm mở rộng thành 44×44px.
 - Ô streak 28px không tương tác; nếu có tương tác (xem lịch) vùng bấm ≥ 44px.
+- **Gói D (R-23)**: ô lưới thói quen (`.habit-cell`) **≥ 44×44px**; picker `.habit-weekday` cao
+  36px nhưng là nút trong form không phải touch target cuộn. `repeat(auto-fit, minmax(44px, 1fr))`
+  cho 5 cột → hàng cuối 1 ô ở 360/1024/1280 (cosmetic residual, giữ cố ý — 7 cột ép ô < 44px ở 360).
 
 ### Collapsing Strategy
 - **Cuộn việc**: trong Popup, mọi chip meta gộp thành 1 hàng flex-wrap trải rộng dưới tên việc (hết chỗ wrap xuống dòng, không ẩn chip); tên việc cắt ở 2 dòng. New Tab giữ 2 hàng chip trong cột nội dung.
@@ -904,6 +937,9 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - **Hiệu năng**: vệt sáng gradient và hạt khảm trên Popup có thể ảnh hưởng thời gian mở; đo trước khi bật mặc định.
 - **Ngôn ngữ khác**: chuỗi và dấu "XONG" cần bản địa hóa nếu hỗ trợ tiếng Anh; phông có thể cần đổi phần nhãn nút HOA.
 - **Họa tiết theo mùa/ngày lễ** (Tết, khai giảng) chưa có; nên coi như nội dung trang trí, không thêm token màu mới.
+- **Lưới thói quen (R-23) — cosmetic residual**: `auto-fit` giữ ô ≥ 44px nên xếp 5 cột, hàng cuối
+  còn 1 ô ở 360/1024/1280; đã eyeball, không overflow/mất dữ liệu. Không đổi thành 7 cột (sẽ ép ô
+  < 44px ở 360). Chi tiết mục **Gói D** và `.context/review-reports/eyeball-habit-2026-11-18.md`.
 
 ### Responsive & menu — R-19 còn mở
 

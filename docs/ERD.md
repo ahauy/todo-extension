@@ -56,6 +56,7 @@
 | `plannedFor` | `string \| null` (optional) | `YYYY-MM-DD` **theo giờ local**; task cũ thiếu field = chưa hẹn | R-22; **ngày dự định LÀM**, tách khỏi `dueAt` (hạn chót). Không tự tạo alarm, không đổi overdue/sort R-15; ghi bởi sheet "Kế hoạch mai", đọc bởi `plannedForDay()` (`query.ts:24-26`) |
 | `lastDoneAt` | `string \| null` (optional) | **ISO 8601 UTC** (`toISOString`) lần đóng dấu gần nhất | additive, R-11 |
 | `prevDueAt` | `string \| null` (optional) | **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa hoàn thành | additive, R-11; Hoàn tác gán thẳng `dueAt = prevDueAt` |
+| `habit` | `{ startedAt: string; doneDays: string[] } \| undefined` (optional) | `startedAt` = **ISO 8601 UTC** có `Z` lúc bật; `doneDays` = tập `YYYY-MM-DD` **theo giờ local**, unique, sort tăng, **≤ 31** (`HABIT_MAX_DAYS`; bỏ ngày cũ nhất khi ghi vượt) | R-23, `types.ts:38-46,90-95`; sổ thói quen **opt-in**, nhúng ngay trong key `t:<id>` — **không** key storage mới, **không** phải lịch sử occurrence của R-11. Task cũ thiếu field = không theo dõi; `normalizeHabitDays` (`habit.ts:66-73`) lọc/sort/cắt khi đọc |
 | `createdAt` | `string` | ISO 8601 UTC (`nowISO`) | = now khi tạo |
 | `updatedAt` | `string` | ISO 8601 UTC (`nowISO`) | cập nhật mỗi lần sửa |
 
@@ -71,6 +72,22 @@
 > Quá `plannedFor` mà chưa xong KHÔNG tự thành quá hạn. Không lưu aggregate mới: khối "Đã hẹn
 > hôm nay" suy trực tiếp từ `Task.plannedFor === dayKey(hôm nay)` (`plannedForDay`, `query.ts:24-26`),
 > ếch cho ngày mai đi qua **cùng key** `dayPlan` của R-21 (`selectFrog(tomorrowKey, id)`).
+> `plannedFor` cũng **độc lập** với `habit.doneDays` của R-23 (ngày dự định LÀM vs. ngày đã làm
+> trong sổ thói quen) — hai field không đọc/ghi lẫn.
+
+> **R-23 — `habit` là sổ theo dõi opt-in, không phải lịch sử lặp lại:** `doneDays` chỉ ghi ngày
+> occurrence đã xong sau khi user bật "Theo dõi thói quen"; R-11 vẫn giữ nguyên "không lưu lịch sử
+> occurrence" dùng để cuộn hạn/alarm. Ngày ghi lấy từ `dueAt` **cũ** trước lần tick (bằng `prevDueAt`
+> ngay sau R-11) qua `habitOccurrenceDay()` (`lib/tasks/habit.ts:81-88`; nhánh add gọi ở
+> `hooks/useTasks.ts:344,364`) — **không** dùng `dueAt` mới của occurrence kế. Chỉ bỏ qua ngày đã
+> rơi khỏi cửa sổ 31 ngày; occurrence mang ngày tương lai (tick sớm) vẫn được ghi. Hai nhánh gỡ
+> (`'remove'`) là ngoại lệ có chủ đích — Hoàn tác hôm nay và un-toggle đọc `prevDueAt` để gỡ đúng ngày
+> đã ghi (`hooks/useTasks.ts:286,310`); bỏ dấu từ lưới New Tab
+> (`withHabitDay(..., 'remove', ...)`) cũng chỉ đổi `doneDays`, **không** đụng
+> `dueAt`/`lastDoneAt`/`prevDueAt`/alarm. **Tắt toggle, đổi `recurrence.kind='none'` hay `archived=true`
+> chỉ ẩn streak ở lớp hiển thị** — data layer **không xoá** `habit`, bật/phục hồi lại dùng dữ liệu cũ
+> (`withHabitEnabled`, `habit.ts:236-250`). Streak tính trong bộ nhớ từ `doneDays` (`habitStreak`,
+> `habit.ts:137-174` gồm JSDoc), **O(31)/task**, không storage read bổ sung (giữ R-18).
 
 **Encoding thực tế của `dueAt` / `prevDueAt`** (đọc từ code, không suy từ spec):
 
@@ -235,7 +252,8 @@ tổng hợp/khối lượng việc nào khác. `selectFrog(dayKey, taskId | nul
 ```
 Settings (1 key "settings")        Task (N key "t:<uuid>")
   displayMode/quill/...              ├─ subtasks: Subtask[]      (1—N, embedded)
-  notificationsEnabled               ├─ recurrence: RecurrenceRule (1—1, embedded)
+  notificationsEnabled                                                    ├─ recurrence: RecurrenceRule (1—1, embedded)
+                                     ├─ habit? {startedAt, doneDays} (1—1 optional, embedded, R-23)
                                      ├─ subjectId ──► Subject (N—1, tham chiếu id)
                                      └─ keystone?/archived? (R-21, flags lọc — embedded)
 
@@ -285,6 +303,9 @@ Lỗi quota ném `StorageQuotaError` rõ ràng, **không swallow** (`adapter.ts:
 - **Không lưu lịch sử occurrence** của task lặp (R-11) — tick task lặp chỉ dời `dueAt` tới lần kế và
   để lại `lastDoneAt`/`prevDueAt` trên cùng bản ghi (không tạo occurrence mới, không lưu log riêng).
   Trạng thái "đã làm hôm nay" **được lưu** qua `lastDoneAt`, không phải session state.
+  `habit.doneDays` của R-23 là sổ **opt-in riêng** để vẽ streak/lưới 21 ô — **không** phải lịch sử
+  occurrence dùng để cuộn hạn; bỏ dấu một ngày ở lưới chỉ đổi `doneDays`, không đụng `dueAt`/alarm
+  (xem §2.1).
 
 ## 6. Không áp dụng
 

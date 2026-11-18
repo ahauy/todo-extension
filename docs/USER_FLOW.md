@@ -5,6 +5,7 @@
 > Đây là mô tả hành vi mục tiêu; đối chiếu code thật khi validate. Đổi behavior → qua `/change`.
 > Gói A (R-21, spec 1.4.0) đã as-built: xem §12 — bật/tắt then chốt, chọn ếch, cắt bỏ/phục hồi.
 > Gói B (R-22, spec 1.5.0) đã as-built: xem §13 — nhắc 21:00, sheet "Kế hoạch mai", "Đã hẹn hôm nay".
+> Gói D (R-23, spec 1.6.0) đã as-built: xem §14 — streak riêng, picker thứ, lưới 21 ô trên Bàn học.
 
 ## 0. Bối cảnh
 
@@ -240,6 +241,59 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    có `plannedFor = hôm nay`, còn mở và chưa cắt (popup 360×560 chỉ nhận 1 khối UI mới — mục cài đặt
    nhắc). Khối này đọc như một lịch hẹn: **không tô đỏ như việc quá hạn**; việc quá `plannedFor` mà
    chưa xong vẫn không vào nhóm quá hạn và không làm đổi thứ tự sort.
+
+## 14. Gói D — Thói quen 21 ngày
+
+> As-built 2026-11-18 (commit `ba82621` + `2af694d`, spec 1.6.0). `Task.habit?` là sổ **opt-in**
+> nhúng trong key `t:<id>` — không key storage mới, không phải lịch sử occurrence của R-11. Streak
+> này độc lập `StudyLog`/chuỗi học chung (xem [`ERD.md`](ERD.md) §2.1,
+> [`API_SPEC.md`](API_SPEC.md) §3.7).
+
+### 14.1 Bật theo dõi & chọn lịch
+
+1. Trong ô ghi mở rộng / tờ giấy chi tiết, chỉ khi **Lặp lại ≠ "Không"** (`recurrence.kind !== 'none'`)
+   hiện field **"Theo dõi thói quen"** với switch `.habit-switch` (`role="switch"` /
+   `aria-checked`, nhãn "Không theo dõi thói quen" / "Đang theo dõi thói quen"). Bật → gán
+   `habit.startedAt = now` (ISO UTC) + `doneDays = []`; **tắt chỉ ẩn**, dữ liệu vẫn nằm trong task.
+2. Khi chọn **"Hàng tuần"**, field lặp hiện thêm picker **7 thứ** `.habit-weekday`
+   (`CN · T2 · T3 · T4 · T5 · T6 · T7`, `aria-pressed` theo `rule.weekdays`): bấm để bật/bớt thứ,
+   thứ cuối còn lại bị `disabled` ("Phải giữ ít nhất một thứ") — không thể bỏ trống lịch. Chọn ít
+   nhất một thứ; thứ không chọn là **ngoài lịch**. Với `daily`/`monthly` không có picker thứ.
+3. Lịch luôn đánh giá theo rule **hiện tại**: đổi thứ/ngày/kind có thể làm streak đổi dù chưa có lần
+   hoàn thành mới — chấp nhận. Ngày trước `startedAt` (ngày local suy từ ISO UTC) không thuộc lịch.
+
+### 14.2 Ghi ngày, hoàn tác & bỏ dấu
+
+1. Tick việc lặp đang theo dõi → R-11 vẫn cuộn hạn như cũ; **ngày ghi vào `doneDays` là ngày local của
+   `dueAt` cũ** (bằng `prevDueAt` ngay sau lần tick), **không** phải `dueAt` mới của occurrence kế.
+   Ngày đã rơi khỏi cửa sổ 31 ngày gần nhất thì **không ghi** (không đẩy ngày mới hơn ra); occurrence
+   mang ngày tương lai (tick sớm) **vẫn được ghi**. Chip "đã làm hôm nay" của R-11 và streak R-23 là
+   hai tín hiệu riêng, có thể cùng hiện sau một lần tick muộn.
+2. Bấm lại đang done-today (hoàn tác R-11) → gỡ đúng ngày đó khỏi `doneDays`.
+3. Trên **Bàn học New Tab**, trong thẻ "Thói quen", bấm vào ô **đã làm** để **bỏ dấu** ngày đó →
+   streak tính lại ngay. Thao tác này **chỉ đổi `doneDays`**: không đụng `dueAt`, `lastDoneAt`/
+   `prevDueAt` hay alarm; không cho thêm tay ngày chưa làm. Bỏ dấu ngày đã gỡ là no-op.
+4. Tắt toggle, đổi lặp về "Không" hoặc **"Cắt bỏ"** (`archived`) → streak/lưới chỉ **ẩn**; bật lại
+   hoặc phục hồi dùng lại `doneDays` cũ. Mọi ghi vẫn là một lần `put(task)`; lỗi quota → banner R-16,
+   không nuốt lỗi.
+
+### 14.3 Thẻ "Thói quen" trên Bàn học
+
+1. New Tab (cột "Bàn học") hiện thẻ **"Thói quen"** với **tối đa 3** thói quen đang theo dõi, sắp theo
+   streak giảm dần rồi tên việc. Mỗi thói quen có tên, dòng "Chuỗi N ngày" và **lưới 21 ô liên tiếp
+   kết thúc hôm nay**, mỗi ô một trạng thái: **đã làm / thiếu / ngoài lịch** (ngày không thuộc lịch
+   không tính là thiếu, không đứt streak). Popup 360×560 **không** thêm khối thẻ này — chỉ có toggle
+   trong form và một badge "Chuỗi N ngày" nhỏ trên dòng meta của thẻ việc.
+2. Seal **7 → 14 → 21** hiện khi streak đạt mốc; sau 21 streak tiếp tục tăng. Copy đi kèm nói rõ
+   **"21 ô là cửa sổ hiển thị, chuỗi có thể dài hơn"** và **"21 ngày là mốc ăn mừng, không phải kết
+   luận khoa học"** (mốc văn hoá, không phải kết luận thực nghiệm về thời gian hình thành thói quen).
+3. Vì cửa sổ lưu trữ 31 ngày, streak hiển thị không vượt quá 31 ngày lịch — UI nói rõ lưới chỉ 21 ô
+   còn streak có thể dài hơn.
+
+> **Motion:** Gói D **không thêm animation mới** — badge, switch, ô lưới và seal đổi trạng thái tức
+> thì như phần còn lại của hệ; `prefers-reduced-motion: reduce` kế thừa cài đặt toàn cục
+> (`styles/base.css`: token `--dur-*` về `0.01ms`). Keyboard map bên dưới **giữ nguyên**, không thêm
+> shortcut mới.
 
 ## Keyboard map
 
