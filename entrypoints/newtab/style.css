@@ -266,10 +266,11 @@
   min-width: 0;
   max-width: none;
 }
-/* Giá sách là điều hướng, không phải board việc — ẩn để đúng 2 cột, không
-   tạo cột implicit gây tràn ngang. */
-.board-grid--focus .board-shelf,
-.board-grid--focus .board-shelf-strip {
+/* Giá sách là điều hướng, không phải board việc — JSX đã bỏ cả strip lẫn aside
+   khỏi DOM khi focusActive (App.tsx:235,238). Rule dự phòng này chỉ cho trường
+   hợp shelf được mount bởi nơi khác trong grid; không nhắm `.board-shelf-strip`
+   vì nó là sibling của `.board-grid`, selector hậu duệ cũ không bao giờ khớp. */
+.board-grid--focus .board-shelf {
   display: none;
 }
 

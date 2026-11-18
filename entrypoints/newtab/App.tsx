@@ -1,7 +1,7 @@
 /**
  * Bảng Học Đường toàn màn hình — Giá sách (240) · Cuộn nhiệm vụ (1fr) ·
  * Bàn học (320), tối đa 1280px căn giữa, khung đôi vàng kim và họa tiết sen
- * ở bốn góc. Dưới 1024px Giá sách thành dải ngang, dưới 720px còn một cột.
+ * ở bốn góc. Dưới 1200px Giá sách thành dải ngang, dưới 720px còn một cột.
  *
  * Khi người dùng chọn chế độ Popup, trang tab mới không bày cả bảng: chỉ
  * hiện lời chào và một nút mở sổ (manifest không cho gỡ ghi đè tab mới lúc
@@ -149,7 +149,7 @@ export default function App() {
       onChange={setSubjectId}
       onCreate={board.createSubject}
       onRemove={setDropSubject}
-      horizontal={!wide}
+      horizontal={horizontal}
     />
   );
 
@@ -232,10 +232,10 @@ export default function App() {
           />
         )}
 
-        {!horizontal && <div className="board-shelf-strip">{shelf}</div>}
+        {horizontal && !focusActive && <div className="board-shelf-strip">{shelf}</div>}
 
         <div className={`board-grid${focusActive ? ' board-grid--focus' : ''}`}>
-          {!horizontal && <aside className="board-shelf">{shelf}</aside>}
+          {!horizontal && !focusActive && <aside className="board-shelf">{shelf}</aside>}
 
           <main className="board-scroll">
             {/* Lời chào đã là tiêu đề thị giác của vùng này; giữ h2 cho cấu trúc

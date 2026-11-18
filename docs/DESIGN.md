@@ -662,7 +662,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 **`card-scroll-task-overdue`** — Nền {colors.primary-wash}, viền {colors.primary}, đi kèm `chip-deadline-overdue`.
 
-**`card-subject-spine`** — Gáy sách môn học, **chỉ ở New Tab**: cột "Giá sách" từ 1024px, và dải ngang `.shelf-strip` (wrap thay vì cắt môn) dưới 1024px.
+**`card-subject-spine`** — Gáy sách môn học, **chỉ ở New Tab**: cột "Giá sách" từ 1200px, và dải ngang `.shelf-strip` (wrap thay vì cắt môn) dưới 1200px (G11, eyeball 2026-11-18).
 - Nền {colors.surface-paper}, rounded 4px, viền trái 8px theo màu môn, tên môn `{typography.body-sm-bold}` + số việc còn lại bên phải.
 - Đang chọn: nền chuyển {colors.surface-lacquer}, viền trái giữ màu, thêm gờ vàng kim 1px quanh thẻ.
 - Ở dải ngang, gáy sách đổi thành tab môn: giữ một vạch màu gáy 4px ở cạnh trên (`.ribbon-tab[data-spine]`).
@@ -846,7 +846,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Collapsing Strategy
 - **Cuộn việc**: trong Popup, mọi chip meta gộp thành 1 hàng flex-wrap trải rộng dưới tên việc (hết chỗ wrap xuống dòng, không ẩn chip); tên việc cắt ở 2 dòng. New Tab giữ 2 hàng chip trong cột nội dung.
-- **Giá sách**: ≥ 1024px là cột dọc (dính khi cuộn); dưới đó thành dải tab ngang wrap, giữ vạch màu gáy 4px.
+- **Giá sách**: ≥ 1200px là cột dọc (dính khi cuộn); dưới đó thành dải tab ngang wrap, giữ vạch màu gáy 4px (G11, eyeball 2026-11-18).
 - **Bàn học**: dưới 1024px đồng hồ Pomodoro giữ lại, streak thu thành một dòng 7 chấm, châm ngôn ẩn.
 - **Lời chào**: `{typography.hero-display}` (56px) giảm còn `{typography.display-lg}` (40px) khi cột giữa ≤ 570px và còn `{typography.heading-lg}` (32px) dưới 720px; drop cap 56px → 48px.
 - **Khung đôi vàng**: 3px trên bảng New Tab; Popup (360px) và bảng New Tab dưới 720px dùng 2px.
@@ -882,10 +882,10 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Responsive & menu — R-19 còn mở
 
-- **Dải 1024–1199px chưa verify**: code dùng **hai cột** `minmax(0,1fr) 300px` và đưa Giá sách lên dải ngang (`entrypoints/newtab/style.css:112-120`); 1200–1279px mới là ba vùng `208 / minmax(0,1fr) / 300`. Dải tab thu gọn (padding 8px, chữ 14px) từ 1199px. Chưa soi/đo trên màn thật ở cả hai dải. R-19 (responsive 1024–1199) **chưa đóng**.
+- **Dải 1024–1199px đã eyeball 2026-11-18**: code dùng **hai cột** `minmax(0,1fr) 300px` và Giá sách thành dải ngang phía trên (`entrypoints/newtab/style.css:112-120`); 1200–1279px là ba vùng `208 / minmax(0,1fr) / 300`. Dải tab thu gọn (padding 8px, chữ 14px) từ 1199px. DOM + ảnh Chrome ở 1024×768 xác nhận đúng 1 ribbon, `scrollWidth === clientWidth`, không cắt (`eyeball-g11-2026-11-18.md`). Phần responsive breakpoint của R-19 đã đóng; menu/affordance ở các mục dưới vẫn mở.
 - **Menu lọc môn có thể che chân popup**: `.menu` cao tối đa 320px, `overflow-y: auto`, absolute ngay dưới trigger và **không lật lên**. Hàng lọc nằm ở nửa trên popup 560px, nên danh sách dài (12 môn + "Cả giá sách" + "Chưa xếp môn") có thể chạm hoặc vượt chân popup và bị che — người dùng phải cuộn trong menu mới tới mục cuối. R-19 yêu cầu menu môn không che chân popup: **chưa đạt**.
 - **Affordance dải tab chưa đo**: `.ribbon` có mask fade 16px bên phải và scrollbar 4px (`scrollbar-width: thin`) để báo "còn tab nữa", nhưng chưa đo/soi trên 360px và 1024px thật; scrollbar hệ thống trên Windows khác macOS nên chưa kết luận. R-19 yêu cầu affordance rõ ràng: **chưa xác nhận**.
-- **Chưa đo browser thật**: toàn bộ bảng breakpoint ở trên suy ra từ CSS + container query, chưa chụp/đo ở 360/390/1024 thật.
+- **Đã đo browser thật 2026-11-18**: 360×560 / 1024×768 / 1280×800 (kèm 2 trạng thái focus 1024/1280) — `.context/eyeball/*.png` + `eyeball-2026-11-18.md` / `eyeball-g11-2026-11-18.md`. Chưa đo 390px và Chrome Windows (affordance scrollbar) — xem mục trên.
 
 ### Motion & chỗ lệch as-built
 

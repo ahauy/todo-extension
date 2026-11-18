@@ -1,53 +1,45 @@
 {
   "specVersion": "1.4.0",
-  "scopeVersion": 26,
-  "generatedAt": "2026-11-18T09:40:19+07:00",
+  "scopeVersion": 27,
+  "generatedAt": "2026-11-18T10:09:15+07:00",
   "trigger": "bug-fix",
-  "workItem": "bug-g10-focus-idempotency",
-  "specRefs": ["R-20"],
+  "workItem": "bug-g11-newtab-shelf",
+  "specRefs": ["R-19"],
   "changed": {
     "files": [
-      "lib/tasks/types.ts",
-      "lib/storage/local.ts",
-      "hooks/usePomodoro.ts",
-      "hooks/useBoard.ts",
-      "components/FocusConfirms.tsx",
-      "src/__tests__/g10-focus-idempotency.test.tsx",
-      "src/__tests__/g10-board-integration.test.tsx",
-      "src/__tests__/focusOverlay.test.tsx",
-      "docs/ERD.md",
-      "docs/API_SPEC.md",
-      "docs/ROADMAP_TIME_MANAGEMENT.md"
+      "entrypoints/newtab/App.tsx",
+      "entrypoints/newtab/style.css",
+      "entrypoints/newtab/App.shelf.test.tsx",
+      "hooks/useMediaQuery.ts",
+      "components/SubjectShelf.tsx",
+      "docs/DESIGN.md",
+      "docs/ROADMAP_TIME_MANAGEMENT.md",
+      "spec/changes/BACKLOG.md"
     ],
-    "modules": [
-      "pomodoro-session-id",
-      "focus-completion-claim",
-      "focus-confirm-wiring",
-      "study-log-idempotency"
-    ]
+    "modules": ["newtab-responsive-layout", "subject-shelf"]
   },
   "impact": {
     "direct": [
-      "PomodoroState.focusSessionId? local-only, sinh mới mỗi start() focus; state cũ fallback legacy:${endsAt}",
-      "onFocusComplete(sessionId) + pendingCompletion.sessionId; FocusConfirms propagates id xuống confirm",
-      "claimFocusCompletion lưu tập tối đa 32 sessionId ở chrome.storage.local/FOCUS_CLAIM_KEY + Set trong context",
-      "useBoard.confirmFocusCompletion đi qua runOncePerFocusSession: session đã tiêu thụ không tick task, không record focus"
+      "Strip Giá sách render khi horizontal (<1200px), aside render khi !horizontal (>=1200px) — mỗi breakpoint đúng 1 thể hiện",
+      "Prop horizontal={horizontal} truyền cho SubjectShelf → ribbon-tab/shelf-strip ở 1024–1199 thay vì spine dọc",
+      "Focus mode bỏ strip khỏi DOM khi focusActive, khắc phục selector .board-grid--focus .board-shelf-strip vô hiệu do strip là sibling",
+      "Test matchMedia giả lập 360/1024/1280, assert số container + nội dung ngang + focus @1024"
     ],
     "dependents": [
-      "R-20: record('focus',1) đúng 1 lần cho mỗi phiên completion dù popup + New Tab mở cùng lúc",
-      "skip/reset/decline/pause-resume không đổi semantics; không thêm permission/network (R-17)",
-      "studyLog.tasks chỉ đổi cùng lần tick hợp lệ, không dao động do stale dialog"
+      "R-19 responsive: không horizontal scroll; scrollWidth === clientWidth ở 360/1024/1280 (eyeball Chrome thật)",
+      "R-20 focus: board-grid--focus vẫn đúng 2 cột, không còn dải Giá sách phía trên",
+      "Bộ lọc môn vẫn dùng được ở mọi breakpoint; không đổi storage/permission/network"
     ],
     "regression": [
-      "Không đổi chrome.storage.sync contract, spec_version vẫn 1.4.0 (bug thuần, requirement không đổi)",
-      "Focus overlay popup + New Tab, chip 20% / hero con ếch (R-21) không đổi",
-      "Verify tsc 0 / eslint 0 / vitest 32 files 241 tests / wxt build PASS"
+      "Popup unaffected; New Tab >=1200 vẫn cột Giá sách dọc như thiết kế",
+      "spec_version giữ 1.4.0 (bug thuần, requirement không đổi); scopeVersion tăng 26 → 27",
+      "Verify tsc 0 / eslint 0 / vitest 33 files 246 tests / wxt build 644.4 kB"
     ]
   },
   "acceptance": [
-    "2 hook instance cùng completion → đúng 1 record focus; stale dialog sau khi session đã tiêu thụ → 0 record, 0 tick task",
-    "Confirm hợp lệ qua useBoard + useStudyLog thật → studyLog.focus +1, task done=true",
-    "Reviewer STRICT PASS (round 2) + docs as-built reconcile (ERD, API_SPEC, ROADMAP §9.3)"
+    "1280px: board-shelf=1 / board-shelf-strip=0; 1024px và 360px: strip=1 / aside=0, bên trong là .shelf-strip ribbon",
+    "Focus @1024: strip không còn trong DOM, board-grid có class board-grid--focus",
+    "Eyeball Chrome thật 3 breakpoint: mỗi nơi đúng 1 Giá sách, không overflow; reviewer NORMAL PASS"
   ],
-  "risk": "medium"
+  "risk": "low"
 }

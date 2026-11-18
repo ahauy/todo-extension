@@ -1,6 +1,6 @@
 /**
  * Giá sách: mỗi môn là một gáy sách viền trái 8px đổi màu theo thứ tự.
- * Dưới 1024px cả giá nằm ngang thành dải cuộn. Thêm môn ngay tại chỗ, đổi
+ * Dưới 1200px cả giá nằm ngang thành dải cuộn. Thêm môn ngay tại chỗ, đổi
  * tên và bỏ môn có xác nhận ở component cha.
  */
 import React, { useState } from 'react';

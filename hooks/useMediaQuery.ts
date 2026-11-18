@@ -1,6 +1,6 @@
 /**
  * Đọc một media query và re-render khi nó đổi. Dùng để Giá sách chuyển từ
- * cột dọc sang dải ngang dưới 1024px — cùng một component, không nhân đôi DOM.
+ * cột dọc sang dải ngang dưới 1200px — cùng một component, không nhân đôi DOM.
  */
 import { useEffect, useState } from 'react';
 

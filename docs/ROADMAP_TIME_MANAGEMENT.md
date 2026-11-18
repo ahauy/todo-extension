@@ -416,14 +416,14 @@ Các mục dưới đây **không thuộc** roadmap này; chúng là đầu vào
 | G8 | ~~Tie-breaker `sortTasks` vs `sortBoard` chưa nhất quán~~ → **ĐÃ ĐÓNG** 2026-11-17: `compareById` là tie-breaker cuối cho mọi key | `lib/tasks/query.ts:139-167`; commit `c890de2` | A (đã có sẵn nền tảng) |
 | G9 | Hạng mục R-19 responsive/menu/motion còn mở | `docs/DESIGN.md` §Known Gaps | ảnh hưởng layout mọi gói |
 | G10 | ~~**Double-focus giữa popup & New Tab**~~ → **ĐÃ ĐÓNG** 2026-11-18: `focusSessionId` + tập claim (tối đa 32 id) ở `chrome.storage.local`; confirm đi qua `runOncePerFocusSession`; test integration `useBoard` + `useStudyLog` thật (commit G10) | `hooks/usePomodoro.ts`, `hooks/useBoard.ts`, `lib/storage/local.ts:41-86`; residual race 2 context cùng tick vẫn ghi rõ ở §9.3 | C (đã xử lý), mọi gói có background session |
-| G11 | New Tab ≥1200px render **2 bản "Giá sách"** (`board-shelf-strip` + `board-shelf`); 1024–1199px ẩn cả hai dù CSS chuẩn bị dải ngang | Phát hiện eyeball Chrome thật 2026-11-18: `entrypoints/newtab/App.tsx:69-71,235,238` (`horizontal` dùng chung cho cả 2 nhánh) | UI responsive — change riêng, không gộp vào G10 |
+| G11 | ~~New Tab ≥1200px render 2 bản "Giá sách"; 1024–1199 ẩn cả hai~~ → **ĐÃ ĐÓNG** 2026-11-18: strip render khi `horizontal`, aside khi `!horizontal`; focus mode bỏ cả hai khỏi DOM; prop `horizontal` truyền đúng; gỡ selector dead `.board-grid--focus .board-shelf-strip`. Eyeball lại 360/1024/1280 + focus 1024/1280 sạch | `entrypoints/newtab/App.tsx:152,235,238`, `entrypoints/newtab/style.css:255-274`, `entrypoints/newtab/App.shelf.test.tsx`; report `.context/review-reports/eyeball-g11-2026-11-18.md` | UI responsive — đã xử lý |
 
 Ngoài ra (doc drift thuần, không chặn roadmap):
 
 | Doc | Lệch |
 |-----|------|
 | `docs/API_SPEC.md` | Line ref trong §3.3/§3.5 đã cũ; mô tả `sortDoneTasks`/`filterTasks`/`Tab` (đã bị xoá) |
-| `docs/DESIGN.md` | Bảng responsive 1024–1199px ghi 3 cột, code là 2 cột (`entrypoints/newtab/style.css`) |
+| `docs/DESIGN.md` | ~~Bảng responsive 1024–1199px ghi 3 cột, code là 2 cột~~ → đã đồng bộ ngưỡng 1200px/G11 + ghi kết quả eyeball 2026-11-18 |
 | `docs/PERMISSION.md` | Ghi icon 16/48/128, manifest có 16/32/48/128 (`wxt.config.ts`) |
 | `docs/generated/inventory.md` | Stale (git `0e2a674`, 0 file) — cần chạy lại tooling |
 | `docs/INDEX.md` | Trỏ `DESIGN.md` nguồn `.context/design-spec.md` (legacy: cobalt/cool-gray, 360×600) |
@@ -464,6 +464,11 @@ lượt đo này vào FUP-001 (khi môi trường browser có sẵn) — không 
 `newtab-1024x768.png` — 2 cột sạch, hero không cắt;
 `newtab-1280x800.png` — **phát hiện G11**: "Giá sách" lặp 2 bản (xem §8), không có overflow ngang
 (`scrollWidth === clientWidth` ở cả 3 kích thước). Ảnh: `.context/eyeball/*.png`. G11 là change riêng.
+
+**Eyeball lại sau khi đóng G11 (2026-11-18 10:08):** `.context/review-reports/eyeball-g11-2026-11-18.md`
++ 3 ảnh `.context/eyeball/g11-newtab-*.png`. DOM: 1280 `aside=1/strip=0`; 1024 và 360 `aside=0/strip=1`
+với `.shelf-strip` bên trong (ribbon ngang thật, không `.spine`); `scrollWidth === clientWidth` ở cả ba.
+Soi ảnh xác nhận mỗi breakpoint đúng 1 Giá sách, không cắt/chồng.
 
 ### 9.3 G10 — double-focus giữa hai surface — ĐÃ ĐÓNG 2026-11-18
 
