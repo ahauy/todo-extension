@@ -13,6 +13,9 @@ generate-types/
 # tool state
 .code-review-graph/
 
+# WorkBuddy local state (bộ nhớ agent theo session — không phải source repo)
+.workbuddy-ai/
+
 # workflow state (template opencode — chỉ dùng local, không commit)
 .context/
 # Chỉ thư mục task ở gốc repo. Không neo đầu dòng thì `tasks/` nuốt luôn
