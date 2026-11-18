@@ -169,7 +169,9 @@ export default function TaskScroll({
       {task.subtasks.length > 0 && (
         <span className={`tnum ${pushProgressRight ? 'ml-auto ' : ''}flex items-center gap-xs text-caption ${state === 'overdue' ? 'text-brown' : 'text-umber'}`}>
           <span className="progress-ink w-14" style={{ height: 6 }}>
-            <span style={{ width: `${(doneSubtasks / task.subtasks.length) * 100}%` }} />
+            <span
+              style={{ transform: `scaleX(${doneSubtasks / task.subtasks.length})` }}
+            />
           </span>
           {doneSubtasks}/{task.subtasks.length}
         </span>

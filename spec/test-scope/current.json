@@ -1,42 +1,44 @@
 {
   "specVersion": "1.7.0",
-  "scopeVersion": 32,
-  "generatedAt": "2026-11-18T16:38:00+07:00",
+  "scopeVersion": 33,
+  "generatedAt": "2026-11-18T17:14:00+07:00",
   "trigger": "bug-fix",
-  "workItem": "bug-ci-timezone-habit-tests",
-  "specRefs": ["R-09", "R-23"],
+  "workItem": "bug-e2e-progress-motion",
+  "specRefs": ["R-19"],
   "changed": {
     "files": [
-      "vitest.config.ts",
-      ".github/workflows/ci.yml",
-      "spec/updates/2026-11-18-ci-timezone-habit-tests.md"
+      "styles/signature.css",
+      "components/SettingsPanel.tsx",
+      "components/TaskScroll.tsx",
+      "docs/E2E-CHECKLIST.md",
+      "spec/updates/2026-11-18-e2e-progress-motion.md"
     ],
     "modules": [
-      "ci-config",
-      "test-env-timezone",
-      "habit-local-day"
+      "ui-motion",
+      "progress-ink",
+      "e2e-release-check"
     ]
   },
   "impact": {
     "direct": [
-      "Vitest chạy với TZ=Asia/Ho_Chi_Minh qua test.env → habitStartDay/habitOccurrenceDay nhận ngày local ổn định ở mọi máy/runner",
-      "GitHub Actions job ci pin env.TZ cùng giá trị → step Test không còn phụ thuộc TZ mặc định của ubuntu-latest (UTC)"
+      "Progress fill animate width → transform scaleX() với transform-origin:left: vẫn fill đúng 0–100%, giờ tuân R-19 (transform-only motion)",
+      "E2E release checklist 30/31 mục có evidence; 1 mục toolbar icon cần eyeball trong Chrome có giao diện"
     ],
     "dependents": [
-      "R-09 dueAt wall-clock local — dayKey/getFullYear|getMonth|getDate giữ nguyên, không đổi source",
-      "R-23 habit.doneDays/streak — assertion gốc '18:00Z → ngày 19' giữ nguyên, chỉ môi trường chạy được pin"
+      "R-19 motion contract — grep transition/animation width|height|top|left trong styles → 0 hit",
+      "TaskScroll subtask progress + SettingsPanel sync-usage bar — 2 caller duy nhất của .progress-ink, đều đã đổi"
     ],
     "regression": [
-      "Không đổi lib/tasks/habit.ts, lib/datetime.ts, lib/tasks/types.ts, src/__tests__/habit.test.ts",
-      "Không thêm dependency/permission/storage key/network; spec_version vẫn 1.7.0",
-      "Full suite 45 files / 367 tests PASS ở cả TZ=UTC và mặc định; tsc/eslint/wxt build clean"
+      "Không đổi data contract/API/auth/schema; spec_version giữ 1.7.0",
+      "Không caller .progress-ink nào còn inline width; parent w-14/flex-1 + overflow:hidden giữ nguyên layout",
+      "Full suite 45 files / 367 tests PASS; tsc/eslint/wxt build clean (680.56 kB)"
     ]
   },
   "acceptance": [
-    "TZ=UTC pnpm exec vitest run PASS (repro trước đó fail đúng 2 test habit.test.ts:95,112)",
-    "pnpm exec vitest run mặc định vẫn PASS; assertion '18:00Z → 2026-11-19' giữ nguyên",
-    "CI job ci có env TZ=Asia/Ho_Chi_Minh, khớp test.env trong vitest.config.ts",
-    "Verify 4 lệnh PASS + reviewer FAST PASS 0 finding"
+    "scaleX(0) collapse, scaleX(1) đầy, ratio ∈ [0,1] ở cả 2 caller (used/total clamp, done/length có guard)",
+    "Grep transition/animation width|height|top|left trong styles → 0 hit",
+    "Reviewer NORMAL PASS — 0 MEDIUM/HIGH; 1 LOW (sai số đếm docs 29/30) đã sửa thành 30/31 trước commit",
+    "Verify 4 lệnh PASS + E2E evidence report .context/review-reports/e2e-release-2026-11-18.md"
   ],
   "risk": "low"
 }

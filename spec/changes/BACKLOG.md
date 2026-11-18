@@ -23,6 +23,7 @@
 | FEAT-003/E | Gói E — Time blocking: `startAt` + `estimateMin`, timeline 06:00–24:00 + kéo-thả (New Tab) | ADDITIVE | done | [2026-11-18-package-e-time-blocking.md](archive/2026-11-18-package-e-time-blocking.md) | 2026-11-18 | 2026-11-18 |
 | TOOL-001 | Adapter WorkBuddy tương đương workflow opencode (agents/commands/skills/hooks) | ADDITIVE | done | [2026-11-17-workbuddy-compat-adapter.md](archive/2026-11-17-workbuddy-compat-adapter.md) | 2026-11-17 | 2026-11-17 |
 | BUG-CI-TZ | CI GitHub đỏ: 2 test habit so ngày LOCAL với giả định UTC+7 (runner chạy UTC) | BUG | done | [2026-11-18-ci-timezone-habit-tests.md](archive/2026-11-18-ci-timezone-habit-tests.md) | 2026-11-18 | 2026-11-18 |
+| BUG-E2E-MOTION | E2E release: thanh tiến độ animate `width` vi phạm R-19 (motion chỉ transform/opacity) | BUG | done | [2026-11-18-e2e-progress-motion.md](archive/2026-11-18-e2e-progress-motion.md) | 2026-11-18 | 2026-11-18 |
 
 ## Quy tắc tracking
 

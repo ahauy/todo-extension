@@ -235,7 +235,11 @@ export default function SettingsPanel() {
         <Field label="Dung lượng đồng bộ" helper="Sổ mang theo giữa các máy qua chrome.storage.sync">
           <div className="flex items-center gap-md">
             <span className="progress-ink flex-1">
-              <span style={{ width: `${Math.min((usage.used / usage.total) * 100, 100)}%` }} />
+              <span
+                style={{
+                  transform: `scaleX(${Math.min((usage.used / usage.total) * 100, 100) / 100})`,
+                }}
+              />
             </span>
             <span className="tnum text-caption text-umber">
               {(usage.used / 1024).toFixed(1)} KB / 100 KB
