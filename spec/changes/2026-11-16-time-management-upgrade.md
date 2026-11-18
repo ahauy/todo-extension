@@ -34,13 +34,14 @@ không thêm enum 5 mức.
 |---|---|---|
 | 0 | ✅ done | `fc9e26e` + `c890de2`; change doc riêng đã archive, BACKLOG `FEAT-003/0 = done` |
 | C | ✅ done | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync`; close-out ở phase-3-task-03 |
-| A | in_progress (plan) | Change doc riêng: `spec/changes/2026-11-17-keystone-frog.md`; spec 1.4.0 / scope 25; chờ human duyệt plan |
+| A | ✅ done | `2d045cc` → `0ed6f2a` → `80c10f7`; reviewer STRICT/STRICT/NORMAL PASS, docs reconcile + spec-validator cuối PASS; change doc riêng đã archive, BACKLOG `FEAT-003/A = done` |
 | B | pending | sau A |
 | D | pending | sau B (phụ thuộc G3 — đã có từ Gói 0) |
 | E | pending | hoãn, cần B dùng thật |
 
-**Phạm vi `/change` gần nhất: Gói A — Then chốt + Con ếch** (đã tách change doc riêng ở trên).
-Các gói B/D/E giữ nguyên trạng thái, sẽ mở change riêng khi đến lượt. Gói C đã đóng ở `e75ec48`.
+**Phạm vi `/change` gần nhất: Gói A — Then chốt + Con ếch — đã đóng.** Change doc riêng đã archive.
+Gói B/D/E giữ nguyên trạng thái, sẽ mở change riêng khi đến lượt. Gói 0/C/A đã lần lượt đóng ở
+`c890de2`/`e75ec48`/`80c10f7`.
 
 ## Bối cảnh / tái hiện (bug)
 
@@ -57,7 +58,8 @@ Hiện trạng liên quan (đã đối chiếu code):
 
 - [x] Gói 0: `dueAt` canonical wall-clock local; weekly tôn trọng `weekdays`; có test migration.
       (Xong 2026-11-17 — commit `c890de2`, reviewer STRICT round 2 PASS.)
-- [ ] Gói A: `keystone` (tối đa 3 đang mở, **chỉ cảnh báo**) + **chip lọc "20%"** (không thêm tab) + chọn con ếch mỗi ngày; "Cắt bỏ" = `archived` + mục "Đã cắt"; dòng review tuần trong New Tab; sort vẫn deterministic (R-15).
+- [x] Gói A: `keystone` (tối đa 3 đang mở, **chỉ cảnh báo**) + **chip lọc "20%"** (không thêm tab) + chọn con ếch mỗi ngày; "Cắt bỏ" = `archived` + mục "Đã cắt"; dòng review tuần trong New Tab; sort vẫn deterministic (R-15).
+      (Xong 2026-11-17 — `2d045cc` → `0ed6f2a` → `80c10f7`; reviewer STRICT/STRICT/NORMAL PASS, spec-validator cuối PASS.)
 - [ ] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
 - [x] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn. (2026-11-17 — phase 1 `02e3737` + phase 2 `aa3c78a` STRICT PASS; docs reconcile + verify ở phase-3-task-03.)
 - [ ] Gói D: streak theo lịch thói quen; `doneDays` ≤ 31; tắt toggle không xoá dữ liệu.

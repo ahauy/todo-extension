@@ -407,6 +407,42 @@ components:
     typography: "{typography.caption}"
     padding: "{spacing.lg} {spacing.xl}"
     border-top: "1px solid {colors.hairline}"
+  ribbon-keystone:
+    backgroundColor: "{colors.gold-pale}"
+    textColor: "{colors.on-gold}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.full}"
+    padding: "3px 10px"
+    border: "1px solid {colors.gold}"
+  frog-toggle:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.umber}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.full}"
+    padding: "3px 10px"
+    border: "1px solid {colors.hairline}"
+  frog-toggle-active:
+    backgroundColor: "{colors.jade-wash}"
+    textColor: "{colors.jade}"
+    border: "1px solid {colors.jade}"
+  keystone-chip:
+    backgroundColor: "{colors.surface-paper}"
+    textColor: "{colors.brown}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.md}"
+    minSize: "40×32px"
+    border: "1px solid {colors.hairline}"
+  keystone-chip-active:
+    backgroundColor: "{colors.jade-wash}"
+    textColor: "{colors.jade}"
+    border: "1px solid {colors.jade}"
+  hero-frog:
+    backgroundColor: "transparent"
+    textColor: "{colors.umber}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.lg}"
+    padding: "{spacing.sm} {spacing.base}"
+    border: "1px solid {colors.sepia}"
 ---
 
 ## Overview
@@ -533,7 +569,7 @@ Một cột, từ trên xuống, đều nằm trong `{components.card-popup-shel
 ### Bố cục New Tab
 Lưới 3 vùng, rộng tối đa 1280px, lề 32px, nằm trong `{components.card-newtab-board}`:
 - **Cột trái (240px) — "Giá sách"**: danh sách {components.card-subject-spine}, mỗi gáy hiển thị tên môn + số việc còn lại; nút "Thêm môn" kiểu {components.button-ghost}.
-- **Cột giữa (1fr, tối đa 640px) — "Cuộn nhiệm vụ"**: trên cùng lời chào `{typography.hero-display}` với drop cap, ô {components.quill-input} cỡ lớn, rồi dải tab, rồi danh sách cuộn.
+- **Cột giữa (1fr, tối đa 640px) — "Cuộn nhiệm vụ"**: trên cùng lời chào `{typography.hero-display}` với drop cap, ô {components.quill-input} cỡ lớn, rồi dải tab, rồi danh sách cuộn. **R-21**: giữa lời chào và dải tab là hero "Con ếch hôm nay" + nút "Tập trung 25 phút", còn hai dòng "Then chốt: x/y xong" / "Tuần này: …" nằm trong cột "Bàn học" — chi tiết ở mục **Gói A — then chốt & con ếch**.
 - **Cột phải (320px) — "Bàn học"**: {components.card-focus-timer}, {components.card-streak}, rồi {components.card-maxim} đóng cột.
 - **Chân trang**: {components.footer-colophon} một dòng ("Học, nhớ, rồi lại học.") và liên kết cài đặt.
 
@@ -699,7 +735,27 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 **Đầu trang (Popup)** — Đèn dầu + tên "Học Đường" + dòng đếm có `aria-live`, rồi ba nút icon: âm thanh, mở bảng lớn, cài đặt; không có menu hamburger.
 **Đầu trang (New Tab)** — Lời chào bên trái, hôm nay là thứ mấy ngày mấy bên phải; nút Cài đặt ở góc.
-**Dải tab** — {components.button-tab-ribbon}: *Tất cả · Hôm nay · Sắp tới · Đã xong* (kèm số việc). Ở New Tab, môn học nằm ở "Giá sách" nên dải tab chỉ có hàng này; ở Popup có thêm hàng lọc môn + sắp xếp + tìm việc.
+**Dải tab** — {components.button-tab-ribbon}: *Tất cả · Hôm nay · Sắp tới · Đã xong* (kèm số việc). Ở New Tab, môn học nằm ở "Giá sách" nên dải tab chỉ có hàng này; ở Popup có thêm hàng lọc môn + sắp xếp + tìm việc. Chip "20%" (R-21) nằm trong hàng actions, xếp **trên nền tab hiện tại** — vẫn 4 tab, không thêm tab thứ 5; xem Gói A bên dưới.
+
+### Gói A — then chốt & con ếch (R-21)
+
+> As-built spec 1.4.0. Mọi tín hiệu đều có **chữ riêng** — màu chỉ hỗ trợ (R-19); không thêm tab,
+> không thêm màu ngoài bảng, không thêm motion. Nguồn: `styles/board.css`,
+> `entrypoints/newtab/style.css`, `components/{TaskScroll,FilterRow,TaskFields,TaskParchment,SettingsPanel}.tsx`.
+
+| Thành phần | Token / style | Chữ đi kèm |
+|---|---|---|
+| `{components.ribbon-keystone}` (`.keystone-ribbon`, `data-marker="keystone"`) | nền `{colors.gold-pale}`, viền `1px solid {colors.gold}`, chữ `{colors.on-gold}`, `{typography.caption-bold}` HOA | **"THEN CHỐT"** — ribbon trên thẻ việc có `Task.keystone` |
+| `{components.frog-toggle}` (`.frog-toggle`, `data-marker="frog"`) | chưa chọn: nền `{colors.surface-paper}`, chữ `{colors.umber}`, viền `{colors.hairline}`; đang là ếch dùng `{components.frog-toggle-active}`: nền `{colors.jade-wash}`, chữ + viền `{colors.jade}` | **"Chọn ếch"** / **"Ếch hôm nay"** — khác màu **lẫn** khác chữ, không chỉ đổi màu |
+| `{components.keystone-chip}` (`.keystone-chip`, hàng actions của `FilterRow`) | chưa bật: nền `{colors.surface-paper}`, chữ `{colors.brown}`; bật dùng `{components.keystone-chip-active}`: nền `{colors.jade-wash}`, chữ + viền `{colors.jade}`; `min-width 40px`, `min-height 32px` | **"20%"** + `aria-pressed` + `aria-label="Chỉ hiện việc then chốt (20%)"` |
+
+- **Công tắc then chốt** (`.keystone-switch`, `role="switch"` / `aria-checked`): track `{colors.surface-sunk}` → `{colors.jade}` khi bật; knob `{colors.surface-paper}` → `{colors.on-primary}`. Nhãn "Không then chốt" / "Đang giữ then chốt" (`components/TaskFields.tsx:126-149`). Cảnh báo vượt 3 việc (`.keystone-warning`) dùng `{colors.critical}` nhưng là `role="status"` — **không chặn lưu**.
+- **DOM parity compact/full**: ribbon và dấu ếch nằm trong cùng một fragment chip, được render ở mọi nhánh của `TaskScroll` (`components/TaskScroll.tsx:86-120,216-259`). Popup compact và New Tab full có **cùng số con** trong `[data-chip-row]`: popup gộp 1 hàng flex-wrap, New Tab giữ 2 hàng — không ẩn marker ở bản compact, không đổi số hàng chip đã cam kết.
+- **SettingsPanel — "Đã cắt"** (`data-section="archived"`, `components/SettingsPanel.tsx:176-196`): tiêu đề `{typography.heading-sm}`; mỗi việc là `.archived-item` (padding `{spacing.xs} 0`, `min-height 36px`, gạch dưới `{colors.hairline-soft}`, item cuối không gạch). Nút "Phục hồi" dùng `{components.button-secondary}` cỡ nhỏ; danh sách rỗng hiện chú thích `{typography.body-sm}` màu `{colors.umber}`. Giữ giọng "cắt / phục hồi", không gọi là "xoá" ở mục này.
+- **New Tab hero** (`.frog-hero`, `data-frog-state` = `empty | done | cut`, `entrypoints/newtab/App.tsx:248-276`): dùng `{components.hero-frog}`; tiêu đề "Con ếch hôm nay" `{typography.heading-sm}` màu `{colors.primary-deep}`, tên việc `{colors.umber}` với `overflow-wrap: anywhere` (không tràn ở 390px và 1024–1199px), nút "Tập trung 25 phút" là `{components.button-primary}`. Hero nằm dưới lời chào, trước dải tab; nút focus đi qua `handleFocusTask` của R-20 (mục `focus-overlay`), **không** dựng phiên/overlay mới. Dưới 720px nút focus xuống hàng riêng, `margin-left: 0`.
+- **Hai dòng tổng kết** (`.frog-summary` / `.frog-summary-line`, `entrypoints/newtab/App.tsx:350-357`): grid, gap `{spacing.xxs}`, chữ `{colors.umber}`, `overflow-wrap: anywhere`; nội dung "Then chốt: x/y xong" và "Tuần này: then chốt a/b · n việc xong". Suy từ `todayKeystoneSummary` / `weeklySummary` (`lib/tasks/query.ts`), **không** lưu tổng hợp, không điểm số, không thêm thanh tiến độ.
+
+**A11y & motion (R-19/R-21):** `:focus-visible` trên `.keystone-chip`, `.frog-toggle`, `.keystone-switch` → `outline: 2px solid {colors.primary}`, `outline-offset: 2px` (`styles/board.css`). `@media (prefers-reduced-motion: reduce)` ép `transition` / `animation: none !important` cho cả bốn thành phần Gói A. **Không thêm token thời lượng hay animation lặp** (xem `## Motion (as-built)`) — ribbon, dấu ếch, chip "20%" và hero đổi trạng thái tức thì như phần còn lại của hệ.
 
 ### Signature Components
 
@@ -738,6 +794,9 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - Chỉ skeleton lặp; mọi hiệu ứng khác chạy một lần rồi dừng. Không phát lại dấu "XONG" khi cuộn danh sách.
 - Không animate thuộc tính bố cục (`top/left/height`) trừ thanh tiến độ; ưu tiên `transform` + `opacity` + màu.
 - Không dùng `hover` làm tín hiệu duy nhất (xem chính sách ở mục Components).
+- **Gói A (R-21) không thêm token thời lượng hay animation**: ribbon "THEN CHỐT", dấu ếch,
+  chip "20%" và hero đổi trạng thái tức thì; trong `prefers-reduced-motion: reduce` cả bốn bị tắt
+  hẳn (`transition`/`animation: none !important`, `styles/board.css`). Xem mục **Gói A**.
 
 **Giảm chuyển động** (`prefers-reduced-motion: reduce`, `styles/base.css`)
 - Set 5 token `--dur-*` về `0.01ms` và ép `animation-duration` / `transition-duration` = `0.01ms !important`, `animation-iteration-count: 1` cho mọi phần tử: trạng thái đổi tức thì, mực hiện ngay, dấu đóng ngay, skeleton đứng yên.

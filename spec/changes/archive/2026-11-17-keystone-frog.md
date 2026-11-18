@@ -1,7 +1,7 @@
 ---
 id: keystone-frog
 type: feature
-status: in_progress
+status: done
 parent: FEAT-003
 created: 2026-11-17
 updated: 2026-11-17
@@ -34,18 +34,18 @@ Hiện trạng đối chiếu code:
 
 ## Acceptance (bắt buộc)
 
-- [ ] Đánh dấu then chốt → task hiện trong chip "20%"; bỏ dấu → biến mất khỏi chip, dữ liệu khác không đổi.
-- [ ] Vượt 3 việc then chốt **đang mở** → chỉ hiện cảnh báo, vẫn lưu bình thường.
-- [ ] Chọn con ếch → New Tab hero hiện đúng việc; sang ngày mới con ếch cũ tự hết hiệu lực.
-- [ ] Nút "Tập trung 25 phút" trên hero dùng lại luồng gắn việc của Gói C (R-20), không tạo phiên focus thứ hai.
-- [ ] "Cắt bỏ" → task biến khỏi 4 tab, chip 20% và mọi bộ đếm nhưng vẫn còn trong storage; mục "Đã cắt" xem lại + phục hồi được.
-- [ ] Thẻ bài có ribbon "THEN CHỐT"; con ếch có dấu riêng **khác màu lẫn khác chữ**, giữ DOM parity compact/full.
-- [ ] Dòng "Then chốt: x/y xong" và dòng review tuần khớp số liệu thật; không lưu tổng hợp, không điểm số.
-- [ ] `dayPlan` là **1 key duy nhất** trong `chrome.storage.sync`, prune ≤14 ngày, không tạo key/ngày.
-- [ ] Sort vẫn deterministic theo R-15 (chạy 2 lần cùng thứ tự); không tăng permission (R-17), không network.
-- [ ] Mỗi phase reviewer PASS + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + spec-validator PASS.
+- [x] Đánh dấu then chốt → task hiện trong chip "20%"; bỏ dấu → biến mất khỏi chip, dữ liệu khác không đổi.
+- [x] Vượt 3 việc then chốt **đang mở** → chỉ hiện cảnh báo, vẫn lưu bình thường.
+- [x] Chọn con ếch → New Tab hero hiện đúng việc; sang ngày mới con ếch cũ tự hết hiệu lực.
+- [x] Nút "Tập trung 25 phút" trên hero dùng lại luồng gắn việc của Gói C (R-20), không tạo phiên focus thứ hai.
+- [x] "Cắt bỏ" → task biến khỏi 4 tab, chip 20% và mọi bộ đếm nhưng vẫn còn trong storage; mục "Đã cắt" xem lại + phục hồi được.
+- [x] Thẻ bài có ribbon "THEN CHỐT"; con ếch có dấu riêng **khác màu lẫn khác chữ**, giữ DOM parity compact/full.
+- [x] Dòng "Then chốt: x/y xong" và dòng review tuần khớp số liệu thật; không lưu tổng hợp, không điểm số.
+- [x] `dayPlan` là **1 key duy nhất** trong `chrome.storage.sync`, prune ≤14 ngày, không tạo key/ngày.
+- [x] Sort vẫn deterministic theo R-15 (chạy 2 lần cùng thứ tự); không tăng permission (R-17), không network.
+- [x] Mỗi phase reviewer PASS + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + spec-validator PASS.
 
-## Quyết định thiết kế đề xuất (chờ user duyệt plan)
+## Quyết định thiết kế (đã duyệt 2026-11-17T17:01:05+07:00)
 
 1. Toggle "Việc then chốt" hiện trong form thêm/sửa; bật → tự gán `priority='high'` (nhãn A), tắt →
    **không** tự hạ priority. Chính sách cảnh báo đếm việc `!done && !archived && keystone`.
@@ -63,7 +63,15 @@ Hiện trạng đối chiếu code:
 - Không bump `specVersion` ở Gói 0/C nữa; Gói A thêm requirement → bump 1.3.0 → 1.4.0 (MINOR),
   scopeVersion 24 → 25.
 - Không đụng Gói B (`plannedFor`, nhắc 21:00) — `dayPlan` được định nghĩa để B mở rộng sau.
-- `docs/ERD.md`, `docs/API_SPEC.md`, `docs/USER_FLOW.md`, `docs/DESIGN.md` chưa có thuật ngữ Gói A —
-  đây là **phase 3 docs reconcile (deferral)** đã được spec-validator xác nhận, không phải conflict chặn.
-- Spec-validator: `.context/review-reports/feature-keystone-frog-spec-validation.md` — **PASS**
+- `docs/ERD.md`, `docs/API_SPEC.md`, `docs/USER_FLOW.md`, `docs/DESIGN.md` đã reconcile ở phase 3
+  (deferral từ validator đầu change đã đóng).
+- Spec-validator đầu change: `.context/review-reports/feature-keystone-frog-spec-validation.md` — **PASS**
   (0 HIGH; F-01 MEDIUM đã đóng trong spec storage table + delta; F-03 denominator đã chốt ở quyết định 4).
+- Verify cuối: `.context/review-reports/feature-keystone-frog-phase-3-task-01-spec-validation.md` — **PASS**
+  (0 FAIL / 0 HIGH). Reviewer: phase 1 `2d045cc` STRICT round 2 PASS, phase 2-A `0ed6f2a` STRICT
+  round 2 PASS, phase 2-B `80c10f7` NORMAL round 1 PASS. Verify tsc 0 / eslint 0 / vitest
+  30 files 233 tests / wxt build PASS.
+- Residual được chấp nhận: chưa eyeball Chrome thật 360/1024/1199 (chỉ CSS-contract); `putDayPlan`
+  dựa vào lỗi quota của Chrome thay vì pre-check byte; `shouldNotify` không nhánh `archived` nhưng
+  alarm đã bị clear/re-arm đúng; test dùng `new Date()` local có rủi ro flake rất hiếm khi qua nửa đêm;
+  `spec/updates/` nằm trong `.gitignore` theo convention cũ nên delta chỉ có trên đĩa.

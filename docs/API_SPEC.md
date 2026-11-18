@@ -24,18 +24,21 @@ Storage layout `chrome.storage.sync` — chi tiết đầy đủ ở [`ERD.md`](
 
 | Key | Area | Value | Nguồn |
 |---|---|---|---|
-| `t:<uuid>` | `sync` | `Task` (1 key/task, ghi atomic theo key) | `lib/tasks/types.ts:131` (`TASK_KEY_PREFIX`) |
-| `settings` | `sync` | `Settings` | `lib/tasks/types.ts:132` (`SETTINGS_KEY`) |
-| `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:133` (`SUBJECTS_KEY`) |
-| `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:134` (`STUDY_LOG_KEY`) |
-| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` local-only, R-20) | `lib/tasks/types.ts:112,135`, `lib/storage/local.ts:22-37` |
+| `t:<uuid>` | `sync` | `Task` (1 key/task, ghi atomic theo key) | `lib/tasks/types.ts:137` (`TASK_KEY_PREFIX`) |
+| `settings` | `sync` | `Settings` | `lib/tasks/types.ts:138` (`SETTINGS_KEY`) |
+| `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:139` (`SUBJECTS_KEY`) |
+| `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:140` (`STUDY_LOG_KEY`) |
+| `dayPlan` | `sync` | `DayPlan` (**1 key**, prune 14 ngày; R-21) | `lib/tasks/types.ts:143,150-152`, `lib/storage/adapter.ts:242-264` |
+| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` local-only, R-20) | `lib/tasks/types.ts:118,141`, `lib/storage/local.ts:22-37` |
 
-Kiểu `Task`, `Settings`, `Subtask`, `RecurrenceRule`, `Subject`, `StudyLog`, `PomodoroState` định nghĩa
+Kiểu `Task`, `Settings`, `Subtask`, `RecurrenceRule`, `Subject`, `StudyLog`, `PomodoroState`, `DayPlan` định nghĩa
 duy nhất tại `lib/tasks/types.ts` — adapter, recurrence, query, UI đều import từ đây (single source of truth).
 Pomodoro **không** nằm trong `storage.sync` (đồng hồ đổi liên tục + thuộc một máy). Riêng R-20:
 `taskId` (việc đang gắn) và `interruptions` (số lần đổi việc trong phiên) là **local-only** — không đổi
 schema sync, không thêm key/ngày, không ghi `StudyLog`, không sync thiết bị. Chi tiết bảng field:
-[`ERD.md`](ERD.md) §2.7.
+[`ERD.md`](ERD.md) §2.7. R-21 thêm key `sync` thứ năm `dayPlan` (`{ [dayKey YYYY-MM-DD local]:
+{ frogTaskId } }`) — **khác** `PomodoroState` local ở area, mục đích và vòng đời; hydrate qua
+`onChanged` như `t:<id>`. Chi tiết: [`ERD.md`](ERD.md) §2.8.
 
 ## 2. Chrome extension APIs sử dụng
 
@@ -47,8 +50,8 @@ Justification từng quyền cho Chrome Web Store: xem [`PERMISSION.md`](PERMISS
 
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
-| `sync.get(keys, cb)` | `adapter.ts:40` (`storageGet`) | Đọc task/settings/môn/nhật ký; `null` = đọc tất cả |
-| `sync.set(items, cb)` | `adapter.ts:53` (`storageSet`) | Ghi 1 key/task, `settings`, `subjects` hoặc `studyLog` |
+| `sync.get(keys, cb)` | `adapter.ts:38` (`storageGet`) | Đọc task/settings/môn/nhật ký/`dayPlan`; `null` = đọc tất cả |
+| `sync.set(items, cb)` | `adapter.ts:53` (`storageSet`) | Ghi 1 key/task, `settings`, `subjects`, `studyLog` hoặc `dayPlan` (1 key, R-21) |
 | `sync.remove(keys, cb)` | `adapter.ts:66` (`storageRemove`) | Xoá key `t:<id>` |
 | `onChanged.addListener` | `adapter.ts:176`, `background.ts:119` | Nhận thay đổi từ thiết bị khác (R-13) |
 | `sync.getBytesInUse` | `components/SettingsPanel.tsx:34` | Hiển thị dung lượng đã dùng |
@@ -120,12 +123,15 @@ Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notificat
 | `putSubjects` | `(subjects: Subject[]) => Promise<void>` | Ghi nguyên cả danh sách môn (1 key nhỏ, không tách per-item) |
 | `STUDY_LOG_DAYS` | `const = 60` | Số ngày nhật ký học được giữ (`adapter.ts:216`) |
 | `loadStudyLog` | `() => Promise<StudyLog>` | Đọc `studyLog`; rỗng/không hợp lệ → `{}` (`adapter.ts:218`) |
-| `putStudyLog` | `(log: StudyLog) => Promise<void>` | Prune trước khi ghi: sort key ngày rồi `slice(-60)` (`adapter.ts:224-237`) |
-| `subscribe` | `(cb: (changedKeys: string[]) => void) => () => void` | Đăng ký `onChanged` mọi key, trả về unsubscribe |
+| `putStudyLog` | `(log: StudyLog) => Promise<void>` | Prune trước khi ghi: sort key ngày rồi `slice(-60)` (`adapter.ts:225-237`) |
+| `DAY_PLAN_DAYS` | `const = 14` (R-21) | Số ngày `dayPlan` được giữ (`adapter.ts:242`) |
+| `loadDayPlan` | `() => Promise<DayPlan>` | Đọc 1 key `dayPlan`; rỗng/không phải object → `{}` (`adapter.ts:244-248`) |
+| `putDayPlan` | `(plan: DayPlan) => Promise<void>` | Sort key rồi `slice(-14)` prune, ghi **đúng 1 key** `dayPlan` — không key/ngày; bọc lỗi quota thành `StorageQuotaError` (`adapter.ts:250-264`) |
+| `subscribe` | `(cb: (changedKeys: string[]) => void) => () => void` | Đăng ký `onChanged` mọi key (gồm `dayPlan`), trả về unsubscribe |
 
 **Error contract:** `StorageQuotaError` (`adapter.ts:25`) ném khi vượt quota — phát hiện qua
 chuỗi lỗi chứa `QUOTA_BYTES`/`quota` (`isQuotaError`, dòng 32). Các hàm ghi (`put`, `putSettings`,
-`putSubjects`, `putStudyLog`) và các hàm đọc task/settings đều bọc lỗi thành `StorageQuotaError`
+`putSubjects`, `putStudyLog`, `putDayPlan`) và các hàm đọc task/settings đều bọc lỗi thành `StorageQuotaError`
 khi khớp mẫu quota; `loadSubjects`/`loadStudyLog` gọi thẳng `storageGet` nên lỗi lên UI là `Error`
 thường (không bọc quota). UI hiển thị banner, không swallow (R-16).
 
@@ -150,21 +156,30 @@ lưu 1 thứ (`weekdays: [weekday của dueAt]`) vì UI chưa có chỗ chọn n
 
 | Hàm | Chữ ký | Hành vi |
 |---|---|---|
-| `filterByBoard` | `(tasks, tab: BoardTab, now: Date) => Task[]` | `all` = mọi việc; `today` = chưa xong và (hạn cùng **ngày local** hôm nay **hoặc** đã quá hạn); `upcoming` = chưa xong, hạn > now và không phải hôm nay; `done` = `done === true` (`query.ts:112-130`) |
-| `filterBySubject` | `(tasks, subjectId: string) => Task[]` | `'all'` = mọi môn, `'none'` = việc chưa có `subjectId`, còn lại khớp `subjectId` (`query.ts:133-137`) |
-| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc → **id** (tie-breaker); `created` = createdAt desc → **id** (`query.ts:140-166`) |
-| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) (`query.ts:48-84`) |
-| `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive (`query.ts:17-24`) |
-| `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:102-109`) |
-| `dueTodayCount` | `(tasks, now) => number` | `filterByBoard(..., 'today')` length — dùng cho chiếu chỉ + lời chào (`query.ts:159-161`) |
-| `overdueCount` | `(tasks, now) => number` | Đếm task chưa xong có `dueAt < now` (`query.ts:163-165`) |
+| `filterByBoard` | `(tasks, tab: BoardTab, now: Date) => Task[]` | `all` = mọi việc; `today` = chưa xong và (hạn cùng **ngày local** hôm nay **hoặc** đã quá hạn); `upcoming` = chưa xong, hạn > now và không phải hôm nay; `done` = `done === true` (`query.ts:127-147`). **R-21: mọi nhánh đều loại `archived`** (`notArchived`, `query.ts:17-21`) |
+| `filterBySubject` | `(tasks, subjectId: string) => Task[]` | `'all'` = mọi môn, `'none'` = việc chưa có `subjectId`, còn lại khớp `subjectId` (`query.ts:149-155`); R-21: cũng loại `archived` |
+| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc → **id** (tie-breaker); `created` = createdAt desc → **id** (`query.ts:168-190`) |
+| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) (`query.ts:63-103`) |
+| `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive (`query.ts:31-40`); R-21: bỏ qua `archived` |
+| `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:117-125`) |
+| `dueTodayCount` | `(tasks, now) => number` | `filterByBoard(..., 'today')` length — dùng cho chiếu chỉ + lời chào (`query.ts:192-194`) |
+| `overdueCount` | `(tasks, now) => number` | Đếm task chưa xong **chưa cắt** có `dueAt < now` (`query.ts:196-198`) |
+| `filterByKeystone` | `(tasks) => Task[]` | R-21 — chip "20%": thuần `keystone && !archived`, **không** đổi `SortKey` (`query.ts:156-158`) |
+| `activeCount` | `(tasks) => number` | R-21 — số việc đang chờ dùng chung: `!archived && !done` (`query.ts:200-203`) |
+| `todayKeystoneSummary` | `(tasks, now) => { done: number; total: number }` | R-21 — dòng "Then chốt: x/y xong" (ngày local). `done` = then chốt xong hôm nay; `total` = xong hôm nay **hoặc** đang mở. Nguồn "xong": `doneAt()` (`query.ts:23-28`) (`lib/tasks/query.ts:205-220`) |
+| `weeklySummary` | `(tasks, dayPlan, now) => { keystoneDone, keystoneTotal, tasksDone }` | R-21 — cửa sổ **Thứ 2 local → hiện tại** (`startOfWeekLocal`, `lib/datetime.ts`); mọi con số suy từ `Task` + `dayPlan` (tham số contract, Gói B mở rộng sau), **KHÔNG đọc aggregate `studyLog`/`board.doneToday`**, không điểm số (`query.ts:222-254`) |
 
-Sort precedence deterministic (R-15) — `sortTasks`, dòng 48-84. Task không `dueAt` xếp cuối.
+`doneAt(task)` (`query.ts:23-28`) là nguồn "đã xong" thống nhất của hai hàm summary:
+`lastDoneAt ?? (done ? updatedAt : null)` — ưu tiên dấu done-today của việc lặp (dù `done=false`),
+rồi `updatedAt` khi `done=true`. Khác với `isRecurringDoneToday` (so **ngày local**), summary tuần
+so **khoảng thời gian** `[thứ 2 00:00 local, now]` trên cùng mốc `lastDoneAt`/`updatedAt`.
+
+Sort precedence deterministic (R-15) — `sortTasks`, dòng 63-103. Task không `dueAt` xếp cuối.
 UI dùng `sortBoard` với tiêu chí người dùng chọn (`deadline` mặc định, `priority`, `created`) ở
 `components/FilterRow.tsx`; tab Đã xong cũng đi qua `sortBoard` nên **không** tự sort `updatedAt`.
-Cả 3 tiêu chí của `sortBoard` kết thúc bằng tie-breaker `id` (chuỗi) — `compareById`, dòng 140-144 —
+Cả 3 tiêu chí của `sortBoard` kết thúc bằng tie-breaker `id` (chuỗi) — `compareById`, dòng 162-166 —
 nên kết quả không phụ thuộc thứ tự key trong storage (gap **G8 đã đóng**, Gói 0).
-`SortCriterion` (`query.ts:14`) là dead export duy nhất còn lại của bản tab 3 lựa chọn — **không** nơi
+`SortCriterion` (`query.ts:15`) là dead export duy nhất còn lại của bản tab 3 lựa chọn — **không** nơi
 nào import; `filterTasks` và `Tab` đã bị xoá khỏi code (không còn tồn tại). Giữ `SortCriterion` chờ dọn
 vào lần chạm `query.ts` kế tiếp (G4 đã đóng: user chọn được tiêu chí sort).
 
@@ -174,17 +189,23 @@ vào lần chạm `query.ts` kế tiếp (G4 đã đóng: user chọn được t
 |---|---|---|
 | `alarmName` | `(id) => string` | `due:<id>` |
 | `taskIdFromAlarm` | `(name) => string \| null` | Trích id từ tên alarm |
-| `syncAlarms` | `(tasks, now?) => void` | Đồng bộ toàn bộ alarm + dọn mồ côi |
-| `scheduleTask` | `(task, now?) => void` | Tạo/cập nhật alarm 1 task |
-| `clearTaskAlarm` | `(id) => void` | Xoá alarm 1 task |
+| `syncAlarms` | `(tasks, now?) => void` | Đồng bộ toàn bộ alarm + dọn mồ côi; **R-21: task `archived` bị clear alarm** (`scheduler.ts:34-61`) |
+| `scheduleTask` | `(task, now?) => void` | Tạo/cập nhật alarm 1 task (`scheduler.ts:63-72`) |
+| `clearTaskAlarm` | `(id) => void` | Xoá alarm 1 task (`scheduler.ts:74`) |
 
-Điều kiện tạo alarm: `!done && dueAt > now` (`shouldCreateAlarm`, dòng 25). `dueAt ≤ now` → không
-tạo (Chrome fire ngay), task hiển thị overdue (R-12).
+Điều kiện tạo alarm (R-12 + R-21): `!done && !archived && dueAt > now` (`shouldCreateAlarm`,
+`scheduler.ts:26-31`). `dueAt ≤ now` → không tạo (Chrome fire ngay), task hiển thị quá hạn (R-12);
+**task đã cắt bỏ (`archived=true`) → không tạo và alarm cũ bị xoá**, dù vẫn nằm trong storage.
+`useTasks.update` gọi `syncAlarms` **chỉ khi** cờ `archived` đổi (`hooks/useTasks.ts:223-239`):
+cắt bỏ → clear, phục hồi (`archived=false`) → re-arm nếu `dueAt` còn > now — edit thường không đụng
+alarm (tránh write churn). `shouldNotify` (`lib/notifications.ts`) vẫn chỉ gate `done`/`dueAt`/
+`notificationsEnabled`, nên việc đã cắt **không thể fire notification vì không còn alarm để fire**.
 
 ### 3.5 Popup state — `hooks/useTasks.ts`
 
-`useTasks()` → `{ tasks, add, create, update, remove, toggle, restore, loading }` qua
-`useSyncExternalStore` trên adapter (`hooks/useTasks.ts:151`).
+`useTasks()` → `{ tasks, dayPlan, add, create, update, remove, toggle, restore, selectFrog, loading }`
+qua `useSyncExternalStore` trên adapter (`hooks/useTasks.ts:182-183`, return `:359-370`).
+`dayPlan` là snapshot thứ hai, hydrate cùng lúc với `tasks` để một lần render thấy cả hai.
 
 - `add`: quick-add chỉ title → `create(defaultDraft(title))`.
 - `create`: validate title 1–200 trim, `id = crypto.randomUUID()`, mặc định `priority=medium`,
@@ -192,7 +213,14 @@ tạo (Chrome fire ngay), task hiển thị overdue (R-12).
   `createdAt=updatedAt=now`; ghi 1 key rồi `syncAlarms`.
 - `update`: `updatedAt = now` → `put` → thay bản ghi trong snapshot.
 - `restore`: đưa task đã xoá trở lại (undo), giữ nguyên `id`/`createdAt`; có thì thay, chưa có thì thêm.
-- `toggle` có **4 nhánh** (`hooks/useTasks.ts:211-280`):
+- `selectFrog(dayKey, taskId | null)` (R-21): ghi `{ frogTaskId: taskId }` vào `dayPlan[dayKey]` qua
+  `putDayPlan` (1 key, prune 14 ngày), cập nhật cache đã prune rồi `notify()` (`hooks/useTasks.ts:256-271`).
+  Cùng ngày → thay thế; sang ngày khác entry cũ tự hết hiệu lực (consumer đọc theo `dayKey` hôm nay).
+  Đây là cổng ghi duy nhất của con ếch — **không** đụng `PomodoroState.taskId` local của R-20.
+- `update` (R-21): cờ `archived` là flag client-side — set `true` = "Cắt bỏ" (giữ dữ liệu, clear alarm),
+  set lại `false` = phục hồi từ mục "Đã cắt" (re-arm alarm). `syncAlarms` chỉ chạy khi cờ đổi
+  (`hooks/useTasks.ts:223-239`) — khác với `restore` ở trên (undo xoá vĩnh viễn).
+- `toggle` có **4 nhánh** (`hooks/useTasks.ts:273-339`):
   1. **done-today** (`isRecurringDoneToday`) → Hoàn tác hôm nay: `done=false`, `dueAt = prevDueAt ?? dueAt`,
      `prevDueAt=null`, `lastDoneAt=null`, clear rồi reschedule alarm theo hạn cũ — **không** cuộn thêm lần nữa.
   2. **task đang done** → `done=false`, `lastDoneAt=null`, `prevDueAt=null`, giữ `dueAt`, reschedule.
@@ -201,7 +229,8 @@ tạo (Chrome fire ngay), task hiển thị overdue (R-12).
      ngược lại `done=false`, `dueAt=nextDue`, `prevDueAt=dueAt cũ`, `lastDoneAt=stamp`, tạo alarm mới (R-11).
 - `onChanged`: **đọc lại toàn bộ** task từ storage (`loadAll`) rồi thay snapshot — **không** merge từng bản ghi
   theo `updatedAt`; mỗi key `t:<id>` đổi → còn task thì `scheduleTask`, mất task thì `clearTaskAlarm`;
-  `settings` đổi → `syncAlarms` lại toàn bộ (`hooks/useTasks.ts:102-128`) → gap G7.
+  `settings` đổi → `syncAlarms` lại toàn bộ (`hooks/useTasks.ts:125-156`) → gap G7;
+  `dayPlan` đổi → `loadDayPlan()` hydrate snapshot ếch (`hooks/useTasks.ts:127-133`, R-21).
 - Không autosave từng keystroke (giới hạn 120 write/phút) — chỉ ghi khi Lưu / toggle.
 
 ### 3.6 Pomodoro & focus — `hooks/usePomodoro.ts`, `hooks/useBoard.ts` (R-20)
@@ -225,7 +254,11 @@ tạo (Chrome fire ngay), task hiển thị overdue (R-12).
 (kể cả skip) chỉ đổi phase/endsAt. Khi rời focus, `taskId` bị clear và `interruptions` về `0` nếu sang
 focus mới, hoặc bị xoá nếu sang nghỉ (`:113-116`).
 
-`useBoard()` (`hooks/useBoard.ts:24-256`) bọc `usePomodoro` để **hoãn completion**:
+`useBoard()` (`hooks/useBoard.ts:32-286`) bọc `usePomodoro` để **hoãn completion**; R-21: cũng lấy
+`dayPlan`/`selectFrog` từ `useTasks` (`hooks/useBoard.ts:35,41`) rồi **expose nguyên vẹn** lại cho UI
+(`hooks/useBoard.ts:254,282`) — New Tab đọc `board.dayPlan[dayKey].frogTaskId` và gọi `board.selectFrog`
+qua `TaskScroll`; popup dùng chung qua `SettingsPanel`. Ngoài ra `useBoard` còn expose `activeCount`
+(đã loại `archived`) thay cho bộ đếm tự tính ở UI. Cơ chế hoãn completion:
 
 - `onFocusComplete` (`:54-63`) — có việc gắn (đọc qua `focusTaskIdRef`, cập nhật trong render `:73`) thì
   **không** ghi ngay mà đặt `pendingCompletion = { taskId, interruptions }`; không có việc gắn →
@@ -252,9 +285,10 @@ khác completion tự nhiên có xác nhận — nơi duy nhất gọi `record('
 
 | Sự kiện `storage.onChanged` (area `sync`) | Xử lý |
 |---|---|
-| Key `t:<id>` thay đổi | UI (`useTasks`): **reload toàn bộ** task rồi thay snapshot, không merge từng bản ghi; còn task → `scheduleTask`, key bị xoá → `clearTaskAlarm` (`hooks/useTasks.ts:102-128`). Background: reschedule/clear alarm theo đúng key đó (`background.ts:119-140`) |
+| Key `t:<id>` thay đổi | UI (`useTasks`): **reload toàn bộ** task rồi thay snapshot, không merge từng bản ghi; còn task → `scheduleTask`, key bị xoá → `clearTaskAlarm` (`hooks/useTasks.ts:125-156`). Background: reschedule/clear alarm theo đúng key đó (`background.ts:119-140`) |
 | Key `t:<id>` bị xoá (`newValue` undefined/null) | Xoá task local + `alarms.clear('due:<id>')` (`background.ts:129-131`) |
-| Key `settings` thay đổi | `useTasks` → `syncAlarms` toàn bộ (`hooks/useTasks.ts:119-125`); background → `applyDisplayMode` (gắn/gỡ `popup.html`) qua `chrome.action.setPopup` (`background.ts:123-125`) — **không** áp theme (sản phẩm chỉ có tông sáng) |
+| Key `settings` thay đổi | `useTasks` → `syncAlarms` toàn bộ (`hooks/useTasks.ts:150-154`); background → `applyDisplayMode` (gắn/gỡ `popup.html`) qua `chrome.action.setPopup` (`background.ts:123-125`) — **không** áp theme (sản phẩm chỉ có tông sáng) |
+| Key `dayPlan` thay đổi (R-21) | `useTasks` → `loadDayPlan()` hydrate snapshot ếch (`hooks/useTasks.ts:127-133`); background **không** xử lý riêng (không sinh alarm từ ếch). Ghép chung một lần render với `tasks` |
 | Key `subjects` / `studyLog` | Không có xử lý riêng ở background; `useBoard` đọc lại qua `useSubjects`/`useStudyLog` khi storage đổi |
 
 Intent R-13 vẫn là last-write-wins theo `updatedAt` cho từng bản ghi; code hiện **không** so `updatedAt`
@@ -273,8 +307,8 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 | G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:88-89`: `SortKey = 'deadline' \| 'priority' \| 'created'` + `sortBoard`; UI `FilterRow` cho chọn qua menu "Sắp xếp" | ✅ Đã đóng phần **chọn được tiêu chí**. Tie-breaker **không đồng nhất giữa 3 tiêu chí** → xem **G8**; `SortCriterion='default'` còn là dead export (không nơi nào import) |
 | G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,32,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 | G6 | R-09/R-10: `dueAt` là ISO 8601 **local** (một dạng duy nhất) | `lib/datetime.ts:92/109` `formatLocalInput` + `normalizeDueAt`; `recurrence.ts:75-111` trả wall-clock local không `Z`; `adapter.ts:84-91` normalize in-memory khi đọc | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — một dạng chuỗi duy nhất; task cũ dạng `Z` được quy về local khi đọc, không ghi lại. Xem [`ERD.md`](ERD.md) §2.1 |
-| G7 | R-13: sync **last-write-wins theo `updatedAt`** từng bản ghi | `hooks/useTasks.ts:102-128`: `onChanged` → `loadAll()` reload toàn bộ rồi thay snapshot, không so `updatedAt`; background reschedule theo key | **Mở** — trên 2 thiết bị, thay đổi sau ghi đè trước ở tầng storage nên kết quả vẫn "bản mới nhất thắng" theo Chrome, nhưng UI không tự phân xử merge; intent merge vẫn giữ, code chưa implement |
-| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:140-166` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt` → id; `priority` → priority desc → `dueAt` asc → `createdAt` desc → id; `created` → `createdAt` desc → id | ✅ Đã đóng 2026-11-17 (Gói 0) — mọi tiêu chí đều có tie-breaker `id` (chuỗi) nên hai lần chạy / hai thứ tự key storage cho cùng kết quả. Test `src/__tests__/query.test.ts`. Ghi chú: `priority` vẫn dùng chuỗi riêng **có chủ đích** (người dùng chọn "Ưu tiên" thì ưu tiên đứng trước hạn), không phải chuỗi `deadline` |
+| G7 | R-13: sync **last-write-wins theo `updatedAt`** từng bản ghi | `hooks/useTasks.ts:125-156`: `onChanged` → `loadAll()` reload toàn bộ rồi thay snapshot, không so `updatedAt`; background reschedule theo key | **Mở** — trên 2 thiết bị, thay đổi sau ghi đè trước ở tầng storage nên kết quả vẫn "bản mới nhất thắng" theo Chrome, nhưng UI không tự phân xử merge; intent merge vẫn giữ, code chưa implement |
+| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:168-190` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt` → id; `priority` → priority desc → `dueAt` asc → `createdAt` desc → id; `created` → `createdAt` desc → id | ✅ Đã đóng 2026-11-17 (Gói 0) — mọi tiêu chí đều có tie-breaker `id` (chuỗi) nên hai lần chạy / hai thứ tự key storage cho cùng kết quả. Test `src/__tests__/query.test.ts`. Ghi chú: `priority` vẫn dùng chuỗi riêng **có chủ đích** (người dùng chọn "Ưu tiên" thì ưu tiên đứng trước hạn), không phải chuỗi `deadline` |
 | G9 | R-19: trải nghiệm Sơn Mài có chủ đích — responsive 1024–1199, menu môn không che chân popup, affordance dải tab, motion | `docs/DESIGN.md` §Known Gaps ghi rõ các mục **chưa verify/chưa đạt**: 1024–1199px dùng **2 cột** (`entrypoints/newtab/style.css:112-120`) chứ không phải ba vùng; `.menu` không lật lên (`components/ui/Menu.tsx:95`, `styles/components.css:500-501`); chưa đo trên 360/390/1024 thật | **Mở (R-19)** — đang xử lý trong FEAT-002 (`son-mai-experience-polish`); chỉ đóng khi đo browser thật + menu không che chân popup. Xem `docs/ROADMAP_TIME_MANAGEMENT.md` §8 |
 
 > Gap còn **mở**: G7 (merge theo `updatedAt`) và G9 (responsive Sơn Mài). G3/G6/G8 đã đóng.
@@ -283,6 +317,10 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 ## 6. Versioning
 
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện `1.3.0` — khớp frontmatter `SPECIFICATIONS.md`; scopeVersion 23). R-20 chỉ thêm field local `PomodoroState.taskId` / `interruptions`, **không** đổi schema sync.
-Đổi schema `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.4.0`** — khớp frontmatter
+`SPECIFICATIONS.md`; **scopeVersion 25**). R-20 chỉ thêm field local `PomodoroState.taskId` /
+`interruptions`, **không** đổi schema sync. R-21 (spec 1.4.0) thêm `Task.keystone?` / `Task.archived?`
+(flag client-side, mặc định `false`) và **một** key sync `dayPlan` (`DayPlan`, prune 14 ngày,
+`DAY_PLAN_DAYS = 14`, 8192 B/item) — vẫn không đổi permission (R-17), không network. Đổi schema
+`Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

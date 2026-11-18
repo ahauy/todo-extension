@@ -15,7 +15,7 @@
 | FEAT-003 | Nâng cấp quản lý thời gian: then chốt/con ếch · 6P · đơn nhiệm · thói quen 21 ngày · time blocking | ADDITIVE/MODIFY | in_progress | [2026-11-16-time-management-upgrade.md](2026-11-16-time-management-upgrade.md) | 2026-11-16 | — |
 | FUP-001 | Rà soát residual Gói C: số dòng, responsive thật, kế hoạch double-focus, nút detach, sửa path scope | MODIFY | done | [2026-11-17-package-c-residual-accuracy.md](archive/2026-11-17-package-c-residual-accuracy.md) | 2026-11-17 | 2026-11-17 |
 | FEAT-003/0 | Gói 0 — chuẩn hoá `dueAt` (G6) + weekly `weekdays` (G3) | MODIFY | done | [2026-11-16-package-0-time-foundation.md](archive/2026-11-16-package-0-time-foundation.md) | 2026-11-16 | 2026-11-17 |
-| FEAT-003/A | Gói A — Việc then chốt (≤3, cảnh báo), chip 20%, con ếch theo ngày, cắt bỏ/archive + review tuần | ADDITIVE | in_progress | [2026-11-17-keystone-frog.md](2026-11-17-keystone-frog.md) | 2026-11-17 | — |
+| FEAT-003/A | Gói A — Việc then chốt (≤3, cảnh báo), chip 20%, con ếch theo ngày, cắt bỏ/archive + review tuần | ADDITIVE | done | [2026-11-17-keystone-frog.md](archive/2026-11-17-keystone-frog.md) | 2026-11-17 | 2026-11-17 |
 | TOOL-001 | Adapter WorkBuddy tương đương workflow opencode (agents/commands/skills/hooks) | ADDITIVE | done | [2026-11-17-workbuddy-compat-adapter.md](archive/2026-11-17-workbuddy-compat-adapter.md) | 2026-11-17 | 2026-11-17 |
 
 ## Quy tắc tracking

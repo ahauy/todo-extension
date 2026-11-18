@@ -3,6 +3,7 @@
 > **Derived doc.** Các luồng người dùng chính, suy ra từ [`SPECIFICATIONS.md`](../SPECIFICATIONS.md)
 > (R-01…R-20) + [`.context/design-spec.md`](../.context/design-spec.md) (interaction model §8).
 > Đây là mô tả hành vi mục tiêu; đối chiếu code thật khi validate. Đổi behavior → qua `/change`.
+> Gói A (R-21, spec 1.4.0) đã as-built: xem §12 — bật/tắt then chốt, chọn ếch, cắt bỏ/phục hồi.
 
 ## 0. Bối cảnh
 
@@ -58,7 +59,8 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 ## 4. Sửa task (R-02, R-06, R-08)
 
 1. Bấm title row → mở **tờ giấy detail** overlay (focus vào field đầu tiên).
-2. Sửa field; footer hiện "Có thay đổi chưa lưu" khi dirty.
+2. Sửa field; footer hiện "Có thay đổi chưa lưu" khi dirty. Công tắc **"Việc then chốt"** nằm cùng
+   tờ (bật tự đẩy ưu tiên Cao, tắt không hạ) — xem §12.1.
 3. `Lưu` hoặc `Cmd/Ctrl+Enter` → ghi storage (1 write) → đóng panel, focus về row.
 4. Tick subtask ghi ngay, **không** đổi task cha.
 5. Back khi dirty → dialog "Bỏ thay đổi?" (nút an toàn "Giữ lại" focus mặc định).
@@ -76,6 +78,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 1. Bấm icon search (hoặc `/`) → ô tìm kiếm thay chỗ ô chọn môn; gõ → lọc **live, không debounce**
    theo title/note/tag.
 2. Ribbon 4 tab: `Tất cả · Hôm nay · Sắp tới · Đã xong` (mỗi tab kèm số việc; `←/→` điều hướng).
+   Chip **"20%"** (R-21) là toggle nằm **trên nền tab hiện tại**, không phải tab thứ 5 — xem §12.1.
 3. Menu **môn học** (popup không có cột Giá sách): `Cả giá sách` / từng môn / `Chưa xếp môn`.
 4. Menu sort: `Hạn chót` / `Ưu tiên` / `Mới nhất`; tie-breaker theo **từng lựa chọn**:
    - `Hạn chót` → quá hạn trước → `dueAt` gần nhất → priority → `createdAt`.
@@ -116,6 +119,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    - `lacquerSheen` — ánh sơn trên mặt bàn.
    - `pomodoroPreset` — `25/5 · 50/10`.
    - `soundEnabled` — chuông + tiếng giấy.
+   - **Đã cắt** (R-21) — mục xem lại các việc `archived=true` + nút "Phục hồi" (§12.3).
 3. **Không có lựa chọn theme**: bảng màu Sơn Mài light-only, không `system/light/dark`, không `data-theme`.
 4. Mỗi thay đổi ghi `settings` (1 write) và áp ngay; đổi `notificationsEnabled` → resync alarm.
 5. Dung lượng đồng bộ (optional): `x KB / 100 KB` + bar (ẩn nếu API lỗi, không fake số).
@@ -155,6 +159,52 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 6. `interruptions` khởi tạo 0 khi bắt đầu phiên focus mới, bị xoá khi reset/skip/kết thúc phiên —
    không tồn tại ngoài phiên. Việc đã xoá khi đang mở overlay → hiện "Việc không còn tồn tại" thay vì
    crash.
+
+## 12. Gói A — Việc then chốt & Con ếch (R-21, spec 1.4.0)
+
+> As-built sau Gói A. `Task.keystone?` / `Task.archived?` mặc định `false`; `dayPlan` là **1 key**
+> `chrome.storage.sync` prune 14 ngày, **khác** `PomodoroState` local của R-20 (§11). Xem
+> [`ERD.md`](ERD.md) §2.1, §2.8 và [`API_SPEC.md`](API_SPEC.md) §3.3, §3.5.
+
+### 12.1 Bật/tắt then chốt → chip "20%"
+
+1. Trong ô ghi mở rộng hoặc tờ giấy chi tiết, bật công tắc **"Việc then chốt"** (`role="switch"`,
+   nhãn "Đang giữ then chốt" / "Không then chốt"): **bật tự gán `priority='high'`** (nhãn A),
+   **tắt KHÔNG tự hạ** priority. Đây chỉ là nhãn lọc, không thêm mức ưu tiên.
+2. Tổng then chốt đang mở (`!done && !archived && keystone`) vượt **3** → hiện dòng cảnh báo inline
+   "Đang giữ N việc then chốt" (`role="status"`). **Chỉ cảnh báo, vẫn lưu bình thường** — không chặn
+   submit, không tự bớt việc (`lib/tasks/form.ts:45-54`).
+3. Trên dải lọc, chip **"20%"** (`aria-pressed`, `aria-label="Chỉ hiện việc then chốt (20%)"`) là
+   toggle xếp **trên nền tab hiện tại**: bật → chỉ hiện việc `keystone && !archived` của tab đó;
+   tắt → hiện lại như cũ. Ribbon vẫn **4 tab**, không thêm tab thứ 5; thứ tự sort vẫn deterministic
+   theo R-15 (§6).
+
+### 12.2 Chọn ếch từ thẻ bài → hero New Tab → tập trung
+
+1. Trên thẻ bài, cùng hàng chip, bấm **"Chọn ếch"** → `selectFrog(dayKey hôm nay, taskId)` ghi vào
+   `dayPlan[dayKey].frogTaskId` (1 key, prune 14 ngày). Cùng ngày chọn việc khác → thay thế; bấm lại
+   đúng việc đang là ếch → bỏ chọn (`null`).
+2. Ribbon **"THEN CHỐT"** (vàng kim) và dấu ếch **khác màu LẪN khác chữ**: đang là ếch hiện
+   "Ếch hôm nay" (ngọc lục), chưa chọn hiện "Chọn ếch" (trung tính). Cả hai nằm chung một fragment
+   chip nên bản compact (popup) và full (New Tab) có cùng số con trong `data-chip-row`.
+3. New Tab hiện hero **"Con ếch hôm nay"** với tên việc + nút **"Tập trung 25 phút"**. Sang ngày
+   local mới entry cũ tự hết hiệu lực (hero rỗng); việc bị cắt → hero hiện "Đã cắt · …", việc đã xoá
+   → hero rỗng — không crash.
+4. Nút **"Tập trung 25 phút"** gọi lại `startFocusOn(id)` của Gói C (§11) — **không tạo phiên focus
+   thứ hai**. Nếu đang trong phiên focus và chọn việc khác, hiện xác nhận "Đổi việc đang tập trung?":
+   "Giữ việc cũ" → không đổi, không đếm; "Đổi việc" → `interruptions += 1` (local-only, R-20).
+5. Hai dòng tổng kết (New Tab) suy thuần từ dữ liệu, **không lưu số tổng hợp, không điểm số**:
+   "Then chốt: x/y xong" (hôm nay) và "Tuần này: then chốt a/b · n việc xong" (Thứ 2 local → hiện
+   tại). Mốc "xong" lấy `lastDoneAt` (nếu có) hoặc `updatedAt` khi `done=true`.
+
+### 12.3 "Cắt bỏ" → "Đã cắt" → phục hồi
+
+1. Trong tờ giấy chi tiết (`TaskParchment`) bấm **"Cắt bỏ"** → đặt `archived=true`; **giữ nguyên
+   dữ liệu** trong key `t:<id>` (không xoá key, không xoá note/tag/subtask/lịch sử).
+2. Việc lập tức biến khỏi 4 tab, chip "20%", tìm kiếm, mọi bộ đếm/empty-state/danh sách môn — và
+   **alarm bị clear** (`shouldCreateAlarm` từ chối `archived`), nên không còn nhắc dù `dueAt` còn.
+3. Vào **Cài đặt → "Đã cắt"** (có ở cả popup và New Tab) → danh sách việc đã cắt, bấm **"Phục hồi"**
+   → `archived=false`, dữ liệu giữ nguyên và alarm được đặt lại nếu hạn vẫn > now.
 
 ## Keyboard map
 
