@@ -20,6 +20,11 @@ function notArchived(task: Task): boolean {
   return !task.archived;
 }
 
+/** R-22 — việc đã hẹn làm vào một ngày local (suy từ task, không lưu aggregate). */
+export function plannedForDay(tasks: Task[], day: string): Task[] {
+  return tasks.filter((task) => !task.archived && !task.done && task.plannedFor === day);
+}
+
 /** Nguồn "đã xong" dùng cho summary: `lastDoneAt` ưu tiên (task lặp done-today
  *  có `done=false` nhưng đã đóng dấu), rồi `updatedAt` khi `done=true`.
  *  Không đọc `studyLog`/`board.doneToday` (aggregate đã lưu). */

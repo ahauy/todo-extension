@@ -18,10 +18,13 @@
 export interface AlarmRecord {
   delayInMinutes?: number;
   periodInMinutes?: number;
+  /** R-22 — chrome.alarms.create({ when }) */
+  when?: number;
 }
 
 export type StorageChangeListener = (
-  changes: Record<string, chrome.storage.StorageChange>
+  changes: Record<string, chrome.storage.StorageChange>,
+  area?: string
 ) => void;
 
 export interface ChromeStub {
@@ -41,8 +44,19 @@ export interface ChromeStub {
   notificationLevel: 'granted' | 'denied';
   /** Ghi trực tiếp nhiều key (không phát onChanged — dùng trước khi mount) */
   seed(items: Record<string, unknown>): void;
-  /** Phát onChanged cho danh sách key (shape tối thiểu mà adapter cần) */
-  emitChange(keys: string[]): void;
+  /** Phát chrome.storage.onChanged cho danh sách key (area mặc định `sync`) */
+  emitChange(keys: string[], area?: string): void;
+  /** R-22 — event/API cho background wiring test */
+  alarmListeners: Set<(alarm: { name: string }) => void>;
+  notificationListeners: Set<(id: string) => void>;
+  installedListeners: Set<() => void>;
+  startupListeners: Set<() => void>;
+  notificationsCreated: Array<{ id: string; options: unknown }>;
+  tabsCreated: Array<{ url?: string }>;
+  emitAlarm(name: string): void;
+  emitNotificationClick(id: string): void;
+  emitInstalled(): void;
+  emitStartup(): void;
   /** Phát chrome.storage.local.onChanged cho danh sách key (1 đối số changes) */
   emitLocalChange(keys: string[]): void;
   /** Xoá sạch store/alarms/listeners */
@@ -84,6 +98,12 @@ export function createChromeStub(): ChromeStub {
     level: 'granted',
   };
   const subscribeCallsState = { calls: 0 };
+  const alarmListeners = new Set<(alarm: { name: string }) => void>();
+  const notificationListeners = new Set<(id: string) => void>();
+  const installedListeners = new Set<() => void>();
+  const startupListeners = new Set<() => void>();
+  const notificationsCreated: Array<{ id: string; options: unknown }> = [];
+  const tabsCreated: Array<{ url?: string }> = [];
 
   /** Phát local onChanged — shape đúng của area-local event: (changes) => void */
   const fireLocal = (changes: Record<string, chrome.storage.StorageChange>) => {
@@ -153,7 +173,35 @@ export function createChromeStub(): ChromeStub {
         },
       },
     },
-    runtime: { lastError: null as { message?: string } | null },
+    runtime: {
+      lastError: null as { message?: string } | null,
+      getURL(path: string) {
+        return `chrome-extension://stub/${path}`;
+      },
+      onInstalled: {
+        addListener(cb: () => void) { installedListeners.add(cb); },
+        removeListener(cb: () => void) { installedListeners.delete(cb); },
+      },
+      onStartup: {
+        addListener(cb: () => void) { startupListeners.add(cb); },
+        removeListener(cb: () => void) { startupListeners.delete(cb); },
+      },
+    },
+    action: {
+      onClicked: {
+        addListener() {},
+      },
+      setPopup() {},
+    },
+    tabs: {
+      create(info: { url?: string }) {
+        tabsCreated.push(info);
+        return Promise.resolve({ id: tabsCreated.length });
+      },
+      update() {
+        return Promise.resolve();
+      },
+    },
     alarms: {
       create(name: string, info?: AlarmRecord) {
         alarms.set(name, { ...info });
@@ -165,9 +213,19 @@ export function createChromeStub(): ChromeStub {
       getAll(cb: (items: { name: string }[]) => void) {
         cb([...alarms.keys()].map((name) => ({ name })));
       },
+      onAlarm: {
+        addListener(cb: (alarm: { name: string }) => void) { alarmListeners.add(cb); },
+        removeListener(cb: (alarm: { name: string }) => void) { alarmListeners.delete(cb); },
+      },
     },
     notifications: {
-      create() {},
+      create(id: string, options: unknown) {
+        notificationsCreated.push({ id, options });
+      },
+      onClicked: {
+        addListener(cb: (id: string) => void) { notificationListeners.add(cb); },
+        removeListener(cb: (id: string) => void) { notificationListeners.delete(cb); },
+      },
       getPermissionLevel(cb: (level: 'granted' | 'denied') => void) {
         cb(notificationState.level);
       },
@@ -180,6 +238,12 @@ export function createChromeStub(): ChromeStub {
     alarms,
     listeners,
     localListeners,
+    alarmListeners,
+    notificationListeners,
+    installedListeners,
+    startupListeners,
+    notificationsCreated,
+    tabsCreated,
     get subscribeCalls() {
       return subscribeCallsState.calls;
     },
@@ -192,15 +256,27 @@ export function createChromeStub(): ChromeStub {
     seed(items) {
       for (const [key, value] of Object.entries(items)) store.set(key, value);
     },
-    emitChange(keys) {
+    emitChange(keys, area = 'sync') {
       const changes: Record<string, chrome.storage.StorageChange> = {};
       for (const key of keys) changes[key] = { newValue: store.get(key) };
-      for (const listener of listeners) listener(changes);
+      for (const listener of listeners) listener(changes, area);
     },
     emitLocalChange(keys) {
       const changes: Record<string, chrome.storage.StorageChange> = {};
       for (const key of keys) changes[key] = { newValue: localStore.get(key) };
       fireLocal(changes);
+    },
+    emitAlarm(name) {
+      for (const listener of alarmListeners) listener({ name });
+    },
+    emitNotificationClick(id) {
+      for (const listener of notificationListeners) listener(id);
+    },
+    emitInstalled() {
+      for (const listener of installedListeners) listener();
+    },
+    emitStartup() {
+      for (const listener of startupListeners) listener();
     },
     reset() {
       store.clear();
@@ -208,6 +284,12 @@ export function createChromeStub(): ChromeStub {
       alarms.clear();
       listeners.clear();
       localListeners.clear();
+      alarmListeners.clear();
+      notificationListeners.clear();
+      installedListeners.clear();
+      startupListeners.clear();
+      notificationsCreated.length = 0;
+      tabsCreated.length = 0;
       subscribeCallsState.calls = 0;
     },
     install() {

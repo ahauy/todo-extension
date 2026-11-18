@@ -94,11 +94,12 @@ Kết luận: thứ tự triển khai phải theo **vòng lặp**, không theo �
 
 **Chưa có (phải thêm mới):**
 
-1. `chrome.notifications.onClicked` — hiện chỉ có `chrome.action.onClicked` (`background.ts:87`). Gói B cần
-   bấm thông báo để mở đúng "Kế hoạch mai".
+1. ~~`chrome.notifications.onClicked` — hiện chỉ có `chrome.action.onClicked` (`background.ts:87`). Gói B cần
+   bấm thông báo để mở đúng "Kế hoạch mai".~~ ✅ Đã đóng 2026-11-18 (R-22): bấm `plan:*` ghi cờ local rồi mở bảng.
 2. Lịch sử đóng dấu **theo từng task** — chỉ có `lastDoneAt` (lần gần nhất) → không tính được streak
    theo thói quen nếu không thêm dữ liệu (Gói D).
-3. Khái niệm **ngày dự định làm** — `dueAt` là *hạn chót*, không phải *kế hoạch* (Gói B).
+3. ~~Khái niệm **ngày dự định làm** — `dueAt` là *hạn chót*, không phải *kế hoạch* (Gói B).~~
+   ✅ Đã đóng 2026-11-18: `Task.plannedFor` tách khỏi `dueAt` (spec R-22).
 4. Bất kỳ UI nào gọi `pomodoro.attach(taskId)` — API có, hiển thị có, **chưa có nút** (Gói C).
 
 ## 3. Ràng buộc thiết kế (bắt buộc tôn trọng)
@@ -210,6 +211,10 @@ dayPlan: {
 
 ### Gói B — "6P: Tối nay lên kế hoạch mai"
 
+> **As-built 2026-11-18** (FEAT-003/B, spec 1.5.0): đã xong data/alarm/UI/docs; test 37 files / 267
+> tests PASS, 4 lệnh verify PASS. `plan:tomorrow` là alarm one-shot tự resync (không `periodInMinutes`
+> cố định); ếch cho mai dùng chung key `dayPlan` của Gói A. Không thêm permission/network.
+
 **Phương pháp:** 6P — *Proper Prior Planning Prevents Poor Performance*.
 
 **Mục tiêu:** 10 phút buổi tối biến buổi sáng hôm sau thành thực thi, không phải ra quyết định.
@@ -228,8 +233,8 @@ planReminder: { enabled: boolean; at: string };  // mặc định { enabled: tru
 **Hành vi & UI:**
 - Alarm hằng ngày lúc `planReminder.at` → notification "10 phút lên kế hoạch ngày mai".
   **Mặc định bật sẵn 21:00**; user tắt hoặc đổi giờ trong Cài đặt.
-- Cần thêm `chrome.notifications.onClicked` (hiện chưa có) để bấm vào mở đúng sheet — nếu không,
-  thông báo chỉ là lời nhắc suông.
+- `chrome.notifications.onClicked` **đã có từ R-22**: bấm `plan:*` ghi cờ mở sheet rồi mở bảng;
+  bấm notification việc đến hạn vẫn đi luồng cũ. Xem USER_FLOW §13.1.
 - Sheet "Kế hoạch mai": chọn ≤5 việc từ *Sắp tới* + *Chưa hẹn*, gán `plannedFor = mai`, chọn con ếch.
 - Tab "Hôm nay" thêm khối "Đã hẹn hôm nay" (khác "Quá hạn" — không tô đỏ).
 - Setting mới trong `SettingsPanel` (toggle + giờ), phải thêm vào `normalizeSettings`.
@@ -244,10 +249,10 @@ planReminder: { enabled: boolean; at: string };  // mặc định { enabled: tru
 **Phụ thuộc:** Gói 0. Nên làm **sau** Gói A (sheet cần khái niệm then chốt để chọn con ếch).
 
 **Nghiệm thu sơ bộ:**
-- [ ] Tắt setting → không có notification nào vào giờ nhắc.
-- [ ] Bấm notification → mở đúng sheet kế hoạch (không mở tab trống).
-- [ ] `plannedFor` không ảnh hưởng hạn chót: quá `plannedFor` mà chưa xong **không** thành "quá hạn".
-- [ ] Đổi giờ nhắc → alarm cũ bị clear, alarm mới đúng giờ (không nhân đôi).
+- [x] Tắt setting → không có notification nào vào giờ nhắc.
+- [x] Bấm notification → mở đúng sheet kế hoạch (không mở tab trống).
+- [x] `plannedFor` không ảnh hưởng hạn chót: quá `plannedFor` mà chưa xong **không** thành "quá hạn".
+- [x] Đổi giờ nhắc → alarm cũ bị clear, alarm mới đúng giờ (không nhân đôi).
 
 ---
 

@@ -15,6 +15,7 @@ import FilterRow from '../../components/FilterRow';
 import TaskScrollList from '../../components/TaskScrollList';
 import TaskParchment from '../../components/TaskParchment';
 import SettingsPanel from '../../components/SettingsPanel';
+import PlanTomorrowSheet from '../../components/PlanTomorrowSheet';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FocusConfirms, { type FocusInterrupt } from '../../components/FocusConfirms';
 import Toast from '../../components/Toast';
@@ -30,10 +31,11 @@ import { StudyWindow } from '../../components/art/Scenes';
 import { useBoard } from '../../hooks/useBoard';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { greetingFor, longDate, dayKey } from '../../lib/datetime';
-import { rememberBoardTab } from '../../lib/storage/local';
+import { rememberBoardTab, consumePlanSheet } from '../../lib/storage/local';
 import type { Subject } from '../../lib/tasks/types';
 import {
   isRecurringDoneToday,
+  plannedForDay,
   todayKeystoneSummary,
   weeklySummary,
   type BoardTab,
@@ -81,6 +83,7 @@ export default function App() {
   const [dirty, setDirty] = useState(false);
   const [dirtyConfirm, setDirtyConfirm] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
   const [bannerHidden, setBannerHidden] = useState(false);
   const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
@@ -92,6 +95,10 @@ export default function App() {
   useEffect(() => {
     void chrome.tabs?.getCurrent?.((current) => {
       if (current?.id !== undefined) void rememberBoardTab(current.id);
+    });
+    // R-22 — notification "Kế hoạch mai" đã ghi cờ → mở sheet lần đầu mount.
+    void consumePlanSheet().then((requested) => {
+      if (requested) setPlanOpen(true);
     });
   }, []);
 
@@ -137,7 +144,9 @@ export default function App() {
     void chrome.tabs?.create?.({ url: chrome.runtime.getURL('newtab.html') });
   }, []);
 
-  if (board.settings.displayMode === 'popup') {
+  // R-22 — notification kế hoạch phải mở đúng sheet ngay cả khi user chọn chế độ Popup:
+  // bỏ qua màn lời chào tĩnh khi đã có yêu cầu mở sheet (cờ đã consume → planOpen=true).
+  if (board.settings.displayMode === 'popup' && !planOpen) {
     return <QuietNewTab onOpenBoard={openBoardTab} />;
   }
 
@@ -177,6 +186,28 @@ export default function App() {
   const dailySummary = todayKeystoneSummary(board.tasks, board.now);
   const weekSummary = weeklySummary(board.tasks, board.dayPlan, board.now);
 
+  // R-22 — kế hoạch mai: ngày local kế tiếp, nguồn là Sắp tới + Chưa hẹn.
+  const tomorrow = new Date(board.now.getFullYear(), board.now.getMonth(), board.now.getDate() + 1);
+  const tomorrowKey = dayKey(tomorrow);
+  const planCandidates = board.tasks.filter(
+    (task) => !task.done && !task.archived && (!task.dueAt || new Date(task.dueAt) > board.now)
+  );
+  const plannedToday = tab === 'today' ? plannedForDay(board.tasks, todayKey) : [];
+  const saveTomorrowPlan = useCallback(
+    (ids: string[], frogId: string | null) => {
+      void (async () => {
+        for (const id of ids) {
+          const task = board.tasks.find((item) => item.id === id);
+          if (task) await board.updateTask({ ...task, plannedFor: tomorrowKey });
+        }
+        if (frogId) await board.selectFrog(tomorrowKey, frogId);
+        setPlanOpen(false);
+        board.setToast({ message: 'Đã lên kế hoạch cho ngày mai.' });
+      })();
+    },
+    [board.tasks, board.updateTask, board.selectFrog, board.setToast, tomorrowKey]
+  );
+
   const handleToggle = (id: string) => {
     if (focusActive && id !== board.pomodoro.taskId) {
       setInterrupt({ kind: 'toggle', id });
@@ -215,6 +246,9 @@ export default function App() {
               icon={board.settings.soundEnabled ? <SoundOnIcon size={17} /> : <SoundOffIcon size={17} />}
               onClick={board.toggleSound}
             />
+            <Button variant="secondary" size="sm" onClick={() => setPlanOpen(true)}>
+              Kế hoạch mai
+            </Button>
             <IconButton
               aria-label="Cài đặt"
               title="Cài đặt"
@@ -302,6 +336,24 @@ export default function App() {
                 onOnlyKeystoneChange={setOnlyKeystone}
               />
             </div>
+            {tab === 'today' && plannedToday.length > 0 && (
+              <section
+                className="mt-lg stack gap-xs"
+                data-section="planned-today"
+                aria-label="Đã hẹn hôm nay"
+              >
+                <h3 className="text-caption font-bold tracking-[0.4px] text-brown">
+                  Đã hẹn hôm nay
+                </h3>
+                <ul className="stack gap-xs">
+                  {plannedToday.map((task) => (
+                    <li key={task.id} className="text-body-sm text-umber">
+                      {task.title}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <div className="mt-lg">
               <TaskScrollList
                 tasks={board.tasks}
@@ -396,6 +448,15 @@ export default function App() {
         />
       )}
 
+      {planOpen && (
+        <PlanTomorrowSheet
+          open={planOpen}
+          tasks={planCandidates}
+          dayLabel={longDate(tomorrow)}
+          onClose={() => setPlanOpen(false)}
+          onSave={saveTomorrowPlan}
+        />
+      )}
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Cài đặt">
         <SettingsPanel />
       </Modal>

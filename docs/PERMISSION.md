@@ -24,8 +24,8 @@
 | Quyền | Dùng để làm gì | Bằng chứng code | Vì sao cần |
 |-------|----------------|-----------------|-----------|
 | `storage` | Lưu task + settings trong `chrome.storage.sync`, đồng bộ theo tài khoản Chrome | `lib/storage/adapter.ts` (get/set/remove/onChanged) | Lưu trữ dữ liệu todo cục bộ + đồng bộ đa thiết bị; không có backend thay thế |
-| `alarms` | Đặt nhắc việc bền vững tên `due:<id>`, sống qua vòng đời service worker MV3 | `lib/alarms/scheduler.ts`, `entrypoints/background.ts:92` (`alarms.onAlarm`) | `setTimeout` không bền khi SW bị kill; alarm là cách MV3 chuẩn để nhắc đúng hạn |
-| `notifications` | Hiện thông báo nhắc việc khi alarm fire (title = tên việc; message = note rút gọn, hoặc hạn chót khi không có note) | `entrypoints/background.ts:32` (`notifyTask`) | Hiển thị nhắc việc cho người dùng; không thể tự vẽ notification nếu không có quyền |
+| `alarms` | Đặt nhắc việc bền vững tên `due:<id>` **và** 1 alarm `plan:tomorrow` (R-22), sống qua vòng đời service worker MV3 | `lib/alarms/scheduler.ts`, `entrypoints/background.ts` (`alarms.onAlarm`) | `setTimeout` không bền khi SW bị kill; alarm là cách MV3 chuẩn để nhắc đúng hạn. Plan alarm là one-shot + tự resync, không thêm quyền |
+| `notifications` | Hiện thông báo nhắc việc (`due:<id>`: title = tên việc; message = note rút gọn, hoặc hạn chót khi không có note) và thông báo "Lên kế hoạch ngày mai" (`plan:*`, R-22); bấm thông báo kế hoạch mở thẳng sheet | `entrypoints/background.ts` (`notifyTask`, `notifyPlanReminder`, `notifications.onClicked`) | Hiển thị nhắc việc/lịch cho người dùng; không thể tự vẽ notification nếu không có quyền |
 
 > Cả 3 quyền đều **tối thiểu và trực tiếp** phục vụ tính năng cốt lõi. Không quyền nào dùng cho
 > mục đích khác (tracking, quảng cáo, thu thập dữ liệu).
@@ -34,8 +34,8 @@
 
 | Khía cạnh | Thực tế |
 |-----------|---------|
-| Dữ liệu thu thập | Task (title, note, priority, tag, subtask, due, recurrence, subjectId) + settings (8 field: `notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`) + `subjects` + `studyLog` — **do người dùng tự nhập**. **Không** có `theme`. |
-| Nơi lưu | `chrome.storage.sync` (trong trình duyệt + đồng bộ qua tài khoản Chrome của chính người dùng) |
+| Dữ liệu thu thập | Task (title, note, priority, tag, subtask, due, recurrence, subjectId, **plannedFor** R-22) + settings (9 field: 8 field cũ + `planReminder` R-22) + `subjects` + `studyLog` — **do người dùng tự nhập**. **Không** có `theme`. |
+| Nơi lưu | `chrome.storage.sync` (trong trình duyệt + đồng bộ qua tài khoản Chrome của chính người dùng); riêng Pomodoro/G10 và cờ `planSheetRequest` (R-22, "bấm notification → mở sheet") nằm ở `chrome.storage.local`, thuộc một máy |
 | Truyền ra ngoài | **Không** — không network request, không server riêng, không third-party |
 | Analytics / tracking | **Không** |
 | Quảng cáo | **Không** |

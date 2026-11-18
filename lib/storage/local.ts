@@ -4,7 +4,12 @@
  * đổi trạng thái liên tục; đồng hồ cũng là thứ thuộc về một máy, không đồng bộ.
  * Mọi hàm đều chịu được môi trường không có chrome.storage.local (unit test).
  */
-import { FOCUS_CLAIM_KEY, POMODORO_KEY, type PomodoroState } from '../tasks/types';
+import {
+  FOCUS_CLAIM_KEY,
+  PLAN_SHEET_KEY,
+  POMODORO_KEY,
+  type PomodoroState,
+} from '../tasks/types';
 
 export const DEFAULT_POMODORO: PomodoroState = {
   phase: 'focus',
@@ -77,6 +82,31 @@ export async function claimFocusCompletion(sessionId: string): Promise<boolean> 
 /** G10 — dùng ở useBoard: chỉ chạy `work` khi phiên này chưa được tiêu thụ. */
 export async function runOncePerFocusSession(sessionId: string, work: () => void): Promise<void> {
   if (await claimFocusCompletion(sessionId)) work();
+}
+
+/**
+ * R-22 — notification "Kế hoạch mai" ghi cờ này rồi mở bảng; UI consume 1 lần.
+ * Nằm ở local (không sync): ý định mở sheet chỉ có nghĩa trên máy hiện tại.
+ */
+export async function requestPlanSheet(): Promise<void> {
+  const local = area();
+  if (!local) return;
+  await new Promise<void>((resolve) => {
+    local.set({ [PLAN_SHEET_KEY]: true }, () => resolve());
+  });
+}
+
+export async function consumePlanSheet(): Promise<boolean> {
+  const local = area();
+  if (!local) return false;
+  const requested = await new Promise<boolean>((resolve) => {
+    local.get([PLAN_SHEET_KEY], (result) => resolve(result?.[PLAN_SHEET_KEY] === true));
+  });
+  if (!requested) return false;
+  await new Promise<void>((resolve) => {
+    local.remove([PLAN_SHEET_KEY], () => resolve());
+  });
+  return true;
 }
 
 /** Tab đang mở bảng Học Đường — để nút biểu tượng focus lại thay vì mở trùng.

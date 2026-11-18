@@ -145,7 +145,23 @@ export async function remove(id: string): Promise<void> {
 export function normalizeSettings(raw: unknown): Settings {
   const source = (raw ?? {}) as Partial<Record<keyof Settings, unknown>>;
   const merged = { ...DEFAULT_SETTINGS };
+  const TIME_HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
+    // R-22 — planReminder là object: validate 2 field con, không nhận object lạ.
+    if (key === 'planReminder') {
+      const reminder = source.planReminder as { enabled?: unknown; at?: unknown } | null | undefined;
+      if (
+        reminder &&
+        typeof reminder === 'object' &&
+        typeof reminder.enabled === 'boolean' &&
+        typeof reminder.at === 'string' &&
+        TIME_HHMM.test(reminder.at)
+      ) {
+        merged.planReminder = { enabled: reminder.enabled, at: reminder.at };
+      }
+      continue;
+    }
     const value = source[key];
     if (typeof value === typeof DEFAULT_SETTINGS[key]) {
       Object.assign(merged, { [key]: value });

@@ -6,7 +6,7 @@
  * Mock chrome.alarms trong Vitest (không gọi extension API thật).
  */
 
-import type { Task } from '../tasks/types';
+import { PLAN_ALARM_NAME, type Settings, type Task } from '../tasks/types';
 
 const ALARM_PREFIX = 'due:';
 
@@ -73,4 +73,25 @@ export function scheduleTask(task: Task, now: Date = new Date()): void {
 /** Xoá alarm của task */
 export function clearTaskAlarm(id: string): void {
   chrome.alarms.clear(alarmName(id));
+}
+
+/* ── R-22 — nhắc lập kế hoạch ngày mai (1 alarm/ngày) ─────────────────── */
+
+/** Lần kế tiếp của giờ local `HH:mm`; nếu hôm nay đã qua thì sang ngày mai. */
+export function nextPlanReminderAt(at: string, now: Date = new Date()): Date {
+  const [hours, minutes] = at.split(':').map(Number);
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+  return next;
+}
+
+/** Giữ đúng 1 plan alarm. Tắt → clear; đổi giờ → clear rồi create, không nhân đôi. */
+export function syncPlanReminder(reminder: Settings['planReminder'], now: Date = new Date()): void {
+  chrome.alarms.clear(PLAN_ALARM_NAME);
+  if (!reminder.enabled) return;
+  // Không dùng periodInMinutes cố định: 1440 phút bị trôi sau DST. Alarm chỉ
+  // chạy 1 lần/ngày; background resync sau mỗi lần fire để ép lại giờ local.
+  chrome.alarms.create(PLAN_ALARM_NAME, {
+    when: nextPlanReminderAt(reminder.at, now).getTime(),
+  });
 }

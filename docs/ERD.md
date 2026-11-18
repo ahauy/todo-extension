@@ -24,6 +24,7 @@
 | `studyLog` | `sync` | `StudyLog` | 1 key, prune còn 60 ngày | `types.ts:140` `STUDY_LOG_KEY`, `adapter.ts:217,225` |
 | `dayPlan` | `sync` | `DayPlan` | **1 key duy nhất**, prune còn 14 ngày — **không** tạo key/ngày | `types.ts:143,150-152`, `adapter.ts:242,244-264` (R-21) |
 | `pomodoro` | `local` | `PomodoroState` | 1 key / máy | `types.ts:118,141` (`PomodoroState`), `lib/storage/local.ts:22-37` |
+| `planSheetRequest` | `local` | `true` (tồn tại khi có yêu cầu) | 1 cờ / máy, tiêu thụ 1 lần | `types.ts:163` (`PLAN_SHEET_KEY`), `lib/storage/local.ts:87-110` (R-22) |
 | `boardTabId` | `session` | `number` | 1 key, mất khi đóng Chrome | `lib/storage/local.ts:42` |
 
 - `<uuid>` sinh bằng `crypto.randomUUID()` khi tạo task (`hooks/useTasks.ts:63`, R-01).
@@ -52,6 +53,7 @@
 | `done` | `boolean` | mặc định `false` | R-04 |
 | `keystone` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; việc then chốt ("20%"). **Bật** → tự gán `priority='high'` (A); **tắt → KHÔNG tự hạ** priority. Chỉ là nhãn lọc, không đổi enum `Priority` (`types.ts:62-64`) |
 | `archived` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; "Cắt bỏ". Task **vẫn nằm trong storage** (giữ nguyên mọi field) nhưng bị loại khỏi mọi tab/filter/search/bộ đếm/danh sách môn; phục hồi qua `archived=false` ở SettingsPanel mục "Đã cắt" (`types.ts:65-67`) |
+| `plannedFor` | `string \| null` (optional) | `YYYY-MM-DD` **theo giờ local**; task cũ thiếu field = chưa hẹn | R-22; **ngày dự định LÀM**, tách khỏi `dueAt` (hạn chót). Không tự tạo alarm, không đổi overdue/sort R-15; ghi bởi sheet "Kế hoạch mai", đọc bởi `plannedForDay()` (`query.ts:24-26`) |
 | `lastDoneAt` | `string \| null` (optional) | **ISO 8601 UTC** (`toISOString`) lần đóng dấu gần nhất | additive, R-11 |
 | `prevDueAt` | `string \| null` (optional) | **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa hoàn thành | additive, R-11; Hoàn tác gán thẳng `dueAt = prevDueAt` |
 | `createdAt` | `string` | ISO 8601 UTC (`nowISO`) | = now khi tạo |
@@ -63,6 +65,12 @@
 > đọc được ở mục "Đã cắt" nhưng không bao giờ vào `filterByBoard`/`filterBySubject`/
 > `filterByKeystone`/`searchTasks`/`activeCount`/`dueTodayCount`/`overdueCount` hay tổng kết
 > (`lib/tasks/query.ts:17-21,157-158,192-253`) — không có "task ma" trong bộ đếm.
+
+> **R-22 — `plannedFor` không phải hạn chót:** field này chỉ đánh dấu ngày dự định **LÀM**;
+> `dueAt` vẫn là nguồn duy nhất của alarm `due:<id>`, của trạng thái quá hạn và của sort R-15.
+> Quá `plannedFor` mà chưa xong KHÔNG tự thành quá hạn. Không lưu aggregate mới: khối "Đã hẹn
+> hôm nay" suy trực tiếp từ `Task.plannedFor === dayKey(hôm nay)` (`plannedForDay`, `query.ts:24-26`),
+> ếch cho ngày mai đi qua **cùng key** `dayPlan` của R-21 (`selectFrog(tomorrowKey, id)`).
 
 **Encoding thực tế của `dueAt` / `prevDueAt`** (đọc từ code, không suy từ spec):
 
@@ -113,7 +121,7 @@ Quan hệ: **Task 1 — 1 RecurrenceRule**. Weekly/monthly bắt buộc có `due
 > vì UI chưa có chỗ chọn nhiều thứ. Kiểu dữ liệu `weekdays: number[]` **không đổi** — ERD chỉ reconcile
 > trạng thái gap + line ref, không đổi field. Xem [`API_SPEC.md`](API_SPEC.md) §5.
 
-### 2.4 `Settings` (key `settings`) — `types.ts:76-86`
+### 2.4 `Settings` (key `settings`) — `types.ts:100-115`
 
 | Field | Kiểu | Giá trị | Mặc định |
 |---|---|---|---|
@@ -125,11 +133,14 @@ Quan hệ: **Task 1 — 1 RecurrenceRule**. Weekly/monthly bắt buộc có `due
 | `lacquerSheen` | `boolean` | vệt sáng sơn mài trên thẻ | `true` |
 | `pomodoroPreset` | `"25/5" \| "50/10"` | độ dài phiên học/nghỉ | `25/5` |
 | `soundEnabled` | `boolean` | chuông đồng + tiếng giấy | `false` |
+| `planReminder` | `{ enabled: boolean; at: string }` | R-22; giờ local `HH:mm` hợp lệ, bật/tắt nhắc lập kế hoạch | `{ enabled: true, at: "21:00" }` |
 
-`DEFAULT_SETTINGS` ở `types.ts:88-97`. **Không còn `theme`**: `normalizeSettings()` gộp bản ghi cũ với
-mặc định và bỏ các field không còn trong `DEFAULT_SETTINGS` (`adapter.ts:127-139`), nên settings
-lưu từ bản trước (có `theme: system|light|dark`) được đọc lên thành bộ field mới, không lỗi.
-Gap G2 cũ đã đóng (R-14 1.2.0 mô tả đúng bộ field này).
+`DEFAULT_SETTINGS` ở `types.ts:104-116`. R-22: `normalizeSettings` validate riêng object con
+(`adapter.ts:148-164`) — settings cũ thiếu `planReminder` nhận nguyên mặc định **21:00 bật sẵn**
+(người dùng cũ sẽ nhận notification mới sau update). Không lưu key riêng cho lịch nhắc.
+**Không còn `theme`**: `normalizeSettings()` gộp bản đã lưu với mặc định và bỏ field không còn trong
+`DEFAULT_SETTINGS` (`adapter.ts:144-171`), nên settings lưu từ bản trước (có `theme: system|light|dark`)
+được đọc lên thành bộ field mới, không lỗi. Gap G2 cũ đã đóng (R-14 1.2.0 mô tả đúng bộ field này).
 
 ### 2.5 `Subject` (embedded trong key `subjects`) — `types.ts:64-70`
 

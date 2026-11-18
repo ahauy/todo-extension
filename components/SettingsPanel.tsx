@@ -173,6 +173,36 @@ export default function SettingsPanel() {
         )}
       </div>
 
+      <div className="stack gap-md" data-section="plan-reminder">
+        <span className="text-caption font-bold tracking-[0.4px] text-brown">
+          Kế hoạch mai (6P)
+        </span>
+        <Toggle
+          label="Nhắc lên kế hoạch mỗi tối"
+          checked={settings.planReminder.enabled}
+          onChange={(value) =>
+            change({ planReminder: { ...settings.planReminder, enabled: value } })
+          }
+        />
+        <label className="flex items-center gap-sm text-body-sm text-brown">
+          Giờ nhắc
+          <input
+            type="time"
+            aria-label="Giờ nhắc kế hoạch"
+            value={settings.planReminder.at}
+            onChange={(event) => {
+              const at = event.target.value;
+              if (/^([01]\d|2[0-3]):[0-5]\d$/.test(at)) {
+                change({ planReminder: { ...settings.planReminder, at } });
+              }
+            }}
+          />
+        </label>
+        <p className="text-caption text-umber">
+          Mặc định 21:00, bật sẵn. Bấm thông báo sẽ mở thẳng sheet Kế hoạch mai.
+        </p>
+      </div>
+
       <div className="stack gap-md" data-section="archived">
         <span className="text-caption font-bold tracking-[0.4px] text-brown">
           Đã cắt

@@ -7,11 +7,17 @@
  * Hàm wrapper local này sẽ được WXT nhận diện và gọi khi SW load.
  */
 
-import { syncAlarms, scheduleTask, clearTaskAlarm, alarmName } from '../lib/alarms/scheduler';
+import {
+  syncAlarms,
+  scheduleTask,
+  clearTaskAlarm,
+  alarmName,
+  syncPlanReminder,
+} from '../lib/alarms/scheduler';
 import { loadAll, loadSettings } from '../lib/storage/adapter';
-import { recallBoardTab } from '../lib/storage/local';
+import { recallBoardTab, requestPlanSheet } from '../lib/storage/local';
 import { shouldNotify } from '../lib/notifications';
-import { DEFAULT_SETTINGS, type DisplayMode, type Task } from '../lib/tasks/types';
+import { DEFAULT_SETTINGS, PLAN_ALARM_NAME, type DisplayMode, type Task } from '../lib/tasks/types';
 
 const MAX_NOTE_PREVIEW = 60;
 
@@ -37,6 +43,25 @@ function notifyTask(task: Task): void {
     message: notePreview(task) || `Đến hạn rồi con ơi: ${task.dueAt || 'không có hạn'}`,
     priority: task.priority === 'high' ? 2 : 0,
   });
+}
+
+/** R-22 — notification nhắc lên kế hoạch; id riêng để onClicked phân luồng. */
+function notifyPlanReminder(): void {
+  chrome.notifications.create(`plan:${Date.now()}`, {
+    type: 'basic',
+    iconUrl: chrome.runtime.getURL('icon/48.png'),
+    title: 'Lên kế hoạch ngày mai',
+    message: '10 phút lên kế hoạch ngày mai.',
+  });
+}
+
+async function resyncPlanFromStorage(): Promise<void> {
+  try {
+    const settings = await loadSettings();
+    syncPlanReminder((settings ?? DEFAULT_SETTINGS).planReminder);
+  } catch (err) {
+    console.error('[todo-extension] resync plan reminder failed:', err);
+  }
 }
 
 /** Đồng bộ toàn bộ alarm từ storage */
@@ -88,10 +113,26 @@ export default defineBackground(() => {
     void openBoard();
   });
 
+  /** R-22 — bấm notification kế hoạch → ghi cờ mở sheet rồi mở/focus bảng. */
+  chrome.notifications?.onClicked?.addListener?.((id: string) => {
+    if (!id.startsWith('plan:')) return;
+    void requestPlanSheet().then(openBoard);
+  });
+
   /** onAlarm → hiện notification (tôn trọng settings.notificationsEnabled) */
   chrome.alarms.onAlarm.addListener((alarm) => {
     void (async () => {
       try {
+        if (alarm.name === PLAN_ALARM_NAME) {
+          const settings = await loadSettings();
+          if (settings?.notificationsEnabled !== false &&
+              (settings?.planReminder ?? DEFAULT_SETTINGS.planReminder).enabled) {
+            notifyPlanReminder();
+          }
+          // Ép lại giờ local cho lần kế tiếp (tránh trôi DST như periodInMinutes).
+          void resyncPlanFromStorage();
+          return;
+        }
         const id = alarm.name.slice('due:'.length);
         const tasks = await loadAll();
         const task = tasks.find((t) => t.id === id);
@@ -107,11 +148,13 @@ export default defineBackground(() => {
   /** onInstalled / onStartup → resync toàn bộ alarm + áp chế độ hiển thị */
   chrome.runtime.onInstalled.addListener(() => {
     void resyncAlarmsFromStorage();
+    void resyncPlanFromStorage();
     void currentDisplayMode().then(applyDisplayMode);
   });
 
   chrome.runtime.onStartup.addListener(() => {
     void resyncAlarmsFromStorage();
+    void resyncPlanFromStorage();
     void currentDisplayMode().then(applyDisplayMode);
   });
 
@@ -121,7 +164,9 @@ export default defineBackground(() => {
 
     void (async () => {
       if (changes.settings) {
-        await applyDisplayMode(await currentDisplayMode());
+        const settings = await loadSettings();
+        await applyDisplayMode((settings ?? DEFAULT_SETTINGS).displayMode);
+        syncPlanReminder((settings ?? DEFAULT_SETTINGS).planReminder);
       }
       for (const [key, change] of Object.entries(changes)) {
         if (typeof key === 'string' && key.startsWith('t:')) {

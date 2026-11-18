@@ -31,6 +31,7 @@ Storage layout `chrome.storage.sync` — chi tiết đầy đủ ở [`ERD.md`](
 | `dayPlan` | `sync` | `DayPlan` (**1 key**, prune 14 ngày; R-21) | `lib/tasks/types.ts:143,150-152`, `lib/storage/adapter.ts:242-264` |
 | `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` + `focusSessionId` local-only, R-20/G10) | `lib/tasks/types.ts:118,148,150`, `lib/storage/local.ts:22-83` |
 | `focusCompletionClaim` | **`local`** | G10 — tập tối đa 32 `sessionId` đã tiêu thụ (`string[]`) | `lib/tasks/types.ts:150`, `lib/storage/local.ts:41-83` |
+| `planSheetRequest` | **`local`** | R-22 — cờ `true` báo "bấm notification kế hoạch", tiêu thụ 1 lần khi New Tab mount | `lib/tasks/types.ts:162`, `lib/storage/local.ts:87-110` |
 
 Kiểu `Task`, `Settings`, `Subtask`, `RecurrenceRule`, `Subject`, `StudyLog`, `PomodoroState`, `DayPlan` định nghĩa
 duy nhất tại `lib/tasks/types.ts` — adapter, recurrence, query, UI đều import từ đây (single source of truth).
@@ -65,9 +66,10 @@ Mọi lời gọi đều kiểm tra `chrome.runtime.lastError` và reject Promis
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
 | `alarms.create(name, {delayInMinutes})` | `scheduler.ts:45,68` | Đặt nhắc việc tên `due:<id>` |
-| `alarms.clear(name)` | `scheduler.ts:38,54,63,73` | Xoá alarm khi done/xoá/quá hạn |
+| `alarms.clear(name)` | `scheduler.ts:38,54,63,73,92` | Xoá alarm khi done/xoá/quá hạn; **R-22: clear trước khi tạo lại plan alarm** |
 | `alarms.getAll(cb)` | `scheduler.ts:50` | Dọn alarm mồ côi (task không còn) |
-| `alarms.onAlarm.addListener` | `background.ts:92` | Alarm fire → hiện notification |
+| `alarms.create(name, { when })` | `scheduler.ts:96` (`syncPlanReminder`) | R-22 — đúng 1 alarm `plan:tomorrow` ở giờ local `planReminder.at`; **one-shot**, không `periodInMinutes` cố định (tránh trôi DST) |
+| `alarms.onAlarm.addListener` | `background.ts:122` | Alarm fire → hiện notification; nhánh `plan:tomorrow` resync lại alarm cho lần kế |
 
 Alarm bền hơn `setTimeout` trong service worker MV3 (SW bị kill giữa chừng) — `scheduler.ts:4`.
 
@@ -76,6 +78,8 @@ Alarm bền hơn `setTimeout` trong service worker MV3 (SW bị kill giữa ch�
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
 | `notifications.create(id, opts)` | `background.ts:32-39` (`notifyTask`) | Title = tên task (`taskTitle`). Message = note rút gọn ≤60 ký tự (`notePreview`, dòng 24-29) **hoặc** — chỉ khi task không có note — `Đến hạn rồi con ơi: <dueAt>` (dòng 37). Không bao giờ ghép cả hai |
+| `notifications.create('plan:<ms>', opts)` | `background.ts:47-55` (`notifyPlanReminder`) | R-22 — "Lên kế hoạch ngày mai" / "10 phút lên kế hoạch ngày mai."; **id riêng** để phân luồng click |
+| `notifications.onClicked.addListener` | `background.ts:118-120` | R-22 — chỉ id `plan:*` → `requestPlanSheet()` ghi cờ `planSheetRequest` rồi mở/focus bảng; id `due:*` đi luồng cũ, không mở sheet |
 
 Notification **không** tự đổi trạng thái task (R-12). `iconUrl: chrome.runtime.getURL('icon/48.png')`
 (`background.ts:35`) — icon 16/32/48/128 nằm trong `public/icon/`, manifest khai `icons`
@@ -84,13 +88,17 @@ Notification **không** tự đổi trạng thái task (R-12). `iconUrl: chrome.
 Background chỉ gọi `notifications.create` khi `shouldNotify(task, settings)` (`lib/notifications.ts`):
 `task.done === false`, có `dueAt`, và `settings.notificationsEnabled !== false`.
 Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notifications.getPermissionLevel`.
+Riêng notification kế hoạch (R-22) bị gate **2 lớp**: không còn alarm khi `planReminder.enabled=false`
+(`syncPlanReminder` clear) **và** kiểm tra lại `notificationsEnabled`/`planReminder.enabled` trong
+`onAlarm` (`background.ts:126-133`). `planReminder.at` mặc định `'21:00'`, đổi giờ → clear + create
+lại, không nhân đôi; `onInstalled`/`onStartup`/đổi settings đều resync.
 
 ### 2.4 `chrome.runtime`
 
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
-| `runtime.onInstalled` | `background.ts:108` | Resync toàn bộ alarm khi cài + áp `displayMode` |
-| `runtime.onStartup` | `background.ts:113` | Resync alarm khi Chrome khởi động + áp `displayMode` |
+| `runtime.onInstalled` | `background.ts:149-153` | Resync toàn bộ alarm + resync plan alarm + áp `displayMode` |
+| `runtime.onStartup` | `background.ts:155-159` | Resync alarm + plan alarm khi Chrome khởi động + áp `displayMode` |
 | `runtime.lastError` | `adapter.ts` | Phát hiện lỗi storage/quota |
 | `runtime.getURL` | `background.ts:35,80` | Đường dẫn icon notification và trang `newtab.html` |
 | `action.setPopup` | `background.ts:57` (`applyDisplayMode`) | `displayMode=popup\|auto` → gắn `popup.html`; `newtab` → gỡ popup để `action.onClicked` chạy |
@@ -105,6 +113,7 @@ Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notificat
 | `local.get([FOCUS_CLAIM_KEY], cb)` / `local.set` | `lib/storage/local.ts:50-86` (`claimFocusCompletion`) | G10 — đọc/ghi tập sessionId đã tiêu thụ, chặn double-focus |
 | `local.set({ [POMODORO_KEY]: state }, cb)` | `lib/storage/local.ts:33-38` (`savePomodoro`) | Ghi khi **đổi trạng thái** — không ghi mỗi nhịp đếm (giới hạn 120 write/phút) |
 | `local.onChanged.addListener` | `hooks/usePomodoro.ts:81-93` | Popup và New Tab hydrate lại phiên khi surface kia ghi (local change chỉ có 1 đối số `changes`) |
+| `local.set({ [PLAN_SHEET_KEY]: true }, cb)` / `local.remove` | `lib/storage/local.ts:87-110` (`requestPlanSheet` / `consumePlanSheet`) | R-22 — cờ yêu cầu mở sheet "Kế hoạch mai", ghi từ notification click, New Tab đọc **1 lần** rồi xoá; local-only (ý định thuộc máy hiện tại) |
 
 `storage.session` (`boardTabId`, `lib/storage/local.ts:40-48`) vẫn chỉ để focus tab bảng đang mở.
 **Không thêm permission**: `local` / `session` đã nằm trong quyền `"storage"` (R-17). Không network.
@@ -118,7 +127,7 @@ Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notificat
 | `loadAll` | `() => Promise<Task[]>` | Đọc mọi key `t:*` → mảng Task; chuẩn hoá in-memory `dueAt`/`prevDueAt` về wall-clock local qua `normalizeDueAt` — **không ghi lại** (`adapter.ts:84-109`) |
 | `put` | `(task: Task) => Promise<void>` | Ghi `t:<id>`; chặn item > 8192 bytes (`MAX_ITEM_BYTES`, dòng 22) |
 | `remove` | `(id: string) => Promise<void>` | Xoá `t:<id>` |
-| `normalizeSettings` | `(raw: unknown) => Settings` | Gộp bản đã lưu với `DEFAULT_SETTINGS`; chỉ nhận field có cùng `typeof` với mặc định, field lạ của schema cũ (vd `theme`) bị bỏ (`adapter.ts:144-154`) |
+| `normalizeSettings` | `(raw: unknown) => Settings` | Gộp bản đã lưu với `DEFAULT_SETTINGS`; chỉ nhận field có cùng `typeof` với mặc định, field lạ của schema cũ (vd `theme`) bị bỏ; **R-22: validate riêng `planReminder`** (`enabled:boolean`, `at` khớp `/^([01]\d\|2[0-3]):[0-5]\d$/`, sai → default) (`adapter.ts:145-171`) |
 | `loadSettings` | `() => Promise<Settings \| null>` | Đọc `settings` → `normalizeSettings`; chưa có key → `null` |
 | `putSettings` | `(s: Settings) => Promise<void>` | Ghi `settings` |
 | `loadSubjects` | `() => Promise<Subject[]>` | Đọc `subjects`; không phải mảng → `[]` (`adapter.ts:198`) |
@@ -166,6 +175,7 @@ lưu 1 thứ (`weekdays: [weekday của dueAt]`) vì UI chưa có chỗ chọn n
 | `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:117-125`) |
 | `dueTodayCount` | `(tasks, now) => number` | `filterByBoard(..., 'today')` length — dùng cho chiếu chỉ + lời chào (`query.ts:192-194`) |
 | `overdueCount` | `(tasks, now) => number` | Đếm task chưa xong **chưa cắt** có `dueAt < now` (`query.ts:196-198`) |
+| `plannedForDay` | `(tasks, day: YYYY-MM-DD) => Task[]` | R-22 — lọc `!archived && !done && plannedFor === day` (`query.ts:24-26`); **không** đụng overdue/sort R-15 |
 | `filterByKeystone` | `(tasks) => Task[]` | R-21 — chip "20%": thuần `keystone && !archived`, **không** đổi `SortKey` (`query.ts:156-158`) |
 | `activeCount` | `(tasks) => number` | R-21 — số việc đang chờ dùng chung: `!archived && !done` (`query.ts:200-203`) |
 | `todayKeystoneSummary` | `(tasks, now) => { done: number; total: number }` | R-21 — dòng "Then chốt: x/y xong" (ngày local). `done` = then chốt xong hôm nay; `total` = xong hôm nay **hoặc** đang mở. Nguồn "xong": `doneAt()` (`query.ts:23-28`) (`lib/tasks/query.ts:205-220`) |
@@ -194,6 +204,8 @@ vào lần chạm `query.ts` kế tiếp (G4 đã đóng: user chọn được t
 | `syncAlarms` | `(tasks, now?) => void` | Đồng bộ toàn bộ alarm + dọn mồ côi; **R-21: task `archived` bị clear alarm** (`scheduler.ts:34-61`) |
 | `scheduleTask` | `(task, now?) => void` | Tạo/cập nhật alarm 1 task (`scheduler.ts:63-72`) |
 | `clearTaskAlarm` | `(id) => void` | Xoá alarm 1 task (`scheduler.ts:74`) |
+| `nextPlanReminderAt` | `(at: HH:mm, now?) => Date` | R-22 — lần kế tiếp của giờ local `at`; hôm nay đã qua → sang ngày mai (`scheduler.ts:80-86`) |
+| `syncPlanReminder` | `(reminder, now?) => void` | R-22 — **luôn clear `plan:tomorrow` trước**, rồi create 1 alarm one-shot khi `enabled` (`scheduler.ts:89-97`) |
 
 Điều kiện tạo alarm (R-12 + R-21): `!done && !archived && dueAt > now` (`shouldCreateAlarm`,
 `scheduler.ts:26-31`). `dueAt ≤ now` → không tạo (Chrome fire ngay), task hiển thị quá hạn (R-12);
@@ -295,7 +307,7 @@ khác completion tự nhiên có xác nhận — nơi duy nhất gọi `record('
 |---|---|
 | Key `t:<id>` thay đổi | UI (`useTasks`): **reload toàn bộ** task rồi thay snapshot, không merge từng bản ghi; còn task → `scheduleTask`, key bị xoá → `clearTaskAlarm` (`hooks/useTasks.ts:125-156`). Background: reschedule/clear alarm theo đúng key đó (`background.ts:119-140`) |
 | Key `t:<id>` bị xoá (`newValue` undefined/null) | Xoá task local + `alarms.clear('due:<id>')` (`background.ts:129-131`) |
-| Key `settings` thay đổi | `useTasks` → `syncAlarms` toàn bộ (`hooks/useTasks.ts:150-154`); background → `applyDisplayMode` (gắn/gỡ `popup.html`) qua `chrome.action.setPopup` (`background.ts:123-125`) — **không** áp theme (sản phẩm chỉ có tông sáng) |
+| Key `settings` thay đổi | `useTasks` → `syncAlarms` toàn bộ (`hooks/useTasks.ts:150-154`); background → `applyDisplayMode` (gắn/gỡ `popup.html`) qua `chrome.action.setPopup` (`background.ts:123-125`) — **không** áp theme (sản phẩm chỉ có tông sáng). **R-22: background gọi `syncPlanReminder(settings.planReminder)` → clear rồi tạo lại đúng 1 alarm, kể cả khi đổi giờ/tắt** (`background.ts:166-170`) |
 | Key `dayPlan` thay đổi (R-21) | `useTasks` → `loadDayPlan()` hydrate snapshot ếch (`hooks/useTasks.ts:127-133`); background **không** xử lý riêng (không sinh alarm từ ếch). Ghép chung một lần render với `tasks` |
 | Key `subjects` / `studyLog` | Không có xử lý riêng ở background; `useBoard` đọc lại qua `useSubjects`/`useStudyLog` khi storage đổi |
 
@@ -325,10 +337,12 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 ## 6. Versioning
 
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.4.0`** — khớp frontmatter
-`SPECIFICATIONS.md`; **scopeVersion 25**). R-20 chỉ thêm field local `PomodoroState.taskId` /
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.5.0`** — khớp frontmatter
+`SPECIFICATIONS.md`; **scopeVersion 28**). R-20 chỉ thêm field local `PomodoroState.taskId` /
 `interruptions`, **không** đổi schema sync. R-21 (spec 1.4.0) thêm `Task.keystone?` / `Task.archived?`
 (flag client-side, mặc định `false`) và **một** key sync `dayPlan` (`DayPlan`, prune 14 ngày,
-`DAY_PLAN_DAYS = 14`, 8192 B/item) — vẫn không đổi permission (R-17), không network. Đổi schema
+`DAY_PLAN_DAYS = 14`, 8192 B/item). R-22 (spec 1.5.0) thêm `Task.plannedFor?` (ngày dự định LÀM,
+tách `dueAt`) + `Settings.planReminder` (`{enabled:true, at:'21:00'}` mặc định) và 1 cờ local
+`planSheetRequest`; **vẫn** không đổi permission (R-17), không network, không aggregate mới. Đổi schema
 `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

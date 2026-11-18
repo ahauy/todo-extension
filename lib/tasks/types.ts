@@ -65,6 +65,11 @@ export interface Task {
   /** R-21 — Việc bị cắt bỏ. Mặc định `false` khi thiếu. Luôn bị loại khỏi mọi
    *  tab/filter/search/bộ đếm/danh sách môn nhưng VẪN nằm trong storage để phục hồi. */
   archived?: boolean;
+  /**
+   * R-22 — ngày dự định **LÀM** (`YYYY-MM-DD` local), tách khỏi `dueAt` (hạn chót).
+   * Không tự tạo alarm, không đổi overdue/sort; task cũ thiếu field coi như chưa có kế hoạch.
+   */
+  plannedFor?: string | null;
   /** Bản sao **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa
    *  hoàn thành — Hoàn tác hôm nay gán thẳng `dueAt = prevDueAt`, 0 quy đổi. */
   prevDueAt?: string | null;
@@ -95,6 +100,8 @@ export interface Settings {
   lacquerSheen: boolean;
   pomodoroPreset: PomodoroPreset;
   soundEnabled: boolean;
+  /** R-22 — nhắc lập kế hoạch ngày mai; mặc định bật sẵn lúc 21:00 giờ local. */
+  planReminder: { enabled: boolean; at: string };
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -106,6 +113,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lacquerSheen: true,
   pomodoroPreset: "25/5",
   soundEnabled: false,
+  planReminder: { enabled: true, at: "21:00" },
 };
 
 /** Một ngày trong nhật ký học: số việc đóng dấu + số phiên tập trung trọn vẹn */
@@ -150,6 +158,9 @@ export const POMODORO_KEY = "pomodoro";
 export const FOCUS_CLAIM_KEY = "focusCompletionClaim";
 /** R-21 — 1 key duy nhất cho "con ếch hôm nay" (KHÔNG tạo key theo ngày). */
 export const DAY_PLAN_KEY = "dayPlan";
+/** R-22 — alarm nhắc lập kế hoạch (1 cái/ngày) + cờ local yêu cầu mở sheet. */
+export const PLAN_ALARM_NAME = "plan:tomorrow";
+export const PLAN_SHEET_KEY = "planSheetRequest";
 
 /**
  * R-21 — Kế hoạch ngày, lưu trong 1 key `dayPlan`.

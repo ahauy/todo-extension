@@ -4,6 +4,7 @@
 > (R-01…R-20) + [`.context/design-spec.md`](../.context/design-spec.md) (interaction model §8).
 > Đây là mô tả hành vi mục tiêu; đối chiếu code thật khi validate. Đổi behavior → qua `/change`.
 > Gói A (R-21, spec 1.4.0) đã as-built: xem §12 — bật/tắt then chốt, chọn ếch, cắt bỏ/phục hồi.
+> Gói B (R-22, spec 1.5.0) đã as-built: xem §13 — nhắc 21:00, sheet "Kế hoạch mai", "Đã hẹn hôm nay".
 
 ## 0. Bối cảnh
 
@@ -14,6 +15,7 @@ Popup **360×560**, tên **Học Đường**, mở từ icon extension trên too
 New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ khác bố cục). Settings có
 `displayMode` `popup · newtab · auto`:
 - `Popup` → icon mở popup; tab mới hiện trang chào yên tĩnh (`QuietNewTab`) với nút "Mở sổ Học Đường".
+  Ngoại lệ R-22: nếu tab mới mở từ cờ notification "Kế hoạch mai", board hiện sheet dù đang ở chế độ này.
 - `New Tab` → tab mới là board toàn màn hình; icon mở/focus tab Học Đường.
 - `Tự động` (mặc định) → icon mở popup, tab mới mở board.
 
@@ -110,7 +112,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 ## 9. Cài đặt (R-14, R-16)
 
 1. Bấm icon settings → panel Cài đặt thay chỗ danh sách việc trong cùng popup; back quay lại danh sách.
-2. Nội dung thật (`settings`, 8 field):
+2. Nội dung thật (`settings`, 9 field — R-22 thêm `planReminder`):
    - `notificationsEnabled` — bật/tắt nhắc việc; trạng thái "Đang bật" / "Đang bị chặn" + hint.
    - `displayMode` — `Popup · New Tab · Tự động` (§0).
    - `quillStyle` — `pen · hand` (nét bút).
@@ -119,6 +121,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    - `lacquerSheen` — ánh sơn trên mặt bàn.
    - `pomodoroPreset` — `25/5 · 50/10`.
    - `soundEnabled` — chuông + tiếng giấy.
+   - `planReminder` — bật/tắt nhắc "Kế hoạch mai" + giờ `HH:mm` (mặc định 21:00, bật sẵn) — §13.1.
    - **Đã cắt** (R-21) — mục xem lại các việc `archived=true` + nút "Phục hồi" (§12.3).
 3. **Không có lựa chọn theme**: bảng màu Sơn Mài light-only, không `system/light/dark`, không `data-theme`.
 4. Mỗi thay đổi ghi `settings` (1 write) và áp ngay; đổi `notificationsEnabled` → resync alarm.
@@ -205,6 +208,38 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    **alarm bị clear** (`shouldCreateAlarm` từ chối `archived`), nên không còn nhắc dù `dueAt` còn.
 3. Vào **Cài đặt → "Đã cắt"** (có ở cả popup và New Tab) → danh sách việc đã cắt, bấm **"Phục hồi"**
    → `archived=false`, dữ liệu giữ nguyên và alarm được đặt lại nếu hạn vẫn > now.
+
+## 13. Gói B — Kế hoạch mai (R-22, spec 1.5.0)
+
+> As-built 2026-11-18. `plannedFor` là **ngày dự định LÀM**, không phải hạn chót; `dueAt` vẫn là
+> nguồn duy nhất của alarm/quá hạn/sort R-15. Không thêm permission, không network, không tab thứ 5.
+
+### 13.1 Nhắc buổi tối
+
+1. Mặc định `Settings.planReminder = { enabled: true, at: '21:00' }` — **bật sẵn**; settings cũ thiếu
+   field cũng nhận mặc định này (người dùng cũ sẽ thấy notification mới sau update). Có thể tắt hoặc
+   đổi giờ trong **Cài đặt → "Kế hoạch mai (6P)"** (toggle + ô giờ `HH:mm`, giá trị sai bị bỏ qua).
+2. Khi bật, background giữ **đúng 1** alarm `plan:tomorrow` ở giờ local `at` (one-shot, tự resync
+   sau mỗi lần fire để không trôi sau đổi DST). Tắt → xoá alarm, **không** có notification; đổi giờ →
+   clear alarm cũ rồi tạo alarm mới, không nhân đôi.
+3. Đến giờ → notification **"Lên kế hoạch ngày mai"** / "10 phút lên kế hoạch ngày mai.". Bấm vào
+   notification → ghi cờ `planSheetRequest` (local) rồi mở/focus bảng Học Đường; New Tab đọc cờ **1
+   lần** lúc mount và mở thẳng sheet — không ra tab trống. Bấm notification việc đến hạn (`due:*`)
+   vẫn đi luồng cũ, không mở sheet.
+
+### 13.2 Sheet "Kế hoạch mai" và khối "Đã hẹn hôm nay"
+
+1. Nút **"Kế hoạch mai"** ở đầu bảng (hoặc bấm notification) mở sheet. Nguồn việc: đang mở, chưa
+   cắt, và **chưa hẹn** (không `dueAt`) hoặc **sắp tới** (`dueAt > now`) — hạn trong quá khứ không
+   được đưa vào chọn lại.
+2. Chọn **tối đa 5** việc (chọn cái thứ 6 bị chặn); với mỗi việc đã chọn có radio **"Làm đầu tiên
+   (ếch cho mai)"**. Bấm **"Lưu kế hoạch"** → gán `plannedFor = ngày mai` (theo giờ local) cho các
+   việc đã chọn và ghi ếch qua `dayPlan[ngày mai].frogTaskId` — **cùng 1 key `dayPlan`** của R-21,
+   không aggregate mới, không đổi `dueAt`. Chưa chọn việc nào thì nút Lưu bị vô hiệu.
+3. Trên **board Học Đường (New Tab)**, tab **"Hôm nay"** hiện khối **"Đã hẹn hôm nay"** liệt kê việc
+   có `plannedFor = hôm nay`, còn mở và chưa cắt (popup 360×560 chỉ nhận 1 khối UI mới — mục cài đặt
+   nhắc). Khối này đọc như một lịch hẹn: **không tô đỏ như việc quá hạn**; việc quá `plannedFor` mà
+   chưa xong vẫn không vào nhóm quá hạn và không làm đổi thứ tự sort.
 
 ## Keyboard map
 

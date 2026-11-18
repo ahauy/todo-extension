@@ -757,6 +757,31 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 **A11y & motion (R-19/R-21):** `:focus-visible` trên `.keystone-chip`, `.frog-toggle`, `.keystone-switch` → `outline: 2px solid {colors.primary}`, `outline-offset: 2px` (`styles/board.css`). `@media (prefers-reduced-motion: reduce)` ép `transition` / `animation: none !important` cho cả bốn thành phần Gói A. **Không thêm token thời lượng hay animation lặp** (xem `## Motion (as-built)`) — ribbon, dấu ếch, chip "20%" và hero đổi trạng thái tức thì như phần còn lại của hệ.
 
+### Gói B — Kế hoạch mai (R-22)
+
+> As-built spec 1.5.0. Dùng lại token/component có sẵn; **không** thêm tab thứ 5, không thêm màu,
+> không thêm animation. Nguồn: `components/{SettingsPanel,PlanTomorrowSheet}.tsx`, `entrypoints/newtab/App.tsx`.
+
+- **Cài đặt** (`data-section="plan-reminder"`): tiêu đề `{typography.caption-bold}` màu `{colors.brown}`
+  "Kế hoạch mai (6P)", toggle `role="switch"` "Nhắc lên kế hoạch mỗi tối" (dùng `{components.toggle}`
+  như các toggle khác), ô `<input type="time">` `{typography.body-sm}` có `aria-label="Giờ nhắc kế
+  hoạch"`, chú thích `{typography.caption}` màu `{colors.umber}` nêu mặc định 21:00/bật sẵn và hành vi
+  bấm notification. Không dùng nhãn đỏ: đây là lịch hẹn, không phải cảnh báo.
+- **Sheet "Kế hoạch mai"**: dùng `{components.modal}` tiêu đề "Kế hoạch mai", mở từ nút
+  `{components.button-secondary}` cỡ nhỏ ở đầu bảng hoặc từ cờ notification. Câu chìa
+  `{typography.body-sm}` "Chọn tối đa 5 việc cho {ngày}"; mỗi việc là checkbox `{typography.body-sm}`
+  với `aria-label="Chọn <tên việc> cho ngày mai"`; radio "Làm đầu tiên (ếch cho mai)" chỉ xuất hiện
+  khi việc đó đã chọn. Đủ 5 việc → chú thích `{typography.caption}` báo bỏ chọn để đổi. Footer: nút
+  phụ "Để mai tính" (`data-autofocus`) + nút chính `{components.button-primary}` "Lưu kế hoạch"
+  (vô hiệu khi chưa chọn). Empty state: "Sổ đang hết việc để hẹn. Cứ ghi thêm trước đã."
+- **Khối "Đã hẹn hôm nay"** (`data-section="planned-today"`, chỉ trên tab "Hôm nay" của New Tab):
+  tiêu đề `{typography.caption-bold}` màu `{colors.brown}`, mỗi việc là `<li>` `{typography.body-sm}`
+  màu `{colors.umber}`. Dùng class trung tính — **không** `{colors.critical}`, không dấu quá hạn.
+  Nằm trên danh sách cuộn thư, dưới dải tab/filter; khi không có việc hẹn thì không render (không để
+  khối rỗng chiếm chỗ ở 360×560).
+- **A11y/motion (R-19):** checkbox/radio có nhãn, nhóm có `role="group"`, `:focus-visible` theo quy
+  ước chung, reduced-motion kế thừa cài đặt toàn cục. Không token thời lượng hay hiệu ứng mới.
+
 ### Signature Components
 
 **`quill-input` — Bút lông viết chữ theo người gõ.** Ô nhập thật vẫn là một `<input>` chuẩn (để IME, đọc màn hình, dán, hoàn tác hoạt động); lớp bút chỉ là phần trang trí đặt chồng lên, `aria-hidden="true"`.

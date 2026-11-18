@@ -1,6 +1,6 @@
 ---
-spec_version: 1.4.0
-updated_at: 2026-11-17
+spec_version: 1.5.0
+updated_at: 2026-11-18
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -205,6 +205,22 @@ Khi phiên focus **kết thúc tự nhiên** (đếm về 0) và có taskId → 
 xác nhận mới tick task (task lặp đi theo R-11) và gọi `record('focus', 1)` **đúng một lần**. Phiên bỏ
 dở (tạm dừng rồi reset, skip, đóng mà không xác nhận) **không** được tính `focus`; riêng `skip` phiên
 focus phải được sửa để không gọi completion. Không thêm permission (R-17), không network request.
+
+**R-22 — Kế hoạch mai (6P, Gói B)**
+Task có `plannedFor?: string | null` — ngày dự định **LÀM**, định dạng `YYYY-MM-DD` theo giờ local,
+**tách khỏi `dueAt`** (hạn chót). `plannedFor` không tự tạo alarm, không đổi việc quá hạn hay thứ tự
+sort deterministic (R-15); bảng Học Đường (New Tab) có khối "Đã hẹn hôm nay" trên tab "Hôm nay",
+hiển thị như lịch hẹn chứ không tô đỏ như việc quá hạn. Popup 360×560 chỉ nhận 1 khối UI mới của gói
+này (mục cài đặt nhắc) theo ràng buộc 1 khối/gói của roadmap §3 — không thêm khối thứ hai.
+
+`Settings` có `planReminder: { enabled: boolean; at: string }`, mặc định `{ enabled: true, at: '21:00' }`;
+`normalizeSettings` phải điền mặc định cho bản settings cũ. Khi bật, background giữ **đúng 1** alarm hằng
+ngày tại giờ local `at` → notification "10 phút lên kế hoạch ngày mai"; khi tắt thì xoá alarm, không gửi
+notification. Đổi giờ phải clear alarm cũ rồi tạo alarm mới, không nhân đôi.
+
+Bấm vào notification đó phải mở đúng sheet "Kế hoạch mai" trên bảng Học Đường (không mở tab trống).
+Sheet cho chọn **tối đa 5 việc** từ *Sắp tới* + *Chưa hẹn*, gán `plannedFor = ngày mai`, và cho chọn một
+việc làm "ếch cho ngày mai" qua cùng key `dayPlan` (R-21). Không thêm permission (R-17), không network.
 
 ## API Endpoints
 

@@ -1,45 +1,69 @@
 {
-  "specVersion": "1.4.0",
-  "scopeVersion": 27,
-  "generatedAt": "2026-11-18T10:09:15+07:00",
-  "trigger": "bug-fix",
-  "workItem": "bug-g11-newtab-shelf",
-  "specRefs": ["R-19"],
+  "specVersion": "1.5.0",
+  "scopeVersion": 28,
+  "generatedAt": "2026-11-18T11:39:42+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature-package-b-6p",
+  "specRefs": ["R-22", "R-15", "R-17"],
   "changed": {
     "files": [
+      "SPECIFICATIONS.md",
+      "spec/updates/2026-11-18-package-b-6p.md",
+      "spec/CHANGELOG.md",
+      "lib/tasks/types.ts",
+      "lib/storage/adapter.ts",
+      "lib/alarms/scheduler.ts",
+      "entrypoints/background.ts",
+      "lib/storage/local.ts",
+      "components/SettingsPanel.tsx",
+      "components/PlanTomorrowSheet.tsx",
+      "lib/tasks/query.ts",
       "entrypoints/newtab/App.tsx",
-      "entrypoints/newtab/style.css",
-      "entrypoints/newtab/App.shelf.test.tsx",
-      "hooks/useMediaQuery.ts",
-      "components/SubjectShelf.tsx",
+      "src/__tests__/helpers/chrome-stub.ts",
+      "src/__tests__/plan-reminder.test.ts",
+      "src/__tests__/plan-background.test.ts",
+      "src/__tests__/plan-ui.test.tsx",
+      "entrypoints/newtab/App.plan.test.tsx",
+      "docs/ERD.md",
+      "docs/API_SPEC.md",
+      "docs/USER_FLOW.md",
       "docs/DESIGN.md",
-      "docs/ROADMAP_TIME_MANAGEMENT.md",
-      "spec/changes/BACKLOG.md"
+      "docs/PERMISSION.md",
+      "docs/ROADMAP_TIME_MANAGEMENT.md"
     ],
-    "modules": ["newtab-responsive-layout", "subject-shelf"]
+    "modules": [
+      "task-schema",
+      "settings-schema",
+      "daily-plan-alarm",
+      "notification-routing",
+      "plan-tomorrow-sheet",
+      "today-planned-block"
+    ]
   },
   "impact": {
     "direct": [
-      "Strip Giá sách render khi horizontal (<1200px), aside render khi !horizontal (>=1200px) — mỗi breakpoint đúng 1 thể hiện",
-      "Prop horizontal={horizontal} truyền cho SubjectShelf → ribbon-tab/shelf-strip ở 1024–1199 thay vì spine dọc",
-      "Focus mode bỏ strip khỏi DOM khi focusActive, khắc phục selector .board-grid--focus .board-shelf-strip vô hiệu do strip là sibling",
-      "Test matchMedia giả lập 360/1024/1280, assert số container + nội dung ngang + focus @1024"
+      "Task.plannedFor?: YYYY-MM-DD local — tách khỏi dueAt, không tạo alarm riêng, không đổi overdue/sort R-15",
+      "Settings.planReminder {enabled, at} default {true,'21:00'} + normalizeSettings cho settings cũ",
+      "Background giữ đúng 1 plan alarm/ngày; tắt xoá alarm; đổi giờ clear+create; notification click mở sheet",
+      "Sheet Kế hoạch mai chọn ≤5 việc từ Sắp tới + Chưa hẹn, gán plannedFor=mai, chọn ếch cho mai qua dayPlan",
+      "Tab Hôm nay có khối 'Đã hẹn hôm nay' suy từ plannedFor, không tô đỏ như quá hạn"
     ],
     "dependents": [
-      "R-19 responsive: không horizontal scroll; scrollWidth === clientWidth ở 360/1024/1280 (eyeball Chrome thật)",
-      "R-20 focus: board-grid--focus vẫn đúng 2 cột, không còn dải Giá sách phía trên",
-      "Bộ lọc môn vẫn dùng được ở mọi breakpoint; không đổi storage/permission/network"
+      "R-21 chip 20% / archive / frog vẫn dùng chung dayPlan; không thêm tab thứ 5",
+      "R-20 focus: notification kế hoạch không mở phiên focus, không đụng studyLog",
+      "Popup 360×560 chỉ thêm 1 khối UI; R-19 responsive/eyeball 360/1024/1280"
     ],
     "regression": [
-      "Popup unaffected; New Tab >=1200 vẫn cột Giá sách dọc như thiết kế",
-      "spec_version giữ 1.4.0 (bug thuần, requirement không đổi); scopeVersion tăng 26 → 27",
-      "Verify tsc 0 / eslint 0 / vitest 33 files 246 tests / wxt build 644.4 kB"
+      "Không đổi manifest/permission (R-17), không network request",
+      "Task/settings cũ thiếu field vẫn load qua normalize; dueAt wall-clock R-09 và lặp R-10/R-11 không đổi",
+      "Không lưu aggregate mới; sort deterministic chạy 2 lần cùng thứ tự"
     ]
   },
   "acceptance": [
-    "1280px: board-shelf=1 / board-shelf-strip=0; 1024px và 360px: strip=1 / aside=0, bên trong là .shelf-strip ribbon",
-    "Focus @1024: strip không còn trong DOM, board-grid có class board-grid--focus",
-    "Eyeball Chrome thật 3 breakpoint: mỗi nơi đúng 1 Giá sách, không overflow; reviewer NORMAL PASS"
+    "Tắt planReminder → không notification; đổi giờ → alarm cũ clear, alarm mới đúng giờ, không nhân đôi",
+    "Bấm notification → mở đúng sheet Kế hoạch mai; chọn ≤5 việc + ếch cho mai",
+    "plannedFor quá hạn nhưng chưa xong không vào nhóm quá hạn; khối Đã hẹn hôm nay khớp dữ liệu",
+    "Reviewer từng phase PASS + spec-validator PASS + verify 4 lệnh PASS + eyeball 3 breakpoint"
   ],
-  "risk": "low"
+  "risk": "medium"
 }
