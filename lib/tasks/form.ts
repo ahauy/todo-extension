@@ -3,6 +3,12 @@
  * ghi việc (bút lông) và hộp thoại sửa việc để hai nơi không lệch luật.
  */
 import type { Habit, Priority, RecurrenceRule, Subtask, Task } from './types';
+import {
+  MAX_ESTIMATE_MIN,
+  MIN_ESTIMATE_MIN,
+  isValidEstimateMin,
+  isValidStartAt,
+} from './timeBlock';
 
 export const MAX_TITLE = 200;
 export const MAX_TAGS = 5;
@@ -24,6 +30,10 @@ export interface TaskForm {
   archived?: boolean;
   /** R-23 — additive: sổ thói quen đi kèm tờ việc (chỉ có khi đã bật). */
   habit?: Habit;
+  /** R-24 — giờ bắt đầu `"HH:mm"`; `null` = chưa xếp giờ trong ngày. */
+  startAt?: string | null;
+  /** R-24 — độ dài dự kiến (phút), 15–240; `null` = trống (mặc định 30 khi có giờ). */
+  estimateMin?: number | null;
 }
 
 export type TaskDraft = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
@@ -40,6 +50,8 @@ export function emptyForm(subjectId: string | null): TaskForm {
     subjectId,
     keystone: false,
     archived: false,
+    startAt: null,
+    estimateMin: null,
   };
 }
 
@@ -60,6 +72,8 @@ export interface TaskFormErrors {
   title?: string;
   recurrence?: string;
   dueAt?: string;
+  startAt?: string;
+  estimateMin?: string;
   tags?: string;
   subtasks?: string;
   note?: string;
@@ -77,6 +91,13 @@ export function formErrors(form: TaskForm, requireFutureDue = true): TaskFormErr
     } else if (requireFutureDue && new Date(form.dueAt) <= new Date()) {
       errors.dueAt = 'Hạn của việc lặp lại phải nằm sau bây giờ.';
     }
+  }
+  // R-24 — chỉ báo lỗi khi có giá trị; trống = chưa xếp giờ / dùng mặc định 30.
+  if (form.startAt && !isValidStartAt(form.startAt)) {
+    errors.startAt = 'Giờ bắt đầu phải trong khoảng 00:00–23:59.';
+  }
+  if (form.estimateMin != null && !isValidEstimateMin(form.estimateMin)) {
+    errors.estimateMin = `Độ dài dự kiến phải từ ${MIN_ESTIMATE_MIN} tới ${MAX_ESTIMATE_MIN} phút.`;
   }
   if (form.tags.length > MAX_TAGS) {
     errors.tags = `Chỉ giữ tối đa ${MAX_TAGS} thẻ.`;
@@ -97,6 +118,8 @@ export function formError(form: TaskForm, requireFutureDue = true): string | nul
     errors.title ??
     errors.recurrence ??
     errors.dueAt ??
+    errors.startAt ??
+    errors.estimateMin ??
     errors.tags ??
     errors.subtasks ??
     errors.note ??
@@ -118,6 +141,10 @@ export function formToDraft(form: TaskForm): TaskDraft {
     archived: form.archived ?? false,
     // R-23 — giữ nguyên field habit; tờ cũ thiếu field → undefined (additive).
     habit: form.habit,
+    // R-24 — chuỗi rỗng trong form ↔ không lưu field. KHÔNG tự ghi 30: mặc định
+    // `estimateMin` là luật hiển thị của timeBlock, không phải dữ liệu người dùng.
+    startAt: form.startAt || undefined,
+    estimateMin: form.estimateMin ?? undefined,
     done: false,
   };
 }

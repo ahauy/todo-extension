@@ -44,6 +44,7 @@ import {
 } from '../lib/storage/adapter';
 import { nextFutureDue } from '../lib/tasks/recurrence';
 import { habitOccurrenceDay, withHabitDay } from '../lib/tasks/habit';
+import type { TaskTimePatch } from '../lib/tasks/timeBlock';
 import { isRecurringDoneToday } from '../lib/tasks/query';
 import { DAY_PLAN_KEY, type DayPlan, type Task } from '../lib/tasks/types';
 
@@ -252,6 +253,31 @@ export function useTasks() {
     []
   );
 
+  /**
+   * R-24 — chỉ đổi giờ bắt đầu / độ dài block, đi qua MỘT `put(task)`.
+   * Không đụng `plannedFor`, `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` hay alarm
+   * `due:<id>` (chép nguyên task rồi sửa 2 field). `put` lỗi (quota) → throw TRƯỚC
+   * `setSnapshot` nên snapshot cũ giữ nguyên (R-16).
+   */
+  const setTaskTime = useCallback(
+    async (id: string, patch: TaskTimePatch) => {
+      const task = snapshotStore.tasks.find((item) => item.id === id);
+      if (!task) return;
+      const next: Task = { ...task, updatedAt: nowISO() };
+      if (patch.startAt !== undefined) {
+        if (patch.startAt) next.startAt = patch.startAt;
+        else delete next.startAt;
+      }
+      if (patch.estimateMin !== undefined) {
+        if (typeof patch.estimateMin === 'number') next.estimateMin = patch.estimateMin;
+        else delete next.estimateMin;
+      }
+      await put(next);
+      setSnapshot(snapshotStore.tasks.map((item) => (item.id === id ? next : item)));
+    },
+    [setSnapshot]
+  );
+
   /** R-21 — chọn/bỏ con ếch cho một ngày local. Cùng ngày → thay thế; sang
    *  ngày khác thì entry cũ tự hết hiệu lực (consumer đọc dayPlan[dayKey hiện tại]). */
   const selectFrog = useCallback(
@@ -400,6 +426,7 @@ export function useTasks() {
     add,
     create,
     update,
+    setTaskTime,
     remove,
     toggle,
     restore,

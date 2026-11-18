@@ -11,6 +11,7 @@ import Button from './ui/Button';
 import { CloseIcon, PlusIcon } from './art/Icons';
 import { recurrenceForKind } from '../lib/tasks/recurrence';
 import { withHabitEnabled } from '../lib/tasks/habit';
+import { MAX_ESTIMATE_MIN, MIN_ESTIMATE_MIN } from '../lib/tasks/timeBlock';
 import type { Priority, RecurrenceRule, Subject } from '../lib/tasks/types';
 import { toLocalInput } from '../lib/datetime';
 import {
@@ -33,6 +34,8 @@ interface TaskFieldsProps {
   keystoneCount?: number;
   /** R-23 — mốc ISO cho `startedAt` lúc bật; mặc định lúc bấm (dùng được để test). */
   now?: Date;
+  /** R-24 — hai ô giờ bắt đầu/độ dài: chỉ hộp sửa việc bật (popup giữ nguyên số khối UI). */
+  withTime?: boolean;
 }
 
 /** 0=CN … 6=T7 — khớp `WeeklyRule.weekdays` / `Date.getDay()`. */
@@ -46,6 +49,7 @@ export default function TaskFields({
   withNote = true,
   keystoneCount = 0,
   now,
+  withTime = false,
 }: TaskFieldsProps) {
   const [tagDraft, setTagDraft] = useState('');
   const [subtaskDraft, setSubtaskDraft] = useState('');
@@ -147,6 +151,43 @@ export default function TaskFields({
           </div>
         </Field>
       </div>
+
+      {withTime && (
+        <div className="grid gap-base sm:grid-cols-2">
+          <Field
+            label="Giờ bắt đầu"
+            helper="Trong ngày, 00:00–23:59"
+            error={errors?.startAt}
+          >
+            <input
+              type="time"
+              className="text-input"
+              value={form.startAt ?? ''}
+              onChange={(event) => onChange({ startAt: event.target.value || null })}
+            />
+          </Field>
+
+          <Field
+            label="Độ dài dự kiến"
+            helper={`${MIN_ESTIMATE_MIN}–${MAX_ESTIMATE_MIN} phút, trống = 30 phút`}
+            error={errors?.estimateMin}
+          >
+            <input
+              type="number"
+              inputMode="numeric"
+              min={MIN_ESTIMATE_MIN}
+              max={MAX_ESTIMATE_MIN}
+              step={5}
+              className="text-input"
+              value={form.estimateMin ?? ''}
+              onChange={(event) => {
+                const raw = event.target.value;
+                onChange({ estimateMin: raw === '' ? null : Number(raw) });
+              }}
+            />
+          </Field>
+        </div>
+      )}
 
       <Field label="Ưu tiên">
         <Segmented

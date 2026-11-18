@@ -93,6 +93,15 @@ export interface Task {
    * ẩn ở lớp hiển thị — data layer KHÔNG xoá field này.
    */
   habit?: Habit;
+  /**
+   * R-24 — giờ bắt đầu **wall-clock local** `"HH:mm"` (00:00–23:59), nhúng ngay
+   * trong key `t:<id>` (không key storage mới). Chỉ là giờ TRONG NGÀY: không đổi
+   * nghĩa `plannedFor`/`dueAt`, không tạo/xoá alarm `due:<id>`, không đổi sort R-15.
+   * Task cũ thiếu field → coi như chưa xếp giờ.
+   */
+  startAt?: string;
+  /** R-24 — độ dài block dự kiến (phút), hợp lệ 15–240. Trống = 30 khi có `startAt`. */
+  estimateMin?: number;
   createdAt: string;    // ISO 8601 UTC có `Z` (instant) — khác nhóm với dueAt
   updatedAt: string;    // ISO 8601 UTC có `Z` (instant)
 }

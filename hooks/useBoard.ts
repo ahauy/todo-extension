@@ -16,6 +16,7 @@ import {
   type BoardTab,
 } from '../lib/tasks/query';
 import { dayKey } from '../lib/datetime';
+import type { TaskTimePatch } from '../lib/tasks/timeBlock';
 import { playPaper, unlockAudio } from '../lib/sound';
 import type { Task } from '../lib/tasks/types';
 import { runOncePerFocusSession } from '../lib/storage/local';
@@ -36,6 +37,7 @@ export function useBoard() {
     dayPlan,
     create,
     update,
+    setTaskTime: setTaskTimeBase,
     remove,
     toggle,
     restore,
@@ -241,6 +243,21 @@ export function useBoard() {
     [update]
   );
 
+  /** R-24 — bọc setTaskTime của useTasks để báo lỗi lưu (quota) như các mutation khác. */
+  const setTaskTime = useCallback(
+    async (id: string, patch: TaskTimePatch) => {
+      try {
+        await setTaskTimeBase(id, patch);
+        setQuotaError(null);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setQuotaError(message);
+        throw error;
+      }
+    },
+    [setTaskTimeBase]
+  );
+
   const dropSubject = useCallback(
     async (id: string) => {
       const affected = tasks.filter((task) => task.subjectId === id);
@@ -288,6 +305,7 @@ export function useBoard() {
     toggleTask,
     deleteTask,
     updateTask,
+    setTaskTime,
     selectFrog,
     createSubject,
     dropSubject,

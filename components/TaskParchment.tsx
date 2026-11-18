@@ -23,6 +23,8 @@ interface TaskParchmentProps {
   suspended?: boolean;
   /** R-21 — việc then chốt đang mở khác tờ này, để cảnh báo >3 mà không đếm đôi. */
   keystoneCount?: number;
+  /** R-24 — 2 ô giờ chỉ bật ở New Tab; popup 360×560 giữ nguyên số khối UI. */
+  withTime?: boolean;
   onSave: () => void;
   onDelete: () => void;
   onClose: () => void;
@@ -45,6 +47,9 @@ export function toForm(task: Task): TaskForm {
     archived: task.archived ?? false,
     // R-23 — phải copy sổ thói quen, nếu thiếu thì Lưu sẽ xoá sổ (regression).
     habit: task.habit,
+    // R-24 — copy giờ/độ dài cùng lý do: thiếu thì Lưu sẽ xoá dữ liệu người dùng.
+    startAt: task.startAt ?? null,
+    estimateMin: task.estimateMin ?? null,
   };
 }
 
@@ -54,6 +59,7 @@ export default function TaskParchment({
   sheet = false,
   suspended = false,
   keystoneCount = 0,
+  withTime = false,
   onSave,
   onDelete,
   onClose,
@@ -108,6 +114,8 @@ export default function TaskParchment({
     problems.title ??
     problems.recurrence ??
     problems.dueAt ??
+    problems.startAt ??
+    problems.estimateMin ??
     problems.tags ??
     problems.subtasks ??
     problems.note ??
@@ -118,7 +126,15 @@ export default function TaskParchment({
     setSaving(true);
     setSaveError(null);
     try {
-      await onUpdateTask({ ...task, ...form, title: form.title.trim(), note: form.note.trim() });
+      await onUpdateTask({
+        ...task,
+        ...form,
+        title: form.title.trim(),
+        note: form.note.trim(),
+        // R-24 — form dùng `null` cho "trống"; Task additive dùng undefined.
+        startAt: form.startAt || undefined,
+        estimateMin: form.estimateMin ?? undefined,
+      });
       setDirty(false);
       onSave();
     } catch (error) {
@@ -243,6 +259,7 @@ export default function TaskParchment({
           subjects={subjects}
           errors={problems}
           keystoneCount={keystoneCount}
+          withTime={withTime}
           onChange={(next) => {
             if (next.subtasks) {
               const before = form.subtasks;

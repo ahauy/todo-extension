@@ -459,6 +459,7 @@ export default function App() {
           subjects={board.subjects}
           suspended={!!deleteId || dirtyConfirm}
           keystoneCount={openKeystoneCount(board.tasks, detailId)}
+          withTime
           onClose={closeDetail}
           onDirtyChange={setDirty}
           onSave={() => {
