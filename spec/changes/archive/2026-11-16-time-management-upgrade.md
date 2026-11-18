@@ -1,7 +1,8 @@
 ---
 id: time-management-upgrade
 type: feature
-status: in_progress
+status: done
+closed: 2026-11-18
 created: 2026-11-16
 updated: 2026-11-18
 ---
@@ -70,8 +71,27 @@ Hiện trạng liên quan (đã đối chiếu code):
       lối bàn phím/ô nhập, cảnh báo chồng lấn (vẫn lưu); popup giữ nguyên.
       (Xong 2026-11-18 — `63d3091` + `5032407` + close-out phase 3; spec 1.7.0 / scope 31; STRICT/STRICT
       PASS, eyeball 3 breakpoint. Residual giá trị chưa kiểm chứng do B chưa có dữ liệu dùng thật.)
-- [ ] Mỗi gói: spec delta + `/spec-publish` + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + reviewer PASS.
-- [ ] Không tăng quyền manifest (vẫn `storage`, `alarms`, `notifications` — R-17).
+- [x] Mỗi gói: spec delta + `/spec-publish` + docs reconcile (`ERD`, `API_SPEC`, `USER_FLOW`, `DESIGN`) + reviewer PASS — xong ở close-out từng gói (0 → C → A → B → D → E).
+- [x] Không tăng quyền manifest (vẫn `storage`, `alarms`, `notifications` — R-17) — verified ở từng phase 3 / reviewer; scope 31 vẫn giữ nguyên.
+
+## Close-out 2026-11-18
+
+Umbrella **FEAT-003 đóng** sau khi đủ 7 slice bàn giao; user đã duyệt riêng việc đóng cây này.
+Không slice nào còn pending; `activeWorkItem = null`, CI staging xanh.
+
+| Slice | Commit bàn giao | Spec / scope |
+|---|---|---|
+| Gói 0 | `9d641f5` | 1.2.1 / v22 |
+| Gói C | `e75ec48` | 1.3.0 / v23 |
+| Gói A | `69f02a5` | 1.4.0 / v25 |
+| Gói B | `42dd0c2` | 1.5.0 / v28 |
+| Gói D | `1f4b637` | 1.6.0 / v30 |
+| Gói E | `b66ff06` | 1.7.0 / v31 |
+| BUG-CI-TZ (liên quan) | `6f52ec8` | scope v32, bug-fix |
+
+Residual được giữ lại, không chặn đóng: **Gói E chưa kiểm chứng giá trị dùng thật** vì Gói B chưa có
+dữ liệu người dùng thực tế (roadmap §4/§6 đã ghi đề xuất hoãn E; user chọn làm ngay 2026-11-18).
+Không tự đóng thành "sản phẩm đã được xác thực" — chỉ đóng phạm vi triển khai/kỹ thuật.
 
 ## Ghi chú
 

@@ -13,7 +13,7 @@ updated: 2026-11-17
 
 Triển khai Gói A theo roadmap [`docs/ROADMAP_TIME_MANAGEMENT.md`](../../docs/ROADMAP_TIME_MANAGEMENT.md) §4
 và thứ tự §6 (`0 → C → A`). Phạm vi change này **chỉ Gói A**; Gói B/D/E giữ nguyên trạng thái
-trong umbrella `spec/changes/2026-11-16-time-management-upgrade.md`.
+trong umbrella `spec/changes/archive/2026-11-16-time-management-upgrade.md`.
 
 Quyết định đã chốt (roadmap §5, §7): giữ 3 mức ưu tiên + nhãn A/B/C; tối đa **3** việc then chốt
 đang mở và **chỉ cảnh báo**; lối vào 20% là **chip bật/tắt** trên nền tab (không thêm tab thứ 5);

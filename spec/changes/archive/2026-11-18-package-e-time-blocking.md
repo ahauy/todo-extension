@@ -29,7 +29,7 @@ Phạm vi user đã chốt 2026-11-18 (hỏi–đáp trước khi mở change):
 ## Bối cảnh
 
 - Nguồn: `docs/ROADMAP_TIME_MANAGEMENT.md` §4 Gói E + §6 thứ tự ưu tiên (E sau cùng, risk **Cao**,
-  đề xuất STRICT), umbrella `spec/changes/2026-11-16-time-management-upgrade.md`.
+  đề xuất STRICT), umbrella `spec/changes/archive/2026-11-16-time-management-upgrade.md`.
 - Phụ thuộc: Gói 0 (wall-clock local), Gói B (`plannedFor` + sheet "Kế hoạch mai") đã done.
   **Cảnh báo của roadmap:** E được khuyến nghị hoãn "đến khi B có dữ liệu dùng thật" — user chọn làm
   ngay, nên rủi ro sản phẩm (giá trị chưa kiểm chứng) được ghi nhận ở residual risk, không chặn.

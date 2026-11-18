@@ -16,7 +16,7 @@ bảng Học Đường. Tắt theo dõi chỉ ẩn, không xoá dữ liệu.
 
 ## Bối cảnh
 - Nguồn: `docs/ROADMAP_TIME_MANAGEMENT.md` §1.3, §4 Gói D, §6; change cha
-  `spec/changes/2026-11-16-time-management-upgrade.md`.
+  `spec/changes/archive/2026-11-16-time-management-upgrade.md`.
 - Phụ thuộc Gói 0 (R-10 weekly tôn trọng `weekdays`) đã xong. Không thêm permission/network (R-17).
 - Spec R-23 mới; `spec_version 1.5.0 → 1.6.0`, scope 29.
 - Chưa có code Gói D trên đĩa; toàn bộ thay đổi đi qua task mới, không sửa trực tiếp task đã complete.
