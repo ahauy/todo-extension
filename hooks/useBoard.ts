@@ -18,6 +18,7 @@ import {
 import { dayKey } from '../lib/datetime';
 import { playPaper, unlockAudio } from '../lib/sound';
 import type { Task } from '../lib/tasks/types';
+import { runOncePerFocusSession } from '../lib/storage/local';
 
 /** FUP-001: sentinel cho pendingInterruptId khi huỷ gắn (taskId về null). */
 const DETACH_SENTINEL = '';
@@ -52,6 +53,8 @@ export function useBoard() {
   const [pendingCompletion, setPendingCompletion] = useState<{
     taskId: string;
     interruptions: number;
+    /** G10: id phiên focus để tiêu thụ đúng 1 lần qua 2 bề mặt. */
+    sessionId: string;
   } | null>(null);
   const [pendingStartId, setPendingStartId] = useState<string | null>(null);
   const [pendingInterruptId, setPendingInterruptId] = useState<string | null>(null);
@@ -69,15 +72,19 @@ export function useBoard() {
     setToast({ message: 'Hết giờ học. Đứng dậy uống ngụm nước đã.' });
   }, [record]);
 
-  const onFocusComplete = useCallback(() => {
+  const onFocusComplete = useCallback((sessionId: string) => {
     // Phase 1 đảm bảo callback này chỉ bắn ở natural completion (không phải skip).
     // R-20: có việc gắn → hoãn record/tick cho ConfirmDialog ở UI; từ chối = không ghi.
     const attached = focusTaskIdRef.current;
     if (attached) {
-      setPendingCompletion({ taskId: attached, interruptions: interruptionRef.current });
+      setPendingCompletion({
+        taskId: attached,
+        interruptions: interruptionRef.current,
+        sessionId,
+      });
       return;
     }
-    recordFocus();
+    void runOncePerFocusSession(sessionId, recordFocus);
   }, [recordFocus]);
 
   const pomodoro = usePomodoro({
@@ -149,13 +156,15 @@ export function useBoard() {
     [tasks, toggle, record, settings.soundEnabled]
   );
 
-  /** R-20: xác nhận "Xong việc này chưa?" → tick (R-11 qua toggle) + focus +1. */
+  /** R-20 + G10: xác nhận "Xong việc này chưa?" → tick + focus +1, nhưng chỉ 1 lần/phiên. */
   const confirmFocusCompletion = useCallback(() => {
     const pending = pendingCompletion;
     if (!pending) return;
     setPendingCompletion(null);
-    void toggleTask(pending.taskId);
-    recordFocus();
+    void runOncePerFocusSession(pending.sessionId, () => {
+      void toggleTask(pending.taskId);
+      recordFocus();
+    });
   }, [pendingCompletion, toggleTask, recordFocus]);
 
   const declineFocusCompletion = useCallback(() => setPendingCompletion(null), []);

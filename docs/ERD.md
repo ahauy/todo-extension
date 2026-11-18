@@ -160,7 +160,7 @@ Ghi nhật ký nằm ở `hooks/useBoard.ts:119` (toggle task, `record('tasks', 
 `:110-133`) và `hooks/useBoard.ts:50` (`record('focus', 1)` trong `recordFocus` `:49-52` — chỉ gọi
 khi xác nhận completion tự nhiên, xem §2.7).
 
-### 2.7 `PomodoroState` (key `pomodoro`, `chrome.storage.local`) — `types.ts:112-128`
+### 2.7 `PomodoroState` (key `pomodoro`, `chrome.storage.local`) — `types.ts:118-145`
 
 | Field | Kiểu | Ý nghĩa |
 |---|---|---|
@@ -170,9 +170,17 @@ khi xác nhận completion tự nhiên, xem §2.7).
 | `remaining` | `number` | ms còn lại khi tạm dừng |
 | `taskId` | `string \| null` | R-20: việc đang gắn với phiên (xem bên dưới); `null` khi không gắn / đã rời focus |
 | `interruptions` | `number \| undefined` (optional) | R-20, **local-only**: số lần đổi việc trong phiên focus hiện tại. Khởi tạo `0` khi bắt đầu focus, `+1` qua `noteInterruption()` (`hooks/usePomodoro.ts:178-180`), xoá (`undefined`) khi reset/skip/kết thúc phiên (`hooks/usePomodoro.ts:107-116,162-171`). Consumer đọc `?? 0`. |
+| `focusSessionId` | `string \| undefined` (optional) | **G10, local-only**: định danh phiên focus, sinh mới mỗi `start()` ở phase focus (`hooks/usePomodoro.ts:150-160`); `onFocusComplete(sessionId)` mang giá trị này xuống `pendingCompletion`. State cũ thiếu field → fallback `legacy:${endsAt}` (`hooks/usePomodoro.ts:118`) nên vẫn dedup được. Xoá khi advance/reset. |
 
-**Không đồng bộ giữa máy** — cả `taskId` lẫn `interruptions` chỉ nằm trong `chrome.storage.local`
-(`types.ts:126,133`, `POMODORO_KEY = "pomodoro"` ở `types.ts:141`, `lib/storage/local.ts:22-37`).
+**Khóa tiêu thụ G10** — key riêng `focusCompletionClaim` (`types.ts:150`) trong `chrome.storage.local`,
+giá trị là **tập tối đa 32 `sessionId` đã tiêu thụ** (`lib/storage/local.ts:41-83`). `claimFocusCompletion`
+kiểm tra cả Set trong context (chặn double-confirm cùng page) lẫn tập đã lưu (chặn stale dialog của
+phiên cũ sau khi phiên mới đã được ghi). `useBoard.confirmFocusCompletion` chỉ tick task + `record('focus', 1)`
+khi claim trả `true`. **Residual:** `chrome.storage.local` không có compare-and-swap; hai context xác nhận
+cùng tick tuyệt đối vẫn có thể cả hai đọc tập cũ → double record (rất hiếm, ghi nhận thay vì giấu).
+
+**Không đồng bộ giữa máy** — `taskId`, `interruptions` và `focusSessionId` chỉ nằm trong `chrome.storage.local`
+(`types.ts:126,133,140`, `POMODORO_KEY = "pomodoro"` ở `types.ts:148`, `lib/storage/local.ts:22-37`).
 **Không có field `sync` tương ứng**: R-21 thêm một key sync thứ năm là `dayPlan` (chứa `frogTaskId`,
 xem §2.8) — nhưng `taskId`/`interruptions` của R-20 vẫn **không** được copy sang đó, **không thêm
 key/ngày** cho Pomodoro, **không** ghi vào `StudyLog`, không lên thiết bị khác, chỉ hiện trong

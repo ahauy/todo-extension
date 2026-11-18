@@ -415,7 +415,8 @@ Các mục dưới đây **không thuộc** roadmap này; chúng là đầu vào
 | G7 | `onChanged` reload toàn bộ, không merge theo `updatedAt` | `hooks/useTasks.ts:102-128` | đa thiết bị (mọi gói) |
 | G8 | ~~Tie-breaker `sortTasks` vs `sortBoard` chưa nhất quán~~ → **ĐÃ ĐÓNG** 2026-11-17: `compareById` là tie-breaker cuối cho mọi key | `lib/tasks/query.ts:139-167`; commit `c890de2` | A (đã có sẵn nền tảng) |
 | G9 | Hạng mục R-19 responsive/menu/motion còn mở | `docs/DESIGN.md` §Known Gaps | ảnh hưởng layout mọi gói |
-| G10 | **Double-focus giữa popup & New Tab** (kế thừa phase 1, xem §9.3) | `hooks/usePomodoro.ts` local storage, 2 surface hydrate độc lập | C (follow-up), mọi gói có background session |
+| G10 | ~~**Double-focus giữa popup & New Tab**~~ → **ĐÃ ĐÓNG** 2026-11-18: `focusSessionId` + tập claim (tối đa 32 id) ở `chrome.storage.local`; confirm đi qua `runOncePerFocusSession`; test integration `useBoard` + `useStudyLog` thật (commit G10) | `hooks/usePomodoro.ts`, `hooks/useBoard.ts`, `lib/storage/local.ts:41-86`; residual race 2 context cùng tick vẫn ghi rõ ở §9.3 | C (đã xử lý), mọi gói có background session |
+| G11 | New Tab ≥1200px render **2 bản "Giá sách"** (`board-shelf-strip` + `board-shelf`); 1024–1199px ẩn cả hai dù CSS chuẩn bị dải ngang | Phát hiện eyeball Chrome thật 2026-11-18: `entrypoints/newtab/App.tsx:69-71,235,238` (`horizontal` dùng chung cho cả 2 nhánh) | UI responsive — change riêng, không gộp vào G10 |
 
 Ngoài ra (doc drift thuần, không chặn roadmap):
 
@@ -457,18 +458,29 @@ Kế hoạch: mỗi gói có UI mới (bắt đầu từ Gói A) phải kèm 1 l
 **360×560, 1024×768, 1280×800** trước khi reviewer PASS; ghi kết quả vào task file. Với Gói C, gắn
 lượt đo này vào FUP-001 (khi môi trường browser có sẵn) — không tự coi là đã xong.
 
-### 9.3 G10 — double-focus giữa hai surface (kế thừa phase 1)
+**Đã chạy 2026-11-18** (extension thật nạp từ `.output/chrome-mv3`, Chromium qua agent-browser):
+`popup-360x560.png` — không tràn/chữ không bị cắt, đủ 4 tab + chip "20%" + chân đồng hồ;
+`newtab-360x560.png` — xếp dọc, không tràn ngang, hero và ô ghi dùng được;
+`newtab-1024x768.png` — 2 cột sạch, hero không cắt;
+`newtab-1280x800.png` — **phát hiện G11**: "Giá sách" lặp 2 bản (xem §8), không có overflow ngang
+(`scrollWidth === clientWidth` ở cả 3 kích thước). Ảnh: `.context/eyeball/*.png`. G11 là change riêng.
 
-Phase 1 đã có `chrome.storage.local.onChanged` hydration, nhưng vẫn có cửa sổ race: popup và New Tab
+### 9.3 G10 — double-focus giữa hai surface — ĐÃ ĐÓNG 2026-11-18
+
+Phase 1 từng có `chrome.storage.local.onChanged` hydration nhưng vẫn có cửa sổ race: popup và New Tab
 mở cùng lúc, cả hai có thể cùng nhận natural completion và gọi `record('focus', 1)` hai lần.
-Đây là **kế thừa từ phase 1**, không do phase 2 gây ra; reviewer phase 2 xác nhận không làm nặng thêm.
 
-Kế hoạch xử lý (ưu tiên trước Gói A vì A thêm luồng chấm điểm/tuần):
-1. Thêm `focusSessionId: string` vào `PomodoroState` (local), sinh mới mỗi lần `start()` focus.
-2. `pendingCompletion` trong `useBoard` mang theo `focusSessionId`; `confirmFocusCompletion` chỉ gọi
-   `record('focus')` nếu id khớp và chưa tiêu thụ (idempotency key trong ref/local).
-3. Test 2 hook instance cùng hydrate từ 1 local store → chỉ 1 `record('focus')`.
-4. Reviewer STRICT + verify 4 lệnh; cập nhật G10 → đóng trong roadmap §8.
+**Đã xử lý:** `PomodoroState.focusSessionId` (local, sinh mới mỗi `start()` focus, fallback
+`legacy:${endsAt}` cho state cũ) → `onFocusComplete(sessionId)` → `pendingCompletion.sessionId`.
+`claimFocusCompletion` lưu **tập tối đa 32 sessionId đã tiêu thụ** ở `chrome.storage.local` + Set trong
+context; `useBoard.confirmFocusCompletion` đi qua `runOncePerFocusSession` nên session đã tiêu thụ
+không tick task, không ghi focus — kể cả stale dialog của phiên cũ sau khi phiên mới đã claim
+(reviewer STRICT round 1 / HIGH-01). Test: `g10-focus-idempotency.test.tsx` + `g10-board-integration.test.tsx`
+(2 instance → 1 record; confirm thật qua `useBoard`/`useStudyLog`).
+
+**Residual được chấp nhận:** `chrome.storage.local` không có compare-and-swap → hai context confirm
+**cùng tick tuyệt đối** vẫn có thể cả hai đọc tập cũ rồi ghi (double record). Rất hiếm, ghi rõ ở
+`docs/ERD.md` §2.7 và `docs/API_SPEC.md` §3.6 thay vì giấu.
 
 ### 9.4 Nút huỷ gắn (`attach(null)`)
 

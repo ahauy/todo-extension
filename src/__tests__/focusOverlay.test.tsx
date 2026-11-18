@@ -40,6 +40,7 @@ function fakeApi(overrides: Partial<PomodoroApi> = {}): PomodoroApi {
     remaining: 25 * 60_000,
     progress: 0.4,
     taskId: 'task-1',
+    focusSessionId: 'session-test',
     interruptions: 2,
     start: vi.fn(),
     pause: vi.fn(),

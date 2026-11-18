@@ -14,7 +14,7 @@ export interface FocusInterrupt {
 
 interface FocusConfirmsProps {
   interrupt: FocusInterrupt | null;
-  pendingCompletion: { taskId: string; interruptions: number } | null;
+  pendingCompletion: { taskId: string; interruptions: number; sessionId: string } | null;
   sheet?: boolean;
   onCancelInterrupt: () => void;
   onConfirmInterrupt: (interrupt: FocusInterrupt) => void;

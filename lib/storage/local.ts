@@ -4,7 +4,7 @@
  * đổi trạng thái liên tục; đồng hồ cũng là thứ thuộc về một máy, không đồng bộ.
  * Mọi hàm đều chịu được môi trường không có chrome.storage.local (unit test).
  */
-import { POMODORO_KEY, type PomodoroState } from '../tasks/types';
+import { FOCUS_CLAIM_KEY, POMODORO_KEY, type PomodoroState } from '../tasks/types';
 
 export const DEFAULT_POMODORO: PomodoroState = {
   phase: 'focus',
@@ -36,6 +36,47 @@ export async function savePomodoro(state: PomodoroState): Promise<void> {
   return new Promise((resolve) => {
     local.set({ [POMODORO_KEY]: state }, () => resolve());
   });
+}
+
+/**
+ * G10 — tiêu thụ completion của 1 phiên focus đúng 1 lần.
+ * - Set trong context chặn double-confirm giữa 2 hook cùng page (popup hoặc New Tab).
+ * - Tập sessionId ở `focusCompletionClaim` chặn stale dialog của phiên CŨ ngay cả
+ *   sau khi phiên MỚI đã được tiêu thụ (review STRICT round 1 / HIGH-01).
+ *   Giữ N phiên gần nhất để khoá không tăng vô hạn (New Tab sống lâu).
+ * `chrome.storage.local` không có compare-and-swap: 2 context xác nhận cùng tick
+ * tuyệt đối vẫn là rủi ro lý thuyết (ghi residual); mọi trường hợp tuần tự được chặn.
+ */
+const consumedInContext = new Set<string>();
+const MAX_CLAIMED_SESSIONS = 32;
+
+export async function claimFocusCompletion(sessionId: string): Promise<boolean> {
+  if (consumedInContext.has(sessionId)) return false;
+  consumedInContext.add(sessionId);
+  if (consumedInContext.size > MAX_CLAIMED_SESSIONS) {
+    const oldest = consumedInContext.values().next().value;
+    if (oldest) consumedInContext.delete(oldest);
+  }
+
+  const local = area();
+  if (!local) return true;
+  const stored = await new Promise<string[]>((resolve) => {
+    local.get([FOCUS_CLAIM_KEY], (result) => {
+      const raw = result?.[FOCUS_CLAIM_KEY];
+      resolve(Array.isArray(raw) ? raw.filter((id): id is string => typeof id === 'string') : []);
+    });
+  });
+  if (stored.includes(sessionId)) return false;
+
+  await new Promise<void>((resolve) => {
+    local.set({ [FOCUS_CLAIM_KEY]: [...stored, sessionId].slice(-MAX_CLAIMED_SESSIONS) }, () => resolve());
+  });
+  return true;
+}
+
+/** G10 — dùng ở useBoard: chỉ chạy `work` khi phiên này chưa được tiêu thụ. */
+export async function runOncePerFocusSession(sessionId: string, work: () => void): Promise<void> {
+  if (await claimFocusCompletion(sessionId)) work();
 }
 
 /** Tab đang mở bảng Học Đường — để nút biểu tượng focus lại thay vì mở trùng.

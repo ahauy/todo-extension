@@ -33,10 +33,17 @@ export function presetDuration(preset: PomodoroPreset, phase: 'focus' | 'break')
   return PRESET_MINUTES[preset][phase] * 60_000;
 }
 
+/** G10 — id phiên focus, đủ để 2 surface cùng nhận completion nhưng chỉ tiêu thụ 1 lần. */
+function newFocusSessionId(): string {
+  const webCrypto = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  return webCrypto?.randomUUID?.() ?? `focus-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 interface Options {
   preset: PomodoroPreset;
   soundEnabled: boolean;
-  onFocusComplete: () => void;
+  /** G10: kèm id phiên để consumer guard idempotency (xác nhận ở 2 bề mặt). */
+  onFocusComplete: (sessionId: string) => void;
 }
 
 /** 'natural' = đếm về 0; 'skip' = người dùng bấm qua. Chỉ 'natural' + focus bắn callback. */
@@ -48,6 +55,8 @@ export interface PomodoroApi {
   remaining: number;
   progress: number;
   taskId: string | null;
+  /** G10: id phiên focus hiện tại (local-only), null khi không phải focus đang gắn. */
+  focusSessionId: string | null;
   /** R-20: chỉ đọc — số lần đổi việc trong phiên (local-only, hiển thị overlay/tổng kết). */
   interruptions: number;
   start: () => void;
@@ -103,7 +112,11 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
       const duration = presetDuration(preset, nextPhase);
       if (soundRef.current) playBell();
       // R-20: skip KHÔNG record. Chỉ natural + rời focus mới báo completion.
-      if (reason === 'natural' && from.phase === 'focus') completeRef.current();
+      // G10: callback mang id phiên (state cũ fallback theo endsAt) để consumer
+      // tiêu thụ đúng 1 lần dù popup + New Tab cùng nhận sự kiện này.
+      if (reason === 'natural' && from.phase === 'focus') {
+        completeRef.current(from.focusSessionId ?? `legacy:${from.endsAt ?? 'unknown'}`);
+      }
       commit({
         phase: nextPhase,
         // Giờ nghỉ tự chạy; phiên học mới thì chờ người dùng bấm bắt đầu
@@ -113,6 +126,8 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
         // R-20: rời focus = clear việc + bộ đếm; sang focus mới = reset bộ đếm về 0
         taskId: null,
         interruptions: nextPhase === 'focus' ? 0 : undefined,
+        // G10: phiên đã kết thúc — id chỉ còn sống trong pendingCompletion đã chụp lại.
+        focusSessionId: undefined,
       });
     },
     [preset, commit]
@@ -149,7 +164,14 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
 
   const start = useCallback(() => {
     const left = state.remaining > 0 ? state.remaining : presetDuration(preset, state.phase);
-    commit({ ...state, running: true, endsAt: Date.now() + left, remaining: left });
+    commit({
+      ...state,
+      running: true,
+      endsAt: Date.now() + left,
+      remaining: left,
+      // G10: mỗi lần start() focus là 1 phiên mới — id mới để không gộp nhầm completion.
+      focusSessionId: state.phase === 'focus' ? newFocusSessionId() : state.focusSessionId,
+    });
   }, [state, preset, commit]);
 
   const pause = useCallback(() => {
@@ -167,6 +189,7 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
       remaining: presetDuration(preset, state.phase),
       // R-20: reset kết thúc phiên hiện tại → xoá bộ đếm
       interruptions: undefined,
+      focusSessionId: undefined,
     });
   }, [state, preset, commit]);
 
@@ -185,6 +208,7 @@ export function usePomodoro({ preset, soundEnabled, onFocusComplete }: Options):
     remaining,
     progress: total === 0 ? 0 : Math.min(1, Math.max(0, 1 - remaining / total)),
     taskId: state.taskId,
+    focusSessionId: state.focusSessionId ?? null,
     interruptions: state.interruptions ?? 0,
     start,
     pause,

@@ -131,6 +131,13 @@ export interface PomodoroState {
    * Field optional để state cũ (chưa có R-20) vẫn load được — consumer dùng `?? 0`.
    */
   interruptions?: number;
+  /**
+   * G10 — LOCAL-ONLY: định danh phiên focus, sinh mới mỗi lần `start()` ở phase focus.
+   * Làm idempotency key để popup + New Tab cùng nhận 1 natural completion nhưng
+   * chỉ ghi `studyLog.focus` đúng 1 lần. Optional để state cũ vẫn load được —
+   * consumer fallback theo `endsAt` của phiên đó.
+   */
+  focusSessionId?: string;
 }
 
 /** Storage key prefix cho task (1 key/task) */
@@ -139,6 +146,8 @@ export const SETTINGS_KEY = "settings";
 export const SUBJECTS_KEY = "subjects";
 export const STUDY_LOG_KEY = "studyLog";
 export const POMODORO_KEY = "pomodoro";
+/** G10 — marker tiêu thụ completion, nằm riêng để state cũ không bị ghi đè */
+export const FOCUS_CLAIM_KEY = "focusCompletionClaim";
 /** R-21 — 1 key duy nhất cho "con ếch hôm nay" (KHÔNG tạo key theo ngày). */
 export const DAY_PLAN_KEY = "dayPlan";
 

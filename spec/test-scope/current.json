@@ -1,72 +1,53 @@
 {
   "specVersion": "1.4.0",
-  "scopeVersion": 25,
-  "generatedAt": "2026-11-17T16:54:50+07:00",
-  "trigger": "feature-update",
-  "workItem": "feature-keystone-frog",
-  "specRefs": ["R-21", "R-15"],
+  "scopeVersion": 26,
+  "generatedAt": "2026-11-18T09:40:19+07:00",
+  "trigger": "bug-fix",
+  "workItem": "bug-g10-focus-idempotency",
+  "specRefs": ["R-20"],
   "changed": {
     "files": [
-      "SPECIFICATIONS.md",
-      "spec/updates/2026-11-17-keystone-frog.md",
-      "spec/CHANGELOG.md",
       "lib/tasks/types.ts",
-      "lib/tasks/form.ts",
-      "lib/tasks/query.ts",
-      "lib/datetime.ts",
-      "lib/storage/adapter.ts",
-      "hooks/useTasks.ts",
-      "components/FilterRow.tsx",
-      "components/TaskFields.tsx",
-      "components/TaskScroll.tsx",
-      "components/TaskScrollList.tsx",
-      "components/TaskParchment.tsx",
-      "components/SettingsPanel.tsx",
-      "entrypoints/newtab/App.tsx",
-      "styles/board.css",
-      "src/__tests__/keystone-frog.test.ts",
-      "src/__tests__/FilterRow.test.tsx",
-      "src/__tests__/TaskScroll.test.tsx",
-      "entrypoints/newtab/App.focus.test.tsx"
+      "lib/storage/local.ts",
+      "hooks/usePomodoro.ts",
+      "hooks/useBoard.ts",
+      "components/FocusConfirms.tsx",
+      "src/__tests__/g10-focus-idempotency.test.tsx",
+      "src/__tests__/g10-board-integration.test.tsx",
+      "src/__tests__/focusOverlay.test.tsx",
+      "docs/ERD.md",
+      "docs/API_SPEC.md",
+      "docs/ROADMAP_TIME_MANAGEMENT.md"
     ],
     "modules": [
-      "task-schema",
-      "task-query",
-      "day-plan-storage",
-      "popup-filter",
-      "task-card",
-      "settings-archive",
-      "newtab-hero",
-      "weekly-review"
+      "pomodoro-session-id",
+      "focus-completion-claim",
+      "focus-confirm-wiring",
+      "study-log-idempotency"
     ]
   },
   "impact": {
     "direct": [
-      "Task.keystone?/archived? additive + form/hook flow; bật then chốt tự gán priority='high', tắt không hạ",
-      "Chip '20%' bật/tắt trên nền tab (không thêm tab thứ 5); lọc keystone && !archived sau tab/subject/search, trước sort",
-      "archived bị loại khỏi filterByBoard/filterBySubject/searchTasks, overdueCount/activeCount, empty-state reason và SubjectShelf — không để task ma",
-      "dayPlan là 1 key sync duy nhất dạng { [dayKey]: { frogTaskId } }, dayKey local YYYY-MM-DD, prune ≤14 ngày, quota guard 8192B",
-      "New Tab hero 'Con ếch hôm nay' + nút dùng lại attach()/xác nhận của R-20; dòng then chốt hôm nay + review tuần Thứ 2→hiện tại suy từ dữ liệu"
+      "PomodoroState.focusSessionId? local-only, sinh mới mỗi start() focus; state cũ fallback legacy:${endsAt}",
+      "onFocusComplete(sessionId) + pendingCompletion.sessionId; FocusConfirms propagates id xuống confirm",
+      "claimFocusCompletion lưu tập tối đa 32 sessionId ở chrome.storage.local/FOCUS_CLAIM_KEY + Set trong context",
+      "useBoard.confirmFocusCompletion đi qua runOncePerFocusSession: session đã tiêu thụ không tick task, không record focus"
     ],
     "dependents": [
-      "R-15 sort deterministic: không sửa sortTasks/sortBoard/compareById; chip chỉ là filter bổ sung",
-      "TaskScroll DOM parity compact/full cho ribbon THEN CHỐT + dấu con ếch (khác màu lẫn khác chữ)",
-      "SettingsPanel 'Đã cắt' hiển thị ở cả popup lẫn New Tab, 360px vẫn không tràn",
-      "chrome.storage.onChanged phải hydrate cả key dayPlan để đổi frog từ surface khác có hiệu lực"
+      "R-20: record('focus',1) đúng 1 lần cho mỗi phiên completion dù popup + New Tab mở cùng lúc",
+      "skip/reset/decline/pause-resume không đổi semantics; không thêm permission/network (R-17)",
+      "studyLog.tasks chỉ đổi cùng lần tick hợp lệ, không dao động do stale dialog"
     ],
     "regression": [
-      "Không đổi manifest/permission (R-17), không network request, không analytics/điểm năng suất",
-      "Task cũ thiếu keystone/archived vẫn hiển thị bình thường; dueAt wall-clock R-09 và lặp R-10/R-11 không đổi",
-      "R-20 focus: hero dùng lại luồng gắn việc hiện có, không tạo phiên focus thứ hai; skip vẫn không ghi studyLog.focus",
-      "Quyết định A1/A2/A3 và thứ tự roadmap 0→C→A→B→D→E giữ nguyên; Gói B/D/E chưa triển khai",
-      "Verify tsc / eslint / vitest / wxt build PASS"
+      "Không đổi chrome.storage.sync contract, spec_version vẫn 1.4.0 (bug thuần, requirement không đổi)",
+      "Focus overlay popup + New Tab, chip 20% / hero con ếch (R-21) không đổi",
+      "Verify tsc 0 / eslint 0 / vitest 32 files 241 tests / wxt build PASS"
     ]
   },
   "acceptance": [
-    "Bật/tắt keystone → vào/ra chip 20% đúng, dữ liệu khác không đổi; >3 việc mở vẫn lưu và chỉ cảnh báo",
-    "Chọn con ếch → hero đúng việc; sang ngày mới hết hiệu lực; archive ẩn khỏi mọi tab/đếm nhưng phục hồi được",
-    "dayPlan chỉ 1 key, prune ≤14 ngày, không key/ngày; sort chạy 2 lần cùng thứ tự (R-15)",
-    "Dòng then chốt hôm nay + review tuần khớp dữ liệu thật; không lưu tổng hợp; verify 4 lệnh PASS"
+    "2 hook instance cùng completion → đúng 1 record focus; stale dialog sau khi session đã tiêu thụ → 0 record, 0 tick task",
+    "Confirm hợp lệ qua useBoard + useStudyLog thật → studyLog.focus +1, task done=true",
+    "Reviewer STRICT PASS (round 2) + docs as-built reconcile (ERD, API_SPEC, ROADMAP §9.3)"
   ],
   "risk": "medium"
 }

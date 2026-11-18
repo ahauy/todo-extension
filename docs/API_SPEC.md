@@ -29,7 +29,8 @@ Storage layout `chrome.storage.sync` — chi tiết đầy đủ ở [`ERD.md`](
 | `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:139` (`SUBJECTS_KEY`) |
 | `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:140` (`STUDY_LOG_KEY`) |
 | `dayPlan` | `sync` | `DayPlan` (**1 key**, prune 14 ngày; R-21) | `lib/tasks/types.ts:143,150-152`, `lib/storage/adapter.ts:242-264` |
-| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` local-only, R-20) | `lib/tasks/types.ts:118,141`, `lib/storage/local.ts:22-37` |
+| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` + `focusSessionId` local-only, R-20/G10) | `lib/tasks/types.ts:118,148,150`, `lib/storage/local.ts:22-83` |
+| `focusCompletionClaim` | **`local`** | G10 — tập tối đa 32 `sessionId` đã tiêu thụ (`string[]`) | `lib/tasks/types.ts:150`, `lib/storage/local.ts:41-83` |
 
 Kiểu `Task`, `Settings`, `Subtask`, `RecurrenceRule`, `Subject`, `StudyLog`, `PomodoroState`, `DayPlan` định nghĩa
 duy nhất tại `lib/tasks/types.ts` — adapter, recurrence, query, UI đều import từ đây (single source of truth).
@@ -100,7 +101,8 @@ Settings có toggle "Bật nhắc việc" + đọc quyền thật qua `notificat
 
 | API | Dùng ở đâu | Mục đích |
 |---|---|---|
-| `local.get([POMODORO_KEY], cb)` | `lib/storage/local.ts:22-31` (`loadPomodoro`) | Hydrate `PomodoroState` (gồm `taskId`, `interruptions`) lúc mount |
+| `local.get([POMODORO_KEY], cb)` | `lib/storage/local.ts:22-31` (`loadPomodoro`) | Hydrate `PomodoroState` (gồm `taskId`, `interruptions`, `focusSessionId`) lúc mount |
+| `local.get([FOCUS_CLAIM_KEY], cb)` / `local.set` | `lib/storage/local.ts:50-86` (`claimFocusCompletion`) | G10 — đọc/ghi tập sessionId đã tiêu thụ, chặn double-focus |
 | `local.set({ [POMODORO_KEY]: state }, cb)` | `lib/storage/local.ts:33-38` (`savePomodoro`) | Ghi khi **đổi trạng thái** — không ghi mỗi nhịp đếm (giới hạn 120 write/phút) |
 | `local.onChanged.addListener` | `hooks/usePomodoro.ts:81-93` | Popup và New Tab hydrate lại phiên khi surface kia ghi (local change chỉ có 1 đối số `changes`) |
 
@@ -235,13 +237,14 @@ qua `useSyncExternalStore` trên adapter (`hooks/useTasks.ts:182-183`, return `:
 
 ### 3.6 Pomodoro & focus — `hooks/usePomodoro.ts`, `hooks/useBoard.ts` (R-20)
 
-`usePomodoro({ preset, soundEnabled, onFocusComplete })` trả `PomodoroApi`
-(`hooks/usePomodoro.ts:45-60,182-195`):
+`usePomodoro({ preset, soundEnabled, onFocusComplete: (sessionId: string) => void })` trả `PomodoroApi`
+(`hooks/usePomodoro.ts:45-75,196-210`) — G10 đổi chữ ký callback để mang id phiên:
 
 | Thành viên | Kiểu | Hành vi |
 |---|---|---|
 | `phase`, `running`, `remaining`, `progress` | derived | Nhịp đếm 250ms chỉ chạy khi `running` (`:121-137`); `endsAt` về 0 → `advance('natural')` |
 | `taskId` | `string \| null` | Việc đang gắn, đọc từ `PomodoroState` local |
+| `focusSessionId` | `string \| null` | G10: id phiên focus, sinh mới mỗi `start()` focus (`:155-163`); `null` sau advance/reset. Consumer dùng làm idempotency key |
 | `interruptions` | `number` | Chỉ đọc: `state.interruptions ?? 0` (`:188`) |
 | `attach(taskId \| null)` | `(id) => void` | Gắn / huỷ gắn việc; `commit` ghi `chrome.storage.local` (`:173-176`) |
 | `noteInterruption()` | `() => void` | `interruptions = (current ?? 0) + 1` (`:178-180`); chỉ gọi sau khi user xác nhận đổi việc |
@@ -250,9 +253,10 @@ qua `useSyncExternalStore` trên adapter (`hooks/useTasks.ts:182-183`, return `:
 | `reset()` | `() => void` | Dừng, nạp lại thời lượng, xoá `interruptions` thành `undefined` (`:162-171`) |
 
 `advance(from, reason: 'natural' | 'skip')` (`:100-119`) là điểm phân luồng: **chỉ** khi
-`reason === 'natural' && from.phase === 'focus'` mới gọi `onFocusComplete` (`:106`); mọi nhánh khác
-(kể cả skip) chỉ đổi phase/endsAt. Khi rời focus, `taskId` bị clear và `interruptions` về `0` nếu sang
-focus mới, hoặc bị xoá nếu sang nghỉ (`:113-116`).
+`reason === 'natural' && from.phase === 'focus'` mới gọi `onFocusComplete(sessionId)` (`:117-121`);
+sessionId lấy từ `from.focusSessionId` hoặc fallback `legacy:${endsAt}` cho state cũ. Mọi nhánh khác
+(kể cả skip) chỉ đổi phase/endsAt. Khi rời focus, `taskId` bị clear, `focusSessionId` về `undefined`
+và `interruptions` về `0` nếu sang focus mới, hoặc bị xoá nếu sang nghỉ (`:113-128`).
 
 `useBoard()` (`hooks/useBoard.ts:32-286`) bọc `usePomodoro` để **hoãn completion**; R-21: cũng lấy
 `dayPlan`/`selectFrog` từ `useTasks` (`hooks/useBoard.ts:35,41`) rồi **expose nguyên vẹn** lại cho UI
@@ -260,13 +264,17 @@ focus mới, hoặc bị xoá nếu sang nghỉ (`:113-116`).
 qua `TaskScroll`; popup dùng chung qua `SettingsPanel`. Ngoài ra `useBoard` còn expose `activeCount`
 (đã loại `archived`) thay cho bộ đếm tự tính ở UI. Cơ chế hoãn completion:
 
-- `onFocusComplete` (`:54-63`) — có việc gắn (đọc qua `focusTaskIdRef`, cập nhật trong render `:73`) thì
-  **không** ghi ngay mà đặt `pendingCompletion = { taskId, interruptions }`; không có việc gắn →
-  `record('focus', 1)` ngay (`recordFocus`, `:49-52`). Ref được cập nhật trong render vì hook clear
-  `taskId` ngay sau callback (`:71-75`).
-- `pendingCompletion` / `confirmFocusCompletion()` (`:136-142`) — xác nhận "Xong việc này chưa?" →
-  `toggleTask(taskId)` (tick việc; task lặp đi theo R-11 qua `useTasks.toggle`) **và** `record('focus', 1)`
-  đúng một lần.
+- `onFocusComplete` (`:75-91`) — có việc gắn (đọc qua `focusTaskIdRef`, cập nhật trong render `:104`) thì
+  **không** ghi ngay mà đặt `pendingCompletion = { taskId, interruptions, sessionId }`; không có việc gắn →
+  `runOncePerFocusSession(sessionId, recordFocus)` (`:68-71`). Ref được cập nhật trong render vì hook clear
+  `taskId` ngay sau callback (`:103-106`).
+- `claimFocusCompletion(sessionId)` / `runOncePerFocusSession(sessionId, work)` (`lib/storage/local.ts:50-86`) —
+  Set trong context + tập `focusCompletionClaim` (tối đa 32 id) ở local; chỉ chạy `work` nếu phiên chưa được
+  tiêu thụ. Chặn cả double-confirm cùng page lẫn stale dialog của phiên cũ sau phiên mới.
+- `pendingCompletion` / `confirmFocusCompletion()` (`:165-176`) — xác nhận "Xong việc này chưa?" →
+  `runOncePerFocusSession(sessionId, () => { toggleTask(taskId); recordFocus(); })`. Với session đã tiêu thụ,
+  **không** tick task, **không** ghi focus. Residual: race 2 context cùng tick tuyệt đối (không có CAS trong
+  `chrome.storage.local`) — xem `docs/ERD.md` §2.7.
 - `declineFocusCompletion()` (`:144`) — "Chưa xong" → xoá pending, **không** tick, **không** ghi focus.
 - `startFocusOn(id)` (`:146-160`) — `attach(id)` rồi effect chờ render thấy `taskId` mới mới gọi `start()`.
 - `switchTaskMidSession(id)` (`:162-177`) — `attach(id)` rồi effect gọi `noteInterruption()` ở render sau
