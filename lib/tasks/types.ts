@@ -31,6 +31,20 @@ export type RecurrenceRule =
   | { kind: "weekly"; rule: WeeklyRule }
   | { kind: "monthly"; rule: MonthlyRule };
 
+/**
+ * R-23 — Sổ theo dõi thói quen, nhúng ngay trong key `t:<id>` (KHÔNG tạo key
+ * storage mới). Opt-in: task cũ/thiếu field coi như không theo dõi.
+ */
+export interface Habit {
+  /** Instant ISO 8601 UTC (có `Z`) lúc bật theo dõi. */
+  startedAt: string;
+  /** Tập `YYYY-MM-DD` theo giờ local: unique, tăng dần, tối đa 31 phần tử. */
+  doneDays: string[];
+}
+
+/** R-23 — trần số ngày lưu trong `doneDays` (cửa sổ streak tối đa). */
+export const HABIT_MAX_DAYS = 31;
+
 export interface Subtask {
   id: string;
   title: string;
@@ -73,6 +87,12 @@ export interface Task {
   /** Bản sao **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa
    *  hoàn thành — Hoàn tác hôm nay gán thẳng `dueAt = prevDueAt`, 0 quy đổi. */
   prevDueAt?: string | null;
+  /**
+   * R-23 — sổ thói quen opt-in, nằm trong cùng key `t:<id>`. Task cũ thiếu field
+   * vẫn load bình thường. Tắt toggle / `recurrence.kind='none'` / `archived` chỉ
+   * ẩn ở lớp hiển thị — data layer KHÔNG xoá field này.
+   */
+  habit?: Habit;
   createdAt: string;    // ISO 8601 UTC có `Z` (instant) — khác nhóm với dueAt
   updatedAt: string;    // ISO 8601 UTC có `Z` (instant)
 }

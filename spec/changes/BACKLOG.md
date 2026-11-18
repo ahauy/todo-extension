@@ -19,6 +19,7 @@
 | G10 | Double-focus popup + New Tab ghi `studyLog.focus` 2 lần cho 1 phiên | BUG | done | [2026-11-18-g10-focus-idempotency.md](archive/2026-11-18-g10-focus-idempotency.md) | 2026-11-18 | 2026-11-18 |
 | G11 | New Tab: Giá sách nhân đôi ở 1280px / biến mất ở 1024–1199px | BUG | done | [2026-11-18-g11-newtab-shelf.md](archive/2026-11-18-g11-newtab-shelf.md) | 2026-11-18 | 2026-11-18 |
 | FEAT-003/B | Gói B — 6P: `plannedFor`, nhắc 21:00 bật sẵn, notification mở sheet "Kế hoạch mai", "Đã hẹn hôm nay" | ADDITIVE | done | [2026-11-18-package-b-6p.md](archive/2026-11-18-package-b-6p.md) | 2026-11-18 | 2026-11-18 |
+| FEAT-003/D | Gói D — Thói quen 21 ngày: `habit.doneDays` + streak theo lịch + seal 7/14/21 | ADDITIVE | in_progress | [2026-11-18-package-d-habit-streak.md](2026-11-18-package-d-habit-streak.md) | 2026-11-18 | — |
 | TOOL-001 | Adapter WorkBuddy tương đương workflow opencode (agents/commands/skills/hooks) | ADDITIVE | done | [2026-11-17-workbuddy-compat-adapter.md](archive/2026-11-17-workbuddy-compat-adapter.md) | 2026-11-17 | 2026-11-17 |
 
 ## Quy tắc tracking

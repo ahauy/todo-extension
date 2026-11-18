@@ -1,69 +1,62 @@
 {
-  "specVersion": "1.5.0",
-  "scopeVersion": 28,
-  "generatedAt": "2026-11-18T11:39:42+07:00",
+  "specVersion": "1.6.0",
+  "scopeVersion": 29,
+  "generatedAt": "2026-11-18T11:44:00+07:00",
   "trigger": "feature-update",
-  "workItem": "feature-package-b-6p",
-  "specRefs": ["R-22", "R-15", "R-17"],
+  "workItem": "feature-package-d-habit-streak",
+  "specRefs": ["R-23", "R-10", "R-11", "R-15", "R-17"],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
-      "spec/updates/2026-11-18-package-b-6p.md",
+      "spec/updates/2026-11-18-package-d-habit-streak.md",
       "spec/CHANGELOG.md",
       "lib/tasks/types.ts",
-      "lib/storage/adapter.ts",
-      "lib/alarms/scheduler.ts",
-      "entrypoints/background.ts",
-      "lib/storage/local.ts",
-      "components/SettingsPanel.tsx",
-      "components/PlanTomorrowSheet.tsx",
-      "lib/tasks/query.ts",
+      "lib/tasks/form.ts",
+      "hooks/useTasks.ts",
+      "components/TaskFields.tsx",
+      "components/TaskScroll.tsx",
       "entrypoints/newtab/App.tsx",
-      "src/__tests__/helpers/chrome-stub.ts",
-      "src/__tests__/plan-reminder.test.ts",
-      "src/__tests__/plan-background.test.ts",
-      "src/__tests__/plan-ui.test.tsx",
-      "entrypoints/newtab/App.plan.test.tsx",
       "docs/ERD.md",
       "docs/API_SPEC.md",
       "docs/USER_FLOW.md",
       "docs/DESIGN.md",
-      "docs/PERMISSION.md",
       "docs/ROADMAP_TIME_MANAGEMENT.md"
     ],
     "modules": [
-      "task-schema",
-      "settings-schema",
-      "daily-plan-alarm",
-      "notification-routing",
-      "plan-tomorrow-sheet",
-      "today-planned-block"
+      "habit-schema",
+      "habit-calendar",
+      "habit-streak",
+      "completion-hook",
+      "habit-toggle",
+      "habit-grid-21"
     ]
   },
   "impact": {
     "direct": [
-      "Task.plannedFor?: YYYY-MM-DD local — tách khỏi dueAt, không tạo alarm riêng, không đổi overdue/sort R-15",
-      "Settings.planReminder {enabled, at} default {true,'21:00'} + normalizeSettings cho settings cũ",
-      "Background giữ đúng 1 plan alarm/ngày; tắt xoá alarm; đổi giờ clear+create; notification click mở sheet",
-      "Sheet Kế hoạch mai chọn ≤5 việc từ Sắp tới + Chưa hẹn, gán plannedFor=mai, chọn ếch cho mai qua dayPlan",
-      "Tab Hôm nay có khối 'Đã hẹn hôm nay' suy từ plannedFor, không tô đỏ như quá hạn"
+      "Task.habit?: { startedAt: ISO UTC; doneDays: YYYY-MM-DD[] } nhúng trong t:<id>, unique/sorted, tối đa 31 phần tử, prune oldest khi ghi",
+      "Streak theo lịch: daily mọi ngày / weekly theo weekdays / monthly theo rule.day; ngày ngoài lịch không tính thiếu, không đứt; grace tới hết ngày hôm nay",
+      "Tick lặp ghi ngày local của occurrence vừa xong (dueAt cũ trước ghi = prevDueAt sau ghi R-11), không đọc prevDueAt cũ; bỏ ghi chỉ khi ngày đã rơi khỏi cửa sổ 31 ngày (quá 30 ngày), occurrence tương lai vẫn ghi; undo R-11 và bỏ dấu từ lưới chỉ gỡ đúng doneDays, không đụng dueAt/alarm",
+      "Toggle theo dõi chỉ hiện khi recurrence.kind != none; tắt hoặc recurrence=none chỉ ẩn habit, không xoá dữ liệu",
+      "Thẻ 21 ô trên New Tab: đã làm / thiếu / ngoài lịch + streak + seal 7/14/21; sau 21 vẫn tăng; không khẳng định 21 ngày là kết luận khoa học"
     ],
     "dependents": [
-      "R-21 chip 20% / archive / frog vẫn dùng chung dayPlan; không thêm tab thứ 5",
-      "R-20 focus: notification kế hoạch không mở phiên focus, không đụng studyLog",
-      "Popup 360×560 chỉ thêm 1 khối UI; R-19 responsive/eyeball 360/1024/1280"
+      "R-11 dueAt/prevDueAt/lastDoneAt, alarm due:<id> và done-today/undo giữ nguyên",
+      "R-10 weekly weekdays từ Gói 0 là nguồn lịch; R-15 sort deterministic không thêm trục",
+      "R-20 StudyLog/chuỗi học chung không bị gộp; R-21 frog/archive và R-22 plannedFor không đổi",
+      "R-19 popup 360×560 không thêm khối UI; eyeball 360/1024/1280 trước reviewer PASS"
     ],
     "regression": [
-      "Không đổi manifest/permission (R-17), không network request",
-      "Task/settings cũ thiếu field vẫn load qua normalize; dueAt wall-clock R-09 và lặp R-10/R-11 không đổi",
-      "Không lưu aggregate mới; sort deterministic chạy 2 lần cùng thứ tự"
+      "Không thêm permission/manifest, không network request (R-17); không key storage mới, không key theo ngày",
+      "Task cũ thiếu habit vẫn load; settings/subjects/dayPlan/studyLog không đổi shape",
+      "Quota 120 write/phút: mọi thay đổi habit đi chung put(task), không write riêng"
     ]
   },
   "acceptance": [
-    "Tắt planReminder → không notification; đổi giờ → alarm cũ clear, alarm mới đúng giờ, không nhân đôi",
-    "Bấm notification → mở đúng sheet Kế hoạch mai; chọn ≤5 việc + ếch cho mai",
-    "plannedFor quá hạn nhưng chưa xong không vào nhóm quá hạn; khối Đã hẹn hôm nay khớp dữ liệu",
-    "Reviewer từng phase PASS + spec-validator PASS + verify 4 lệnh PASS + eyeball 3 breakpoint"
+    "T2–T6: T7/CN là ngoài lịch, không tính thiếu, không đứt streak",
+    "Tick muộn ghi đúng ngày occurrence trong 31 ngày; undo/bỏ dấu tính lại streak đúng và không đổi dueAt/alarm",
+    "doneDays <= 31 sau 60 ngày; bật lại toggle giữ nguyên streak; không key storage mới",
+    "Popup giữ 1 badge trong thẻ + toggle trong form; New Tab có lưới 21 ô và seal 7/14/21",
+    "Verify tsc/eslint/vitest/build PASS, eyeball 3 breakpoint, reviewer từng phase PASS, spec-validator PASS"
   ],
   "risk": "medium"
 }

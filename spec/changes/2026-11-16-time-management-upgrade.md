@@ -3,7 +3,7 @@ id: time-management-upgrade
 type: feature
 status: in_progress
 created: 2026-11-16
-updated: 2026-11-17
+updated: 2026-11-18
 ---
 
 # Nâng cấp quản lý thời gian: 6 gói (then chốt/con ếch · 6P · đơn nhiệm · thói quen · time blocking)
@@ -28,20 +28,20 @@ Các gói:
 Quyết định đã chốt: **ABCDE giữ 3 mức ưu tiên + nhãn A/B/C**, D/E là hành động (tự động hoá / cắt bỏ),
 không thêm enum 5 mức.
 
-## Tiến độ các gói (cập nhật 2026-11-17)
+## Tiến độ các gói (cập nhật 2026-11-18)
 
 | Gói | Trạng thái | Ghi chú |
 |---|---|---|
 | 0 | ✅ done | `fc9e26e` + `c890de2`; change doc riêng đã archive, BACKLOG `FEAT-003/0 = done` |
 | C | ✅ done | ADDITIVE, reviewer NORMAL, không đổi `chrome.storage.sync`; close-out ở phase-3-task-03 |
 | A | ✅ done | `2d045cc` → `0ed6f2a` → `80c10f7`; reviewer STRICT/STRICT/NORMAL PASS, docs reconcile + spec-validator cuối PASS; change doc riêng đã archive, BACKLOG `FEAT-003/A = done` |
-| B | pending | sau A |
-| D | pending | sau B (phụ thuộc G3 — đã có từ Gói 0) |
+| B | ✅ done | `42dd0c2`; spec 1.5.0 / scope 28; notification mở đúng sheet, alarm one-shot + resync DST; change doc riêng đã archive |
+| D | in_progress | spec R-23 đã publish 2026-11-18; chờ user duyệt plan trước khi code |
 | E | pending | hoãn, cần B dùng thật |
 
-**Phạm vi `/change` gần nhất: Gói A — Then chốt + Con ếch — đã đóng.** Change doc riêng đã archive.
-Gói B/D/E giữ nguyên trạng thái, sẽ mở change riêng khi đến lượt. Gói 0/C/A đã lần lượt đóng ở
-`c890de2`/`e75ec48`/`80c10f7`.
+**Phạm vi `/change` gần nhất: Gói D — Thói quen 21 ngày — đang xử lý** (spec R-23 đã publish, chờ duyệt plan).
+Gói B đã đóng ở `42dd0c2`; Gói E giữ nguyên trạng thái, sẽ mở change riêng khi đến lượt.
+Gói 0/C/A/B đã lần lượt đóng ở `c890de2`/`e75ec48`/`80c10f7`/`42dd0c2`.
 
 ## Bối cảnh / tái hiện (bug)
 
@@ -60,7 +60,8 @@ Hiện trạng liên quan (đã đối chiếu code):
       (Xong 2026-11-17 — commit `c890de2`, reviewer STRICT round 2 PASS.)
 - [x] Gói A: `keystone` (tối đa 3 đang mở, **chỉ cảnh báo**) + **chip lọc "20%"** (không thêm tab) + chọn con ếch mỗi ngày; "Cắt bỏ" = `archived` + mục "Đã cắt"; dòng review tuần trong New Tab; sort vẫn deterministic (R-15).
       (Xong 2026-11-17 — `2d045cc` → `0ed6f2a` → `80c10f7`; reviewer STRICT/STRICT/NORMAL PASS, spec-validator cuối PASS.)
-- [ ] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
+- [x] Gói B: `plannedFor` tách khỏi `dueAt`; nhắc **21:00 bật sẵn** (tắt được); bấm notification mở đúng sheet.
+      (Xong 2026-11-18 — commit `42dd0c2`, spec 1.5.0 / scope 28, reviewer + spec-validator round 2 PASS.)
 - [x] Gói C: gắn/huỷ việc vào phiên; focus overlay **cả popup (bản thu gọn) + New Tab**; `studyLog.focus` tăng đúng khi phiên trọn vẹn. (2026-11-17 — phase 1 `02e3737` + phase 2 `aa3c78a` STRICT PASS; docs reconcile + verify ở phase-3-task-03.)
 - [ ] Gói D: streak theo lịch thói quen; `doneDays` ≤ 31; tắt toggle không xoá dữ liệu.
 - [ ] Gói E: chỉ làm bản nhẹ (nếu được duyệt riêng) — không lưới calendar, không kéo-thả.

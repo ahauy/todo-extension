@@ -1,5 +1,5 @@
 ---
-spec_version: 1.5.0
+spec_version: 1.6.0
 updated_at: 2026-11-18
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
@@ -222,6 +222,46 @@ Bấm vào notification đó phải mở đúng sheet "Kế hoạch mai" trên b
 Sheet cho chọn **tối đa 5 việc** từ *Sắp tới* + *Chưa hẹn*, gán `plannedFor = ngày mai`, và cho chọn một
 việc làm "ếch cho ngày mai" qua cùng key `dayPlan` (R-21). Không thêm permission (R-17), không network.
 
+**R-23 — Thói quen 21 ngày (Gói D)**
+Task lặp (`recurrence.kind !== 'none'`) có thể bật theo dõi thói quen qua field nhúng
+`habit?: { startedAt: string; doneDays: string[] }` ngay trong key `t:<id>` — **không** tạo key
+storage mới, không lưu 1 key/ngày. `doneDays` là sổ theo dõi thói quen **opt-in**, không phải lịch sử
+occurrence dùng để cuộn hạn/alarm (R-11 vẫn "không lưu lịch sử occurrence"). `startedAt` là instant ISO
+UTC lúc bật; `doneDays` là tập `YYYY-MM-DD` theo giờ local, không trùng, tăng dần và **tối đa 31 phần tử**
+(bỏ ngày cũ nhất khi ghi vượt). Task cũ/thiếu field coi như không theo dõi. Tắt toggle, đổi `recurrence`
+về `none` hoặc cắt bỏ (`archived`) chỉ ẩn streak, **không xoá** `habit`; bật/phục hồi lại dùng dữ liệu cũ.
+
+Một ngày là **ngày thuộc lịch** nếu từ ngày local của `startedAt` trở đi nó khớp rule: `daily` = mọi
+ngày, `weekly` = một trong `weekdays` (R-10), `monthly` = ngày `rule.day` sau clamp. Ngày không thuộc
+lịch được hiển thị là "ngoài lịch" — không tính là ngày thiếu, không đứt streak. Lịch luôn đánh giá
+theo **rule hiện tại** (không lưu lịch sử rule); đổi `weekdays`/`day`/`kind` có thể làm streak thay đổi
+mà không có lần hoàn thành mới — chấp nhận. Streak đếm ngược
+từ hôm nay nếu hôm nay thuộc lịch và đã làm, hoặc từ hôm qua nếu hôm nay thuộc lịch nhưng chưa làm
+(ân hạn đến hết ngày); bỏ qua ngày không thuộc lịch, dừng ở `startedAt`. Ngày local của `startedAt`
+được suy bằng helper local của thiết bị, chịu cùng mức trôi múi giờ/DST đã chấp nhận ở R-10. Vì cửa sổ
+lưu trữ 31 ngày, streak hiển thị không vượt quá 31 ngày lịch; UI phải nói rõ lưới chỉ có 21 ô còn streak
+có thể dài hơn.
+
+Khi tick hoàn thành, ngày ghi vào `doneDays` là **ngày local của occurrence vừa xong**: lấy từ `dueAt`
+cũ trước khi ghi (tương đương `prevDueAt` ngay sau lần ghi R-11), **không** đọc `prevDueAt` cũ và không
+dùng `dueAt` mới (occurrence kế tiếp). Nếu ngày đó **đã rơi khỏi cửa sổ 31 ngày gần nhất** (cũ hơn ngày hôm nay trừ 30 ngày) thì **không ghi**
+(để không đẩy ngày mới hơn ra khỏi sổ); ngược lại, kể cả occurrence mang ngày tương lai (tick sớm) vẫn
+được ghi vì chưa có ngày nào bị đẩy ra. Hoàn tác R-11 gỡ đúng ngày đó ra. Lưới trên bảng Học Đường cho
+phép **bỏ dấu** một ngày đã ghi trong cửa sổ 31 ngày (không cho thêm tay ngày chưa làm) rồi tính lại
+streak; thao tác này **chỉ đổi `doneDays`**, không đụng `dueAt`, `lastDoneAt`/`prevDueAt` hay alarm —
+R-11 vẫn là đường duy nhất đổi occurrence. Bỏ dấu ngày đã gỡ là no-op. Mọi thao tác vẫn dùng một lần
+`put(task)` hiện có; nếu ghi thất bại (quota) thì hoàn tác cả thay đổi `habit` trong bộ nhớ như R-16.
+`dueAt`, alarm `due:<id>` và sort deterministic (R-15) giữ nguyên. Streak chỉ đọc `doneDays` (không đọc
+`lastDoneAt`): chip "đã làm hôm nay" của R-11 và streak R-23 là hai tín hiệu riêng, có thể cùng hiển thị
+sau một lần tick muộn.
+
+Bảng Học Đường có thẻ thói quen gồm lưới **21 ô liên tiếp kết thúc hôm nay** với 3 trạng thái
+(đã làm / thiếu / ngoài lịch), streak hiện tại và dấu mốc **7 → 14 → 21**; sau 21 streak tiếp tục
+tăng. 21 ngày là **mốc ăn mừng đầu tiên**, không được trình bày là kết luận khoa học về thời gian
+hình thành thói quen. Popup 360×560 không thêm khối UI mới của gói này: chỉ toggle trong hộp sửa
+việc đã có và một badge streak nhỏ trên dòng meta của thẻ việc. Streak này độc lập `StudyLog`/
+chuỗi học chung (R-20); không thêm permission (R-17), không network request.
+
 ## API Endpoints
 
 Không có — extension không có backend/API.
@@ -232,7 +272,7 @@ Không có DB. Storage layout `chrome.storage.sync`:
 
 | Key | Value | Ghi chú |
 |---|---|---|
-| `t:<uuid>` | `Task` | 1 key / task → ghi cục bộ, tránh ghi đè cả danh sách |
+| `t:<uuid>` | `Task` | 1 key / task → ghi cục bộ, tránh ghi đè cả danh sách; R-23 nhúng `habit` trong cùng key |
 | `settings` | `Settings` | display mode, tuỳ chọn hiệu ứng, Pomodoro, âm thanh, thông báo |
 | `subjects` | `Subject[]` | giá sách môn học |
 | `studyLog` | `StudyLog` | chuỗi ngày học |

@@ -43,6 +43,7 @@ import {
   subscribe,
 } from '../lib/storage/adapter';
 import { nextFutureDue } from '../lib/tasks/recurrence';
+import { habitOccurrenceDay, withHabitDay } from '../lib/tasks/habit';
 import { isRecurringDoneToday } from '../lib/tasks/query';
 import { DAY_PLAN_KEY, type DayPlan, type Task } from '../lib/tasks/types';
 
@@ -279,10 +280,17 @@ export function useTasks() {
       const stamp = nowISO();
 
       // Hoàn tác hôm nay: trả về occurrence vừa làm (prevDueAt), KHÔNG cuộn thêm; gán thẳng vì cùng wall-clock local.
+      // R-23 — gỡ ngày occurrence vừa xong khỏi sổ thói quen (cùng 1 put bên dưới).
       if (isRecurringDoneToday(task, now)) {
         clearTaskAlarm(id);
+        const worked = withHabitDay(
+          task,
+          habitOccurrenceDay(task.prevDueAt),
+          'remove',
+          now
+        );
         const next: Task = {
-          ...task,
+          ...worked,
           done: false,
           dueAt: task.prevDueAt ?? task.dueAt,
           prevDueAt: null,
@@ -297,8 +305,21 @@ export function useTasks() {
 
       if (task.done) {
         // Un-toggle: done = false, giữ dueAt cũ, reschedule
+        // R-23 — gỡ ngày từ prevDueAt nếu có (no-op nếu đã gỡ / không có habit).
         clearTaskAlarm(id);
-        const next = { ...task, done: false, lastDoneAt: null, prevDueAt: null, updatedAt: stamp };
+        const worked = withHabitDay(
+          task,
+          habitOccurrenceDay(task.prevDueAt),
+          'remove',
+          now
+        );
+        const next = {
+          ...worked,
+          done: false,
+          lastDoneAt: null,
+          prevDueAt: null,
+          updatedAt: stamp,
+        };
         await put(next);
         setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
         scheduleTask(next);
@@ -318,14 +339,31 @@ export function useTasks() {
       const nextDue = nextFutureDue(task.dueAt ?? stamp, task.recurrence, now);
       if (nextDue === null) {
         // Không lặp nữa → done, clear alarm
+        // R-23 — route qua cùng helper dù nhánh này hiện unreachable.
         clearTaskAlarm(id);
-        const next = { ...task, done: true, lastDoneAt: stamp, prevDueAt: null, updatedAt: stamp };
+        const worked = withHabitDay(
+          task,
+          habitOccurrenceDay(task.dueAt),
+          'add',
+          now
+        );
+        const next = {
+          ...worked,
+          done: true,
+          lastDoneAt: stamp,
+          prevDueAt: null,
+          updatedAt: stamp,
+        };
         await put(next);
         setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
         return;
       }
+      // R-23 — ngày ghi là ngày local của dueAt CŨ (trước khi R-11 ghi
+      // prevDueAt = dueAt), KHÔNG đọc prevDueAt cũ, KHÔNG dùng dueAt mới.
+      const occurrenceDay = habitOccurrenceDay(task.dueAt);
+      const worked = withHabitDay(task, occurrenceDay, 'add', now);
       const nextTask: Task = {
-        ...task,
+        ...worked,
         done: false,
         dueAt: nextDue,
         prevDueAt: task.dueAt,

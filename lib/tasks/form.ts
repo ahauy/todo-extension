@@ -2,7 +2,7 @@
  * Luật của một tờ việc: hình dạng biểu mẫu và validate. Dùng chung cho khu
  * ghi việc (bút lông) và hộp thoại sửa việc để hai nơi không lệch luật.
  */
-import type { Priority, RecurrenceRule, Subtask, Task } from './types';
+import type { Habit, Priority, RecurrenceRule, Subtask, Task } from './types';
 
 export const MAX_TITLE = 200;
 export const MAX_TAGS = 5;
@@ -22,6 +22,8 @@ export interface TaskForm {
   /** R-21 — additive: tờ việc cũ/chưa có field vẫn load, coi như false. */
   keystone?: boolean;
   archived?: boolean;
+  /** R-23 — additive: sổ thói quen đi kèm tờ việc (chỉ có khi đã bật). */
+  habit?: Habit;
 }
 
 export type TaskDraft = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
@@ -114,6 +116,8 @@ export function formToDraft(form: TaskForm): TaskDraft {
     subjectId: form.subjectId,
     keystone: form.keystone ?? false,
     archived: form.archived ?? false,
+    // R-23 — giữ nguyên field habit; tờ cũ thiếu field → undefined (additive).
+    habit: form.habit,
     done: false,
   };
 }
