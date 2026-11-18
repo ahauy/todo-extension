@@ -1,29 +1,28 @@
 {
-  "specVersion": "1.6.0",
-  "scopeVersion": 30,
-  "generatedAt": "2026-11-18T14:20:00+07:00",
+  "specVersion": "1.7.0",
+  "scopeVersion": 31,
+  "generatedAt": "2026-11-18T15:00:00+07:00",
   "trigger": "feature-update",
-  "workItem": "feature-package-d-habit-streak",
-  "specRefs": ["R-23", "R-10", "R-11", "R-15", "R-17"],
+  "workItem": "feature-package-e-time-blocking",
+  "specRefs": ["R-24", "R-09", "R-11", "R-15", "R-17", "R-19", "R-20", "R-21", "R-22", "R-23"],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
-      "spec/updates/2026-11-18-package-d-habit-streak.md",
+      "spec/updates/2026-11-18-package-e-time-blocking.md",
       "spec/CHANGELOG.md",
       "lib/tasks/types.ts",
       "lib/tasks/form.ts",
-      "lib/tasks/habit.ts",
+      "lib/tasks/timeBlock.ts",
       "hooks/useTasks.ts",
+      "hooks/useBoard.ts",
       "components/TaskFields.tsx",
-      "components/TaskParchment.tsx",
-      "components/TaskScroll.tsx",
-      "components/HabitCard.tsx",
+      "components/Timeline.tsx",
       "entrypoints/newtab/App.tsx",
       "styles/board.css",
-      "src/__tests__/habit.test.ts",
-      "src/__tests__/habit-ui.test.tsx",
-      "src/__tests__/useTasks.habit.test.ts",
-      "entrypoints/newtab/App.habit.test.tsx",
+      "src/__tests__/timeBlock.test.ts",
+      "src/__tests__/timeBlock-form.test.tsx",
+      "src/__tests__/useTasks.timeBlock.test.ts",
+      "entrypoints/newtab/App.timeBlock.test.tsx",
       "docs/ERD.md",
       "docs/API_SPEC.md",
       "docs/USER_FLOW.md",
@@ -31,41 +30,43 @@
       "docs/ROADMAP_TIME_MANAGEMENT.md"
     ],
     "modules": [
-      "habit-schema",
-      "habit-calendar",
-      "habit-streak",
-      "completion-hook",
-      "habit-toggle",
-      "habit-grid-21"
+      "timeblock-schema",
+      "timeblock-validate",
+      "timeblock-sort",
+      "overlap-warning",
+      "timeline-newtab",
+      "drag-snap-15m",
+      "keyboard-time-input"
     ]
   },
   "impact": {
     "direct": [
-      "Task.habit?: { startedAt: ISO UTC; doneDays: YYYY-MM-DD[] } nhúng trong t:<id>, unique/sorted, tối đa 31 phần tử, prune oldest khi ghi",
-      "Streak theo lịch: daily mọi ngày / weekly theo weekdays / monthly theo rule.day; ngày ngoài lịch không tính thiếu, không đứt; grace tới hết ngày hôm nay",
-      "Tick lặp ghi ngày local của occurrence vừa xong (dueAt cũ trước ghi = prevDueAt sau ghi R-11), không đọc prevDueAt cũ; bỏ ghi chỉ khi ngày đã rơi khỏi cửa sổ 31 ngày (quá 30 ngày), occurrence tương lai vẫn ghi; undo R-11 và bỏ dấu từ lưới chỉ gỡ đúng doneDays, không đụng dueAt/alarm",
-      "Toggle theo dõi chỉ hiện khi recurrence.kind != none; tắt hoặc recurrence=none chỉ ẩn habit, không xoá dữ liệu",
-      "Thẻ 21 ô trên New Tab: đã làm / thiếu / ngoài lịch + streak + seal 7/14/21; sau 21 vẫn tăng; không khẳng định 21 ngày là kết luận khoa học"
+      "Task.startAt?: 'HH:mm' (wall-clock local, validate 00:00–23:59) + estimateMin?: number (15–240, mặc định 30 khi có startAt mà estimateMin trống) nhúng trong t:<id>; task cũ thiếu field vẫn load",
+      "Timeline New Tab 06:00–24:00: có startAt → đúng thứ tự giờ, block cao theo estimateMin; không có giờ → nhóm cuối; giờ 00:00–05:59 → nhóm cuối nhưng giữ nhãn giờ thật",
+      "Kéo block đổi duy nhất startAt, snap 15′, clamp khung 06:00–24:00; không đụng plannedFor/dueAt/lastDoneAt/prevDueAt/habit/alarm",
+      "Lối đổi giờ bằng bàn phím/ô nhập tồn tại, có test; chồng lấn chỉ cảnh báo trực quan trên block liên quan, vẫn lưu, không tự sửa dữ liệu user"
     ],
     "dependents": [
-      "R-11 dueAt/prevDueAt/lastDoneAt, alarm due:<id> và done-today/undo giữ nguyên",
-      "R-10 weekly weekdays từ Gói 0 là nguồn lịch; R-15 sort deterministic không thêm trục",
-      "R-20 StudyLog/chuỗi học chung không bị gộp; R-21 frog/archive và R-22 plannedFor không đổi",
-      "R-19 popup 360×560 không thêm khối UI; eyeball 360/1024/1280 trước reviewer PASS"
+      "R-09 dueAt/overdue và alarm due:<id> giữ nguyên (startAt không phải hạn chót)",
+      "R-15 sort deterministic giữ nguyên; timeline là chế độ xem riêng, không thêm trục sort",
+      "R-20 focus/overlay, R-21 frog/archive (archived vẫn hide-only — data giữ nguyên), R-22 plannedFor/planReminder, R-23 habit/streak đều giữ semantics",
+      "R-19 popup 360×560 không thêm khối UI; eyeball 360/1024/1280 + reduced-motion trước reviewer PASS"
     ],
     "regression": [
-      "Không thêm permission/manifest, không network request (R-17); không key storage mới, không key theo ngày",
-      "Task cũ thiếu habit vẫn load; settings/subjects/dayPlan/studyLog không đổi shape",
-      "Quota 120 write/phút: mọi thay đổi habit đi chung put(task), không write riêng"
+      "Không thêm permission/key storage/network (R-17); vẫn storage/alarms/notifications; startAt/estimateMin nằm trong t:<id>",
+      "Task/settings/subjects/dayPlan/studyLog shape cũ không đổi; archived hide-only không bị phá",
+      "Không storage read bổ sung (R-18); motion kéo tuân prefers-reduced-motion: reduce"
     ]
   },
   "acceptance": [
-    "T2–T6: T7/CN là ngoài lịch, không tính thiếu, không đứt streak",
-    "Tick muộn ghi đúng ngày occurrence trong 31 ngày; undo/bỏ dấu tính lại streak đúng và không đổi dueAt/alarm",
-    "doneDays <= 31 sau 60 ngày; bật lại toggle giữ nguyên streak; không key storage mới",
-    "Popup giữ 1 badge trong thẻ + toggle trong form; New Tab có lưới 21 ô và seal 7/14/21",
-    "Archived / recurrence=none / tắt toggle chỉ ẩn streak (hide-only) — data layer giữ nguyên `habit`, bật lại không mất dữ liệu",
-    "Verify tsc/eslint/vitest/build PASS, eyeball 3 breakpoint, reviewer từng phase PASS, spec-validator PASS"
+    "Task có startAt validate 00:00–23:59 + estimateMin 15–240 (default 30); task cũ thiếu field vẫn load",
+    "Timeline 06:00–24:00 trên New Tab: thứ tự giờ đúng, block cao theo estimateMin, không mất việc, giờ ngoài khung giữ nhãn",
+    "Kéo đổi startAt snap 15′ → không đổi plannedFor/dueAt/alarm; có lối bàn phím/ô nhập + test",
+    "Chồng lấn: cảnh báo trực quan, vẫn lưu, không tự sửa/xoá dữ liệu",
+    "Biên: estimateMin không có startAt → không vẽ block, giữ dữ liệu; block vượt 24:00 → cắt hiển thị tại 24:00 + nhãn 'vượt khung'; kéo từ nhóm cuối vào khung → snap 15′ + clamp 06:00–24:00; estimateMin ngoài 15–240 trong dữ liệu cũ → kẹp chiều cao, không tự ghi đè",
+    "Popup 360×560 không thêm khối UI; reduced-motion không chạy animation kéo",
+    "Không tăng permission/key storage/network; không regression R-11/R-19/R-20/R-21/R-22/R-23",
+    "Verify tsc/eslint/vitest/wxt build PASS + eyeball 360/1024/1280 có evidence"
   ],
-  "risk": "medium"
+  "risk": "high"
 }

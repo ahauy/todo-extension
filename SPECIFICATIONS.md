@@ -1,5 +1,5 @@
 ---
-spec_version: 1.6.0
+spec_version: 1.7.0
 updated_at: 2026-11-18
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
@@ -264,6 +264,53 @@ việc đã có và một badge streak nhỏ trên dòng meta của thẻ việc
 sách R-18 (mở popup < 100ms với ~50 task). Streak này độc lập `StudyLog`/
 chuỗi học chung (R-20); không thêm permission (R-17), không network request.
 
+### Domain: Thời khoá biểu trong ngày (Time blocking — Gói E)
+
+**R-24 — Time blocking trên bảng Học Đường (Gói E)**
+`Task` có hai field additive tuỳ chọn, nhúng trong key `t:<id>` hiện có (**không** key storage mới,
+không permission/network mới — R-17):
+
+- `startAt?: string` — giờ bắt đầu dạng `"HH:mm"`, **wall-clock giờ địa phương** (00:00–23:59),
+  cùng ngữ nghĩa múi giờ/DST với `dueAt` (R-09) — **không** phải instant UTC. Validate 00:00–23:59.
+- `estimateMin?: number` — độ dài block dự kiến tính bằng phút, **15–240**; mặc định **30** khi có
+  `startAt` mà `estimateMin` trống. Giá trị ngoài khoảng 15–240 là không hợp lệ theo acceptance.
+  Cách báo lỗi cụ thể trên form do builder chọn trong phạm vi hộp sửa việc đã có.
+
+Task cũ thiếu một hoặc cả hai field vẫn load bình thường. `plannedFor` (ngày dự định LÀM — R-22) và
+`dueAt` (hạn chót — R-09) **giữ nguyên nghĩa**: `startAt` chỉ là giờ trong ngày, **không** tự tạo/xoá
+alarm `due:<id>`, không đổi trạng thái quá hạn (R-09), không đổi sort deterministic (R-15), không đổi
+then chốt/ếch/archive (R-21), focus (R-20), kế hoạch tối (R-22) hay streak thói quen (R-23).
+
+Bảng Học Đường (**New Tab only**) có timeline dọc khung **06:00–24:00**: việc có `startAt` hợp lệ
+hiện đúng thứ tự giờ, chiều cao block suy từ `estimateMin`; việc **không** có `startAt` nằm ở nhóm
+cuối (không mất việc nào); việc có `startAt` ngoài khung (00:00–05:59) cũng nằm ở nhóm cuối nhưng
+**giữ nhãn giờ thật** để không làm mất thông tin.
+
+Kéo block đổi **duy nhất** `startAt`, snap bước **15 phút**, giới hạn trong khung 06:00–24:00; không
+đổi `plannedFor`, `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` hay alarm. Phải có lối đổi giờ tương
+đương bằng **bàn phím/ô nhập** (dùng được không cần chuột) và có test cho lối này. Khi hai block
+chồng lấn thời gian: hiện **cảnh báo trực quan trên các block liên quan**, vẫn lưu bình thường,
+**không** tự sửa/dời/xoá dữ liệu người dùng (nguyên tắc "chỉ cảnh báo" như A1 của R-21).
+
+Popup 360×560 **không thêm khối UI mới** của gói này (R-19): chỉ hai ô trong hộp sửa việc đã có;
+mọi thao tác timeline/kéo-thả nằm ở New Tab. Motion của block chỉ phản hồi thao tác thật và tuân
+`prefers-reduced-motion: reduce` (không chạy animation kéo khi bật). Không thêm thư viện animation
+hay network request; không đụng đường render của popup để giữ nguyên ngân sách R-18.
+
+**Biên (edge case) — quy tắc bắt buộc:**
+
+- `estimateMin` chỉ có nghĩa khi `startAt` hợp lệ. Có `estimateMin` mà **không** có `startAt`: giữ
+  nguyên giá trị đã lưu (không xoá), không hiện block trên timeline, không cảnh báo — việc nằm ở nhóm
+  "không giờ".
+- Block vượt mốc 24:00 (vd `startAt 23:00` + `estimateMin 240`): vẽ tới **24:00** rồi dừng, gắn nhãn
+  "vượt khung"; khi phát hiện chồng lấn chỉ tính phần giao trong khung 06:00–24:00; **không** tự cắt
+  `estimateMin` của người dùng.
+- Kéo một việc đang ở nhóm cuối (không giờ hoặc `startAt` 00:00–05:59) thả vào khung: gán `startAt`
+  theo vị trí thả đã snap 15′ và clamp 06:00–24:00; không đổi `plannedFor`.
+- Giá trị `estimateMin` ngoài 15–240 đã có trong dữ liệu cũ: hiển thị theo giá trị đã lưu nhưng kẹp
+  chiều cao block trong khoảng 15–240 phút để không phá layout; form mở ra báo lỗi cần sửa; **không**
+  tự ghi đè cho tới khi người dùng lưu.
+
 ## API Endpoints
 
 Không có — extension không có backend/API.
@@ -274,7 +321,7 @@ Không có DB. Storage layout `chrome.storage.sync`:
 
 | Key | Value | Ghi chú |
 |---|---|---|
-| `t:<uuid>` | `Task` | 1 key / task → ghi cục bộ, tránh ghi đè cả danh sách; R-23 nhúng `habit` trong cùng key |
+| `t:<uuid>` | `Task` | 1 key / task → ghi cục bộ, tránh ghi đè cả danh sách; R-23 nhúng `habit`, R-24 nhúng `startAt`/`estimateMin` trong cùng key |
 | `settings` | `Settings` | display mode, tuỳ chọn hiệu ứng, Pomodoro, âm thanh, thông báo |
 | `subjects` | `Subject[]` | giá sách môn học |
 | `studyLog` | `StudyLog` | chuỗi ngày học |
