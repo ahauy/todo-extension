@@ -44,6 +44,9 @@ schema sync, không thêm key/ngày, không ghi `StudyLog`, không sync thiết 
 R-23 (spec 1.6.0) **không thêm key**: `Task.habit?` (`{ startedAt, doneDays }`) nằm nhúng trong cùng
 key `t:<id>` — sổ thói quen **opt-in**, không phải lịch sử occurrence của R-11, không key/ngày mới.
 Chi tiết: [`ERD.md`](ERD.md) §2.1 và §3.7 bên dưới.
+R-24 (spec 1.7.0) **cũng không thêm key**: `Task.startAt?` (`"HH:mm"`) + `Task.estimateMin?` (phút)
+nằm nhúng trong cùng key `t:<id>`; không đổi shape `t:<id>` theo nghĩa thêm storage key, không key/ngày
+mới, không permission/network mới (R-17). Chi tiết §3.8 bên dưới và [`ERD.md`](ERD.md) §2.1.
 
 ## 2. Chrome extension APIs sử dụng
 
@@ -224,8 +227,9 @@ alarm (tránh write churn). `shouldNotify` (`lib/notifications.ts`) vẫn chỉ 
 
 ### 3.5 Popup state — `hooks/useTasks.ts`
 
-`useTasks()` → `{ tasks, dayPlan, add, create, update, remove, toggle, restore, selectFrog, loading }`
-qua `useSyncExternalStore` trên adapter (`hooks/useTasks.ts:182-183`, return `:359-370`).
+`useTasks()` → `{ tasks, dayPlan, add, create, update, setTaskTime, remove, toggle, restore,
+selectFrog, loading }` qua `useSyncExternalStore` trên adapter (`hooks/useTasks.ts:182-183`, return
+`:423-435`).
 `dayPlan` là snapshot thứ hai, hydrate cùng lúc với `tasks` để một lần render thấy cả hai.
 
 - `add`: quick-add chỉ title → `create(defaultDraft(title))`.
@@ -233,6 +237,13 @@ qua `useSyncExternalStore` trên adapter (`hooks/useTasks.ts:182-183`, return `:
   `done=false`, `tags=[]`, `subtasks=[]`, `subjectId=null`, `recurrence={kind:'none'}`,
   `createdAt=updatedAt=now`; ghi 1 key rồi `syncAlarms`.
 - `update`: `updatedAt = now` → `put` → thay bản ghi trong snapshot.
+- `setTaskTime(id, patch: TaskTimePatch)` (R-24): cổng ghi duy nhất của thời khoá biểu. `patch` có
+  `{ startAt?: string | null; estimateMin?: number | null }` (`null` = xoá field). Đọc task hiện tại
+  từ snapshot, chép nguyên rồi sửa đúng field được truyền, `updatedAt = now`, **một** `put(next)` rồi
+  thay bản ghi trong snapshot (`hooks/useTasks.ts:262-279`). Không gọi `syncAlarms`, không đụng
+  `plannedFor`/`dueAt`/`lastDoneAt`/`prevDueAt`/`habit` — alarm `due:<id>` giữ nguyên. `put` lỗi
+  (quota) → throw **trước** `setSnapshot`, snapshot cũ còn nguyên (R-16). `useBoard` bọc thêm
+  `quotaError` rồi export cho New Tab (`hooks/useBoard.ts:245-260, return :278, fields :302/:308`).
 - `restore`: đưa task đã xoá trở lại (undo), giữ nguyên `id`/`createdAt`; có thì thay, chưa có thì thêm.
 - `selectFrog(dayKey, taskId | null)` (R-21): ghi `{ frogTaskId: taskId }` vào `dayPlan[dayKey]` qua
   `putDayPlan` (1 key, prune 14 ngày), cập nhật cache đã prune rồi `notify()` (`hooks/useTasks.ts:256-271`).
@@ -334,6 +345,29 @@ ngoại lệ có chủ đích: Hoàn tác hôm nay và un-toggle đọc `prevDue
 `withHabitDay(..., 'remove', ...)` (`entrypoints/newtab/App.tsx:227`) — chỉ đổi `doneDays`, không đụng
 `dueAt`/alarm/R-11. Badge streak trên thẻ việc (`TaskScroll`) và thẻ lưới (`HabitCard`) đều gọi
 `habitStreak` trên dữ liệu đã hydrate.
+
+### 3.8 Time block — `lib/tasks/timeBlock.ts` (R-24)
+
+Module **pure**: không storage/chrome/React, không mutate `Task`; tách khỏi `query.ts` để sort dùng
+chung R-15 giữ nguyên (`lib/tasks/timeBlock.ts:1-9`). Khung timeline 06:00–24:00; bước snap 15′;
+mặc định độ dài 30′; validate giờ 00:00–23:59 và độ dài 15–240.
+
+| Hàm | Hợp đồng |
+|---|---|
+| `isValidStartAt` / `parseStartAtMinutes` / `formatStartAtMinutes` | `"HH:mm"` local → hợp lệ / phút từ 00:00 / nhãn (clamp 00:00–24:00; 24:00 chỉ là mốc kết thúc) (`timeBlock.ts:55-74`) |
+| `normalizeEstimateMin(startAt, estimateMin)` | Không có giờ → `undefined`; có giờ mà trống → **30**; **giữ nguyên giá trị đã lưu** kể cả ngoài 15–240 (không ghi đè dữ liệu, form vẫn báo lỗi) — nhưng `Timeline` **kẹp chiều cao hiển thị** về 15–240′ (`displayEstimateMin`); giá trị hỏng → 30 (`timeBlock.ts:94-108`, `Timeline.tsx:50-53`) |
+| `timelineOrder(tasks)` | Trả `TimelineEntry[]`: giờ trong khung tăng dần, tie-breaker `id`; giờ 00:00–05:59 rồi việc không giờ xuống cuối, vẫn giữ nhãn giờ thật; không mất việc, không mutate (`timeBlock.ts:121-147`) |
+| `detectOverlaps(tasks)` | `{ ids, pairs }` theo nửa khoảng `[start, start + estimateMin)`, chỉ phần giao trong khung; chạm biên không tính; sort ổn định, **thuần đọc** — chỉ để hiện cảnh báo (`timeBlock.ts:172-198`) |
+| `snapStartAt(minutes)` | Làm tròn 15′ rồi clamp 06:00–23:45; output luôn qua `isValidStartAt` (`timeBlock.ts:205-209`) |
+
+UI: component `components/Timeline.tsx` (New Tab only) nhận `{ tasks, onSetTime }`, gọi
+`onSetTime(id, { startAt })` của `useBoard` khi kéo/phím/nhập giờ — mỗi thao tác = đúng 1 `put` qua
+§3.5. Block vẽ tới **24:00 rồi dừng** và gắn nhãn "⚠ Vượt khung" khi `start + estimate` vượt khung;
+dữ liệu `estimateMin` không bị đổi. Việc ở nhóm cuối cũng có handle kéo: vị trí thả chiếu vào trục
+canvas → `snapStartAt` → gán `startAt` (ô nhập `HH:mm` là lối tương đương).
+Overlap chỉ hiện chữ "⚠ Chồng lấn" + nền nhạt trên mọi block liên quan, vẫn lưu, không tự dời block
+khác. Popup 360×560 không render component này (`entrypoints/popup/App.tsx:246`);
+`withTime` trên `TaskParchment` mặc định `false`, chỉ bật ở `entrypoints/newtab/App.tsx:470`.
 
 ## 4. Sync & conflict resolution (R-13)
 

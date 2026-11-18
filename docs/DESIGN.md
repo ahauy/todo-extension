@@ -812,6 +812,31 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
   vi phạm touch target. Không overflow, không mất dữ liệu — xem
   `.context/review-reports/eyeball-habit-2026-11-18.md`.
 
+### Gói E — Time blocking / Thời khoá biểu (R-24)
+
+> As-built 2026-11-18 (commit `63d3091` + `5032407`, spec 1.7.0). Component `Timeline` chỉ render ở
+> **giữa cột Bàn học** của New Tab (sau lời chào/con ếch, trước composer). Nguồn:
+> `components/Timeline.tsx`, `styles/board.css` (cuối file), `entrypoints/newtab/App.tsx`.
+> **Popup 360×560 không render** — số khối UI giữ nguyên (R-19).
+
+| Thành phần | Quyết định as-built | Copy / a11y |
+|---|---|---|
+| **Khung giờ** (`.timeline-scroll` / `.timeline-track` / `.timeline-gutter`) | 06:00–24:00, **2px/phút** → track cao 2160px, vùng xem `max-height 560px` (420px ở <720px); lề giờ 52px (44px ở mobile); vạch giờ `hairline-soft` | Nhãn `06:00 … 24:00`; 24:00 là mốc **kết thúc**, không phải giờ bắt đầu |
+| **Block việc** (`.timeline-block`) | `top = (phút − 06:00) × 2`, cao `max(44px, estimateMin × 2)`; viền `primary`, nền `surface-paper`; border radius `rounded.xs`. Chồng lấn → viền/chữ `{colors.critical}`, nền `{colors.critical-wash}` | Hàng 1: giờ + **"⚠ Chồng lấn"** (chữ + ký hiệu, không chỉ màu); hàng 2: tên việc. Warning **luôn ở hàng đầu** để không bị block kế tiếp che |
+| **Handle + ô giờ** (`.timeline-block-handle`, `.timeline-time-input`) | Handle ≥44px, `padding-right: 96px` nhường chỗ ô nhập absolute góc phải; ô `input[type=time]` **44px** cao, 84px rộng, `focus-visible` viền 2px `primary` | `aria-label` = tên việc + giờ + độ dài + (nếu có) "chồng lấn với việc khác" + "Dùng mũi tên để dời 15 phút". Vùng `role="status" aria-live="polite"` báo giờ mới |
+| **Nhóm cuối** (`.timeline-tail` / `.timeline-tail-item`) | Việc không giờ / giờ 00:00–05:59 nằm sau khung, mỗi dòng ≥44px, có ô nhập giờ để đưa vào timeline | "Chưa xếp hoặc ngoài khung"; giữ nhãn giờ thật (`03:15`) hoặc "Chưa xếp giờ" |
+
+- **Motion (R-19):** kéo có `transition: transform 120ms ease` chỉ khi phản hồi pointer thật; không
+  thư viện animation, không network/permission mới. `@media (prefers-reduced-motion: reduce)` ép
+  `transition`/`animation: none !important` cho `.timeline-block` và `.timeline-block-handle` — eyeball
+  đo `transitionDuration = 0s`.
+- **Eyeball 2026-11-18:** 360×560 / 1024×768 / 1280×800 → block=4, tail=2, warning=3 đọc được,
+  `scrollWidth === clientWidth`, handle và ô nhập ≥44px; popup `timeline=0`, `input[type=time]=0`.
+  Lần chụp đầu warning bị block kế che → đã đưa lên hàng đầu và chụp lại. Chi tiết:
+  `.context/review-reports/eyeball-timeblock-2026-11-18.md`.
+- **Keyboard:** mũi tên ±15′, `Home` 06:00, `End` 23:45; không shortcut toàn cục mới (Keyboard map
+  bên dưới giữ nguyên để tránh đụng `n`/`/` của R-01/R-15).
+
 ### Signature Components
 
 **`quill-input` — Bút lông viết chữ theo người gõ.** Ô nhập thật vẫn là một `<input>` chuẩn (để IME, đọc màn hình, dán, hoàn tác hoạt động); lớp bút chỉ là phần trang trí đặt chồng lên, `aria-hidden="true"`.

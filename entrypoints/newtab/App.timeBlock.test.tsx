@@ -223,6 +223,53 @@ describe('R-24 — đổi giờ: bàn phím, ô nhập, kéo', () => {
   });
 });
 
+describe('R-24 — biên: vượt 24:00, estimate ngoài range, kéo từ nhóm cuối', () => {
+  it('23:00 + 240′: vẽ tới 24:00 rồi dừng, hiện nhãn "Vượt khung", không sửa dữ liệu', async () => {
+    stub.seed({ [`${TASK_KEY_PREFIX}g`]: taskFixture('g', { startAt: '23:00', estimateMin: 240 }) });
+    const container = await mount();
+    const block = blockFor(container, 'g');
+    expect(parseFloat((block as HTMLElement).style.height)).toBe(120); // 60′ × 2px
+    expect(block.textContent).toContain('Vượt khung');
+    expect(saved('g').estimateMin).toBe(240); // KHÔNG tự đổi dữ liệu
+  });
+
+  it('estimateMin=300 đã lưu: giữ giá trị nhưng kẹp chiều cao 240′ (480px)', async () => {
+    stub.seed({ [`${TASK_KEY_PREFIX}h`]: taskFixture('h', { startAt: '08:00', estimateMin: 300 }) });
+    const container = await mount();
+    const block = blockFor(container, 'h') as HTMLElement;
+    expect(parseFloat(block.style.height)).toBe(480); // 240′ × 2px, không phải 600
+    expect(block.querySelector('button')!.getAttribute('aria-label')).toContain('đã kẹp');
+    expect(saved('h').estimateMin).toBe(300);
+  });
+
+  it('kéo việc 03:00 từ nhóm cuối vào khung: gán startAt snap 15′, chỉ đổi giờ', async () => {
+    const before = taskFixture('c', {
+      startAt: '03:00',
+      plannedFor: '2026-11-19',
+      dueAt: '2026-12-01T09:00',
+    });
+    stub.seed({ [`${TASK_KEY_PREFIX}c`]: before });
+    const container = await mount();
+    const handle = container.querySelector(
+      '.timeline-tail-item[data-task-id="c"] .timeline-tail-handle'
+    )!;
+    const alarmBefore = stub.alarms.get('due:c');
+    const setSpy = vi.spyOn(chrome.storage.sync, 'set');
+    setSpy.mockClear();
+
+    await pointer(handle, 'pointerdown', 100);
+    await pointer(handle, 'pointermove', 600); // 06:00 + 300/2′ = 11:00
+    await pointer(handle, 'pointerup', 600);
+    await flush();
+
+    expect(saved('c').startAt).toBe('11:00');
+    expect(saved('c').plannedFor).toBe(before.plannedFor);
+    expect(saved('c').dueAt).toBe(before.dueAt);
+    expect(stub.alarms.get('due:c')).toEqual(alarmBefore);
+    expect(setSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('R-24 — chồng lấn: cảnh báo nhưng vẫn lưu', () => {
   it('cả 2 block có chữ "Chồng lấn"; kéo vẫn ghi startAt mới, không sửa block kia', async () => {
     stub.seed({

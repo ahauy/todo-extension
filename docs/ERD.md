@@ -57,6 +57,8 @@
 | `lastDoneAt` | `string \| null` (optional) | **ISO 8601 UTC** (`toISOString`) lần đóng dấu gần nhất | additive, R-11 |
 | `prevDueAt` | `string \| null` (optional) | **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa hoàn thành | additive, R-11; Hoàn tác gán thẳng `dueAt = prevDueAt` |
 | `habit` | `{ startedAt: string; doneDays: string[] } \| undefined` (optional) | `startedAt` = **ISO 8601 UTC** có `Z` lúc bật; `doneDays` = tập `YYYY-MM-DD` **theo giờ local**, unique, sort tăng, **≤ 31** (`HABIT_MAX_DAYS`; bỏ ngày cũ nhất khi ghi vượt) | R-23, `types.ts:38-46,90-95`; sổ thói quen **opt-in**, nhúng ngay trong key `t:<id>` — **không** key storage mới, **không** phải lịch sử occurrence của R-11. Task cũ thiếu field = không theo dõi; `normalizeHabitDays` (`habit.ts:66-73`) lọc/sort/cắt khi đọc |
+| `startAt` | `string \| undefined` (optional) | **wall-clock local** `"HH:mm"` 00:00–23:59 | R-24; giờ bắt đầu **trong ngày**, nhúng trong key `t:<id>` — **không** key storage mới. Không đổi nghĩa `plannedFor`/`dueAt`, không tạo alarm (`lib/tasks/types.ts:96-101`, `lib/tasks/timeBlock.ts:22,55-58`) |
+| `estimateMin` | `number \| undefined` (optional) | số nguyên **15–240**, trống → hiển thị 30 | R-24; độ dài block dự kiến (phút). Mặc định 30 là **luật hiển thị** của `normalizeEstimateMin`, KHÔNG tự ghi vào dữ liệu người dùng (`lib/tasks/timeBlock.ts:14,76-108`). Task/form cũ thiếu field vẫn load; sửa việc không xoá field (parity R-23) |
 | `createdAt` | `string` | ISO 8601 UTC (`nowISO`) | = now khi tạo |
 | `updatedAt` | `string` | ISO 8601 UTC (`nowISO`) | cập nhật mỗi lần sửa |
 
@@ -88,6 +90,17 @@
 > chỉ ẩn streak ở lớp hiển thị** — data layer **không xoá** `habit`, bật/phục hồi lại dùng dữ liệu cũ
 > (`withHabitEnabled`, `habit.ts:236-250`). Streak tính trong bộ nhớ từ `doneDays` (`habitStreak`,
 > `habit.ts:137-174` gồm JSDoc), **O(31)/task**, không storage read bổ sung (giữ R-18).
+
+> **R-24 — giờ xếp block là nhãn trong ngày, không phải mốc thời gian sự kiện:** `startAt` là
+> `"HH:mm"` local như `dueAt` nhưng **không** gắn với ngày; timeline New Tab chỉ đọc field này để xếp
+> trong khung 06:00–24:00, snap 15′ (`snapStartAt`, `timeBlock.ts:205-209`). Việc có giờ ngoài khung
+> (00:00–05:59) hoặc không có giờ vẫn nằm ở nhóm cuối, giữ nhãn giờ thật — không mất việc
+> (`timelineOrder`, `timeBlock.ts:121-147`). `detectOverlaps` (`timeBlock.ts:172-198`) là selector
+> **thuần đọc**, chỉ trả id/cặp để hiện cảnh báo; không tự sửa/xoá block của người dùng. Mỗi lần đổi
+> giờ (kéo/phím/ô nhập) đi qua **một** `put(task)` của `useTasks.setTaskTime` (`hooks/useTasks.ts:262-279`):
+> chép nguyên task rồi sửa đúng `startAt`/`estimateMin`, nên `plannedFor`, `dueAt`, `lastDoneAt`/
+> `prevDueAt`, `habit` và alarm `due:<id>` **không đổi**; `put` lỗi (quota) → throw trước `setSnapshot`
+> (R-16). Không key storage hay permission mới (R-17).
 
 **Encoding thực tế của `dueAt` / `prevDueAt`** (đọc từ code, không suy từ spec):
 

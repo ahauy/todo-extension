@@ -295,6 +295,53 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 > (`styles/base.css`: token `--dur-*` về `0.01ms`). Keyboard map bên dưới **giữ nguyên**, không thêm
 > shortcut mới.
 
+## 15. Gói E — Time blocking / Thời khoá biểu (R-24, as-built)
+
+> As-built 2026-11-18 (commit `63d3091` + `5032407`, spec 1.7.0 / scope 31). Mục này **ghi lại luồng đã
+> làm**; các mục §0–§14 ở trên vẫn là mục tiêu/intent, không bị viết lại cho khớp code. Giờ xếp block
+> là nhãn **trong ngày** (`"HH:mm"` local), không phải instant; không đổi `plannedFor`/`dueAt`/alarm.
+> Đây là bản **đầy đủ** (có timeline + kéo-thả) theo quyết định user 2026-11-18, không phải bản nhẹ
+> từng đề xuất trong roadmap.
+
+### 15.1 Nhập giờ trong hộp sửa việc
+
+1. Ở **New Tab**, mở một việc → trong hộp sửa việc hiện thêm 2 ô: **"Giờ bắt đầu"** (`HH:mm`, 00:00–23:59)
+   và **"Độ dài dự kiến"** (phút, 15–240, trống = 30). **Popup 360×560 không có 2 ô này** — số khối UI
+   giữ nguyên (R-19). `withTime` chỉ bật ở New Tab; dù ẩn ô, sửa việc vẫn giữ nguyên giờ cũ đã lưu.
+2. Lưu → task được ghi qua một `put(task)` hiện có; giờ/độ dài nằm ngay trong key `t:<id>`, không key
+   storage mới. Sửa việc không xoá `startAt`/`estimateMin` (cùng lý do R-23 giữ `habit`).
+3. Giờ ngoài khung 06:00–24:00 vẫn lưu nguyên văn; timeline đưa việc đó vào nhóm cuối với nhãn giờ
+   thật, không tự chỉnh sửa dữ liệu người dùng.
+4. **Biên đã chốt (spec 1.7.0):** block có `startAt` gần 24:00 (vd 23:00 + 240′) **vẽ tới 24:00 rồi
+   dừng**, kèm nhãn "⚠ Vượt khung" — không kéo dài khỏi khung, không sửa `estimateMin` đã lưu. Với dữ
+   liệu cũ có độ dài ngoài 15–240 (vd 300′), form vẫn hiện 300 + báo lỗi nhưng **chiều cao block bị kẹp
+   15–240′** để không phá layout. Việc ở nhóm cuối có nút **"Kéo vào khung"**: thả vào trục giờ → gán
+   `startAt` theo vị trí thả đã snap 15′/clamp 06:00–23:45; ô nhập `HH:mm` là lối tương đương.
+
+### 15.2 Đọc timeline New Tab
+
+1. Trong cột giữa, sau lời chào/con ếch hiện **"Thời khoá biểu"** với khung **06:00–24:00**, vạch giờ
+   và nhãn giờ ở lề trái. Việc có giờ xếp theo giờ tăng dần; chiều cao block suy từ độ dài dự kiến.
+   Không thêm tab hay điều hướng (R-19).
+2. Việc **không có giờ** hoặc có giờ **00:00–05:59** nằm ở nhóm cuối **"Chưa xếp hoặc ngoài khung"**,
+   giữ nhãn giờ thật (`03:15`) hoặc chữ "Chưa xếp giờ". Không việc nào bị mất; archived chỉ bị ẩn.
+3. Khi 2 block chồng lấn theo `[bắt đầu, bắt đầu + độ dài)`, **mọi block liên quan** hiện ký hiệu
+   **⚠** + chữ **"Chồng lấn"** (không chỉ màu). Đây là cảnh báo: vẫn lưu, không tự sửa hay dời block
+   khác. Chạm biên (08:30 sau block 08:00/30′) không tính chồng.
+
+### 15.3 Đổi giờ bằng kéo, bàn phím hoặc ô nhập
+
+1. **Kéo** block dọc theo trục giờ → thả ở bước **15′** gần nhất, clamp 06:00–23:45 (24:00 là mốc kết
+   thúc, không phải giờ bắt đầu). Mỗi lần thả ghi đúng **một** `put` với `startAt` mới.
+2. **Bàn phím:** block là nút có `aria-label` (tên việc, giờ, độ dài, trạng thái chồng lấn). `↑`/`→`
+   +15′, `↓`/`←` −15′, `Home` → 06:00, `End` → 23:45; giờ mới được thông báo qua vùng `aria-live`.
+   Mỗi ô nhập `"HH:mm"` trong block và trong nhóm cuối là lối tương đương không cần chuột.
+3. Mọi thao tác chỉ đổi `startAt`/`estimateMin` (+ `updatedAt`); `plannedFor`, `dueAt`, sổ thói quen,
+   alarm `due:<id>` và sort R-15 giữ nguyên. Lỗi quota → banner R-16, snapshot không đổi, không nuốt lỗi.
+4. **Motion:** kéo chỉ phản hồi thao tác thật; `prefers-reduced-motion: reduce` → `transition: none`.
+   Eyeball Chrome 360×560 / 1024×768 / 1280×800: không overflow ngang, ô nhập và handle ≥44px,
+   popup không đổi — `.context/review-reports/eyeball-timeblock-2026-11-18.md`.
+
 ## Keyboard map
 
 | Phím | Hành vi |

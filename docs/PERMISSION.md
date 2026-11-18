@@ -62,3 +62,6 @@ không rate-limit phía server. Giới hạn ghi (120 write/phút) là **giới 
   (`wxt.config.ts`); notification dùng `chrome.runtime.getURL('icon/48.png')`. Gap G5 đã đóng 2026-11-11.
 - Tab Privacy: dán justification mục 1 + data handling mục 2.
 - Không cần khai báo data collection vì không truyền dữ liệu ra ngoài trình duyệt.
+- **R-24 (Gói E time blocking): no doc impact** — `startAt`/`estimateMin` nhúng trong key `t:<id>` hiện
+  có; không thêm permission, không network, không storage key mới. Mục này chỉ xác nhận, không sửa
+  justification ở mục 1.

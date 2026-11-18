@@ -358,26 +358,40 @@ Lý do để trên `Task` thay vì key riêng: 1 task = 1 key đã có, không t
 
 ---
 
-### Gói E — Time Blocking / Chunking (khuyến nghị **hoãn**)
+### Gói E — Time Blocking / Chunking — **as-built 2026-11-18** (bản đầy đủ)
+
+> Cập nhật 2026-11-18: user chọn làm ngay **bản đầy đủ** (timeline + kéo-thả) dù roadmap từng khuyến
+> nghị hoãn. Commit `63d3091` (phase 1) + `5032407` (phase 2), spec 1.7.0 / scope 31, reviewer STRICT
+> PASS cả 2 phase. Đoạn "Vì sao hoãn" bên dưới **giữ nguyên như lịch sử đề xuất**, không xoá.
 
 **Phương pháp:** gom việc tương đồng vào khối 60–90 phút không bị ngắt.
 
 **Mục tiêu:** biến danh sách việc thành **thời khoá biểu** trong ngày.
 
-**Dữ liệu (nếu làm):** `blockStart?: string; blockEnd?: string` (local wall-clock) hoặc
-`plannedFor` + `estimateMin` + `startAt`.
+**Dữ liệu (as-built):** `Task.startAt?: "HH:mm"` (wall-clock local, trong ngày) + `Task.estimateMin?: number`
+(15–240, trống → hiển thị 30) — **nhúng trong key `t:<id>` hiện có**, không key storage mới. Không dùng
+`blockStart`/`blockEnd`; `plannedFor`/`dueAt` giữ nguyên nghĩa. Chi tiết: [`ERD.md`](ERD.md) §2.1,
+[`API_SPEC.md`](API_SPEC.md) §3.8.
 
-**Vì sao hoãn:**
+**Phạm vi đã làm (bản đầy đủ, New Tab only):**
+- [x] Timeline dọc 06:00–24:00, snap 15′; việc không giờ / giờ 00:00–05:59 ở nhóm cuối, giữ nhãn,
+      không mất việc — không đổi sort R-15.
+- [x] Kéo block đổi **duy nhất** `startAt` (1 `put`, clamp 06:00–23:45); lối bàn phím (mũi tên ±15′,
+      Home/End) và ô nhập `HH:mm` tương đương, có nhãn + live region.
+- [x] Chồng lấn theo nửa khoảng → cảnh báo **⚠ + chữ** trên mọi block liên quan; **vẫn lưu**, không tự
+      sửa/xoá dữ liệu, không tự dời block khác.
+- [x] Popup 360×560 giữ nguyên số khối UI; reduced-motion tắt transition; eyeball 3 breakpoint.
+
+**Vì sao hoãn (lịch sử đề xuất — giữ lại):**
 - Cần timeline + kiểm tra chồng lấn + kéo-thả → chỉ sống được ở New Tab, không vừa popup 360px.
 - Chi phí gấp nhiều lần B+C; giá trị phụ thuộc vào việc B đã được dùng thật.
 - Rủi ro cao nhất trong 6 gói (drag/drop + responsive + dữ liệu thời gian).
 
-**Bản nhẹ nếu cần làm sớm:** chỉ thêm "giờ bắt đầu" cho việc đã `plannedFor` và hiển thị danh sách
-theo giờ trong New Tab — **không** lưới calendar, **không** kéo-thả.
+**Bản nhẹ từng đề xuất (không phải cái đã làm):** chỉ thêm "giờ bắt đầu" cho việc đã `plannedFor`
+và hiển thị danh sách theo giờ trong New Tab — **không** lưới calendar, **không** kéo-thả.
 
-**Nghiệm thu sơ bộ (bản nhẹ):**
-- [ ] Việc có giờ bắt đầu hiện đúng thứ tự trong ngày; việc không giờ nằm cuối.
-- [ ] Không cho lưu khối chồng lấn (cảnh báo, không tự sửa dữ liệu người dùng).
+**Residual đã chốt:** B (6P) chưa có dữ liệu dùng thật → giá trị của E chưa kiểm chứng được trên thực
+tế; user vẫn chọn làm ngay 2026-11-18. Không coi là lỗi, không chặn đóng gói.
 
 ## 5. Quyết định đã chốt
 
@@ -403,7 +417,7 @@ theo giờ trong New Tab — **không** lưới calendar, **không** kéo-thả.
 | 2 | **A — Then chốt + Con ếch** | **Rất cao** | M | Trung bình | Gói 0 | STRICT (shared query) |
 | 3 | **B — 6P kế hoạch tối** | **Rất cao** | M | Trung bình | Gói 0, A | NORMAL |
 | 4 | D — Thói quen 21 ngày | Cao | M–L | Trung bình | Gói 0 (G3) | STRICT (recurrence) |
-| 5 | E — Time blocking | Trung bình | L | Cao | B | STRICT |
+| 5 | E — Time blocking (**done 2026-11-18**, bản đầy đủ) | Trung bình | L | Cao | B (đã làm, dữ liệu chưa kiểm chứng) | STRICT |
 
 **Lý do thứ tự:** `0 → C → A → B → D → (E sau)`.
 
@@ -412,7 +426,8 @@ theo giờ trong New Tab — **không** lưới calendar, **không** kéo-thả.
   mà chưa có C thì con ếch chỉ là nhãn.
 - **A trước B**: sheet kế hoạch tối cần khái niệm then chốt để chọn con ếch; làm ngược sẽ phải sửa sheet.
 - **D sau cùng trong nhóm chính**: phụ thuộc G3 và là gói nặng nhất về logic lịch.
-- **E chỉ sau khi B có dữ liệu dùng thật.**
+- **E đã làm 2026-11-18 theo yêu cầu user, không đợi B có dữ liệu thật** — Residual "giá trị chưa
+  kiểm chứng" ghi rõ ở §4; không sửa lại lịch sử đề xuất `E sau B`.
 
 ## 7. Câu hỏi đã chốt (2026-11-16)
 

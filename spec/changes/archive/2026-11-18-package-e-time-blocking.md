@@ -1,7 +1,8 @@
 ---
 id: package-e-time-blocking
 type: feature
-status: pending
+status: done
+closed: 2026-11-18
 parent: FEAT-003
 created: 2026-11-18
 ---

@@ -3,8 +3,10 @@
  * `Task[]` qua helper thuần `timeBlock.ts` và ghi lại qua 1 API `onSetTime`
  * (mỗi lần kéo/phím = đúng 1 `put` của phase 1). Không storage/chrome trực tiếp.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
+  MAX_ESTIMATE_MIN,
+  MIN_ESTIMATE_MIN,
   SNAP_STEP_MIN,
   TIMELINE_END_MIN,
   TIMELINE_START_MIN,
@@ -40,6 +42,16 @@ interface DragState {
   preview: string | null;
 }
 
+interface TailDrag {
+  id: string;
+  preview: string | null;
+}
+
+/** Chỉ kẹp CHIỀU CAO hiển thị — không đụng giá trị đã lưu (form vẫn báo lỗi). */
+function displayEstimateMin(estimateMin: number): number {
+  return Math.min(Math.max(estimateMin, MIN_ESTIMATE_MIN), MAX_ESTIMATE_MIN);
+}
+
 function hourTop(hour: number): number {
   return (hour * 60 - TIMELINE_START_MIN) * PX_PER_MIN;
 }
@@ -50,7 +62,9 @@ function blockTop(startMinutes: number): number {
 
 export default function Timeline({ tasks, onSetTime }: TimelineProps) {
   const [drag, setDrag] = useState<DragState | null>(null);
+  const [tailDrag, setTailDrag] = useState<TailDrag | null>(null);
   const [announcement, setAnnouncement] = useState('');
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const entries = useMemo(() => timelineOrder(tasks), [tasks]);
   const overlapIds = useMemo(() => new Set(detectOverlaps(tasks).ids), [tasks]);
@@ -111,10 +125,35 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
     setDrag(null);
   };
 
+  /** R-24 — kéo việc ở nhóm cuối vào khung: vị trí thả → phút trong canvas → snap 15′. */
+  const dropMinutes = (clientY: number): number => {
+    const top = canvasRef.current?.getBoundingClientRect().top ?? 0;
+    return TIMELINE_START_MIN + (clientY - top) / PX_PER_MIN;
+  };
+
+  const onTailPointerDown = (id: string) => (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setTailDrag({ id, preview: snapStartAt(dropMinutes(event.clientY)) });
+  };
+
+  const onTailPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!tailDrag) return;
+    setTailDrag({ ...tailDrag, preview: snapStartAt(dropMinutes(event.clientY)) });
+  };
+
+  const onTailPointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (tailDrag?.preview) commit(tailDrag.id, tailDrag.preview);
+    setTailDrag(null);
+  };
+
   const renderBlock = (entry: (typeof head)[number]) => {
     const { task } = entry;
     const startMinutes = entry.startMinutes!;
-    const estimateMin = normalizeEstimateMin(task.startAt, task.estimateMin) ?? 30;
+    const storedMin = normalizeEstimateMin(task.startAt, task.estimateMin) ?? 30;
+    const displayMin = displayEstimateMin(storedMin);
+    const beyondWindow = startMinutes + displayMin > TIMELINE_END_MIN;
+    const endMinutes = Math.min(startMinutes + displayMin, TIMELINE_END_MIN);
     const warning = overlapIds.has(task.id);
     const preview = drag?.id === task.id ? drag.preview : null;
     return (
@@ -125,13 +164,13 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
         data-start-at={task.startAt ?? ''}
         style={{
           top: `${blockTop(startMinutes)}px`,
-          height: `${Math.max(MIN_BLOCK_PX, estimateMin * PX_PER_MIN)}px`,
+          height: `${Math.max(MIN_BLOCK_PX, (endMinutes - startMinutes) * PX_PER_MIN)}px`,
         }}
       >
         <button
           type="button"
           className="timeline-block-handle"
-          aria-label={`${task.title}, bắt đầu ${task.startAt}, ${estimateMin} phút${warning ? ', chồng lấn với việc khác' : ''}. Dùng mũi tên để dời 15 phút.`}
+          aria-label={`${task.title}, bắt đầu ${task.startAt}, ${storedMin} phút${storedMin !== displayMin ? ' (chiều cao hiển thị đã kẹp 15–240 phút)' : ''}${beyondWindow ? ', vượt khung 24:00' : ''}${warning ? ', chồng lấn với việc khác' : ''}. Dùng mũi tên để dời 15 phút.`}
           onKeyDown={onBlockKeyDown(task)}
           onPointerDown={onPointerDown(task, startMinutes)}
           onPointerMove={onPointerMove}
@@ -139,6 +178,11 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
           onPointerCancel={() => setDrag(null)}
         >
           <span className="timeline-block-time">{preview ?? task.startAt}</span>
+          {beyondWindow && (
+            <span className="timeline-block-beyond" aria-label="Vượt khung 24:00">
+              ⚠ Vượt khung
+            </span>
+          )}
           {warning && (
             <span className="timeline-block-warning" aria-label="Cảnh báo chồng lấn">
               ⚠ Chồng lấn
@@ -161,10 +205,22 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
     const { task } = entry;
     const label =
       entry.startMinutes === null ? 'Chưa xếp giờ' : formatStartAtMinutes(entry.startMinutes);
+    const preview = tailDrag?.id === task.id ? tailDrag.preview : null;
     return (
       <li key={task.id} className="timeline-tail-item" data-task-id={task.id}>
         <span className="timeline-tail-label">{label}</span>
         <span className="timeline-tail-title">{task.title}</span>
+        <button
+          type="button"
+          className="timeline-tail-handle"
+          aria-label={`Kéo ${task.title} vào khung 06:00–24:00${preview ? `, sẽ xếp lúc ${preview}` : ''}`}
+          onPointerDown={onTailPointerDown(task.id)}
+          onPointerMove={onTailPointerMove}
+          onPointerUp={onTailPointerUp}
+          onPointerCancel={() => setTailDrag(null)}
+        >
+          {preview ?? 'Kéo vào khung'}
+        </button>
         <input
           type="time"
           className="timeline-time-input"
@@ -200,7 +256,7 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
               24:00
             </span>
           </div>
-          <div className="timeline-canvas">
+          <div className="timeline-canvas" ref={canvasRef}>
             {HOURS.map((hour) => (
               <div
                 key={hour}
