@@ -11,7 +11,7 @@
  */
 
 import { dayKey } from '../datetime';
-import { HABIT_MAX_DAYS, type Task } from './types';
+import { HABIT_MAX_DAYS, type Habit, type Task } from './types';
 
 export { HABIT_MAX_DAYS };
 
@@ -237,14 +237,14 @@ export function withHabitDay(
  * Bật: gán `startedAt` ISO UTC + `doneDays: []` nếu CHƯA có; đã có thì giữ
  * nguyên dữ liệu cũ. Tắt: GIỚI NGUYÊN habit (chỉ ẩn ở UI — R-23).
  */
-export function withHabitEnabled(
-  task: Task,
+export function withHabitEnabled<T extends { habit?: Habit }>(
+  value: T,
   enabled: boolean,
   now: Date
-): Task {
-  if (!enabled || task.habit) return task;
+): T {
+  if (!enabled || value.habit) return value;
   return {
-    ...task,
+    ...value,
     habit: { startedAt: now.toISOString(), doneDays: [] },
   };
 }

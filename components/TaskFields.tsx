@@ -3,13 +3,14 @@
  * sửa việc. Không chứa tiêu đề: chỗ ghi nhanh dùng ô bút lông, chỗ sửa dùng
  * ô chữ thường. Mọi validation nằm ở component cha để hai nơi dùng một luật.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Field from './ui/Field';
 import Segmented from './ui/Segmented';
 import Checkbox from './ui/Checkbox';
 import Button from './ui/Button';
 import { CloseIcon, PlusIcon } from './art/Icons';
 import { recurrenceForKind } from '../lib/tasks/recurrence';
+import { withHabitEnabled } from '../lib/tasks/habit';
 import type { Priority, RecurrenceRule, Subject } from '../lib/tasks/types';
 import { toLocalInput } from '../lib/datetime';
 import {
@@ -30,7 +31,12 @@ interface TaskFieldsProps {
   withNote?: boolean;
   /** Số việc then chốt đang mở ngoài tờ này — để cảnh báo không đếm đôi. */
   keystoneCount?: number;
+  /** R-23 — mốc ISO cho `startedAt` lúc bật; mặc định lúc bấm (dùng được để test). */
+  now?: Date;
 }
+
+/** 0=CN … 6=T7 — khớp `WeeklyRule.weekdays` / `Date.getDay()`. */
+const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'] as const;
 
 export default function TaskFields({
   form,
@@ -39,12 +45,44 @@ export default function TaskFields({
   onChange,
   withNote = true,
   keystoneCount = 0,
+  now,
 }: TaskFieldsProps) {
   const [tagDraft, setTagDraft] = useState('');
   const [subtaskDraft, setSubtaskDraft] = useState('');
+  // R-23 — trạng thái HIỂN THỊ của toggle. Tắt chỉ ẩn: `form.habit` vẫn được
+  // giữ lại để không xoá sổ khi lưu (data layer không xoá field).
+  const [habitOn, setHabitOn] = useState(() => !!form.habit);
+
+  useEffect(() => {
+    setHabitOn(!!form.habit);
+  }, [form.habit]);
 
   // R-21 — tổng then chốt đang mở SAU khi tờ này bật; chỉ cảnh báo, không chặn lưu.
   const warning = keystoneWarning(keystoneCount + (form.keystone ? 1 : 0));
+
+  const weekdays =
+    form.recurrence.kind === 'weekly' && Array.isArray(form.recurrence.rule?.weekdays)
+      ? form.recurrence.rule.weekdays
+      : [];
+
+  /** R-10 — picker nhiều thứ nhưng luôn giữ ≥1 ngày. */
+  const toggleWeekday = (day: number) => {
+    if (form.recurrence.kind !== 'weekly') return;
+    const selected = weekdays.includes(day);
+    if (selected && weekdays.length <= 1) return;
+    const next = selected
+      ? weekdays.filter((value) => value !== day)
+      : [...weekdays, day].sort((left, right) => left - right);
+    onChange({ recurrence: { kind: 'weekly', rule: { weekdays: next } } });
+  };
+
+  /** R-23 — dùng chung helper phase 1: bật gán sổ mới, tắt giữ sổ cũ. */
+  const toggleHabit = () => {
+    const nextOn = !habitOn;
+    const next = withHabitEnabled(form, nextOn, now ?? new Date());
+    setHabitOn(nextOn);
+    onChange({ habit: next.habit });
+  };
 
   const setDue = (value: string | null) => {
     const recurrence =
@@ -174,7 +212,58 @@ export default function TaskFields({
             onChange({ recurrence: recurrenceForKind(value as RecurrenceRule['kind'], form.dueAt) })
           }
         />
+        {form.recurrence.kind === 'weekly' && (
+          <>
+            <div className="habit-weekdays" role="group" aria-label="Chọn thứ lặp lại">
+              {WEEKDAY_LABELS.map((label, day) => {
+                const pressed = weekdays.includes(day);
+                const lastOne = pressed && weekdays.length <= 1;
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    className="habit-weekday"
+                    data-weekday={day}
+                    aria-pressed={pressed}
+                    aria-label={`${label}${lastOne ? ' (phải giữ ít nhất một thứ)' : ''}`}
+                    title={lastOne ? 'Phải giữ ít nhất một thứ' : undefined}
+                    disabled={lastOne}
+                    onClick={() => toggleWeekday(day)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-caption text-umber">
+              Chọn ít nhất một thứ trong tuần. Thứ không chọn là ngày ngoài lịch.
+            </p>
+          </>
+        )}
       </Field>
+
+      {form.recurrence.kind !== 'none' && (
+        <Field
+          label="Theo dõi thói quen"
+          helper="Sổ streak riêng, tách khỏi chuỗi ngày học chung"
+        >
+          <button
+            type="button"
+            role="switch"
+            aria-checked={habitOn}
+            aria-label="Theo dõi như thói quen"
+            className="habit-switch"
+            onClick={toggleHabit}
+          >
+            <span className="habit-switch-track" aria-hidden="true">
+              <span className="habit-switch-knob" />
+            </span>
+            <span className="text-body-sm text-ink">
+              {habitOn ? 'Đang theo dõi thói quen' : 'Không theo dõi thói quen'}
+            </span>
+          </button>
+        </Field>
+      )}
 
       {withNote && (
         <Field label="Ghi chú" helper={`${form.note.length}/${MAX_NOTE} ký tự`} error={errors?.note}>

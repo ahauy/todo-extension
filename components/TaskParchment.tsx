@@ -31,7 +31,7 @@ interface TaskParchmentProps {
   onDirtyChange?: (dirty: boolean) => void;
 }
 
-function toForm(task: Task): TaskForm {
+export function toForm(task: Task): TaskForm {
   return {
     title: task.title,
     note: task.note,
@@ -43,6 +43,8 @@ function toForm(task: Task): TaskForm {
     subjectId: task.subjectId ?? null,
     keystone: task.keystone ?? false,
     archived: task.archived ?? false,
+    // R-23 — phải copy sổ thói quen, nếu thiếu thì Lưu sẽ xoá sổ (regression).
+    habit: task.habit,
   };
 }
 

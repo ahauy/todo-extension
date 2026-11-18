@@ -572,3 +572,200 @@ article[data-focus-active='true'] {
     animation: none !important;
   }
 }
+
+/* ── R-23: picker nhiều thứ + toggle thói quen (hộp sửa việc / Composer) ── */
+/* Mọi trạng thái có chữ riêng; màu chỉ hỗ trợ (R-19). Không motion mới. */
+.habit-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--spacing-xxs);
+}
+.habit-weekday {
+  display: grid;
+  place-items: center;
+  min-height: 36px;
+  padding: 0 var(--spacing-xxs);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-paper);
+  color: var(--umber);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  cursor: pointer;
+}
+.habit-weekday:disabled {
+  cursor: not-allowed;
+  color: var(--disabled-text);
+}
+.habit-weekday[aria-pressed='true'] {
+  border-color: var(--jade);
+  background: var(--jade-wash);
+  color: var(--jade);
+}
+.habit-weekday[aria-pressed='true']:disabled {
+  border-style: dashed;
+}
+.habit-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.habit-switch-track {
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunk);
+}
+.habit-switch-knob {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--sepia);
+  border-radius: 9999px;
+  background: var(--surface-paper);
+}
+.habit-switch[aria-checked='true'] .habit-switch-track {
+  border-color: var(--jade);
+  background: var(--jade);
+}
+.habit-switch[aria-checked='true'] .habit-switch-knob {
+  border-color: var(--on-primary);
+  background: var(--on-primary);
+}
+
+/* Badge nằm trong [data-chip-row] dùng chung compact/full — không khối mới. */
+.habit-streak-badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px var(--spacing-sm);
+  border: 1px solid var(--jade);
+  border-radius: var(--radius-full);
+  background: var(--jade-wash);
+  color: var(--jade);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── R-23: thẻ thói quen trên Bàn học ──────────────────────────────── */
+.habit-card {
+  min-width: 0;
+  padding: var(--spacing-base);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface-lacquer);
+}
+.habit-card-title {
+  margin-bottom: var(--spacing-sm);
+  color: var(--primary-deep);
+}
+.habit-card-list {
+  display: grid;
+  gap: var(--spacing-base);
+}
+.habit-card-item {
+  min-width: 0;
+  padding-bottom: var(--spacing-base);
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.habit-card-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.habit-card-name {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+.habit-card-streak {
+  color: var(--brown);
+}
+.habit-seals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+.habit-seal {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-full);
+  background: var(--gold-pale);
+  color: var(--on-gold);
+  font-size: var(--text-caption);
+  font-weight: 700;
+}
+/* auto-fit giữ ô bấm ≥44px: tự bớt số cột khi bàn học hẹp, không tràn ngang. */
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  gap: var(--spacing-xxs);
+  max-width: 100%;
+  margin-top: var(--spacing-sm);
+}
+.habit-cell {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xs);
+  background: var(--surface-paper);
+  color: var(--brown);
+  font-family: var(--font-body);
+  font-size: var(--text-body-sm);
+  line-height: 1;
+}
+.habit-cell-done {
+  border-color: var(--jade);
+  background: var(--jade);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+.habit-cell-missed {
+  border-color: var(--critical);
+  background: var(--critical-wash);
+  color: var(--critical);
+}
+.habit-cell-off-calendar {
+  border-color: var(--hairline-soft);
+  background: var(--surface-sunk);
+  color: var(--disabled-text);
+}
+.habit-card-copy {
+  margin-top: var(--spacing-sm);
+  color: var(--umber);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.habit-cell:focus-visible,
+.habit-weekday:focus-visible,
+.habit-switch:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .habit-cell,
+  .habit-weekday,
+  .habit-switch,
+  .habit-seal {
+    transition: none !important;
+    animation: none !important;
+  }
+}

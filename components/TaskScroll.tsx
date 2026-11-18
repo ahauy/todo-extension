@@ -17,6 +17,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DeadlineChip, PriorityBadge, SubjectBadge } from './ui/Chips';
 import { CheckIcon, RepeatIcon, SealIcon } from './art/Icons';
 import { isRecurringDoneToday } from '../lib/tasks/query';
+import { habitStreak } from '../lib/tasks/habit';
 import { dayKey } from '../lib/datetime';
 import type { DayPlan, Subject, Task } from '../lib/tasks/types';
 
@@ -59,6 +60,11 @@ export default function TaskScroll({
   const focusActive = !!onFocusTask && activeTaskId === task.id;
   const doneToday = isRecurringDoneToday(task, now);
   const completed = task.done || doneToday;
+  // R-23 — badge chỉ tính khi ĐANG theo dõi. Chỉ đọc doneDays (O(31)/task),
+  // không storage read, không nút bấm — undo R-11 vẫn đi qua seal hiện có.
+  const habitTracked =
+    !!task.habit && task.recurrence.kind !== 'none' && !task.archived;
+  const habitStreakDays = habitTracked ? habitStreak(task, now) : 0;
   const overdue = !!task.dueAt && !completed && new Date(task.dueAt) < now;
   const state = task.done ? 'done' : doneToday ? 'done-today' : overdue ? 'overdue' : 'open';
   const wasCompleted = useRef(completed);
@@ -119,6 +125,16 @@ export default function TaskScroll({
     <>
       {keystoneMarkers}
       {doneToday && <span className="chip chip-done-today">đã làm hôm nay</span>}
+      {habitTracked && (
+        <span
+          className="habit-streak-badge"
+          data-habit-streak={habitStreakDays}
+          aria-label={`Chuỗi thói quen ${habitStreakDays} ngày`}
+          title={`Chuỗi thói quen ${habitStreakDays} ngày`}
+        >
+          Chuỗi {habitStreakDays} ngày
+        </span>
+      )}
       {!completed && task.recurrence.kind !== 'none' && task.dueAt && (
         <span className="chip chip-recurring">lặp</span>
       )}

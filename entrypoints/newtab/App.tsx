@@ -21,6 +21,7 @@ import FocusConfirms, { type FocusInterrupt } from '../../components/FocusConfir
 import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
+import HabitCard from '../../components/HabitCard';
 import { MaximCard, Proclamation } from '../../components/Proclamation';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -42,6 +43,7 @@ import {
   type SortKey,
 } from '../../lib/tasks/query';
 import { openKeystoneCount, type TaskDraft } from '../../lib/tasks/form';
+import { withHabitDay } from '../../lib/tasks/habit';
 import './style.css';
 
 /** Chế độ Popup: tab mới chỉ là một trang chào yên tĩnh */
@@ -215,6 +217,19 @@ export default function App() {
     }
     void board.toggleTask(id);
   };
+
+  // R-23 — bỏ dấu một ngày từ lưới thói quen: CHỈ đổi `doneDays` qua helper
+  // phase 1. Không toggle việc, không đụng dueAt/alarm, không ghi StudyLog.
+  const handleHabitUnmark = useCallback(
+    (taskId: string, day: string) => {
+      const task = board.tasks.find((item) => item.id === taskId);
+      if (!task) return;
+      const next = withHabitDay(task, day, 'remove', board.now);
+      if (next === task) return;
+      void board.updateTask(next);
+    },
+    [board.tasks, board.now, board.updateTask]
+  );
 
   const handleInterrupt = (next: FocusInterrupt) => {
     if (next.kind === 'detach') {
@@ -411,6 +426,15 @@ export default function App() {
             <div className="mt-lg">
               <StreakCard log={board.log} now={board.now} />
             </div>
+            {!focusActive && (
+              <div className="mt-lg">
+                <HabitCard
+                  tasks={board.tasks}
+                  now={board.now}
+                  onUnmark={handleHabitUnmark}
+                />
+              </div>
+            )}
             <div className="board-maxim mt-lg">
               <MaximCard now={board.now} />
             </div>
