@@ -721,11 +721,11 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 **`timer-dial`** — Đồng hồ tròn 220px cho "Bàn học": nền {colors.surface-lacquer}, viền đôi vàng kim, số `{typography.timer-display}`, vòng tiến độ nét {colors.primary} chạy quanh viền khi đang đếm. **Popup dùng bản 48px riêng** (`data-size='sm'`: viền 2px, số `{typography.subtitle-lg}`) đặt cạnh một nút play 32px — không thu nhỏ dial 220px. **Focus overlay dùng bản 112px** (`data-size='overlay'`: viền 3px, số 30px, giữ vòng tiến độ) — đạt ngưỡng tối thiểu 96px của R-20 (`styles/board.css:79-86`).
 
-**`focus-overlay` (R-20)** — Trạng thái thay thế board khi phiên focus đang chạy **và** đã gắn việc (`entrypoints/popup/App.tsx:41-43,124-135`; `entrypoints/newtab/App.tsx:81-83,266-275`). Điều kiện: `running && phase === 'focus' && taskId`; không có taskId → giữ nguyên giao diện §Bố cục Popup / Bố cục New Tab.
+**`focus-overlay` (R-20)** — Trạng thái thay thế board khi phiên focus đang chạy **và** đã gắn việc (`entrypoints/popup/App.tsx:41-43,124-135`; `entrypoints/newtab/App.tsx:93-94,400-417`). Điều kiện: `running && phase === 'focus' && taskId`; không có taskId → giữ nguyên giao diện §Bố cục Popup / Bố cục New Tab.
 
 - **Popup**: `.popup-focus-overlay` (`styles/board.css:129-136`) chiếm toàn vùng nội dung, ẩn Header / ô ghi / dải lọc / cuộn việc / chân trang để không tick nhầm việc khác. Bên trong là `.focus-overlay` (`.focus-overlay-title` "Đang tập trung") với dial 112px, thẻ việc `.focus-overlay-task` (nhãn `.focus-overlay-task-label` "Việc đang học" + tên `.focus-overlay-task-title`), và `.focus-overlay-actions` gồm **hai nút riêng**: "Tạm dừng" (`variant='primary'` → `api.pause`, giữ phiên) và "Kết thúc" (`variant='secondary'` → `api.reset`, bỏ phiên). "Kết thúc" **không** phải "Bỏ qua"/skip và không ghi `focus`. `data-interruptions` + `.focus-overlay-interruptions` hiện "Đã đổi việc N lần trong phiên này."; `.focus-overlay-task--missing` hiện "Việc không còn tồn tại" thay vì crash khi `taskId` trỏ việc đã xoá (`components/FocusTimer.tsx:69-110`).
 - **New Tab**: `.board-grid--focus` (`entrypoints/newtab/style.css:213-241`) đổi lưới thành `minmax(0,1fr) minmax(0,320px)`; **"Bàn học" (`.board-desk`, `order: -1`) là cột chính**, cuộn việc (`.board-scroll`, `order: 0`) thu thành **cột phụ** nhưng vẫn giữ ngữ cảnh; Giá sách (`.board-shelf` / `.board-shelf-strip`) ẩn để đúng hai cột. Dưới 720px lưới về một cột, "Bàn học" đứng trước. Nút "Tập trung việc này" trên thẻ việc (`.focus-task-button`, `article[data-focus-active='true']`, `styles/board.css:88-112`) là điểm vào overlay.
-- **Bàn phím & motion**: khi `focusActive`, `Escape` / `n` / `/` bị bỏ qua ở cả hai bề mặt (`entrypoints/popup/App.tsx:87-112`, `entrypoints/newtab/App.tsx:101-127`) — không đóng overlay ngoài ý muốn. Overlay dùng lại token sáng hiện có (nền `{colors.surface-lacquer}`, khung đôi {colors.gold}, chữ {colors.ink}) — **không thêm chế độ tối**; mọi transition tuân `prefers-reduced-motion: reduce` (`styles/base.css:153-168`, token `--dur-*` về `0.01ms`) như phần còn lại của hệ thiết kế.
+- **Bàn phím & motion**: khi `focusActive`, `Escape` / `n` / `/` bị bỏ qua ở cả hai bề mặt (`entrypoints/popup/App.tsx:87-112`, `entrypoints/newtab/App.tsx:118-143`) — không đóng overlay ngoài ý muốn. Overlay dùng lại token sáng hiện có (nền `{colors.surface-lacquer}`, khung đôi {colors.gold}, chữ {colors.ink}) — **không thêm chế độ tối**; mọi transition tuân `prefers-reduced-motion: reduce` (`styles/base.css:153-168`, token `--dur-*` về `0.01ms`) như phần còn lại của hệ thiết kế.
 
 **`progress-ink`** — Thanh tiến độ 8px: rãnh {colors.surface-sunk}, phần đã đi tô {colors.primary}; dùng cho "đã xong 3/7 việc hôm nay".
 
@@ -749,11 +749,11 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 | `{components.frog-toggle}` (`.frog-toggle`, `data-marker="frog"`) | chưa chọn: nền `{colors.surface-paper}`, chữ `{colors.umber}`, viền `{colors.hairline}`; đang là ếch dùng `{components.frog-toggle-active}`: nền `{colors.jade-wash}`, chữ + viền `{colors.jade}` | **"Chọn ếch"** / **"Ếch hôm nay"** — khác màu **lẫn** khác chữ, không chỉ đổi màu |
 | `{components.keystone-chip}` (`.keystone-chip`, hàng actions của `FilterRow`) | chưa bật: nền `{colors.surface-paper}`, chữ `{colors.brown}`; bật dùng `{components.keystone-chip-active}`: nền `{colors.jade-wash}`, chữ + viền `{colors.jade}`; `min-width 40px`, `min-height 32px` | **"20%"** + `aria-pressed` + `aria-label="Chỉ hiện việc then chốt (20%)"` |
 
-- **Công tắc then chốt** (`.keystone-switch`, `role="switch"` / `aria-checked`): track `{colors.surface-sunk}` → `{colors.jade}` khi bật; knob `{colors.surface-paper}` → `{colors.on-primary}`. Nhãn "Không then chốt" / "Đang giữ then chốt" (`components/TaskFields.tsx:126-149`). Cảnh báo vượt 3 việc (`.keystone-warning`) dùng `{colors.critical}` nhưng là `role="status"` — **không chặn lưu**.
+- **Công tắc then chốt** (`.keystone-switch`, `role="switch"` / `aria-checked`): track `{colors.surface-sunk}` → `{colors.jade}` khi bật; knob `{colors.surface-paper}` → `{colors.on-primary}`. Nhãn "Không then chốt" / "Đang giữ then chốt" (`components/TaskFields.tsx:228-249`). Cảnh báo vượt 3 việc (`.keystone-warning`) dùng `{colors.critical}` nhưng là `role="status"` — **không chặn lưu**.
 - **DOM parity compact/full**: ribbon và dấu ếch nằm trong cùng một fragment chip, được render ở mọi nhánh của `TaskScroll` (`components/TaskScroll.tsx:86-120,216-259`). Popup compact và New Tab full có **cùng số con** trong `[data-chip-row]`: popup gộp 1 hàng flex-wrap, New Tab giữ 2 hàng — không ẩn marker ở bản compact, không đổi số hàng chip đã cam kết.
 - **SettingsPanel — "Đã cắt"** (`data-section="archived"`, `components/SettingsPanel.tsx:176-196`): tiêu đề `{typography.heading-sm}`; mỗi việc là `.archived-item` (padding `{spacing.xs} 0`, `min-height 36px`, gạch dưới `{colors.hairline-soft}`, item cuối không gạch). Nút "Phục hồi" dùng `{components.button-secondary}` cỡ nhỏ; danh sách rỗng hiện chú thích `{typography.body-sm}` màu `{colors.umber}`. Giữ giọng "cắt / phục hồi", không gọi là "xoá" ở mục này.
-- **New Tab hero** (`.frog-hero`, `data-frog-state` = `empty | done | cut`, `entrypoints/newtab/App.tsx:248-276`): dùng `{components.hero-frog}`; tiêu đề "Con ếch hôm nay" `{typography.heading-sm}` màu `{colors.primary-deep}`, tên việc `{colors.umber}` với `overflow-wrap: anywhere` (không tràn ở 390px và 1024–1199px), nút "Tập trung 25 phút" là `{components.button-primary}`. Hero nằm dưới lời chào, trước dải tab; nút focus đi qua `handleFocusTask` của R-20 (mục `focus-overlay`), **không** dựng phiên/overlay mới. Dưới 720px nút focus xuống hàng riêng, `margin-left: 0`.
-- **Hai dòng tổng kết** (`.frog-summary` / `.frog-summary-line`, `entrypoints/newtab/App.tsx:350-357`): grid, gap `{spacing.xxs}`, chữ `{colors.umber}`, `overflow-wrap: anywhere`; nội dung "Then chốt: x/y xong" và "Tuần này: then chốt a/b · n việc xong". Suy từ `todayKeystoneSummary` / `weeklySummary` (`lib/tasks/query.ts`), **không** lưu tổng hợp, không điểm số, không thêm thanh tiến độ.
+- **New Tab hero** (`.frog-hero`, `data-frog-state` = `empty | done | cut`, `entrypoints/newtab/App.tsx:295-320`): dùng `{components.hero-frog}`; tiêu đề "Con ếch hôm nay" `{typography.heading-sm}` màu `{colors.primary-deep}`, tên việc `{colors.umber}` với `overflow-wrap: anywhere` (không tràn ở 390px và 1024–1199px), nút "Tập trung 25 phút" là `{components.button-primary}`. Hero nằm dưới lời chào, trước dải tab; nút focus đi qua `handleFocusTask` của R-20 (mục `focus-overlay`), **không** dựng phiên/overlay mới. Dưới 720px nút focus xuống hàng riêng, `margin-left: 0`.
+- **Hai dòng tổng kết** (`.frog-summary` / `.frog-summary-line`, `entrypoints/newtab/App.tsx:419-427`): grid, gap `{spacing.xxs}`, chữ `{colors.umber}`, `overflow-wrap: anywhere`; nội dung "Then chốt: x/y xong" và "Tuần này: then chốt a/b · n việc xong". Suy từ `todayKeystoneSummary` / `weeklySummary` (`lib/tasks/query.ts`), **không** lưu tổng hợp, không điểm số, không thêm thanh tiến độ.
 
 **A11y & motion (R-19/R-21):** `:focus-visible` trên `.keystone-chip`, `.frog-toggle`, `.keystone-switch` → `outline: 2px solid {colors.primary}`, `outline-offset: 2px` (`styles/board.css`). `@media (prefers-reduced-motion: reduce)` ép `transition` / `animation: none !important` cho cả bốn thành phần Gói A. **Không thêm token thời lượng hay animation lặp** (xem `## Motion (as-built)`) — ribbon, dấu ếch, chip "20%" và hero đổi trạng thái tức thì như phần còn lại của hệ.
 
@@ -821,10 +821,10 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 | Thành phần | Quyết định as-built | Copy / a11y |
 |---|---|---|
-| **Khung giờ** (`.timeline-scroll` / `.timeline-track` / `.timeline-gutter`) | 06:00–24:00, **2px/phút** → track cao 2160px, vùng xem `max-height 560px` (420px ở <720px); lề giờ 52px (44px ở mobile); vạch giờ `hairline-soft` | Nhãn `06:00 … 24:00`; 24:00 là mốc **kết thúc**, không phải giờ bắt đầu |
-| **Block việc** (`.timeline-block`) | `top = (phút − 06:00) × 2`, cao `max(44px, estimateMin × 2)`; viền `primary`, nền `surface-paper`; border radius `rounded.xs`. Chồng lấn → viền/chữ `{colors.critical}`, nền `{colors.critical-wash}` | Hàng 1: giờ + **"⚠ Chồng lấn"** (chữ + ký hiệu, không chỉ màu); hàng 2: tên việc. Warning **luôn ở hàng đầu** để không bị block kế tiếp che |
-| **Handle + ô giờ** (`.timeline-block-handle`, `.timeline-time-input`) | Handle ≥44px, `padding-right: 96px` nhường chỗ ô nhập absolute góc phải; ô `input[type=time]` **44px** cao, 84px rộng, `focus-visible` viền 2px `primary` | `aria-label` = tên việc + giờ + độ dài + (nếu có) "chồng lấn với việc khác" + "Dùng mũi tên để dời 15 phút". Vùng `role="status" aria-live="polite"` báo giờ mới |
-| **Nhóm cuối** (`.timeline-tail` / `.timeline-tail-item`) | Việc không giờ / giờ 00:00–05:59 nằm sau khung, mỗi dòng ≥44px, có ô nhập giờ để đưa vào timeline | "Chưa xếp hoặc ngoài khung"; giữ nhãn giờ thật (`03:15`) hoặc "Chưa xếp giờ" |
+| **Khung giờ** (`.timeline-scroll` / `.timeline-track` / `.timeline-gutter`) | 00:00–24:00 (R-25), **2px/phút** → track cao 2880px, vùng xem `max-height 560px` (420px ở <720px); lề giờ 52px (44px ở mobile); vạch giờ `hairline-soft` | Nhãn `00:00 … 24:00`; 24:00 là mốc **kết thúc**, không phải giờ bắt đầu |
+| **Block việc** (`.timeline-block`) | `top = phút × 2`; cao `max(44px, clamp(estimateMin,15,240) × 2)`, cắt tại 24:00 (R-25 kẹp chiều cao hiển thị, không đụng giá trị đã lưu); viền `primary`, nền `surface-paper`; border radius `rounded.xs`. Chồng lấn → viền/chữ `{colors.critical}`, nền `{colors.critical-wash}` | Hàng 1: giờ + **"⚠ Chồng lấn"** / **"⚠ Vượt khung"** (chữ + ký hiệu, không chỉ màu); hàng 2: tên việc. Warning **luôn ở hàng đầu** để không bị block kế tiếp che |
+| **Handle block** (`.timeline-block-handle`) | Handle ≥44px; R-25 **bỏ** ô `input[type=time]` trong block ở New Tab (đổi giờ qua popup hoặc bàn phím) | `aria-label` = tên việc + giờ + độ dài + (nếu có) "vượt khung 24:00" + "chồng lấn với việc khác" + "Dùng mũi tên để dời 15 phút, Enter để sửa". Vùng `role="status" aria-live="polite"` báo giờ mới |
+| **Nhóm cuối** (`.timeline-tail` / `.timeline-tail-item`) | R-25: **chỉ** việc không có `startAt`; mỗi dòng ≥44px, click mở popup sửa, kéo thả vào canvas để xếp giờ | "Chưa xếp giờ"; mở popup sửa để nhập `startAt`/`endAt` |
 
 - **Motion (R-19):** kéo có `transition: transform 120ms ease` chỉ khi phản hồi pointer thật; không
   thư viện animation, không network/permission mới. `@media (prefers-reduced-motion: reduce)` ép
@@ -834,8 +834,20 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
   `scrollWidth === clientWidth`, handle và ô nhập ≥44px; popup `timeline=0`, `input[type=time]=0`.
   Lần chụp đầu warning bị block kế che → đã đưa lên hàng đầu và chụp lại. Chi tiết:
   `.context/review-reports/eyeball-timeblock-2026-11-18.md`.
-- **Keyboard:** mũi tên ±15′, `Home` 06:00, `End` 23:45; không shortcut toàn cục mới (Keyboard map
-  bên dưới giữ nguyên để tránh đụng `n`/`/` của R-01/R-15).
+- **Keyboard:** mũi tên ±15′, `Home` 00:00, `End` 23:45; `Enter`/`Space` trên block mở popup sửa;
+  không shortcut toàn cục mới (Keyboard map bên dưới giữ nguyên để tránh đụng `n`/`/` của R-01/R-15).
+
+**Cập nhật R-25 (2026-11-19, spec 1.8.0):** khung đổi **00:00–24:00** (track 2880px, `Home` → 00:00);
+bỏ ô nhập giờ trong block (`.timeline-time-input` không còn dùng ở New Tab) và bỏ composer dưới timeline;
+`n` được gán lại để mở popup tạo việc. Thêm `.timeline--fullscreen` (`position: fixed; inset: 0`,
+không animation) và `.task-entry-popup` (`position: fixed`, clamp/flip theo `innerWidth/innerHeight`,
+`max-height` 560px, focus trap). Tail chỉ còn việc **không có giờ**. Cảnh báo chồng lấn vẫn là chữ +
+màu `critical`, `prefers-reduced-motion` vẫn áp dụng. **Kẹp chiều cao (as-built):** block có duration
+> 240′ (kể cả qua nửa đêm) kẹp chiều cao hiển thị 15–240′ tính từ `startAt`; nhãn "⚠ Vượt khung" chỉ
+hiện khi `startAt + chiều cao đã kẹp > 24:00`. `SPECIFICATIONS.md` R-24 (:313-318) còn 2 câu mô tả
+hai nhánh khác nhau cho case duration > 240′ → ghi residual, chờ change request làm rõ (không tự sửa
+intent doc). Chưa có eyeball Chrome thật cho bản R-25
+(không có binary trên máy build) — residual, cần bấm thủ công trước release.
 
 ### Signature Components
 

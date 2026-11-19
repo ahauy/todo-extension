@@ -18,13 +18,13 @@
 
 | Key | Area | Value | Cardinality | Nguồn |
 |---|---|---|---|---|
-| `t:<uuid>` | `sync` | `Task` | 1 key / task | `types.ts:137` `TASK_KEY_PREFIX = "t:"`, `taskKey()` (`types.ts:155`) |
-| `settings` | `sync` | `Settings` | 1 key duy nhất | `types.ts:138` `SETTINGS_KEY` |
-| `subjects` | `sync` | `Subject[]` | 1 key (danh sách nhỏ, ghi cả mảng) | `types.ts:139` `SUBJECTS_KEY`, `adapter.ts:205` |
-| `studyLog` | `sync` | `StudyLog` | 1 key, prune còn 60 ngày | `types.ts:140` `STUDY_LOG_KEY`, `adapter.ts:217,225` |
-| `dayPlan` | `sync` | `DayPlan` | **1 key duy nhất**, prune còn 14 ngày — **không** tạo key/ngày | `types.ts:143,150-152`, `adapter.ts:242,244-264` (R-21) |
-| `pomodoro` | `local` | `PomodoroState` | 1 key / máy | `types.ts:118,141` (`PomodoroState`), `lib/storage/local.ts:22-37` |
-| `planSheetRequest` | `local` | `true` (tồn tại khi có yêu cầu) | 1 cờ / máy, tiêu thụ 1 lần | `types.ts:163` (`PLAN_SHEET_KEY`), `lib/storage/local.ts:87-110` (R-22) |
+| `t:<uuid>` | `sync` | `Task` | 1 key / task | `types.ts:188` `TASK_KEY_PREFIX = "t:"`, `taskKey()` (`types.ts:211`) |
+| `settings` | `sync` | `Settings` | 1 key duy nhất | `types.ts:189` `SETTINGS_KEY` |
+| `subjects` | `sync` | `Subject[]` | 1 key (danh sách nhỏ, ghi cả mảng) | `types.ts:190` `SUBJECTS_KEY`, `adapter.ts:215` |
+| `studyLog` | `sync` | `StudyLog` | 1 key, prune còn 60 ngày | `types.ts:191` `STUDY_LOG_KEY`, `adapter.ts:235,241` |
+| `dayPlan` | `sync` | `DayPlan` | **1 key duy nhất**, prune còn 14 ngày — **không** tạo key/ngày | `types.ts:196,206-208`, `adapter.ts:256-280` (R-21) |
+| `pomodoro` | `local` | `PomodoroState` | 1 key / máy | `types.ts:162,192` (`PomodoroState`), `lib/storage/local.ts:22-37` |
+| `planSheetRequest` | `local` | `true` (tồn tại khi có yêu cầu) | 1 cờ / máy, tiêu thụ 1 lần | `types.ts:199` (`PLAN_SHEET_KEY`), `lib/storage/local.ts:87-110` (R-22) |
 | `boardTabId` | `session` | `number` | 1 key, mất khi đóng Chrome | `lib/storage/local.ts:42` |
 
 - `<uuid>` sinh bằng `crypto.randomUUID()` khi tạo task (`hooks/useTasks.ts:63`, R-01).
@@ -37,13 +37,13 @@
 
 ## 2. Entities
 
-### 2.1 `Task` (root entity) — `types.ts:40-73`
+### 2.1 `Task` (root entity) — `types.ts:54-115`
 
 | Field | Kiểu | Ràng buộc | Ghi chú |
 |---|---|---|---|
 | `id` | `string` | uuid, khoá chính | `crypto.randomUUID()` |
 | `title` | `string` | bắt buộc, trim, **1–200** ký tự | R-01 |
-| `note` | `string` | **luôn có**, có thể chuỗi rỗng, **≤ 1000** ký tự | R-06; mặc định `''` (`lib/tasks/form.ts:26-37`) |
+| `note` | `string` | **luôn có**, có thể chuỗi rỗng, **≤ 1000** ký tự | R-06; mặc định `''` (`lib/tasks/form.ts:19,129`) |
 | `priority` | `"low" \| "medium" \| "high"` | mặc định `medium` | R-05 |
 | `dueAt` | `string \| null` | **wall-clock local** `YYYY-MM-DDTHH:mm`, KHÔNG hậu tố `Z`/offset | R-09; null = không hạn → không nhắc; Gói 0/G6 đã chuẩn hoá một dạng |
 | `recurrence` | `RecurrenceRule` | mặc định `{kind:"none"}` | R-10, xem 2.3 |
@@ -51,14 +51,15 @@
 | `subtasks` | `Subtask[]` | **≤ 50** | R-08, xem 2.2 |
 | `subjectId` | `string \| null` (optional) | trỏ tới `Subject.id`; task cũ thiếu field → coi như `null` | 2.4 |
 | `done` | `boolean` | mặc định `false` | R-04 |
-| `keystone` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; việc then chốt ("20%"). **Bật** → tự gán `priority='high'` (A); **tắt → KHÔNG tự hạ** priority. Chỉ là nhãn lọc, không đổi enum `Priority` (`types.ts:62-64`) |
-| `archived` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; "Cắt bỏ". Task **vẫn nằm trong storage** (giữ nguyên mọi field) nhưng bị loại khỏi mọi tab/filter/search/bộ đếm/danh sách môn; phục hồi qua `archived=false` ở SettingsPanel mục "Đã cắt" (`types.ts:65-67`) |
+| `keystone` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; việc then chốt ("20%"). **Bật** → tự gán `priority='high'` (A); **tắt → KHÔNG tự hạ** priority. Chỉ là nhãn lọc, không đổi enum `Priority` (`types.ts:78`) |
+| `archived` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; "Cắt bỏ". Task **vẫn nằm trong storage** (giữ nguyên mọi field) nhưng bị loại khỏi mọi tab/filter/search/bộ đếm/danh sách môn; phục hồi qua `archived=false` ở SettingsPanel mục "Đã cắt" (`types.ts:81`) |
 | `plannedFor` | `string \| null` (optional) | `YYYY-MM-DD` **theo giờ local**; task cũ thiếu field = chưa hẹn | R-22; **ngày dự định LÀM**, tách khỏi `dueAt` (hạn chót). Không tự tạo alarm, không đổi overdue/sort R-15; ghi bởi sheet "Kế hoạch mai", đọc bởi `plannedForDay()` (`query.ts:24-26`) |
 | `lastDoneAt` | `string \| null` (optional) | **ISO 8601 UTC** (`toISOString`) lần đóng dấu gần nhất | additive, R-11 |
 | `prevDueAt` | `string \| null` (optional) | **wall-clock local** `YYYY-MM-DDTHH:mm` (không `Z`) của hạn vừa hoàn thành | additive, R-11; Hoàn tác gán thẳng `dueAt = prevDueAt` |
-| `habit` | `{ startedAt: string; doneDays: string[] } \| undefined` (optional) | `startedAt` = **ISO 8601 UTC** có `Z` lúc bật; `doneDays` = tập `YYYY-MM-DD` **theo giờ local**, unique, sort tăng, **≤ 31** (`HABIT_MAX_DAYS`; bỏ ngày cũ nhất khi ghi vượt) | R-23, `types.ts:38-46,90-95`; sổ thói quen **opt-in**, nhúng ngay trong key `t:<id>` — **không** key storage mới, **không** phải lịch sử occurrence của R-11. Task cũ thiếu field = không theo dõi; `normalizeHabitDays` (`habit.ts:66-73`) lọc/sort/cắt khi đọc |
-| `startAt` | `string \| undefined` (optional) | **wall-clock local** `"HH:mm"` 00:00–23:59 | R-24; giờ bắt đầu **trong ngày**, nhúng trong key `t:<id>` — **không** key storage mới. Không đổi nghĩa `plannedFor`/`dueAt`, không tạo alarm (`lib/tasks/types.ts:96-101`, `lib/tasks/timeBlock.ts:22,55-58`) |
-| `estimateMin` | `number \| undefined` (optional) | số nguyên **15–240**, trống → hiển thị 30 | R-24; độ dài block dự kiến (phút). Mặc định 30 là **luật hiển thị** của `normalizeEstimateMin`, KHÔNG tự ghi vào dữ liệu người dùng (`lib/tasks/timeBlock.ts:14,76-108`). Task/form cũ thiếu field vẫn load; sửa việc không xoá field (parity R-23) |
+| `habit` | `{ startedAt: string; doneDays: string[] } \| undefined` (optional) | `startedAt` = **ISO 8601 UTC** có `Z` lúc bật; `doneDays` = tập `YYYY-MM-DD` **theo giờ local**, unique, sort tăng, **≤ 31** (`HABIT_MAX_DAYS`; bỏ ngày cũ nhất khi ghi vượt) | R-23, `types.ts:38-46,95`; sổ thói quen **opt-in**, nhúng ngay trong key `t:<id>` — **không** key storage mới, **không** phải lịch sử occurrence của R-11. Task cũ thiếu field = không theo dõi; `normalizeHabitDays` (`habit.ts:66-73`) lọc/sort/cắt khi đọc |
+| `startAt` | `string \| undefined` (optional) | **wall-clock local** `"HH:mm"` 00:00–23:59 | R-24; giờ bắt đầu **trong ngày**, nhúng trong key `t:<id>` — **không** key storage mới. Không đổi nghĩa `plannedFor`/`dueAt`, không tạo alarm (`lib/tasks/types.ts:96-102`, `lib/tasks/timeBlock.ts:22,58-61`) |
+| `estimateMin` | `number \| undefined` (optional) | số nguyên **15–240** khi nhập tay; có `endAt` thì là giá trị **dẫn xuất** (có thể >240, tới 1440) | R-24/R-25; độ dài block dự kiến (phút). Mặc định 30 là **luật hiển thị** khi có giờ mà thiếu độ dài, KHÔNG tự ghi vào dữ liệu người dùng. Khi có `endAt`, `estimateMin` được ghi kèm trong cùng 1 `put` để không lệch nguồn (`lib/tasks/timeBlock.ts:94-124`) |
+| `endAt` | `string \| undefined` (optional) | **wall-clock local** `"HH:mm"` 00:00–23:59 | R-25; giờ **kết thúc**, nhúng trong key `t:<id>` hiện có — **không** key storage mới. Là **nguồn thật** của khoảng thời gian: `estimateMin = end − start`, `end <= start` (kể cả bằng nhau) cộng 1440′ (`durationMinutes`, `timeBlock.ts:100-119`). Task cũ thiếu field vẫn load (`lib/tasks/types.ts:106-111`) |
 | `createdAt` | `string` | ISO 8601 UTC (`nowISO`) | = now khi tạo |
 | `updatedAt` | `string` | ISO 8601 UTC (`nowISO`) | cập nhật mỗi lần sửa |
 
@@ -91,22 +92,22 @@
 > (`withHabitEnabled`, `habit.ts:236-250`). Streak tính trong bộ nhớ từ `doneDays` (`habitStreak`,
 > `habit.ts:137-174` gồm JSDoc), **O(31)/task**, không storage read bổ sung (giữ R-18).
 
-> **R-24 — giờ xếp block là nhãn trong ngày, không phải mốc thời gian sự kiện:** `startAt` là
-> `"HH:mm"` local như `dueAt` nhưng **không** gắn với ngày; timeline New Tab chỉ đọc field này để xếp
-> trong khung 06:00–24:00, snap 15′ (`snapStartAt`, `timeBlock.ts:205-209`). Việc có giờ ngoài khung
-> (00:00–05:59) hoặc không có giờ vẫn nằm ở nhóm cuối, giữ nhãn giờ thật — không mất việc
-> (`timelineOrder`, `timeBlock.ts:121-147`). `detectOverlaps` (`timeBlock.ts:172-198`) là selector
+> **R-24/R-25 — giờ xếp block là nhãn trong ngày, không phải mốc thời gian sự kiện:** `startAt`/
+> `endAt` là `"HH:mm"` local như `dueAt` nhưng **không** gắn với ngày; timeline New Tab đọc field này
+> để xếp trong khung **00:00–24:00**, snap 15′ (`snapStartAt`, `timeBlock.ts:241-245`). R-25 bỏ clamp
+> 06:00: mọi giờ hợp lệ 00:00–23:59 đều nằm trên canvas; **chỉ việc không có `startAt`** ở nhóm cuối
+> (`timelineOrder`, `timeBlock.ts:157-192`). `detectOverlaps` (`timeBlock.ts:208-234`) là selector
 > **thuần đọc**, chỉ trả id/cặp để hiện cảnh báo; không tự sửa/xoá block của người dùng. Mỗi lần đổi
-> giờ (kéo/phím/ô nhập) đi qua **một** `put(task)` của `useTasks.setTaskTime` (`hooks/useTasks.ts:262-279`):
-> chép nguyên task rồi sửa đúng `startAt`/`estimateMin`, nên `plannedFor`, `dueAt`, `lastDoneAt`/
-> `prevDueAt`, `habit` và alarm `due:<id>` **không đổi**; `put` lỗi (quota) → throw trước `setSnapshot`
-> (R-16). Không key storage hay permission mới (R-17).
+> giờ đi qua **một** `put(task)` của `useTasks.setTaskTime` (`hooks/useTasks.ts:262-289`): chép nguyên
+> task rồi sửa `startAt`/`endAt`/`estimateMin`; khi có `endAt`, `estimateMin` được **suy ra trong cùng
+> lần ghi**, nên `plannedFor`, `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` và alarm `due:<id>` **không đổi**;
+> `put` lỗi (quota) → throw trước `setSnapshot` (R-16). Không key storage hay permission mới (R-17).
 
 **Encoding thực tế của `dueAt` / `prevDueAt`** (đọc từ code, không suy từ spec):
 
 - **Nhóm wall-clock local** — `dueAt`, `prevDueAt`: `YYYY-MM-DDTHH:mm` **không hậu tố `Z`**.
   `new Date()` đọc chuỗi này theo giờ local thiết bị. Hạn người dùng nhập qua `datetime-local`
-  được `formToDraft` giữ nguyên văn (`lib/tasks/form.ts:92`); occurrence lặp do `nextDueAt()` sinh
+  được `formToDraft` giữ nguyên văn (`lib/tasks/form.ts:150-175`); occurrence lặp do `nextDueAt()` sinh
   cũng dùng `formatLocalInput()` (cùng helper với `toLocalInput`, `lib/datetime.ts`) →
   **một dạng duy nhất** kể từ Gói 0 (`spec 1.2.1`, gap G6 đã đóng).
 - **Migration dữ liệu cũ:** `loadAll()` chuẩn hoá in-memory `dueAt`/`prevDueAt` qua
@@ -121,7 +122,7 @@
 > `prevDueAt` cũng là wall-clock local. Gap G3 (weekly `weekdays`) đã đóng ở Gói 0 — xem
 > [`API_SPEC.md`](API_SPEC.md) §5.
 
-### 2.2 `Subtask` (embedded trong `Task.subtasks`) — `types.ts:34-38`
+### 2.2 `Subtask` (embedded trong `Task.subtasks`) — `types.ts:48-52`
 
 | Field | Kiểu | Ràng buộc |
 |---|---|---|
@@ -151,7 +152,7 @@ Quan hệ: **Task 1 — 1 RecurrenceRule**. Weekly/monthly bắt buộc có `due
 > vì UI chưa có chỗ chọn nhiều thứ. Kiểu dữ liệu `weekdays: number[]` **không đổi** — ERD chỉ reconcile
 > trạng thái gap + line ref, không đổi field. Xem [`API_SPEC.md`](API_SPEC.md) §5.
 
-### 2.4 `Settings` (key `settings`) — `types.ts:100-115`
+### 2.4 `Settings` (key `settings`) — `types.ts:129-141`
 
 | Field | Kiểu | Giá trị | Mặc định |
 |---|---|---|---|
@@ -165,14 +166,14 @@ Quan hệ: **Task 1 — 1 RecurrenceRule**. Weekly/monthly bắt buộc có `due
 | `soundEnabled` | `boolean` | chuông đồng + tiếng giấy | `false` |
 | `planReminder` | `{ enabled: boolean; at: string }` | R-22; giờ local `HH:mm` hợp lệ, bật/tắt nhắc lập kế hoạch | `{ enabled: true, at: "21:00" }` |
 
-`DEFAULT_SETTINGS` ở `types.ts:104-116`. R-22: `normalizeSettings` validate riêng object con
+`DEFAULT_SETTINGS` ở `types.ts:143-154`. R-22: `normalizeSettings` validate riêng object con
 (`adapter.ts:148-164`) — settings cũ thiếu `planReminder` nhận nguyên mặc định **21:00 bật sẵn**
 (người dùng cũ sẽ nhận notification mới sau update). Không lưu key riêng cho lịch nhắc.
 **Không còn `theme`**: `normalizeSettings()` gộp bản đã lưu với mặc định và bỏ field không còn trong
 `DEFAULT_SETTINGS` (`adapter.ts:144-171`), nên settings lưu từ bản trước (có `theme: system|light|dark`)
 được đọc lên thành bộ field mới, không lỗi. Gap G2 cũ đã đóng (R-14 1.2.0 mô tả đúng bộ field này).
 
-### 2.5 `Subject` (embedded trong key `subjects`) — `types.ts:64-70`
+### 2.5 `Subject` (embedded trong key `subjects`) — `types.ts:117-123`
 
 | Field | Kiểu | Ràng buộc |
 |---|---|---|
@@ -189,7 +190,7 @@ Giới hạn áp trong code: `MAX_SUBJECTS = 12`, `MAX_SUBJECT_NAME = 28` (`lib/
 tên trùng nhau (so **không phân biệt hoa/thường**) bị từ chối (`hooks/useSubjects.ts:79-81`,
 `components/SubjectShelf.tsx:42`).
 
-### 2.6 `StudyLog` / `StudyDay` (key `studyLog`) — `types.ts:99-104`
+### 2.6 `StudyLog` / `StudyDay` (key `studyLog`) — `types.ts:156-160`
 
 | Kiểu | Định nghĩa |
 |---|---|
@@ -201,7 +202,7 @@ Ghi nhật ký nằm ở `hooks/useBoard.ts:119` (toggle task, `record('tasks', 
 `:110-133`) và `hooks/useBoard.ts:50` (`record('focus', 1)` trong `recordFocus` `:49-52` — chỉ gọi
 khi xác nhận completion tự nhiên, xem §2.7).
 
-### 2.7 `PomodoroState` (key `pomodoro`, `chrome.storage.local`) — `types.ts:118-145`
+### 2.7 `PomodoroState` (key `pomodoro`, `chrome.storage.local`) — `types.ts:162-186`
 
 | Field | Kiểu | Ý nghĩa |
 |---|---|---|
@@ -213,7 +214,7 @@ khi xác nhận completion tự nhiên, xem §2.7).
 | `interruptions` | `number \| undefined` (optional) | R-20, **local-only**: số lần đổi việc trong phiên focus hiện tại. Khởi tạo `0` khi bắt đầu focus, `+1` qua `noteInterruption()` (`hooks/usePomodoro.ts:178-180`), xoá (`undefined`) khi reset/skip/kết thúc phiên (`hooks/usePomodoro.ts:107-116,162-171`). Consumer đọc `?? 0`. |
 | `focusSessionId` | `string \| undefined` (optional) | **G10, local-only**: định danh phiên focus, sinh mới mỗi `start()` ở phase focus (`hooks/usePomodoro.ts:150-160`); `onFocusComplete(sessionId)` mang giá trị này xuống `pendingCompletion`. State cũ thiếu field → fallback `legacy:${endsAt}` (`hooks/usePomodoro.ts:118`) nên vẫn dedup được. Xoá khi advance/reset. |
 
-**Khóa tiêu thụ G10** — key riêng `focusCompletionClaim` (`types.ts:150`) trong `chrome.storage.local`,
+**Khóa tiêu thụ G10** — key riêng `focusCompletionClaim` (`types.ts:194`) trong `chrome.storage.local`,
 giá trị là **tập tối đa 32 `sessionId` đã tiêu thụ** (`lib/storage/local.ts:41-83`). `claimFocusCompletion`
 kiểm tra cả Set trong context (chặn double-confirm cùng page) lẫn tập đã lưu (chặn stale dialog của
 phiên cũ sau khi phiên mới đã được ghi). `useBoard.confirmFocusCompletion` chỉ tick task + `record('focus', 1)`
@@ -221,7 +222,7 @@ khi claim trả `true`. **Residual:** `chrome.storage.local` không có compare-
 cùng tick tuyệt đối vẫn có thể cả hai đọc tập cũ → double record (rất hiếm, ghi nhận thay vì giấu).
 
 **Không đồng bộ giữa máy** — `taskId`, `interruptions` và `focusSessionId` chỉ nằm trong `chrome.storage.local`
-(`types.ts:126,133,140`, `POMODORO_KEY = "pomodoro"` ở `types.ts:148`, `lib/storage/local.ts:22-37`).
+(`types.ts:170,177,184`, `POMODORO_KEY = "pomodoro"` ở `types.ts:192`, `lib/storage/local.ts:22-37`).
 **Không có field `sync` tương ứng**: R-21 thêm một key sync thứ năm là `dayPlan` (chứa `frogTaskId`,
 xem §2.8) — nhưng `taskId`/`interruptions` của R-20 vẫn **không** được copy sang đó, **không thêm
 key/ngày** cho Pomodoro, **không** ghi vào `StudyLog`, không lên thiết bị khác, chỉ hiện trong
@@ -233,11 +234,11 @@ As-built Gói C: `taskId` không còn là placeholder. `useBoard.startFocusOn(id
 (`hooks/useBoard.ts:146-160`) gọi `attach(id)` rồi `start()`: `switchTaskMidSession(id)`
 (`:162-177`) gọi `attach(id)` rồi `noteInterruption()` ở render kế tiếp. Cả popup và New Tab đọc
 `taskId` để dựng focus overlay (`entrypoints/popup/App.tsx:41-43,124-135`,
-`entrypoints/newtab/App.tsx:81-83,266-275`). Hai surface mở cùng lúc hydrate lại qua
+`entrypoints/newtab/App.tsx:93-94,400-417`). Hai surface mở cùng lúc hydrate lại qua
 `chrome.storage.local.onChanged` (`hooks/usePomodoro.ts:81-93`). Việc bị xoá/dangling → overlay
 hiện "Việc không còn tồn tại" thay vì crash (`components/FocusTimer.tsx:84-93`).
 
-### 2.8 `DayPlan` (key `dayPlan`, `chrome.storage.sync`) — `types.ts:143,150-152` (R-21)
+### 2.8 `DayPlan` (key `dayPlan`, `chrome.storage.sync`) — `types.ts:196,206-208` (R-21)
 
 ```ts
 type DayPlan = {
@@ -250,9 +251,9 @@ type DayPlan = {
 | Số key | **Đúng 1 key** `dayPlan` trong `sync` — **không** tạo key theo ngày (giới hạn 512 item) |
 | `dayKey` | `YYYY-MM-DD` **theo giờ local** (`lib/datetime.ts:20-25`), cùng helper với `studyLog`; sort từ điển = sort thời gian |
 | Giá trị/ngày | `{ frogTaskId: string \| null }` — tối đa **một** con ếch/ngày; chọn việc khác thì thay thế; `null` = bỏ chọn |
-| Prune | `putDayPlan` giữ **14 ngày gần nhất** (`DAY_PLAN_DAYS = 14`, `adapter.ts:242`) rồi ghi đúng 1 key (`adapter.ts:250-264`) |
-| Quota | Giới hạn `QUOTA_BYTES_PER_ITEM` **8192 B** vẫn áp; `putDayPlan` bọc lỗi quota thành `StorageQuotaError` (`adapter.ts:258-263`) — không swallow (R-16) |
-| Đọc | `loadDayPlan()` → `{}` khi key rỗng/không phải object (`adapter.ts:244-248`); hydrate lại khi key `dayPlan` đổi qua `onChanged` (`hooks/useTasks.ts:126-130`) |
+| Prune | `putDayPlan` giữ **14 ngày gần nhất** (`DAY_PLAN_DAYS = 14`, `adapter.ts:258`) rồi ghi đúng 1 key (`adapter.ts:266-280`) |
+| Quota | Giới hạn `QUOTA_BYTES_PER_ITEM` **8192 B** vẫn áp; `putDayPlan` bọc lỗi quota thành `StorageQuotaError` (`adapter.ts:274-279`) — không swallow (R-16) |
+| Đọc | `loadDayPlan()` → `{}` khi key rỗng/không phải object (`adapter.ts:260-264`); hydrate lại khi key `dayPlan` đổi qua `onChanged` (`hooks/useTasks.ts:126-130`) |
 | Hết hạn | Sang ngày local mới, consumer đọc `dayPlan[dayKey hôm nay]` → entry cũ tự hết hiệu lực, **không xoá khỏi storage** (vẫn nằm trong cửa sổ prune 14 ngày) |
 
 `dayPlan` là chỗ ở của "con ếch hôm nay", **không phải** `PomodoroState` local của R-20 (§2.7).

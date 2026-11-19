@@ -177,7 +177,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    **tắt KHÔNG tự hạ** priority. Đây chỉ là nhãn lọc, không thêm mức ưu tiên.
 2. Tổng then chốt đang mở (`!done && !archived && keystone`) vượt **3** → hiện dòng cảnh báo inline
    "Đang giữ N việc then chốt" (`role="status"`). **Chỉ cảnh báo, vẫn lưu bình thường** — không chặn
-   submit, không tự bớt việc (`lib/tasks/form.ts:45-54`).
+   submit, không tự bớt việc (`lib/tasks/form.ts:71-74`).
 3. Trên dải lọc, chip **"20%"** (`aria-pressed`, `aria-label="Chỉ hiện việc then chốt (20%)"`) là
    toggle xếp **trên nền tab hiện tại**: bật → chỉ hiện việc `keystone && !archived` của tab đó;
    tắt → hiện lại như cũ. Ribbon vẫn **4 tab**, không thêm tab thứ 5; thứ tự sort vẫn deterministic
@@ -302,6 +302,9 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 > là nhãn **trong ngày** (`"HH:mm"` local), không phải instant; không đổi `plannedFor`/`dueAt`/alarm.
 > Đây là bản **đầy đủ** (có timeline + kéo-thả) theo quyết định user 2026-11-18, không phải bản nhẹ
 > từng đề xuất trong roadmap.
+>
+> **Cập nhật R-25 (2026-11-19):** các bước dưới mô tả bản 1.7.0. Từ spec 1.8.0, timeline phủ
+> 00:00–24:00, ô nhập giờ trong block bị bỏ, và việc được tạo/sửa qua popup neo con trỏ — xem §16.
 
 ### 15.1 Nhập giờ trong hộp sửa việc
 
@@ -341,6 +344,33 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 4. **Motion:** kéo chỉ phản hồi thao tác thật; `prefers-reduced-motion: reduce` → `transition: none`.
    Eyeball Chrome 360×560 / 1024×768 / 1280×800: không overflow ngang, ô nhập và handle ≥44px,
    popup không đổi — `.context/review-reports/eyeball-timeblock-2026-11-18.md`.
+
+## 16. R-25 — Tạo/sửa việc trực tiếp trên thời khoá biểu (as-built 2026-11-19)
+
+> Cập nhật luồng §15, spec 1.8.0 (FEAT-004). Intent gốc đã được user duyệt qua change doc
+> `spec/changes/2026-11-19-timeline-task-entry.md`.
+
+1. **Bỏ ô nhập dưới bảng:** New Tab không còn composer dưới timeline; popup extension 360×560 giữ nguyên
+   ô nhập cũ (R-19). Phím `n` giờ mở popup tạo việc trên timeline; `/` vẫn mở tìm kiếm.
+2. **Tạo việc:** right-click vùng trống/đường kẻ giờ/cột nhãn giờ → popup **tạo**, giờ để trống cho user
+   tự nhập. Hoặc kéo trên vùng trống từ giờ bắt đầu tới giờ kết thúc → popup tạo với `startAt`/`endAt`
+   **điền sẵn theo khoảng vừa kéo** (snap 15′; kéo tới 24:00 mã hoá `endAt = "00:00"`). Menu chuột phải
+   của Chrome bị chặn trong vùng timeline.
+3. **Sửa việc:** right-click **hoặc** left-click vào block (click dưới ngưỡng ~5px) → popup **sửa**;
+   hold left + di chuột vẫn là dời block như R-24. Hai luồng tạo/sửa tách riêng. Right-click trong popup
+   đang mở không đổi luồng.
+4. **Popup:** neo sát con trỏ, tự clamp/flip theo viewport; có tên việc, môn, ưu tiên, then chốt, thẻ,
+   việc nhỏ, ghi chú, giờ bắt đầu/kết thúc. **Không còn hạn chót**, và lặp lại/theo dõi thói quen bị ẩn
+   (R-10 cần hạn chót cho việc lặp). Ghi xong → block hiện ngay, popup đóng, không toast. Lỗi quota →
+   popup ở lại với thông báo inline, không toast, snapshot không đổi (R-16). Esc/click ngoài khi đã nhập
+   liệu → hỏi xác nhận; `Tab` được giữ trong popup (focus trap).
+5. **Khung giờ & fullscreen:** timeline phủ **00:00–24:00**; kéo/phím snap 15′, clamp 00:00–23:45;
+   `Home` → 00:00, `End` → 23:45. Nút **phóng to** làm timeline chiếm toàn bộ không gian tab, bấm lại
+   thu về; `Esc` thoát fullscreen khi không có popup. Ưu tiên Esc: popup → fullscreen → tìm kiếm.
+6. **Dữ liệu:** `Task.endAt?` ("HH:mm" local) là nguồn thật; `estimateMin` suy ra trong cùng một `put`
+   (`end − start`, `end <= start` cộng 1440′). Khoảng >240′ hợp lệ, chỉ kẹp chiều cao block khi vẽ.
+   Không thêm storage key/permission/network. Task cũ có `dueAt` vẫn giữ alarm/chip quá hạn; hạn chót
+   không còn nơi nào để nhập. Chế độ focus vô hiệu hoá gesture tạo/sửa mới nhưng giữ kéo dời R-24.
 
 ## Keyboard map
 

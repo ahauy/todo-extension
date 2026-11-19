@@ -24,7 +24,7 @@
 | TOOL-001 | Adapter WorkBuddy tương đương workflow opencode (agents/commands/skills/hooks) | ADDITIVE | done | [2026-11-17-workbuddy-compat-adapter.md](archive/2026-11-17-workbuddy-compat-adapter.md) | 2026-11-17 | 2026-11-17 |
 | BUG-CI-TZ | CI GitHub đỏ: 2 test habit so ngày LOCAL với giả định UTC+7 (runner chạy UTC) | BUG | done | [2026-11-18-ci-timezone-habit-tests.md](archive/2026-11-18-ci-timezone-habit-tests.md) | 2026-11-18 | 2026-11-18 |
 | BUG-E2E-MOTION | E2E release: thanh tiến độ animate `width` vi phạm R-19 (motion chỉ transform/opacity) | BUG | done | [2026-11-18-e2e-progress-motion.md](archive/2026-11-18-e2e-progress-motion.md) | 2026-11-18 | 2026-11-18 |
-| FEAT-004 | Timeline: bỏ Composer dưới bảng, tạo/sửa bằng right-click + kéo-thả, popup sát con trỏ, fullscreen tab | MODIFY | in_progress | [2026-11-19-timeline-task-entry.md](2026-11-19-timeline-task-entry.md) | 2026-11-19 | — |
+| FEAT-004 | Timeline: bỏ Composer dưới bảng, tạo/sửa bằng right-click + kéo-thả, popup sát con trỏ, fullscreen tab | MODIFY | done | [2026-11-19-timeline-task-entry.md](archive/2026-11-19-timeline-task-entry.md) | 2026-11-19 | 2026-11-19 |
 
 ## Quy tắc tracking
 

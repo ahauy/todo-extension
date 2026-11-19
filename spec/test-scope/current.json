@@ -1,30 +1,43 @@
 {
   "specVersion": "1.8.0",
-  "scopeVersion": 34,
-  "generatedAt": "2026-11-19T10:42:41+07:00",
+  "scopeVersion": 35,
+  "generatedAt": "2026-11-19T12:08:00+07:00",
   "trigger": "feature-update",
   "workItem": "feature-timeline-task-entry",
-  "specRefs": ["R-24", "R-25"],
+  "specRefs": [
+    "R-24",
+    "R-25"
+  ],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
+      "spec/CHANGELOG.md",
+      "spec/changes/BACKLOG.md",
+      "spec/changes/2026-11-19-timeline-task-entry.md",
+      "spec/updates/2026-11-19-timeline-task-entry.md",
+      "spec/test-scope/current.json",
       "lib/tasks/types.ts",
-      "lib/tasks/form.ts",
       "lib/tasks/timeBlock.ts",
-      "components/Timeline.tsx",
-      "components/TaskFields.tsx",
+      "lib/tasks/form.ts",
+      "hooks/useTasks.ts",
       "components/TaskParchment.tsx",
+      "components/TaskFields.tsx",
+      "components/Timeline.tsx",
       "components/TaskEntryPopup.tsx",
       "entrypoints/newtab/App.tsx",
       "styles/board.css",
-      "src/__tests__/timeline-entry.test.tsx",
+      "src/__tests__/timeBlock.test.ts",
+      "src/__tests__/useTasks.timeBlock.test.ts",
+      "src/__tests__/timeBlock-form.test.tsx",
+      "src/__tests__/timeline-endAt.test.ts",
+      "src/__tests__/form-endAt.test.ts",
+      "entrypoints/newtab/App.timeBlock.test.tsx",
+      "src/__tests__/task-entry-popup.test.tsx",
       "docs/ERD.md",
       "docs/API_SPEC.md",
       "docs/USER_FLOW.md",
       "docs/DESIGN.md",
-      "spec/updates/2026-11-19-timeline-task-entry.md",
-      "spec/CHANGELOG.md",
-      "spec/test-scope/current.json"
+      "docs/ROADMAP_TIME_MANAGEMENT.md"
     ],
     "modules": [
       "task-domain",
@@ -69,7 +82,9 @@
     "Recurrence/habit bị ẩn/disable trong popup timeline (R-10 cần dueAt); task cũ giữ dữ liệu",
     "Kéo tạo clamp tại 24:00, overnight chỉ nhập tay endAt < startAt",
     "Lỗi StorageQuotaError: popup giữ mở + inline error, không toast, không mutate snapshot",
-    "Reviewer STRICT PASS, verify 4 lệnh PASS, eyeball 3 breakpoint có evidence"
+    "Reviewer STRICT PASS, verify 4 lệnh PASS, eyeball 3 breakpoint có evidence",
+    "Residual: chưa eyeball Chrome thật 360/1024/1280 (không có binary); cần bấm thủ công trước release",
+    "Residual (test): chưa có assert Enter/Space mở popup sửa và assert endAt=\"00:00\" ở drag-create vượt biên — code có, chỉ thiếu test; follow-up ngoài scope docs-only"
   ],
   "risk": "high"
 }

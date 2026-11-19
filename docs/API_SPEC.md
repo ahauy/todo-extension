@@ -24,14 +24,14 @@ Storage layout `chrome.storage.sync` — chi tiết đầy đủ ở [`ERD.md`](
 
 | Key | Area | Value | Nguồn |
 |---|---|---|---|
-| `t:<uuid>` | `sync` | `Task` (1 key/task, ghi atomic theo key) | `lib/tasks/types.ts:137` (`TASK_KEY_PREFIX`) |
-| `settings` | `sync` | `Settings` | `lib/tasks/types.ts:138` (`SETTINGS_KEY`) |
-| `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:139` (`SUBJECTS_KEY`) |
-| `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:140` (`STUDY_LOG_KEY`) |
-| `dayPlan` | `sync` | `DayPlan` (**1 key**, prune 14 ngày; R-21) | `lib/tasks/types.ts:143,150-152`, `lib/storage/adapter.ts:242-264` |
-| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` + `focusSessionId` local-only, R-20/G10) | `lib/tasks/types.ts:118,148,150`, `lib/storage/local.ts:22-83` |
-| `focusCompletionClaim` | **`local`** | G10 — tập tối đa 32 `sessionId` đã tiêu thụ (`string[]`) | `lib/tasks/types.ts:150`, `lib/storage/local.ts:41-83` |
-| `planSheetRequest` | **`local`** | R-22 — cờ `true` báo "bấm notification kế hoạch", tiêu thụ 1 lần khi New Tab mount | `lib/tasks/types.ts:162`, `lib/storage/local.ts:87-110` |
+| `t:<uuid>` | `sync` | `Task` (1 key/task, ghi atomic theo key) | `lib/tasks/types.ts:188` (`TASK_KEY_PREFIX`) |
+| `settings` | `sync` | `Settings` | `lib/tasks/types.ts:189` (`SETTINGS_KEY`) |
+| `subjects` | `sync` | `Subject[]` | `lib/tasks/types.ts:190` (`SUBJECTS_KEY`) |
+| `studyLog` | `sync` | `StudyLog` (prune 60 ngày) | `lib/tasks/types.ts:191` (`STUDY_LOG_KEY`) |
+| `dayPlan` | `sync` | `DayPlan` (**1 key**, prune 14 ngày; R-21) | `lib/tasks/types.ts:196,206-208`, `lib/storage/adapter.ts:256-273` |
+| `pomodoro` | **`local`** | `PomodoroState` (`taskId` + `interruptions` + `focusSessionId` local-only, R-20/G10) | `lib/tasks/types.ts:162,192,194`, `lib/storage/local.ts:22-83` |
+| `focusCompletionClaim` | **`local`** | G10 — tập tối đa 32 `sessionId` đã tiêu thụ (`string[]`) | `lib/tasks/types.ts:194`, `lib/storage/local.ts:41-83` |
+| `planSheetRequest` | **`local`** | R-22 — cờ `true` báo "bấm notification kế hoạch", tiêu thụ 1 lần khi New Tab mount | `lib/tasks/types.ts:199`, `lib/storage/local.ts:87-110` |
 
 Kiểu `Task`, `Settings`, `Subtask`, `RecurrenceRule`, `Subject`, `StudyLog`, `PomodoroState`, `DayPlan` định nghĩa
 duy nhất tại `lib/tasks/types.ts` — adapter, recurrence, query, UI đều import từ đây (single source of truth).
@@ -44,9 +44,10 @@ schema sync, không thêm key/ngày, không ghi `StudyLog`, không sync thiết 
 R-23 (spec 1.6.0) **không thêm key**: `Task.habit?` (`{ startedAt, doneDays }`) nằm nhúng trong cùng
 key `t:<id>` — sổ thói quen **opt-in**, không phải lịch sử occurrence của R-11, không key/ngày mới.
 Chi tiết: [`ERD.md`](ERD.md) §2.1 và §3.7 bên dưới.
-R-24 (spec 1.7.0) **cũng không thêm key**: `Task.startAt?` (`"HH:mm"`) + `Task.estimateMin?` (phút)
-nằm nhúng trong cùng key `t:<id>`; không đổi shape `t:<id>` theo nghĩa thêm storage key, không key/ngày
-mới, không permission/network mới (R-17). Chi tiết §3.8 bên dưới và [`ERD.md`](ERD.md) §2.1.
+R-24/R-25 (spec 1.8.0) **cũng không thêm key**: `Task.startAt?` (`"HH:mm"`) + `Task.estimateMin?`
+(phút) + `Task.endAt?` (`"HH:mm"`, nguồn thật của giờ kết thúc) nằm nhúng trong cùng key `t:<id>`;
+không đổi shape `t:<id>` theo nghĩa thêm storage key, không key/ngày mới, không permission/network mới
+(R-17). Chi tiết §3.8 bên dưới và [`ERD.md`](ERD.md) §2.1.
 
 ## 2. Chrome extension APIs sử dụng
 
@@ -131,23 +132,23 @@ lại, không nhân đôi; `onInstalled`/`onStartup`/đổi settings đều resy
 | Hàm | Chữ ký | Hành vi |
 |---|---|---|
 | `loadAll` | `() => Promise<Task[]>` | Đọc mọi key `t:*` → mảng Task; chuẩn hoá in-memory `dueAt`/`prevDueAt` về wall-clock local qua `normalizeDueAt` — **không ghi lại** (`adapter.ts:84-109`) |
-| `put` | `(task: Task) => Promise<void>` | Ghi `t:<id>`; chặn item > 8192 bytes (`MAX_ITEM_BYTES`, dòng 22) |
+| `put` | `(task: Task) => Promise<void>` | Ghi `t:<id>`; chặn item > 8192 bytes (`MAX_ITEM_BYTES`, dòng 23) |
 | `remove` | `(id: string) => Promise<void>` | Xoá `t:<id>` |
 | `normalizeSettings` | `(raw: unknown) => Settings` | Gộp bản đã lưu với `DEFAULT_SETTINGS`; chỉ nhận field có cùng `typeof` với mặc định, field lạ của schema cũ (vd `theme`) bị bỏ; **R-22: validate riêng `planReminder`** (`enabled:boolean`, `at` khớp `/^([01]\d\|2[0-3]):[0-5]\d$/`, sai → default) (`adapter.ts:145-171`) |
 | `loadSettings` | `() => Promise<Settings \| null>` | Đọc `settings` → `normalizeSettings`; chưa có key → `null` |
 | `putSettings` | `(s: Settings) => Promise<void>` | Ghi `settings` |
-| `loadSubjects` | `() => Promise<Subject[]>` | Đọc `subjects`; không phải mảng → `[]` (`adapter.ts:198`) |
+| `loadSubjects` | `() => Promise<Subject[]>` | Đọc `subjects`; không phải mảng → `[]` (`adapter.ts:215`) |
 | `putSubjects` | `(subjects: Subject[]) => Promise<void>` | Ghi nguyên cả danh sách môn (1 key nhỏ, không tách per-item) |
-| `STUDY_LOG_DAYS` | `const = 60` | Số ngày nhật ký học được giữ (`adapter.ts:216`) |
-| `loadStudyLog` | `() => Promise<StudyLog>` | Đọc `studyLog`; rỗng/không hợp lệ → `{}` (`adapter.ts:218`) |
-| `putStudyLog` | `(log: StudyLog) => Promise<void>` | Prune trước khi ghi: sort key ngày rồi `slice(-60)` (`adapter.ts:225-237`) |
-| `DAY_PLAN_DAYS` | `const = 14` (R-21) | Số ngày `dayPlan` được giữ (`adapter.ts:242`) |
-| `loadDayPlan` | `() => Promise<DayPlan>` | Đọc 1 key `dayPlan`; rỗng/không phải object → `{}` (`adapter.ts:244-248`) |
-| `putDayPlan` | `(plan: DayPlan) => Promise<void>` | Sort key rồi `slice(-14)` prune, ghi **đúng 1 key** `dayPlan` — không key/ngày; bọc lỗi quota thành `StorageQuotaError` (`adapter.ts:250-264`) |
+| `STUDY_LOG_DAYS` | `const = 60` | Số ngày nhật ký học được giữ (`adapter.ts:233`) |
+| `loadStudyLog` | `() => Promise<StudyLog>` | Đọc `studyLog`; rỗng/không hợp lệ → `{}` (`adapter.ts:235`) |
+| `putStudyLog` | `(log: StudyLog) => Promise<void>` | Prune trước khi ghi: sort key ngày rồi `slice(-60)` (`adapter.ts:241-254`) |
+| `DAY_PLAN_DAYS` | `const = 14` (R-21) | Số ngày `dayPlan` được giữ (`adapter.ts:258`) |
+| `loadDayPlan` | `() => Promise<DayPlan>` | Đọc 1 key `dayPlan`; rỗng/không phải object → `{}` (`adapter.ts:260-264`) |
+| `putDayPlan` | `(plan: DayPlan) => Promise<void>` | Sort key rồi `slice(-14)` prune, ghi **đúng 1 key** `dayPlan` — không key/ngày; bọc lỗi quota thành `StorageQuotaError` (`adapter.ts:266-280`) |
 | `subscribe` | `(cb: (changedKeys: string[]) => void) => () => void` | Đăng ký `onChanged` mọi key (gồm `dayPlan`), trả về unsubscribe |
 
-**Error contract:** `StorageQuotaError` (`adapter.ts:25`) ném khi vượt quota — phát hiện qua
-chuỗi lỗi chứa `QUOTA_BYTES`/`quota` (`isQuotaError`, dòng 32). Các hàm ghi (`put`, `putSettings`,
+**Error contract:** `StorageQuotaError` (`adapter.ts:26`) ném khi vượt quota — phát hiện qua
+chuỗi lỗi chứa `QUOTA_BYTES`/`quota` (`isQuotaError`, dòng 33). Các hàm ghi (`put`, `putSettings`,
 `putSubjects`, `putStudyLog`, `putDayPlan`) và các hàm đọc task/settings đều bọc lỗi thành `StorageQuotaError`
 khi khớp mẫu quota; `loadSubjects`/`loadStudyLog` gọi thẳng `storageGet` nên lỗi lên UI là `Error`
 thường (không bọc quota). UI hiển thị banner, không swallow (R-16).
@@ -168,7 +169,7 @@ Monthly clamp ngày không tồn tại về ngày cuối tháng (`daysInMonth`, 
 qua `nextWeekdayOffset` (`recurrence.ts:88-102`): weekday tính trên **ngày local** (`new Date(y, m, date + d).getDay()`)
 nên qua ranh giới tháng/năm vẫn đúng → gap **G3 đã đóng** (Gói 0, spec 1.2.1). `recurrenceForKind`
 vẫn seed đúng **1 thứ** lấy từ `dueAt` khi đổi `kind` (`recurrence.ts:22-38`), **nhưng UI không còn
-"chưa có chỗ chọn nhiều thứ"**: `components/TaskFields.tsx:215-242` dựng picker **7 thứ**
+"chưa có chỗ chọn nhiều thứ"**: `components/TaskFields.tsx:283-301` dựng picker **7 thứ**
 (`.habit-weekday`, `aria-pressed`, `disabled` ở thứ cuối để chặn bỏ hết) — phần UI của G3 đã đóng
 trong Gói D (`2af694d`). `nextDueAt` và `isHabitScheduledDay` đều đọc trực tiếp `rule.weekdays`
 hiện tại; kiểu `weekdays: number[]` **không đổi**. Xem §5 và §3.7.
@@ -237,10 +238,11 @@ selectFrog, loading }` qua `useSyncExternalStore` trên adapter (`hooks/useTasks
   `done=false`, `tags=[]`, `subtasks=[]`, `subjectId=null`, `recurrence={kind:'none'}`,
   `createdAt=updatedAt=now`; ghi 1 key rồi `syncAlarms`.
 - `update`: `updatedAt = now` → `put` → thay bản ghi trong snapshot.
-- `setTaskTime(id, patch: TaskTimePatch)` (R-24): cổng ghi duy nhất của thời khoá biểu. `patch` có
-  `{ startAt?: string | null; estimateMin?: number | null }` (`null` = xoá field). Đọc task hiện tại
-  từ snapshot, chép nguyên rồi sửa đúng field được truyền, `updatedAt = now`, **một** `put(next)` rồi
-  thay bản ghi trong snapshot (`hooks/useTasks.ts:262-279`). Không gọi `syncAlarms`, không đụng
+- `setTaskTime(id, patch: TaskTimePatch)` (R-24/R-25): cổng ghi duy nhất của thời khoá biểu. `patch` có
+  `{ startAt?: string | null; estimateMin?: number | null; endAt?: string | null }` (`null` = xoá field).
+  Đọc task hiện tại từ snapshot, chép nguyên rồi sửa đúng field được truyền; **khi có `startAt` +
+  `endAt`, `estimateMin` được suy ra (`end − start`, qua nửa đêm +1440′) và ghi kèm trong cùng lần `put`**
+  (`hooks/useTasks.ts:262-289`). Không gọi `syncAlarms`, không đụng
   `plannedFor`/`dueAt`/`lastDoneAt`/`prevDueAt`/`habit` — alarm `due:<id>` giữ nguyên. `put` lỗi
   (quota) → throw **trước** `setSnapshot`, snapshot cũ còn nguyên (R-16). `useBoard` bọc thêm
   `quotaError` rồi export cho New Tab (`hooks/useBoard.ts:245-260, return :278, fields :302/:308`).
@@ -311,7 +313,7 @@ qua `TaskScroll`; popup dùng chung qua `SettingsPanel`. Ngoài ra `useBoard` c�
   (comment `:162-163`: hai `commit` trong cùng closure ghi đè nếu gọi chung một render). UI gọi qua
   `components/FocusConfirms.tsx` và `handleInterrupt` ở hai entrypoint.
 - `toggleTask(id)` (`:110-133`) — tick việc, ghi `record('tasks', ±1)`; khi `focusActive` và `id` khác
-  việc đang gắn, New Tab chặn ở `handleToggle` (`entrypoints/newtab/App.tsx:160-166`) để hiện xác nhận
+  việc đang gắn, New Tab chặn ở `handleToggle` (`entrypoints/newtab/App.tsx:211-218`) để hiện xác nhận
   trước.
 
 **"Kết thúc" vs "Bỏ qua" (điểm dễ nhầm):** nút **"Kết thúc"** trong focus overlay gọi `api.reset`
@@ -342,32 +344,35 @@ lấy qua `habitOccurrenceDay()` (`habit.ts:81-88`): `useTasks.toggle` gọi `wi
 `prevDueAt` cũ, **không** dùng `dueAt` mới, **không** đụng `lastDoneAt`. Hai nhánh gỡ (`'remove'`) là
 ngoại lệ có chủ đích: Hoàn tác hôm nay và un-toggle đọc `prevDueAt` để gỡ đúng ngày đã ghi
 (`hooks/useTasks.ts:286,310`). Bỏ dấu từ lưới New Tab đi qua
-`withHabitDay(..., 'remove', ...)` (`entrypoints/newtab/App.tsx:227`) — chỉ đổi `doneDays`, không đụng
+`withHabitDay(..., 'remove', ...)` (`entrypoints/newtab/App.tsx:225`) — chỉ đổi `doneDays`, không đụng
 `dueAt`/alarm/R-11. Badge streak trên thẻ việc (`TaskScroll`) và thẻ lưới (`HabitCard`) đều gọi
 `habitStreak` trên dữ liệu đã hydrate.
 
-### 3.8 Time block — `lib/tasks/timeBlock.ts` (R-24)
+### 3.8 Time block — `lib/tasks/timeBlock.ts` (R-24/R-25)
 
 Module **pure**: không storage/chrome/React, không mutate `Task`; tách khỏi `query.ts` để sort dùng
-chung R-15 giữ nguyên (`lib/tasks/timeBlock.ts:1-9`). Khung timeline 06:00–24:00; bước snap 15′;
-mặc định độ dài 30′; validate giờ 00:00–23:59 và độ dài 15–240.
+chung R-15 giữ nguyên (`lib/tasks/timeBlock.ts:1-9`). Khung timeline **00:00–24:00** (R-25); bước snap
+15′; mặc định độ dài 30′; validate giờ 00:00–23:59 và độ dài nhập tay 15–240.
 
 | Hàm | Hợp đồng |
 |---|---|
-| `isValidStartAt` / `parseStartAtMinutes` / `formatStartAtMinutes` | `"HH:mm"` local → hợp lệ / phút từ 00:00 / nhãn (clamp 00:00–24:00; 24:00 chỉ là mốc kết thúc) (`timeBlock.ts:55-74`) |
-| `normalizeEstimateMin(startAt, estimateMin)` | Không có giờ → `undefined`; có giờ mà trống → **30**; **giữ nguyên giá trị đã lưu** kể cả ngoài 15–240 (không ghi đè dữ liệu, form vẫn báo lỗi) — nhưng `Timeline` **kẹp chiều cao hiển thị** về 15–240′ (`displayEstimateMin`); giá trị hỏng → 30 (`timeBlock.ts:94-108`, `Timeline.tsx:50-53`) |
-| `timelineOrder(tasks)` | Trả `TimelineEntry[]`: giờ trong khung tăng dần, tie-breaker `id`; giờ 00:00–05:59 rồi việc không giờ xuống cuối, vẫn giữ nhãn giờ thật; không mất việc, không mutate (`timeBlock.ts:121-147`) |
-| `detectOverlaps(tasks)` | `{ ids, pairs }` theo nửa khoảng `[start, start + estimateMin)`, chỉ phần giao trong khung; chạm biên không tính; sort ổn định, **thuần đọc** — chỉ để hiện cảnh báo (`timeBlock.ts:172-198`) |
-| `snapStartAt(minutes)` | Làm tròn 15′ rồi clamp 06:00–23:45; output luôn qua `isValidStartAt` (`timeBlock.ts:205-209`) |
+| `isValidStartAt` / `isValidEndAt` / `parseStartAtMinutes` / `formatStartAtMinutes` | `"HH:mm"` local → hợp lệ / phút từ 00:00 / nhãn (clamp 00:00–24:00; 24:00 chỉ là mốc kết thúc) (`timeBlock.ts:58-97`) |
+| `durationMinutes(startAt, endAt, legacyEstimateMin?)` | `endAt` là nguồn thật: `end − start`; `end <= start` (kể cả bằng nhau) cộng 1440′; thiếu `endAt` → dùng `estimateMin` đã lưu hoặc 30 (`timeBlock.ts:100-119`) |
+| `normalizeEstimateMin(startAt, estimateMin, endAt?)` | Không có giờ → `undefined`; có `endAt` thì trả duration dẫn xuất (**có thể >240**, chỉ kẹp chiều cao khi vẽ); legacy giữ nguyên giá trị đã lưu (`timeBlock.ts:129-145`) |
+| `timelineOrder(tasks)` | Trả `TimelineEntry[]`: mọi giờ hợp lệ 00:00–23:59 tăng dần, tie-breaker `id`; **chỉ việc không giờ** xuống cuối; không mất việc, không mutate (`timeBlock.ts:157-192`) |
+| `detectOverlaps(tasks)` | `{ ids, pairs }` theo nửa khoảng `[start, start + duration)`, chỉ phần giao trong khung; chạm biên không tính; **thuần đọc** (`timeBlock.ts:208-234`) |
+| `snapStartAt(minutes)` | Làm tròn 15′ rồi clamp **00:00–23:45** (R-25 bỏ sàn 06:00) (`timeBlock.ts:241-245`) |
 
-UI: component `components/Timeline.tsx` (New Tab only) nhận `{ tasks, onSetTime }`, gọi
-`onSetTime(id, { startAt })` của `useBoard` khi kéo/phím/nhập giờ — mỗi thao tác = đúng 1 `put` qua
-§3.5. Block vẽ tới **24:00 rồi dừng** và gắn nhãn "⚠ Vượt khung" khi `start + estimate` vượt khung;
-dữ liệu `estimateMin` không bị đổi. Việc ở nhóm cuối cũng có handle kéo: vị trí thả chiếu vào trục
-canvas → `snapStartAt` → gán `startAt` (ô nhập `HH:mm` là lối tương đương).
-Overlap chỉ hiện chữ "⚠ Chồng lấn" + nền nhạt trên mọi block liên quan, vẫn lưu, không tự dời block
-khác. Popup 360×560 không render component này (`entrypoints/popup/App.tsx:246`);
-`withTime` trên `TaskParchment` mặc định `false`, chỉ bật ở `entrypoints/newtab/App.tsx:470`.
+UI: component `components/Timeline.tsx` (New Tab only) nhận `{ tasks, subjects, onSetTime, onCreate,
+onUpdateTask, ... }`. Mỗi lần kéo/phím = đúng 1 `put` qua §3.5. Block vẽ tới **24:00 rồi dừng** và gắn
+nhãn "⚠ Vượt khung"; chiều cao hiển thị luôn kẹp 15–240′ (kể cả duration dẫn xuất > 240′ — nhãn vượt
+khung chỉ hiện khi `startAt` + chiều cao đã kẹp > 24:00); dữ liệu không bị đổi. Overlap chỉ hiện chữ + nền nhạt, vẫn lưu.
+R-25 bổ sung: right-click/phím `n` → popup tạo; kéo vùng trống → popup tạo điền sẵn `startAt`/`endAt`
+(clamp 24:00 mã hoá `endAt="00:00"`); click block → popup sửa; nút fullscreen-in-tab; popup neo con
+trỏ (`components/TaskEntryPopup.tsx`) ẩn `dueAt`/lặp/habit, có focus trap, lỗi quota giữ mở + inline
+error. Không còn ô nhập `HH:mm` trong block. Popup extension 360×560 không render component này
+(`entrypoints/popup/App.tsx:246`); `withTime` trên `TaskParchment` mặc định `false`, chỉ bật ở New Tab
+(`entrypoints/newtab/App.tsx:464`).
 
 ## 4. Sync & conflict resolution (R-13)
 
@@ -389,9 +394,9 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 | ID | Spec (`SPECIFICATIONS.md`) | Code thực tế | Ảnh hưởng |
 |---|---|---|---|
-| G1 | R-09: `dueAt` là **epoch ms** | `types.ts:45`: `dueAt: string \| null`; spec 1.2.0 đã sửa R-09 sang ISO 8601 local | ✅ Đã đóng (spec 1.2.0). Dạng UTC sau khi lặp tách riêng thành G6 |
-| G2 | `settings = { theme }` | `types.ts:76-86`: 8 field (`notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`); spec 1.2.0 đã mô tả đúng; `normalizeSettings` bỏ field `theme` cũ khi đọc | ✅ Đã đóng (spec 1.2.0) |
-| G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:125-131` weekly dùng `nextWeekdayOffset` (`recurrence.ts:88-102`): offset nhỏ nhất 1..7 tới một thứ trong `weekdays`, giữ `HH:mm`; `weekdays` rỗng/thiếu/không phải array → +7 ngày; `recurrenceForKind` chỉ seed 1 thứ từ `dueAt` khi đổi `kind`, **nhưng UI đã có picker 7 thứ** (`TaskFields.tsx:215-242`: `.habit-weekday` `aria-pressed`, chặn bỏ thứ cuối) từ Gói D (`2af694d`) | ✅ Đã đóng hoàn toàn 2026-11-18 (Gói 0 `c890de2` + UI Gói D `2af694d`, spec 1.2.1→1.6.0) — test `src/__tests__/recurrence.test.ts` (T2/T4/T6 qua nhiều tuần, ranh giới tháng, catch-up, fallback rỗng + giá trị lạ) + `habit-ui.test.tsx` (picker) |
+| G1 | R-09: `dueAt` là **epoch ms** | `types.ts:65`: `dueAt: string \| null`; spec 1.2.0 đã sửa R-09 sang ISO 8601 local | ✅ Đã đóng (spec 1.2.0). Dạng UTC sau khi lặp tách riêng thành G6 |
+| G2 | `settings = { theme }` | `types.ts:129-141`: 8 field (`notificationsEnabled`, `displayMode`, `quillStyle`, `quillEffect`, `ornaments`, `lacquerSheen`, `pomodoroPreset`, `soundEnabled`); spec 1.2.0 đã mô tả đúng; `normalizeSettings` bỏ field `theme` cũ khi đọc | ✅ Đã đóng (spec 1.2.0) |
+| G3 | R-10: weekly **chọn các thứ** (`weekdays`) | `recurrence.ts:125-131` weekly dùng `nextWeekdayOffset` (`recurrence.ts:88-102`): offset nhỏ nhất 1..7 tới một thứ trong `weekdays`, giữ `HH:mm`; `weekdays` rỗng/thiếu/không phải array → +7 ngày; `recurrenceForKind` chỉ seed 1 thứ từ `dueAt` khi đổi `kind`, **nhưng UI đã có picker 7 thứ** (`TaskFields.tsx:283-301`: `.habit-weekday` `aria-pressed`, chặn bỏ thứ cuối) từ Gói D (`2af694d`) | ✅ Đã đóng hoàn toàn 2026-11-18 (Gói 0 `c890de2` + UI Gói D `2af694d`, spec 1.2.1→1.6.0) — test `src/__tests__/recurrence.test.ts` (T2/T4/T6 qua nhiều tuần, ranh giới tháng, catch-up, fallback rỗng + giá trị lạ) + `habit-ui.test.tsx` (picker) |
 | G4 | R-15: user chọn tiêu chí sort (`dueAt\|priority\|createdAt`) | `query.ts:88-89`: `SortKey = 'deadline' \| 'priority' \| 'created'` + `sortBoard`; UI `FilterRow` cho chọn qua menu "Sắp xếp" | ✅ Đã đóng phần **chọn được tiêu chí**. Tie-breaker **không đồng nhất giữa 3 tiêu chí** → xem **G8**; `SortCriterion='default'` còn là dead export (không nơi nào import) |
 | G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,32,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 | G6 | R-09/R-10: `dueAt` là ISO 8601 **local** (một dạng duy nhất) | `lib/datetime.ts:92/109` `formatLocalInput` + `normalizeDueAt`; `recurrence.ts:75-111` trả wall-clock local không `Z`; `adapter.ts:84-91` normalize in-memory khi đọc | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — một dạng chuỗi duy nhất; task cũ dạng `Z` được quy về local khi đọc, không ghi lại. Xem [`ERD.md`](ERD.md) §2.1 |
@@ -405,8 +410,8 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 ## 6. Versioning
 
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.6.0`** — khớp frontmatter
-`SPECIFICATIONS.md`; **scopeVersion 29**; v30 sẽ do primary regenerate lúc close-out). R-20 chỉ thêm field local `PomodoroState.taskId` /
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.8.0`** — khớp frontmatter
+`SPECIFICATIONS.md`; **scopeVersion 35**, đã regenerate ở close-out FEAT-004). R-20 chỉ thêm field local `PomodoroState.taskId` /
 `interruptions`, **không** đổi schema sync. R-21 (spec 1.4.0) thêm `Task.keystone?` / `Task.archived?`
 (flag client-side, mặc định `false`) và **một** key sync `dayPlan` (`DayPlan`, prune 14 ngày,
 `DAY_PLAN_DAYS = 14`, 8192 B/item). R-22 (spec 1.5.0) thêm `Task.plannedFor?` (ngày dự định LÀM,
@@ -415,6 +420,11 @@ tách `dueAt`) + `Settings.planReminder` (`{enabled:true, at:'21:00'}` mặc đ�
 R-23 (spec 1.6.0, commit `ba82621` + `2af694d`) chỉ thêm `Task.habit?` (`Habit`,
 `HABIT_MAX_DAYS = 31`) **nhúng trong key `t:<id>`** — **không** key storage mới, **không** đổi
 permission (R-17), không network, không aggregate mới; module thuần `lib/tasks/habit.ts` + UI
-`HabitCard` / `TaskFields` / `TaskScroll` / `App`. Đổi schema
+`HabitCard` / `TaskFields` / `TaskScroll` / `App`. R-24 (spec 1.7.0) thêm `Task.startAt?` /
+`Task.estimateMin?` **nhúng trong key `t:<id>`** — không key storage mới, không permission/network
+mới (R-17); timeline 06:00–24:00 ở New Tab. R-25 (spec 1.8.0, commit `a62485d` + `6dbe8a0`) thêm
+`Task.endAt?` (nguồn thật, `estimateMin` dẫn xuất trong cùng 1 `put`), timeline **00:00–24:00**, bỏ
+composer dưới bảng, tạo/sửa bằng right-click/kéo-thả + popup neo con trỏ, fullscreen-in-tab — vẫn
+**không** key storage/permission/network mới. Đổi schema
 `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

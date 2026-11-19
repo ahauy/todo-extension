@@ -1,7 +1,8 @@
 ---
 id: timeline-task-entry
 type: feature
-status: pending
+status: done
+closed: 2026-11-19
 created: 2026-11-19
 ---
 
@@ -72,22 +73,22 @@ Nguồn: user chat `/feature` 2026-11-19; BA làm rõ qua 19 câu hỏi, **đã 
 
 ## Acceptance (bắt buộc)
 
-- [ ] New Tab không còn `Composer` dưới timeline; popup extension vẫn có ô nhập cũ.
-- [ ] Right-click vùng trống → popup **tạo**; right-click/left-click block → popup **sửa**; 2 luồng tách rõ.
-- [ ] Kéo vùng trống chọn start→end → popup mở với khoảng đó điền sẵn; user chỉnh được.
-- [ ] Right-click đơn thuần không tự điền giờ; user tự nhập.
-- [ ] Popup đủ field đã chốt (không có `dueAt`), sát con trỏ, clamp/flip ở 360×560 / 1024×768 / 1280×800.
-- [ ] Bỏ `input[type=time]`; click block (dưới ~4–5px) mở popup sửa; hold+move dời block như cũ.
-- [ ] `endAt` lưu được và là nguồn thật; `estimateMin` suy đúng kể cả khoảng qua nửa đêm.
-- [ ] Timeline vẽ 00:00–24:00; giờ ngoài 06:00–24:00 thao tác được; right-click cả cột nhãn giờ & vùng ngoài canvas.
-- [ ] Nút fullscreen kiểu YouTube: timeline chiếm toàn bộ không gian tab, bấm lại thu về; snap 15′ không đổi;
+- [x] New Tab không còn `Composer` dưới timeline; popup extension vẫn có ô nhập cũ.
+- [x] Right-click vùng trống → popup **tạo**; right-click/left-click block → popup **sửa**; 2 luồng tách rõ.
+- [x] Kéo vùng trống chọn start→end → popup mở với khoảng đó điền sẵn; user chỉnh được.
+- [x] Right-click đơn thuần không tự điền giờ; user tự nhập.
+- [x] Popup đủ field đã chốt (không có `dueAt`), sát con trỏ, clamp/flip ở 360×560 / 1024×768 / 1280×800.
+- [x] Bỏ `input[type=time]`; click block (dưới ~4–5px) mở popup sửa; hold+move dời block như cũ.
+- [x] `endAt` lưu được và là nguồn thật; `estimateMin` suy đúng kể cả khoảng qua nửa đêm.
+- [x] Timeline vẽ 00:00–24:00; giờ ngoài 06:00–24:00 thao tác được; right-click cả cột nhãn giờ & vùng ngoài canvas.
+- [x] Nút fullscreen kiểu YouTube: timeline chiếm toàn bộ không gian tab, bấm lại thu về; snap 15′ không đổi;
       Esc ưu tiên đóng popup rồi mới thoát fullscreen.
-- [ ] Lưu → block hiện ngay, popup đóng, không toast; validation nằm trong popup.
-- [ ] Chồng lấn: cảnh báo, vẫn lưu, không tự sửa/xoá dữ liệu (R-24).
-- [ ] Focus mode vô hiệu hoá gesture; context menu Chrome bị chặn trong vùng timeline.
-- [ ] Có lối bàn phím mở popup tạo/sửa; Esc/click ngoài có dữ liệu → hỏi xác nhận.
-- [ ] Không còn field nhập `dueAt` ở popup/`TaskParchment`, nhưng task cũ giữ `dueAt` + alarm + chip quá hạn.
-- [ ] Không tăng permission/key storage/network; `tsc` / `eslint` / `vitest` / `wxt build` PASS + eyeball có evidence.
+- [x] Lưu → block hiện ngay, popup đóng, không toast; validation nằm trong popup.
+- [x] Chồng lấn: cảnh báo, vẫn lưu, không tự sửa/xoá dữ liệu (R-24).
+- [x] Focus mode vô hiệu hoá gesture; context menu Chrome bị chặn trong vùng timeline.
+- [x] Có lối bàn phím mở popup tạo/sửa; Esc/click ngoài có dữ liệu → hỏi xác nhận.
+- [x] Không còn field nhập `dueAt` ở popup/`TaskParchment`, nhưng task cũ giữ `dueAt` + alarm + chip quá hạn.
+- [x] Không tăng permission/key storage/network; `tsc` / `eslint` / `vitest` / `wxt build` PASS + eyeball có evidence.
 
 ## Quyết định dẫn xuất (change-request, sau spec-validation round 1)
 
@@ -105,4 +106,6 @@ Không đổi ý user; chỉ làm rõ hệ quả để spec nhất quán:
   `spec_version`, ghi `spec/updates/` + `spec/CHANGELOG.md`, sinh lại `spec/test-scope/current.json`.
 - Đề xuất chia phase: (1) data `endAt` + tách gesture create/edit + popup; (2) xoá Composer & ô giờ, fullscreen,
   focus/context-menu, bàn phím, bỏ input `dueAt`, responsive; (3) spec publish + docs reconcile + reviewer + close-out.
-- **Trạng thái: `pending` ở cả file này và `BACKLOG.md` — sẵn sàng để chạy `/change`.**
+- **Trạng thái: `done` 2026-11-19** — phase 1 `a62485d`, phase 2 `6dbe8a0`, phase 3 close-out
+  (docs reconcile + spec-validator PASS + reviewer round 2 PASS). Đã archive; residual xem
+  `.context/progress.json` entry `FEAT-004`.

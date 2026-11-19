@@ -87,7 +87,7 @@ Kết luận: thứ tự triển khai phải theo **vòng lặp**, không theo �
 | Trạng thái "đã làm hôm nay" | `lastDoneAt`/`prevDueAt` — `types.ts:55-58` · `query.ts:102-109` | D |
 | Nhật ký 60 ngày + streak | `hooks/useStudyLog.ts:59-74` (`isLit`, `streakLength`) | D, C |
 | Pomodoro có `taskId` + `attach()` | `lib/tasks/types.ts:114` · `hooks/usePomodoro.ts:38,43,137` | C |
-| Hiển thị việc đang gắn phiên | `entrypoints/newtab/App.tsx:142` (`attached`) · `FocusTimer` nhận `taskTitle` | C |
+| Hiển thị việc đang gắn phiên | `entrypoints/newtab/App.tsx:93` (`attached`) · `FocusTimer` nhận `taskTitle` | C |
 | Nhắc việc theo task | `lib/alarms/scheduler.ts` · `entrypoints/background.ts:33` | B, D |
 | Board 4 tab + 3 kiểu sort | `lib/tasks/query.ts:88-89` · `components/FilterRow.tsx:19-23,77-82` | A, B |
 | Chuẩn hoá settings (allowlist) | `lib/storage/adapter.ts:129` (`normalizeSettings`) | A, B, C, D |
@@ -363,24 +363,36 @@ Lý do để trên `Task` thay vì key riêng: 1 task = 1 key đã có, không t
 > Cập nhật 2026-11-18: user chọn làm ngay **bản đầy đủ** (timeline + kéo-thả) dù roadmap từng khuyến
 > nghị hoãn. Commit `63d3091` (phase 1) + `5032407` (phase 2), spec 1.7.0 / scope 31, reviewer STRICT
 > PASS cả 2 phase. Đoạn "Vì sao hoãn" bên dưới **giữ nguyên như lịch sử đề xuất**, không xoá.
+>
+> **Cập nhật R-25 (2026-11-19, FEAT-004, spec 1.8.0):** timeline mở rộng 00:00–24:00; thêm `endAt`
+> (nguồn thật, `estimateMin` dẫn xuất); bỏ composer dưới bảng và ô nhập giờ; tạo/sửa việc bằng
+> right-click/kéo-thả qua popup neo con trỏ; thêm fullscreen-in-tab; bỏ lối nhập hạn chót (giữ dữ liệu
+> cũ). Xem `spec/updates/2026-11-19-timeline-task-entry.md` + `docs/USER_FLOW.md` §16.
 
 **Phương pháp:** gom việc tương đồng vào khối 60–90 phút không bị ngắt.
 
 **Mục tiêu:** biến danh sách việc thành **thời khoá biểu** trong ngày.
 
 **Dữ liệu (as-built):** `Task.startAt?: "HH:mm"` (wall-clock local, trong ngày) + `Task.estimateMin?: number`
-(15–240, trống → hiển thị 30) — **nhúng trong key `t:<id>` hiện có**, không key storage mới. Không dùng
+(15–240 khi nhập tay, trống → hiển thị 30) + `Task.endAt?: "HH:mm"` (R-25 — nguồn thật của khoảng,
+`estimateMin` dẫn xuất) — **nhúng trong key `t:<id>` hiện có**, không key storage mới. Không dùng
 `blockStart`/`blockEnd`; `plannedFor`/`dueAt` giữ nguyên nghĩa. Chi tiết: [`ERD.md`](ERD.md) §2.1,
 [`API_SPEC.md`](API_SPEC.md) §3.8.
 
-**Phạm vi đã làm (bản đầy đủ, New Tab only):**
-- [x] Timeline dọc 06:00–24:00, snap 15′; việc không giờ / giờ 00:00–05:59 ở nhóm cuối, giữ nhãn,
-      không mất việc — không đổi sort R-15.
-- [x] Kéo block đổi **duy nhất** `startAt` (1 `put`, clamp 06:00–23:45); lối bàn phím (mũi tên ±15′,
-      Home/End) và ô nhập `HH:mm` tương đương, có nhãn + live region.
+**Phạm vi đã làm (bản đầy đủ, New Tab only — cập nhật R-25 2026-11-19):**
+- [x] Timeline dọc **00:00–24:00** (R-25 bỏ sàn 06:00), snap 15′; **chỉ** việc không có `startAt` ở
+      nhóm cuối, giữ nhãn, không mất việc — không đổi sort R-15.
+- [x] Kéo block đổi **duy nhất** `startAt` (1 `put`, clamp 00:00–23:45); lối bàn phím (mũi tên ±15′,
+      `Home` 00:00 / `End` 23:45, `Enter` mở popup sửa) và popup nhập `HH:mm` tương đương, có nhãn +
+      live region.
+- [x] `endAt` là nguồn thật (R-25), `estimateMin` dẫn xuất trong **cùng 1 `put`**; kéo qua 24:00 mã
+      hoá `endAt="00:00"`; chiều cao block kẹp 15–240′ khi vẽ.
+- [x] Tạo/sửa trực tiếp trên timeline: right-click/kéo vùng trống → popup tạo neo con trỏ; click block
+      → popup sửa; **bỏ** composer và ô nhập giờ dưới bảng; fullscreen-in-tab (`Esc` thoát).
 - [x] Chồng lấn theo nửa khoảng → cảnh báo **⚠ + chữ** trên mọi block liên quan; **vẫn lưu**, không tự
       sửa/xoá dữ liệu, không tự dời block khác.
-- [x] Popup 360×560 giữ nguyên số khối UI; reduced-motion tắt transition; eyeball 3 breakpoint.
+- [x] Popup 360×560 giữ nguyên số khối UI (ô nhập cũ giữ nguyên); reduced-motion tắt transition.
+      **Residual:** chưa eyeball Chrome thật 3 breakpoint cho bản R-25 (không có binary trên máy build).
 
 **Vì sao hoãn (lịch sử đề xuất — giữ lại):**
 - Cần timeline + kiểm tra chồng lấn + kéo-thả → chỉ sống được ở New Tab, không vừa popup 360px.
