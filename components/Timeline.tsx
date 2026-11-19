@@ -150,13 +150,22 @@ export default function Timeline({
     commit(task.id, snapStartAt(current + deltaMin));
   };
 
+  /** Popup mở = mọi gesture kéo phải kết thúc: không để ghost/ preview dính lại. */
+  const clearGestures = (): void => {
+    setDrag(null);
+    setTailDrag(null);
+    setCreateDrag(null);
+  };
+
   const openCreate = (anchor: PopupAnchor, prefill?: PopupState['prefill']): void => {
     if (focusActive) return;
+    clearGestures();
     setPopup({ mode: 'create', task: null, anchor, prefill });
   };
 
   const openEdit = (task: Task, anchor: PopupAnchor): void => {
     if (focusActive) return;
+    clearGestures();
     setPopup({ mode: 'edit', task, anchor });
   };
 
