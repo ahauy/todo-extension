@@ -952,6 +952,80 @@ article[data-focus-active='true'] {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.timeline-tail-open {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.timeline-tail-open:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.timeline-head-actions {
+  margin-left: auto;
+}
+.timeline-canvas[data-create-preview]:not([data-create-preview=''])::after {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  z-index: 3;
+  padding: 2px 6px;
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius-xs);
+  background: var(--surface-paper);
+  color: var(--primary-deep);
+  content: attr(data-create-preview);
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+}
+/* R-25 — fullscreen kiểu YouTube: timeline chiếm toàn bộ không gian tab hiện tại. */
+.timeline--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 16px;
+  background: var(--surface-paper);
+}
+.timeline--fullscreen .timeline-scroll {
+  flex: 1;
+  max-height: none;
+}
+.timeline--fullscreen .timeline-tail {
+  max-height: 26vh;
+  overflow-y: auto;
+}
+/* R-25 — popup neo con trỏ, clamp/flip để không tràn viewport. */
+.task-entry-popup {
+  position: fixed;
+  z-index: 120;
+  overflow-y: auto;
+  padding: var(--spacing-base);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-paper);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 22%);
+}
+.task-entry-popup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+.task-entry-popup-confirm {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border: 1px dashed var(--critical);
+  border-radius: var(--radius-xs);
+  background: var(--critical-wash);
+}
 @media (prefers-reduced-motion: reduce) {
   .timeline-block,
   .timeline-block-handle,

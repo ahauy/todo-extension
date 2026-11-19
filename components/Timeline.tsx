@@ -1,9 +1,12 @@
 /**
- * R-24 — Thời khoá biểu dọc 06:00–24:00 (New Tab only). Component CHỈ đọc
- * `Task[]` qua helper thuần `timeBlock.ts` và ghi lại qua 1 API `onSetTime`
- * (mỗi lần kéo/phím = đúng 1 `put` của phase 1). Không storage/chrome trực tiếp.
+ * R-24/R-25 — Thời khoá biểu dọc 00:00–24:00 (New Tab only). Component CHỈ đọc
+ * `Task[]` qua helper thuần `timeBlock.ts` và ghi qua `onSetTime` / `onCreate` /
+ * `onUpdateTask`. Không storage/chrome trực tiếp.
+ *
+ * R-25: right-click (hoặc phím `n`) mở popup tạo; kéo vùng trống chọn start→end rồi
+ * mở popup tạo với khoảng điền sẵn; click block mở popup sửa; hold-left + move dời block.
  */
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MAX_ESTIMATE_MIN,
   MIN_ESTIMATE_MIN,
@@ -18,11 +21,14 @@ import {
   timelineOrder,
   type TaskTimePatch,
 } from '../lib/tasks/timeBlock';
-import type { Task } from '../lib/tasks/types';
+import type { TaskDraft } from '../lib/tasks/form';
+import type { Subject, Task } from '../lib/tasks/types';
+import TaskEntryPopup, { type PopupAnchor } from './TaskEntryPopup';
 
 /** 2px/phút → 30′ = 60px, 15′ = 30px (block ngắn vẫn có hit area 44px). */
 const PX_PER_MIN = 2;
 const MIN_BLOCK_PX = 44;
+const CLICK_THRESHOLD_PX = 5;
 const TOTAL_MIN = TIMELINE_END_MIN - TIMELINE_START_MIN;
 const HOURS = Array.from(
   { length: TOTAL_MIN / 60 },
@@ -31,20 +37,45 @@ const HOURS = Array.from(
 
 interface TimelineProps {
   tasks: Task[];
+  subjects: Subject[];
+  defaultSubjectId?: string | null;
+  keystoneCount?: number;
+  focusActive?: boolean;
+  /** Tăng để mở popup tạo từ bàn phím (phím `n` của New Tab). */
+  createSignal?: number;
   onSetTime: (id: string, patch: TaskTimePatch) => Promise<void>;
+  onCreate: (draft: TaskDraft) => Promise<void>;
+  onUpdateTask: (task: Task) => Promise<void>;
 }
 
 interface DragState {
   id: string;
+  startX: number;
   startY: number;
   originMin: number;
   original: string | null;
   preview: string | null;
+  moved: boolean;
 }
 
 interface TailDrag {
   id: string;
   preview: string | null;
+}
+
+interface CreateDrag {
+  startY: number;
+  lastY: number;
+  moved: boolean;
+  startAt: string | null;
+  endAt: string | null;
+}
+
+interface PopupState {
+  mode: 'create' | 'edit';
+  task: Task | null;
+  anchor: PopupAnchor;
+  prefill?: { startAt?: string | null; endAt?: string | null };
 }
 
 /** Chỉ kẹp CHIỀU CAO hiển thị — không đụng giá trị đã lưu (form vẫn báo lỗi). */
@@ -60,16 +91,44 @@ function blockTop(startMinutes: number): number {
   return (startMinutes - TIMELINE_START_MIN) * PX_PER_MIN;
 }
 
-export default function Timeline({ tasks, onSetTime }: TimelineProps) {
+export default function Timeline({
+  tasks,
+  subjects,
+  defaultSubjectId = null,
+  keystoneCount = 0,
+  focusActive = false,
+  createSignal,
+  onSetTime,
+  onCreate,
+  onUpdateTask,
+}: TimelineProps) {
   const [drag, setDrag] = useState<DragState | null>(null);
   const [tailDrag, setTailDrag] = useState<TailDrag | null>(null);
+  const [createDrag, setCreateDrag] = useState<CreateDrag | null>(null);
+  const [popup, setPopup] = useState<PopupState | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   const canvasRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const lastSignal = useRef(createSignal);
 
   const entries = useMemo(() => timelineOrder(tasks), [tasks]);
   const overlapIds = useMemo(() => new Set(detectOverlaps(tasks).ids), [tasks]);
   const head = entries.filter((entry) => entry.startMinutes !== null && !entry.outsideWindow);
   const tail = entries.filter((entry) => entry.startMinutes === null || entry.outsideWindow);
+
+  /** Vị trí mặc định khi mở popup từ bàn phím: góc trên trái của timeline. */
+  useEffect(() => {
+    if (createSignal === undefined || createSignal === lastSignal.current) return;
+    lastSignal.current = createSignal;
+    if (focusActive) return;
+    const rect = sectionRef.current?.getBoundingClientRect();
+    setPopup({
+      mode: 'create',
+      task: null,
+      anchor: { x: (rect?.left ?? 24) + 24, y: (rect?.top ?? 24) + 64 },
+    });
+  }, [createSignal, focusActive]);
 
   const commit = (id: string, startAt: string | null): void => {
     void onSetTime(id, { startAt })
@@ -81,6 +140,21 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
     const current = parseStartAtMinutes(task.startAt) ?? TIMELINE_START_MIN;
     commit(task.id, snapStartAt(current + deltaMin));
   };
+
+  const openCreate = (anchor: PopupAnchor, prefill?: PopupState['prefill']): void => {
+    if (focusActive) return;
+    setPopup({ mode: 'create', task: null, anchor, prefill });
+  };
+
+  const openEdit = (task: Task, anchor: PopupAnchor): void => {
+    if (focusActive) return;
+    setPopup({ mode: 'edit', task, anchor });
+  };
+
+  const anchorFrom = (clientX: number, clientY: number): PopupAnchor => ({
+    x: clientX,
+    y: clientY,
+  });
 
   const onBlockKeyDown = (task: Task) => (event: React.KeyboardEvent<HTMLButtonElement>) => {
     const steps: Record<string, number> = {
@@ -98,6 +172,10 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
     } else if (event.key === 'End') {
       event.preventDefault();
       commit(task.id, snapStartAt(TIMELINE_END_MIN));
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      const rect = event.currentTarget.getBoundingClientRect();
+      openEdit(task, anchorFrom(rect.right, rect.top));
     }
   };
 
@@ -106,22 +184,39 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
       event.currentTarget.setPointerCapture?.(event.pointerId);
       setDrag({
         id: task.id,
+        startX: event.clientX,
         startY: event.clientY,
         originMin: startMinutes,
         original: task.startAt ?? null,
         preview: null,
+        moved: false,
       });
     };
 
   const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (!drag) return;
-    const deltaMin = (event.clientY - drag.startY) / PX_PER_MIN;
-    setDrag({ ...drag, preview: snapStartAt(drag.originMin + deltaMin) });
+    const deltaY = event.clientY - drag.startY;
+    const deltaX = event.clientX - drag.startX;
+    const moved =
+      drag.moved ||
+      Math.abs(deltaY) >= CLICK_THRESHOLD_PX ||
+      Math.abs(deltaX) >= CLICK_THRESHOLD_PX;
+    setDrag({
+      ...drag,
+      moved,
+      preview: moved ? snapStartAt(drag.originMin + deltaY / PX_PER_MIN) : null,
+    });
   };
 
   const onPointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    if (drag && drag.preview && drag.preview !== drag.original) commit(drag.id, drag.preview);
+    if (!drag) return;
+    if (drag.moved) {
+      if (drag.preview && drag.preview !== drag.original) commit(drag.id, drag.preview);
+    } else {
+      const task = tasks.find((item) => item.id === drag.id);
+      if (task) openEdit(task, anchorFrom(event.clientX, event.clientY));
+    }
     setDrag(null);
   };
 
@@ -147,10 +242,78 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
     setTailDrag(null);
   };
 
+  /** R-25 — kéo trên vùng trống: start→end đã snap, clamp tại 24:00 → `endAt = "00:00"`. */
+  const onCanvasPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (focusActive || event.target !== event.currentTarget) return;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const point = snapStartAt(dropMinutes(event.clientY));
+    setCreateDrag({
+      startY: event.clientY,
+      lastY: event.clientY,
+      moved: false,
+      startAt: point,
+      endAt: point,
+    });
+  };
+
+  const onCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!createDrag) return;
+    const moved =
+      createDrag.moved || Math.abs(event.clientY - createDrag.startY) >= CLICK_THRESHOLD_PX;
+    const fromY = Math.min(createDrag.startY, event.clientY);
+    const toY = Math.max(createDrag.startY, event.clientY);
+    const fromMin = parseStartAtMinutes(snapStartAt(dropMinutes(fromY))) ?? TIMELINE_START_MIN;
+    const toMin = parseStartAtMinutes(snapStartAt(dropMinutes(toY))) ?? TIMELINE_START_MIN;
+    const endMin =
+      toMin >= TIMELINE_END_MIN ? TIMELINE_END_MIN : Math.max(toMin, fromMin + SNAP_STEP_MIN);
+    setCreateDrag({
+      ...createDrag,
+      lastY: event.clientY,
+      moved,
+      startAt: snapStartAt(fromMin),
+      endAt: endMin >= TIMELINE_END_MIN ? '00:00' : formatStartAtMinutes(endMin),
+    });
+  };
+
+  const onCanvasPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    if (createDrag?.moved && createDrag.startAt && createDrag.endAt) {
+      openCreate(anchorFrom(event.clientX, event.clientY), {
+        startAt: createDrag.startAt,
+        endAt: createDrag.endAt,
+      });
+    }
+    setCreateDrag(null);
+  };
+
+  const onContextMenu = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault(); // R-25 — chặn context menu của Chrome trong vùng timeline.
+    const target = event.target as HTMLElement;
+    if (target.closest('[role="dialog"]')) return; // Popup đang mở: không đổi mode/anchor.
+    const node = target.closest('[data-task-id]');
+    const id = node?.getAttribute('data-task-id');
+    const task = id ? tasks.find((item) => item.id === id) : null;
+    if (task) openEdit(task, anchorFrom(event.clientX, event.clientY));
+    else openCreate(anchorFrom(event.clientX, event.clientY));
+  };
+
+  /** R-25 — Esc precedence popup → fullscreen → search/menu (popup tự chặn Esc khi mở). */
+  useEffect(() => {
+    if (!fullscreen || popup) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setFullscreen(false);
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [fullscreen, popup]);
+
   const renderBlock = (entry: (typeof head)[number]) => {
     const { task } = entry;
     const startMinutes = entry.startMinutes!;
-    const storedMin = normalizeEstimateMin(task.startAt, task.estimateMin) ?? 30;
+    const storedMin = normalizeEstimateMin(task.startAt, task.estimateMin, task.endAt) ?? 30;
     const displayMin = displayEstimateMin(storedMin);
     const beyondWindow = startMinutes + displayMin > TIMELINE_END_MIN;
     const endMinutes = Math.min(startMinutes + displayMin, TIMELINE_END_MIN);
@@ -162,6 +325,7 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
         className={`timeline-block${warning ? ' timeline-block--overlap' : ''}`}
         data-task-id={task.id}
         data-start-at={task.startAt ?? ''}
+        data-end-at={task.endAt ?? ''}
         style={{
           top: `${blockTop(startMinutes)}px`,
           height: `${Math.max(MIN_BLOCK_PX, (endMinutes - startMinutes) * PX_PER_MIN)}px`,
@@ -170,7 +334,7 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
         <button
           type="button"
           className="timeline-block-handle"
-          aria-label={`${task.title}, bắt đầu ${task.startAt}, ${storedMin} phút${storedMin !== displayMin ? ' (chiều cao hiển thị đã kẹp 15–240 phút)' : ''}${beyondWindow ? ', vượt khung 24:00' : ''}${warning ? ', chồng lấn với việc khác' : ''}. Dùng mũi tên để dời 15 phút.`}
+          aria-label={`${task.title}, bắt đầu ${task.startAt}, ${storedMin} phút${storedMin !== displayMin ? ' (chiều cao hiển thị đã kẹp 15–240 phút)' : ''}${beyondWindow ? ', vượt khung 24:00' : ''}${warning ? ', chồng lấn với việc khác' : ''}. Dùng mũi tên để dời 15 phút, Enter để sửa.`}
           onKeyDown={onBlockKeyDown(task)}
           onPointerDown={onPointerDown(task, startMinutes)}
           onPointerMove={onPointerMove}
@@ -190,13 +354,6 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
           )}
           <span className="timeline-block-title">{task.title}</span>
         </button>
-        <input
-          type="time"
-          className="timeline-time-input"
-          aria-label={`Đổi giờ bắt đầu của ${task.title}`}
-          value={preview ?? task.startAt ?? ''}
-          onChange={(event) => commit(task.id, event.target.value || null)}
-        />
       </div>
     );
   };
@@ -209,11 +366,18 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
     return (
       <li key={task.id} className="timeline-tail-item" data-task-id={task.id}>
         <span className="timeline-tail-label">{label}</span>
-        <span className="timeline-tail-title">{task.title}</span>
+        <button
+          type="button"
+          className="timeline-tail-title timeline-tail-open"
+          aria-label={`Sửa việc ${task.title}`}
+          onClick={(event) => openEdit(task, anchorFrom(event.clientX, event.clientY))}
+        >
+          {task.title}
+        </button>
         <button
           type="button"
           className="timeline-tail-handle"
-          aria-label={`Kéo ${task.title} vào khung 06:00–24:00${preview ? `, sẽ xếp lúc ${preview}` : ''}`}
+          aria-label={`Kéo ${task.title} vào khung 00:00–24:00${preview ? `, sẽ xếp lúc ${preview}` : ''}`}
           onPointerDown={onTailPointerDown(task.id)}
           onPointerMove={onTailPointerMove}
           onPointerUp={onTailPointerUp}
@@ -221,24 +385,35 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
         >
           {preview ?? 'Kéo vào khung'}
         </button>
-        <input
-          type="time"
-          className="timeline-time-input"
-          aria-label={`Đổi giờ bắt đầu của ${task.title}`}
-          value={task.startAt ?? ''}
-          onChange={(event) => commit(task.id, event.target.value || null)}
-        />
       </li>
     );
   };
 
   return (
-    <section className="timeline" data-section="time-block" aria-labelledby="timeline-title">
+    <section
+      ref={sectionRef}
+      className={`timeline${fullscreen ? ' timeline--fullscreen' : ''}`}
+      data-section="time-block"
+      aria-labelledby="timeline-title"
+      onContextMenu={onContextMenu}
+    >
       <div className="timeline-head">
         <h3 id="timeline-title" className="text-caption font-bold tracking-[0.4px] text-brown">
           Thời khoá biểu
         </h3>
-        <p className="text-caption text-umber">06:00–24:00 · kéo hoặc dùng mũi tên để dời 15 phút</p>
+        <p className="text-caption text-umber">00:00–24:00 · kéo hoặc dùng mũi tên để dời 15 phút</p>
+        <div className="timeline-head-actions flex items-center gap-xs">
+          <button
+            type="button"
+            className="btn-icon size-9"
+            aria-label={fullscreen ? 'Thu nhỏ thời khoá biểu' : 'Phóng to thời khoá biểu'}
+            title={fullscreen ? 'Thu về bảng' : 'Phóng to toàn tab'}
+            aria-pressed={fullscreen}
+            onClick={() => setFullscreen((value) => !value)}
+          >
+            {fullscreen ? '⤡' : '⤢'}
+          </button>
+        </div>
       </div>
       <div className="timeline-scroll">
         <div className="timeline-track" style={{ height: `${TOTAL_MIN * PX_PER_MIN}px` }}>
@@ -256,7 +431,19 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
               24:00
             </span>
           </div>
-          <div className="timeline-canvas" ref={canvasRef}>
+          <div
+            className="timeline-canvas"
+            ref={canvasRef}
+            data-create-preview={
+              createDrag?.moved && createDrag.startAt
+                ? `${createDrag.startAt}–${createDrag.endAt}`
+                : ''
+            }
+            onPointerDown={onCanvasPointerDown}
+            onPointerMove={onCanvasPointerMove}
+            onPointerUp={onCanvasPointerUp}
+            onPointerCancel={() => setCreateDrag(null)}
+          >
             {HOURS.map((hour) => (
               <div
                 key={hour}
@@ -270,13 +457,29 @@ export default function Timeline({ tasks, onSetTime }: TimelineProps) {
       </div>
       {tail.length > 0 && (
         <div className="timeline-tail">
-          <h4 className="text-caption font-bold text-brown">Chưa xếp hoặc ngoài khung</h4>
+          <h4 className="text-caption font-bold text-brown">Chưa xếp giờ</h4>
           <ul className="timeline-tail-list">{tail.map(renderTail)}</ul>
         </div>
       )}
       <div className="sr-only" role="status" aria-live="polite">
         {announcement}
       </div>
+
+      {popup && (
+        <TaskEntryPopup
+          key={`${popup.mode}:${popup.task?.id ?? 'new'}`}
+          mode={popup.mode}
+          task={popup.task}
+          anchor={popup.anchor}
+          initialTime={popup.prefill}
+          subjects={subjects}
+          defaultSubjectId={defaultSubjectId}
+          keystoneCount={keystoneCount}
+          onCreate={onCreate}
+          onUpdate={onUpdateTask}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </section>
   );
 }

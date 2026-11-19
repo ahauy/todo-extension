@@ -22,6 +22,8 @@ describe('form endAt (R-25)', () => {
   it('khoảng dẫn xuất >240′ vẫn hợp lệ (chỉ kẹp chiều cao khi vẽ)', () => {
     expect(formErrors(formWith({ startAt: '20:00', endAt: '01:00' }))).toEqual({});
     expect(formErrors(formWith({ startAt: '09:00', endAt: '09:00' }))).toEqual({});
+    // Khi endAt là nguồn thật, estimateMin đã lưu >240′ KHÔNG bị chặn khi mở lại form.
+    expect(formErrors(formWith({ startAt: '08:00', endAt: '14:00', estimateMin: 360 }))).toEqual({});
   });
 
   it('khoảng qua nửa đêm hợp lệ', () => {

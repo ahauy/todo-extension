@@ -75,6 +75,18 @@ async function pointer(element: Element, type: string, clientY: number): Promise
   });
 }
 
+async function fire(element: Element, type: string, init: MouseEventInit = {}): Promise<void> {
+  const React = await import('react');
+  await React.act(async () => {
+    element.dispatchEvent(new MouseEvent(type, { bubbles: true, ...init }));
+    await flush();
+  });
+}
+
+async function click(element: Element): Promise<void> {
+  await fire(element, 'click');
+}
+
 function saved(id: string): Task {
   return stub.store.get(`${TASK_KEY_PREFIX}${id}`) as Task;
 }
@@ -184,26 +196,6 @@ describe('R-24 — đổi giờ: bàn phím, ô nhập, kéo', () => {
     expect(saved('a').startAt).toBe('23:45');
   });
 
-  it('ô nhập HH:mm đổi giờ trực tiếp', async () => {
-    stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
-    const container = await mount();
-    const input = blockFor(container, 'a').querySelector('input[type="time"]') as HTMLInputElement;
-    const React = await import('react');
-    const setter = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      'value'
-    )!.set!;
-    await React.act(async () => {
-      setter.call(input, '10:30');
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      await flush();
-    });
-    await React.act(async () => {
-      await flush();
-    });
-
-    expect(saved('a').startAt).toBe('10:30');
-  });
 
   it('kéo block 45px = +30 phút, snap 15′, đúng 1 put', async () => {
     stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
@@ -293,5 +285,136 @@ describe('R-24 — chồng lấn: cảnh báo nhưng vẫn lưu', () => {
     const container = await mount();
     expect(blockFor(container, 'a').textContent).not.toContain('Chồng lấn');
     expect(blockFor(container, 'b').textContent).not.toContain('Chồng lấn');
+  });
+});
+
+describe('R-25 — New Tab: popup neo con trỏ, kéo tạo, fullscreen', () => {
+  it('không còn Composer dưới bảng; right-click mở popup TẠO với giờ trống', async () => {
+    const container = await mount();
+    expect(container.querySelector('[aria-label="Ghi việc vào sổ"]')).toBeNull();
+
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'contextmenu', { clientX: 140, clientY: 220 });
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement | null;
+    expect(dialog).not.toBeNull();
+    expect(dialog!.dataset.mode).toBe('create');
+    expect((dialog!.querySelector('input[aria-label="Giờ bắt đầu"]') as HTMLInputElement).value).toBe('');
+    expect((dialog!.querySelector('input[aria-label="Giờ kết thúc"]') as HTMLInputElement).value).toBe('');
+    expect(dialog!.querySelector('input[type="datetime-local"]')).toBeNull(); // không có hạn chót
+    expect(dialog!.textContent).not.toContain('Lặp lại');
+  });
+
+  it('kéo trên vùng trống → popup TẠO điền sẵn start→end đã snap 15′', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog).not.toBeNull();
+    expect(dialog.dataset.mode).toBe('create');
+    expect((dialog.querySelector('input[aria-label="Giờ bắt đầu"]') as HTMLInputElement).value).toBe('01:00');
+    expect((dialog.querySelector('input[aria-label="Giờ kết thúc"]') as HTMLInputElement).value).toBe('02:00');
+  });
+
+  it('right-click TRÊN BLOCK mở popup SỬA (không phải tạo)', async () => {
+    stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
+    const container = await mount();
+    const block = blockFor(container, 'a');
+
+    await fire(block, 'contextmenu', { clientX: 200, clientY: 120 });
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog).not.toBeNull();
+    expect(dialog.dataset.mode).toBe('edit');
+    expect((dialog.querySelector('input[aria-label="Tên việc cần ghi"]') as HTMLInputElement).value).toBe('Việc a');
+  });
+
+  it('right-click trong popup đang mở không đổi mode (không tạo bản trùng)', async () => {
+    stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
+    const container = await mount();
+    await fire(blockFor(container, 'a'), 'contextmenu', { clientX: 200, clientY: 120 });
+
+    const before = container.querySelector('[role="dialog"]') as HTMLElement;
+    expect(before.dataset.mode).toBe('edit');
+    await fire(before, 'contextmenu', { clientX: 260, clientY: 160 });
+
+    const after = container.querySelector('[role="dialog"]') as HTMLElement;
+    expect(after.dataset.mode).toBe('edit');
+    expect((after.querySelector('input[aria-label="Tên việc cần ghi"]') as HTMLInputElement).value).toBe('Việc a');
+  });
+
+  it('click block (không di chuyển) mở popup SỬA; hold+move vẫn dời giờ', async () => {
+    stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
+    const container = await mount();
+    const handle = blockFor(container, 'a').querySelector('button')!;
+
+    await pointer(handle, 'pointerdown', 100);
+    await pointer(handle, 'pointerup', 100);
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog).not.toBeNull();
+    expect(dialog.dataset.mode).toBe('edit');
+    expect((dialog.querySelector('input[aria-label="Tên việc cần ghi"]') as HTMLInputElement).value).toBe('Việc a');
+  });
+
+  it('nút phóng to chiếm toàn tab, bấm lại thu về', async () => {
+    const container = await mount();
+    const section = container.querySelector('[data-section="time-block"]')!;
+    const expand = container.querySelector('button[aria-label="Phóng to thời khoá biểu"]')!;
+
+    await click(expand);
+    expect(section.className).toContain('timeline--fullscreen');
+
+    const collapse = container.querySelector('button[aria-label="Thu nhỏ thời khoá biểu"]')!;
+    await click(collapse);
+    expect(section.className).not.toContain('timeline--fullscreen');
+  });
+
+  it('Esc thoát fullscreen khi không có popup mở', async () => {
+    const container = await mount();
+    const section = container.querySelector('[data-section="time-block"]')!;
+    await click(container.querySelector('button[aria-label="Phóng to thời khoá biểu"]')!);
+    expect(section.className).toContain('timeline--fullscreen');
+
+    await keyOn(document.body, 'Escape');
+    expect(section.className).not.toContain('timeline--fullscreen');
+  });
+
+  it('ghi từ popup tạo việc mới có startAt/endAt, không key storage mới', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    const title = dialog.querySelector('input[aria-label="Tên việc cần ghi"]') as HTMLInputElement;
+    const React = await import('react');
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    )!.set!;
+    await React.act(async () => {
+      setter.call(title, 'Việc từ timeline');
+      title.dispatchEvent(new Event('input', { bubbles: true }));
+      await flush();
+    });
+    const save = [...dialog.querySelectorAll('button')].find(
+      (node) => node.textContent?.trim() === 'Ghi vào sổ'
+    )!;
+    await click(save);
+    await flush();
+
+    const created = [...stub.store.values()].find(
+      (value) => (value as Task).title === 'Việc từ timeline'
+    ) as Task | undefined;
+    expect(created).toBeDefined();
+    expect(created!.startAt).toBe('01:00');
+    expect(created!.endAt).toBe('02:00');
+    expect(created!.estimateMin).toBe(60);
   });
 });

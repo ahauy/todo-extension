@@ -269,6 +269,7 @@ export default function TaskParchment({
           errors={problems}
           keystoneCount={keystoneCount}
           withTime={withTime}
+          withDue={false}
           onChange={(next) => {
             if (next.subtasks) {
               const before = form.subtasks;

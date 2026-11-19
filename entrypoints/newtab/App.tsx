@@ -10,7 +10,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Greeting from '../../components/Greeting';
 import SubjectShelf from '../../components/SubjectShelf';
-import Composer from '../../components/Composer';
 import FilterRow from '../../components/FilterRow';
 import TaskScrollList from '../../components/TaskScrollList';
 import TaskParchment from '../../components/TaskParchment';
@@ -43,7 +42,7 @@ import {
   type BoardTab,
   type SortKey,
 } from '../../lib/tasks/query';
-import { openKeystoneCount, type TaskDraft } from '../../lib/tasks/form';
+import { openKeystoneCount } from '../../lib/tasks/form';
 import { withHabitDay } from '../../lib/tasks/habit';
 import './style.css';
 
@@ -87,7 +86,7 @@ export default function App() {
   const [dirtyConfirm, setDirtyConfirm] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
-  const [expandSignal, setExpandSignal] = useState(0);
+  const [createSignal, setCreateSignal] = useState(0);
   const [bannerHidden, setBannerHidden] = useState(false);
   const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
 
@@ -131,7 +130,7 @@ export default function App() {
       }
       if (event.key === 'n') {
         event.preventDefault();
-        setExpandSignal((value) => value + 1);
+        setCreateSignal((value) => value + 1); // R-25 — phím `n` mở popup tạo việc trên timeline.
       } else if (event.key === '/') {
         event.preventDefault();
         setSearchOpen(true);
@@ -164,8 +163,6 @@ export default function App() {
       horizontal={horizontal}
     />
   );
-
-  const submit = (draft: TaskDraft) => void board.createDraft(draft);
 
   const handleFocusTask = (id: string) => {
     if (id === board.pomodoro.taskId) return;
@@ -329,20 +326,17 @@ export default function App() {
 
             <CloudRule className="my-lg" />
 
-            {/* R-24 — thời khoá biểu chỉ có ở New Tab; archived ẩn ở lớp hiển thị. */}
+            {/* R-24/R-25 — thời khoá biểu New Tab: tạo/sửa việc trực tiếp, archived ẩn ở lớp hiển thị. */}
             <Timeline
               tasks={board.tasks.filter((task) => !task.archived)}
-              onSetTime={board.setTaskTime}
-            />
-
-            <Composer
               subjects={board.subjects}
-              settings={board.settings}
               defaultSubjectId={subjectId === 'all' || subjectId === 'none' ? null : subjectId}
-              expandSignal={expandSignal}
               keystoneCount={openKeystoneCount(board.tasks)}
-              large
-              onSubmit={submit}
+              focusActive={focusActive}
+              createSignal={createSignal}
+              onSetTime={board.setTaskTime}
+              onCreate={(draft) => board.createDraft(draft)}
+              onUpdateTask={board.updateTask}
             />
             <div className="mt-lg">
               <FilterRow

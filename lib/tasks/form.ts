@@ -105,7 +105,14 @@ export function formErrors(form: TaskForm, requireFutureDue = true): TaskFormErr
   if (form.endAt && !isValidEndAt(form.endAt)) {
     errors.endAt = 'Giờ kết thúc phải trong khoảng 00:00–23:59.';
   }
-  if (form.estimateMin != null && !isValidEstimateMin(form.estimateMin)) {
+  // R-25 — `endAt` là nguồn thật: `estimateMin` lưu trong trường hợp này là giá trị
+  // DẪN XUẤT (có thể >240′, tới 1440′), được phép và chỉ kẹp chiều cao khi vẽ.
+  // Chỉ validate range 15–240 khi người dùng nhập tay (không có `endAt`).
+  if (
+    form.estimateMin != null &&
+    !(form.startAt && form.endAt) &&
+    !isValidEstimateMin(form.estimateMin)
+  ) {
     errors.estimateMin = `Độ dài dự kiến phải từ ${MIN_ESTIMATE_MIN} tới ${MAX_ESTIMATE_MIN} phút.`;
   }
   // R-25 — `endAt` là nguồn thật: khoảng dẫn xuất có thể >240′ (qua nửa đêm,

@@ -34,8 +34,12 @@ interface TaskFieldsProps {
   keystoneCount?: number;
   /** R-23 — mốc ISO cho `startedAt` lúc bật; mặc định lúc bấm (dùng được để test). */
   now?: Date;
-  /** R-24 — hai ô giờ bắt đầu/độ dài: chỉ hộp sửa việc bật (popup giữ nguyên số khối UI). */
+  /** R-24/R-25 — giờ bắt đầu/kết thúc + độ dài: hộp sửa việc / popup timeline bật. */
   withTime?: boolean;
+  /** R-25 — popup timeline và tờ sửa việc không còn nhập hạn chót; task cũ vẫn giữ dữ liệu. */
+  withDue?: boolean;
+  /** R-25 — popup timeline ẩn lặp lại + habit (R-10 cần `dueAt` cho lặp ≠ none). */
+  withRecurrence?: boolean;
 }
 
 /** 0=CN … 6=T7 — khớp `WeeklyRule.weekdays` / `Date.getDay()`. */
@@ -50,6 +54,8 @@ export default function TaskFields({
   keystoneCount = 0,
   now,
   withTime = false,
+  withDue = true,
+  withRecurrence = true,
 }: TaskFieldsProps) {
   const [tagDraft, setTagDraft] = useState('');
   const [subtaskDraft, setSubtaskDraft] = useState('');
@@ -131,29 +137,31 @@ export default function TaskFields({
           </select>
         </Field>
 
-        <Field label="Hạn chót" helper="Ngày và giờ cần xong" error={errors?.dueAt}>
-          <div className="flex items-center gap-sm">
-            <input
-              type="datetime-local"
-              className="text-input flex-1"
-              value={toLocalInput(form.dueAt)}
-              onChange={(event) => setDue(event.target.value || null)}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="shrink-0 whitespace-nowrap"
-              onClick={() => setDue(null)}
-              disabled={!form.dueAt}
-            >
-              Bỏ hạn
-            </Button>
-          </div>
-        </Field>
+        {withDue && (
+          <Field label="Hạn chót" helper="Ngày và giờ cần xong" error={errors?.dueAt}>
+            <div className="flex items-center gap-sm">
+              <input
+                type="datetime-local"
+                className="text-input flex-1"
+                value={toLocalInput(form.dueAt)}
+                onChange={(event) => setDue(event.target.value || null)}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 whitespace-nowrap"
+                onClick={() => setDue(null)}
+                disabled={!form.dueAt}
+              >
+                Bỏ hạn
+              </Button>
+            </div>
+          </Field>
+        )}
       </div>
 
       {withTime && (
-        <div className="grid gap-base sm:grid-cols-2">
+        <div className="grid gap-base sm:grid-cols-3">
           <Field
             label="Giờ bắt đầu"
             helper="Trong ngày, 00:00–23:59"
@@ -163,7 +171,22 @@ export default function TaskFields({
               type="time"
               className="text-input"
               value={form.startAt ?? ''}
+              aria-label="Giờ bắt đầu"
               onChange={(event) => onChange({ startAt: event.target.value || null })}
+            />
+          </Field>
+
+          <Field
+            label="Giờ kết thúc"
+            helper="Trống = dùng độ dài dự kiến"
+            error={errors?.endAt}
+          >
+            <input
+              type="time"
+              className="text-input"
+              value={form.endAt ?? ''}
+              aria-label="Giờ kết thúc"
+              onChange={(event) => onChange({ endAt: event.target.value || null })}
             />
           </Field>
 
@@ -231,8 +254,10 @@ export default function TaskFields({
         )}
       </Field>
 
-      <Field
-        label="Lặp lại"
+      {withRecurrence && (
+        <>
+        <Field
+          label="Lặp lại"
         helper={
           form.recurrence.kind === 'none'
             ? 'Việc chỉ làm một lần'
@@ -304,6 +329,8 @@ export default function TaskFields({
             </span>
           </button>
         </Field>
+      )}
+        </>
       )}
 
       {withNote && (
