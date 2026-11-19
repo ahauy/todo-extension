@@ -26,6 +26,7 @@
 | BUG-E2E-MOTION | E2E release: thanh tiến độ animate `width` vi phạm R-19 (motion chỉ transform/opacity) | BUG | done | [2026-11-18-e2e-progress-motion.md](archive/2026-11-18-e2e-progress-motion.md) | 2026-11-18 | 2026-11-18 |
 | FEAT-004 | Timeline: bỏ Composer dưới bảng, tạo/sửa bằng right-click + kéo-thả, popup sát con trỏ, fullscreen tab | MODIFY | done | [2026-11-19-timeline-task-entry.md](archive/2026-11-19-timeline-task-entry.md) | 2026-11-19 | 2026-11-19 |
 | FEAT-005 | Timeline: giữ ghost chữ nhật vừa kéo khi popup tạo mở | MODIFY | done | [2026-11-19-timeline-drag-ghost-persist.md](archive/2026-11-19-timeline-drag-ghost-persist.md) | 2026-11-19 | 2026-11-19 |
+| BUG-003 | Timeline: ghost kéo tạo đi theo con trỏ khi popup đang mở | BUG | done | [2026-11-19-timeline-ghost-follows-pointer.md](archive/2026-11-19-timeline-ghost-follows-pointer.md) | 2026-11-19 | 2026-11-19 |
 
 ## Quy tắc tracking
 

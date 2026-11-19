@@ -1,58 +1,46 @@
 {
   "specVersion": "1.9.0",
-  "scopeVersion": 36,
-  "generatedAt": "2026-11-19T15:35:00+07:00",
-  "trigger": "feature-update",
-  "workItem": "feature-timeline-drag-ghost-persist",
+  "scopeVersion": 37,
+  "generatedAt": "2026-11-19T15:43:32+07:00",
+  "trigger": "bug-fix",
+  "workItem": "bug-timeline-ghost-follows-pointer",
   "specRefs": [
     "R-25"
   ],
   "changed": {
     "files": [
-      "SPECIFICATIONS.md",
-      "spec/CHANGELOG.md",
-      "spec/updates/2026-11-19-timeline-drag-ghost-persist.md",
-      "spec/changes/BACKLOG.md",
-      "spec/changes/archive/2026-11-19-timeline-drag-ghost-persist.md",
-      "spec/test-scope/current.json",
       "components/Timeline.tsx",
       "entrypoints/newtab/App.timeBlock.test.tsx",
-      "docs/DESIGN.md",
-      "docs/USER_FLOW.md",
-      ".context/progress.json",
-      "tasks/feature-timeline-drag-ghost-persist/phase-1-task-01.md"
+      "spec/changes/BACKLOG.md",
+      "spec/changes/archive/2026-11-19-timeline-ghost-follows-pointer.md",
+      "spec/test-scope/current.json"
     ],
     "modules": [
-      "timeline-ui",
-      "as-built-docs",
-      "spec-handoff"
+      "timeline-ui"
     ]
   },
   "impact": {
     "direct": [
-      "R-25: ghost chữ nhật của khoảng kéo tạo tiếp tục hiện phía sau popup tạo tới khi popup đóng",
-      "R-25: mọi path đóng popup (×/Huỷ/Esc clean/dirty-confirm/lưu thành công) đều xoá ghost; lỗi quota popup giữ mở → ghost giữ theo",
-      "R-25: right-click tạo, phím n, popup sửa không tạo/hồi sinh ghost; focus mode không để ghost mồ côi"
+      "BUG-003: ghost chữ nhật đứng yên tại khoảng đã kéo trong suốt thời gian popup tạo mở — pointermove/pointerdown trên canvas không làm ghost đổi vị trí hay sinh ghost mới",
+      "BUG-003: CreateDrag.frozen khoá state sau pointerup; onCanvasPointerDown bỏ qua khi popup đang mở"
     ],
     "dependents": [
-      "R-24: kéo dời block, fullscreen-in-tab, snap 15′ và chồng lấn chỉ cảnh báo — retest luồng cũ",
-      "R-19: ghost không animation, pointer-events none, aria-hidden; popup 360×560 extension không đổi",
-      "R-16: StorageQuotaError vẫn giữ popup mở + inline error, không toast, không mutate snapshot"
+      "FEAT-005: ghost vẫn hiện ngay sau kéo và vẫn biến mất khi đóng popup (không hồi quy)",
+      "R-20: focus mode vẫn chặn gesture; R-24: kéo dời block không đổi",
+      "R-25: right-click/phím n/sửa việc không tạo ghost"
     ],
     "regression": [
-      "Không thêm storage key/permission/network; không đổi endAt/estimateMin/alarm/dueAt",
-      "Verify đủ 4 lệnh: tsc 0 / eslint 0 / vitest 48 files 402 tests / wxt build 692.66 kB",
-      "Reviewer NORMAL round 2 PASS (FINAL), spec-validator round 2 PASS"
+      "Không đổi spec_version (bug thuần, requirement R-25 không đổi); không storage/permission/network",
+      "Repro test: FAIL trước fix (480px vs 120px) → PASS sau fix",
+      "Verify đủ 4 lệnh: tsc 0 / eslint 0 / vitest 48 files 403 tests / wxt build 692.71 kB",
+      "Reviewer NORMAL round 1 PASS (0 finding)"
     ]
   },
   "acceptance": [
-    "Kéo ≥5px → pointerup mở popup tạo → ghost hiện, top/height/nhãn giữ nguyên khoảng đã snap",
-    "Ghost giữ nguyên dù user sửa ô startAt/endAt trong popup (neo thị giác, không self-update)",
-    "Popup clean: Esc/click ngoài/nút × đóng ngay, ghost mất; popup dirty: hỏi xác nhận rồi mới mất",
-    "Save thành công ghost mất; quota error popup + ghost đều giữ mở",
-    "Right-click tạo, phím n, popup sửa: không có ghost",
-    "Residual: quota-error retention chưa có test (chrome stub chưa có quota hook) — đã verify bằng code TaskEntryPopup.tsx:136-138",
-    "Residual: chưa eyeball Chrome thật 360/1024/1280 (kế thừa FEAT-004) — cần bấm thủ công trước release"
+    "Sau khi thả chuột mở popup, di chuột qua canvas → ghost giữ nguyên top/height/nhãn của khoảng đã kéo",
+    "Bấm lại trên canvas lúc popup đang mở → không tạo ghost thứ 2, không thay thế ghost đã freeze",
+    "Đóng popup → ghost biến mất; mở lại bằng right-click/phím n/sửa việc → không có ghost",
+    "Residual (INFO reviewer): chưa test pointercancel (không tới được trong luồng này); move-guard dựa trên invariant popup/freeze"
   ],
   "risk": "low"
 }

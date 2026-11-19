@@ -69,6 +69,8 @@ interface CreateDrag {
   moved: boolean;
   startAt: string | null;
   endAt: string | null;
+  /** BUG-003 — sau khi thả mở popup: ghost đứng yên, không còn là gesture đang kéo. */
+  frozen?: boolean;
 }
 
 interface PopupState {
@@ -272,7 +274,7 @@ export default function Timeline({
 
   /** R-25 — kéo trên vùng trống: start→end đã snap, clamp tại 24:00 → `endAt = "00:00"`. */
   const onCanvasPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (focusActive || event.target !== event.currentTarget) return;
+    if (focusActive || popup || event.target !== event.currentTarget) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     const point = snapStartAt(dropMinutes(event.clientY));
     setCreateDrag({
@@ -285,7 +287,7 @@ export default function Timeline({
   };
 
   const onCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!createDrag) return;
+    if (!createDrag || createDrag.frozen) return;
     const moved =
       createDrag.moved || Math.abs(event.clientY - createDrag.startY) >= CLICK_THRESHOLD_PX;
     const fromY = Math.min(createDrag.startY, event.clientY);
@@ -311,6 +313,8 @@ export default function Timeline({
         { startAt: createDrag.startAt, endAt: createDrag.endAt },
         true // R-25: ghost ở lại phía sau popup tới khi popup đóng.
       );
+      // BUG-003: khoá ghost ngay tại khoảng vừa kéo — pointermove sau đó không được tính lại.
+      setCreateDrag((prev) => (prev ? { ...prev, frozen: true } : null));
       return;
     }
     setCreateDrag(null);

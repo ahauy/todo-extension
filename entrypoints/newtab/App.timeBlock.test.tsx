@@ -348,6 +348,34 @@ describe('R-25 — New Tab: popup neo con trỏ, kéo tạo, fullscreen', () => 
     expect(behindPopup.textContent).toContain('01:00–02:00');
   });
 
+  it('BUG-003: popup đang mở, di chuột qua canvas không làm ghost đổi vị trí', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+
+    const before = container.querySelector(
+      '[data-testid="timeline-create-ghost"]'
+    ) as HTMLElement;
+    expect(before.style.top).toBe('120px');
+    expect(before.style.height).toBe('120px');
+    expect(before.textContent).toContain('01:00–02:00');
+
+    await fire(canvas, 'pointermove', { clientY: 600 });
+
+    const after = container.querySelector('[data-testid="timeline-create-ghost"]') as HTMLElement;
+    expect(after.style.top).toBe('120px');
+    expect(after.style.height).toBe('120px');
+    expect(after.textContent).toContain('01:00–02:00');
+
+    await fire(canvas, 'pointerdown', { clientY: 900 });
+    const afterDown = container.querySelectorAll('[data-testid="timeline-create-ghost"]');
+    expect(afterDown).toHaveLength(1);
+    expect((afterDown[0] as HTMLElement).style.top).toBe('120px');
+    expect((afterDown[0] as HTMLElement).style.height).toBe('120px');
+  });
+
   it('đóng popup clean (nút ×) → ghost biến mất', async () => {
     const container = await mount();
     const canvas = container.querySelector('.timeline-canvas')!;
