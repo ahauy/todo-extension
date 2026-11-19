@@ -1,5 +1,5 @@
 ---
-spec_version: 1.8.0
+spec_version: 1.9.0
 updated_at: 2026-11-19
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
@@ -323,7 +323,10 @@ Mọi việc mới trên New Tab được tạo từ timeline, với 2 luồng t
 
 - **Tạo:** right-click vùng trống canvas → popup tạo, **không tự điền giờ** (user tự nhập); hoặc
   **kéo trên vùng trống** từ giờ bắt đầu tới giờ kết thúc → popup tạo với `startAt`/`endAt` **điền
-  sẵn theo khoảng vừa kéo**, user vẫn chỉnh được. Right-click được cả cột nhãn giờ và vùng ngoài
+  sẵn theo khoảng vừa kéo**, user vẫn chỉnh được. **Ghost chữ nhật mờ của khoảng đã kéo tiếp tục
+  hiện phía sau popup tạo** (neo thị giác cho đoạn giờ đang đặt việc) và chỉ biến mất khi popup đóng
+  (huỷ hoặc lưu); các lối mở popup không có kéo — right-click, bàn phím, sửa việc — không tạo ghost.
+  Right-click được cả cột nhãn giờ và vùng ngoài
   canvas; context menu của Chrome bị chặn trong vùng timeline. Kéo không wrap qua 24:00: giờ kết thúc
   từ kéo bị chặn tại **24:00** và mã hoá là `endAt = "00:00"` (quy tắc +1440′ ở R-24 áp dụng);
   khoảng qua nửa đêm khác chỉ nhập **thủ công** trong popup (`endAt < startAt`).

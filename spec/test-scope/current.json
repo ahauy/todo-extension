@@ -1,90 +1,58 @@
 {
-  "specVersion": "1.8.0",
-  "scopeVersion": 35,
-  "generatedAt": "2026-11-19T12:08:00+07:00",
+  "specVersion": "1.9.0",
+  "scopeVersion": 36,
+  "generatedAt": "2026-11-19T15:35:00+07:00",
   "trigger": "feature-update",
-  "workItem": "feature-timeline-task-entry",
+  "workItem": "feature-timeline-drag-ghost-persist",
   "specRefs": [
-    "R-24",
     "R-25"
   ],
   "changed": {
     "files": [
       "SPECIFICATIONS.md",
       "spec/CHANGELOG.md",
+      "spec/updates/2026-11-19-timeline-drag-ghost-persist.md",
       "spec/changes/BACKLOG.md",
-      "spec/changes/2026-11-19-timeline-task-entry.md",
-      "spec/updates/2026-11-19-timeline-task-entry.md",
+      "spec/changes/archive/2026-11-19-timeline-drag-ghost-persist.md",
       "spec/test-scope/current.json",
-      "lib/tasks/types.ts",
-      "lib/tasks/timeBlock.ts",
-      "lib/tasks/form.ts",
-      "hooks/useTasks.ts",
-      "components/TaskParchment.tsx",
-      "components/TaskFields.tsx",
       "components/Timeline.tsx",
-      "components/TaskEntryPopup.tsx",
-      "entrypoints/newtab/App.tsx",
-      "styles/board.css",
-      "src/__tests__/timeBlock.test.ts",
-      "src/__tests__/useTasks.timeBlock.test.ts",
-      "src/__tests__/timeBlock-form.test.tsx",
-      "src/__tests__/timeline-endAt.test.ts",
-      "src/__tests__/form-endAt.test.ts",
       "entrypoints/newtab/App.timeBlock.test.tsx",
-      "src/__tests__/task-entry-popup.test.tsx",
-      "docs/ERD.md",
-      "docs/API_SPEC.md",
-      "docs/USER_FLOW.md",
       "docs/DESIGN.md",
-      "docs/ROADMAP_TIME_MANAGEMENT.md"
+      "docs/USER_FLOW.md",
+      ".context/progress.json",
+      "tasks/feature-timeline-drag-ghost-persist/phase-1-task-01.md"
     ],
     "modules": [
-      "task-domain",
       "timeline-ui",
-      "task-entry-popup",
-      "newtab-composition",
-      "as-built-docs"
+      "as-built-docs",
+      "spec-handoff"
     ]
   },
   "impact": {
     "direct": [
-      "R-25: right-click vùng trống → popup tạo (không tự điền giờ); kéo vùng trống start→end → popup tạo với khoảng điền sẵn",
-      "R-25: right-click hoặc left-click block → popup sửa; hold-left + move dời block; ngưỡng click ~4–5px",
-      "R-25: popup neo con trỏ, clamp/flip viewport; lưu xong hiện block ngay, đóng popup, không toast; Esc/click ngoài có dữ liệu → xác nhận",
-      "R-25: nút fullscreen-in-tab cho timeline (local state, snap 15′ không đổi), Esc ưu tiên popup rồi fullscreen",
-      "R-24/R-25: `endAt` wall-clock local là nguồn thật; `estimateMin` suy ra, qua nửa đêm +1440′; timeline vẽ 00:00–24:00",
-      "R-25: bỏ field nhập `dueAt` ở popup mới và TaskParchment; giữ dữ liệu/alarm/chip quá hạn của task cũ"
+      "R-25: ghost chữ nhật của khoảng kéo tạo tiếp tục hiện phía sau popup tạo tới khi popup đóng",
+      "R-25: mọi path đóng popup (×/Huỷ/Esc clean/dirty-confirm/lưu thành công) đều xoá ghost; lỗi quota popup giữ mở → ghost giữ theo",
+      "R-25: right-click tạo, phím n, popup sửa không tạo/hồi sinh ghost; focus mode không để ghost mồ côi"
     ],
     "dependents": [
-      "R-24 existing timeline drag/keyboard/overlap phải chạy lại trên canvas 00:00–24:00",
-      "R-09/R-11/R-15: task cũ có dueAt vẫn load, alarm và sort không đổi",
-      "R-19: motion chỉ transform/opacity, reduced-motion; popup 360×560 extension không thêm khối",
-      "R-20: focus mode phải chặn gesture tạo/sửa mới"
+      "R-24: kéo dời block, fullscreen-in-tab, snap 15′ và chồng lấn chỉ cảnh báo — retest luồng cũ",
+      "R-19: ghost không animation, pointer-events none, aria-hidden; popup 360×560 extension không đổi",
+      "R-16: StorageQuotaError vẫn giữ popup mở + inline error, không toast, không mutate snapshot"
     ],
     "regression": [
-      "Không thêm storage key/permission/network request; `endAt` nhúng trong key `t:<id>`",
-      "Không migration/xoá dữ liệu `dueAt` đã lưu",
-      "Chồng lấn vẫn chỉ cảnh báo, vẫn lưu, không tự sửa dữ liệu user",
-      "Verify đủ 4 lệnh: tsc / eslint / vitest / wxt build"
+      "Không thêm storage key/permission/network; không đổi endAt/estimateMin/alarm/dueAt",
+      "Verify đủ 4 lệnh: tsc 0 / eslint 0 / vitest 48 files 402 tests / wxt build 692.66 kB",
+      "Reviewer NORMAL round 2 PASS (FINAL), spec-validator round 2 PASS"
     ]
   },
   "acceptance": [
-    "New Tab không còn Composer dưới timeline; popup extension giữ ô nhập cũ",
-    "2 luồng tạo/sửa tách rõ; kéo tạo điền sẵn start→end; right-click đơn thuần không tự điền giờ",
-    "Popup đủ field trừ dueAt, neo con trỏ, clamp/flip ở 360×560 / 1024×768 / 1280×800",
-    "Bỏ input[type=time]; click <4–5px mở popup sửa; hold+move dời block; có lối bàn phím",
-    "endAt là nguồn thật, estimateMin suy đúng kể cả qua nửa đêm; timeline 00:00–24:00",
-    "Nút fullscreen kiểu YouTube chiếm toàn bộ không gian tab, bấm lại thu về, snap 15′ không đổi",
-    "Lưu xong block hiện ngay, popup đóng, không toast; chồng lấn vẫn lưu + cảnh báo",
-    "Focus mode vô hiệu hoá gesture; context menu Chrome bị chặn trong vùng timeline",
-    "Task cũ giữ dueAt + alarm + chip quá hạn; không xoá dữ liệu",
-    "Recurrence/habit bị ẩn/disable trong popup timeline (R-10 cần dueAt); task cũ giữ dữ liệu",
-    "Kéo tạo clamp tại 24:00, overnight chỉ nhập tay endAt < startAt",
-    "Lỗi StorageQuotaError: popup giữ mở + inline error, không toast, không mutate snapshot",
-    "Reviewer STRICT PASS, verify 4 lệnh PASS, eyeball 3 breakpoint có evidence",
-    "Residual: chưa eyeball Chrome thật 360/1024/1280 (không có binary); cần bấm thủ công trước release",
-    "Residual (test): chưa có assert Enter/Space mở popup sửa và assert endAt=\"00:00\" ở drag-create vượt biên — code có, chỉ thiếu test; follow-up ngoài scope docs-only"
+    "Kéo ≥5px → pointerup mở popup tạo → ghost hiện, top/height/nhãn giữ nguyên khoảng đã snap",
+    "Ghost giữ nguyên dù user sửa ô startAt/endAt trong popup (neo thị giác, không self-update)",
+    "Popup clean: Esc/click ngoài/nút × đóng ngay, ghost mất; popup dirty: hỏi xác nhận rồi mới mất",
+    "Save thành công ghost mất; quota error popup + ghost đều giữ mở",
+    "Right-click tạo, phím n, popup sửa: không có ghost",
+    "Residual: quota-error retention chưa có test (chrome stub chưa có quota hook) — đã verify bằng code TaskEntryPopup.tsx:136-138",
+    "Residual: chưa eyeball Chrome thật 360/1024/1280 (kế thừa FEAT-004) — cần bấm thủ công trước release"
   ],
-  "risk": "high"
+  "risk": "low"
 }

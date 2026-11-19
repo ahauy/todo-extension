@@ -354,7 +354,9 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    ô nhập cũ (R-19). Phím `n` giờ mở popup tạo việc trên timeline; `/` vẫn mở tìm kiếm.
 2. **Tạo việc:** right-click vùng trống/đường kẻ giờ/cột nhãn giờ → popup **tạo**, giờ để trống cho user
    tự nhập. Hoặc kéo trên vùng trống từ giờ bắt đầu tới giờ kết thúc → popup tạo với `startAt`/`endAt`
-   **điền sẵn theo khoảng vừa kéo** (snap 15′; kéo tới 24:00 mã hoá `endAt = "00:00"`). Menu chuột phải
+   **điền sẵn theo khoảng vừa kéo** (snap 15′; kéo tới 24:00 mã hoá `endAt = "00:00"`). Ghost chữ nhật
+   của khoảng vừa kéo **tiếp tục hiện phía sau popup tạo** cho tới khi popup đóng; nó là neo thị giác
+   của lúc kéo, không tự đổi theo giờ user sửa trong popup (FEAT-005). Menu chuột phải
    của Chrome bị chặn trong vùng timeline.
 3. **Sửa việc:** right-click **hoặc** left-click vào block (click dưới ngưỡng ~5px) → popup **sửa**;
    hold left + di chuột vẫn là dời block như R-24. Hai luồng tạo/sửa tách riêng. Right-click trong popup

@@ -320,7 +320,7 @@ describe('R-25 — New Tab: popup neo con trỏ, kéo tạo, fullscreen', () => 
     expect((dialog.querySelector('input[aria-label="Giờ kết thúc"]') as HTMLInputElement).value).toBe('02:00');
   });
 
-  it('kéo vùng trống hiện ghost chữ nhật mờ đúng vị trí + nhãn giờ, ẩn khi thả', async () => {
+  it('kéo vùng trống hiện ghost chữ nhật mờ, giữ nguyên khi popup TẠO mở', async () => {
     const container = await mount();
     const canvas = container.querySelector('.timeline-canvas')!;
 
@@ -338,6 +338,121 @@ describe('R-25 — New Tab: popup neo con trỏ, kéo tạo, fullscreen', () => 
     expect(ghost.className).toContain('timeline-create-ghost--label-bottom');
 
     await fire(canvas, 'pointerup', { clientY: 240 });
+    const behindPopup = container.querySelector(
+      '[data-testid="timeline-create-ghost"]'
+    ) as HTMLElement;
+    expect(container.querySelector('[role="dialog"]')?.getAttribute('data-mode')).toBe('create');
+    expect(behindPopup).not.toBeNull();
+    expect(behindPopup.style.top).toBe('120px');
+    expect(behindPopup.style.height).toBe('120px');
+    expect(behindPopup.textContent).toContain('01:00–02:00');
+  });
+
+  it('đóng popup clean (nút ×) → ghost biến mất', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).not.toBeNull();
+
+    await click(container.querySelector('button[aria-label="Đóng hộp việc"]')!);
+
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+  });
+
+  it('sửa giờ trong popup → ghost vẫn giữ khoảng lúc kéo (neo thị giác)', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    const start = dialog.querySelector('input[aria-label="Giờ bắt đầu"]') as HTMLInputElement;
+    const React = await import('react');
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    )!.set!;
+    await React.act(async () => {
+      setter.call(start, '03:00');
+      start.dispatchEvent(new Event('input', { bubbles: true }));
+      await flush();
+    });
+
+    const ghost = container.querySelector('[data-testid="timeline-create-ghost"]') as HTMLElement;
+    expect(ghost.textContent).toContain('01:00–02:00');
+    expect(ghost.textContent).not.toContain('03:00');
+    expect(ghost.style.top).toBe('120px');
+  });
+
+  it('popup dirty → Esc hỏi xác nhận, ghost còn; chọn Bỏ thì ghost mất', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+
+    const dialog = container.querySelector('[role="dialog"]') as HTMLElement;
+    const title = dialog.querySelector('input[aria-label="Tên việc cần ghi"]') as HTMLInputElement;
+    const React = await import('react');
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    )!.set!;
+    await React.act(async () => {
+      setter.call(title, 'Việc nháp');
+      title.dispatchEvent(new Event('input', { bubbles: true }));
+      await flush();
+    });
+
+    await keyOn(document.body, 'Escape');
+    expect(container.querySelector('[role="alertdialog"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).not.toBeNull();
+
+    const confirm = container.querySelector('[role="alertdialog"]') as HTMLElement;
+    const discard = [...confirm.querySelectorAll('button')].find(
+      (node) => node.textContent?.trim() === 'Bỏ'
+    )!;
+    await click(discard);
+
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+  });
+
+  it('right-click tạo và popup sửa không hồi sinh ghost', async () => {
+    stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
+    const container = await mount();
+
+    await fire(container.querySelector('.timeline-canvas')!, 'contextmenu', {
+      clientX: 140,
+      clientY: 220,
+    });
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+    await click(container.querySelector('button[aria-label="Đóng hộp việc"]')!);
+
+    const handle = blockFor(container, 'a').querySelector('button')!;
+    await pointer(handle, 'pointerdown', 100);
+    await pointer(handle, 'pointerup', 100);
+    expect(container.querySelector('[role="dialog"]')?.getAttribute('data-mode')).toBe('edit');
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+  });
+
+  it('popup sạch: Esc đóng ngay + ghost mất; phím n mở tạo không có ghost', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    await fire(canvas, 'pointerup', { clientY: 240 });
+
+    await keyOn(document.body, 'Escape');
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+
+    await keyOn(document.body, 'n');
+    expect(container.querySelector('[role="dialog"]')?.getAttribute('data-mode')).toBe('create');
     expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
   });
 
@@ -464,5 +579,6 @@ describe('R-25 — New Tab: popup neo con trỏ, kéo tạo, fullscreen', () => 
     expect(created!.startAt).toBe('01:00');
     expect(created!.endAt).toBe('02:00');
     expect(created!.estimateMin).toBe(60);
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
   });
 });

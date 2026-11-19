@@ -150,16 +150,26 @@ export default function Timeline({
     commit(task.id, snapStartAt(current + deltaMin));
   };
 
-  /** Popup mở = mọi gesture kéo phải kết thúc: không để ghost/ preview dính lại. */
-  const clearGestures = (): void => {
+  /**
+   * Popup mở = kết thúc gesture kéo khác. Ghost của kéo tạo được giữ lại khi popup
+   * mở trực tiếp từ kéo (R-25) — chỉ xoá khi popup đóng hoặc lúc mở popup bằng lối khác.
+   */
+  const clearGestures = (preserveCreateGhost = false): void => {
     setDrag(null);
     setTailDrag(null);
-    setCreateDrag(null);
+    if (!preserveCreateGhost) setCreateDrag(null);
   };
 
-  const openCreate = (anchor: PopupAnchor, prefill?: PopupState['prefill']): void => {
-    if (focusActive) return;
-    clearGestures();
+  const openCreate = (
+    anchor: PopupAnchor,
+    prefill?: PopupState['prefill'],
+    preserveCreateGhost = false
+  ): void => {
+    if (focusActive) {
+      setCreateDrag(null); // focus mode: không để ghost mồ côi khi popup bị chặn.
+      return;
+    }
+    clearGestures(preserveCreateGhost);
     setPopup({ mode: 'create', task: null, anchor, prefill });
   };
 
@@ -296,10 +306,12 @@ export default function Timeline({
   const onCanvasPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     if (createDrag?.moved && createDrag.startAt && createDrag.endAt) {
-      openCreate(anchorFrom(event.clientX, event.clientY), {
-        startAt: createDrag.startAt,
-        endAt: createDrag.endAt,
-      });
+      openCreate(
+        anchorFrom(event.clientX, event.clientY),
+        { startAt: createDrag.startAt, endAt: createDrag.endAt },
+        true // R-25: ghost ở lại phía sau popup tới khi popup đóng.
+      );
+      return;
     }
     setCreateDrag(null);
   };
@@ -519,7 +531,10 @@ export default function Timeline({
           keystoneCount={keystoneCount}
           onCreate={onCreate}
           onUpdate={onUpdateTask}
-          onClose={() => setPopup(null)}
+          onClose={() => {
+            setPopup(null);
+            setCreateDrag(null);
+          }}
         />
       )}
     </section>
