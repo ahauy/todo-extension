@@ -11,6 +11,7 @@ import Button from './ui/Button';
 import Field from './ui/Field';
 import TaskFields from './TaskFields';
 import { formErrors, type TaskForm, type TaskFormErrors } from '../lib/tasks/form';
+import { durationMinutes } from '../lib/tasks/timeBlock';
 import { TrashIcon } from './art/Icons';
 import { loadAll } from '../lib/storage/adapter';
 import { longDate } from '../lib/datetime';
@@ -47,9 +48,10 @@ export function toForm(task: Task): TaskForm {
     archived: task.archived ?? false,
     // R-23 — phải copy sổ thói quen, nếu thiếu thì Lưu sẽ xoá sổ (regression).
     habit: task.habit,
-    // R-24 — copy giờ/độ dài cùng lý do: thiếu thì Lưu sẽ xoá dữ liệu người dùng.
+    // R-24/R-25 — copy giờ/độ dài cùng lý do: thiếu thì Lưu sẽ xoá dữ liệu người dùng.
     startAt: task.startAt ?? null,
     estimateMin: task.estimateMin ?? null,
+    endAt: task.endAt ?? null,
   };
 }
 
@@ -115,6 +117,7 @@ export default function TaskParchment({
     problems.recurrence ??
     problems.dueAt ??
     problems.startAt ??
+    problems.endAt ??
     problems.estimateMin ??
     problems.tags ??
     problems.subtasks ??
@@ -131,9 +134,15 @@ export default function TaskParchment({
         ...form,
         title: form.title.trim(),
         note: form.note.trim(),
-        // R-24 — form dùng `null` cho "trống"; Task additive dùng undefined.
+        // R-24/R-25 — form dùng `null` cho "trống"; Task additive dùng undefined.
         startAt: form.startAt || undefined,
-        estimateMin: form.estimateMin ?? undefined,
+        endAt: form.endAt || undefined,
+        estimateMin:
+          (form.startAt && form.endAt
+            ? durationMinutes(form.startAt, form.endAt)
+            : undefined) ??
+          form.estimateMin ??
+          undefined,
       });
       setDirty(false);
       onSave();

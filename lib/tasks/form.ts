@@ -6,6 +6,8 @@ import type { Habit, Priority, RecurrenceRule, Subtask, Task } from './types';
 import {
   MAX_ESTIMATE_MIN,
   MIN_ESTIMATE_MIN,
+  durationMinutes,
+  isValidEndAt,
   isValidEstimateMin,
   isValidStartAt,
 } from './timeBlock';
@@ -34,6 +36,8 @@ export interface TaskForm {
   startAt?: string | null;
   /** R-24 — độ dài dự kiến (phút), 15–240; `null` = trống (mặc định 30 khi có giờ). */
   estimateMin?: number | null;
+  /** R-25 — giờ kết thúc `"HH:mm"`; có giá trị thì `estimateMin` là dẫn xuất. */
+  endAt?: string | null;
 }
 
 export type TaskDraft = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
@@ -52,6 +56,7 @@ export function emptyForm(subjectId: string | null): TaskForm {
     archived: false,
     startAt: null,
     estimateMin: null,
+    endAt: null,
   };
 }
 
@@ -74,6 +79,7 @@ export interface TaskFormErrors {
   dueAt?: string;
   startAt?: string;
   estimateMin?: string;
+  endAt?: string;
   tags?: string;
   subtasks?: string;
   note?: string;
@@ -96,9 +102,15 @@ export function formErrors(form: TaskForm, requireFutureDue = true): TaskFormErr
   if (form.startAt && !isValidStartAt(form.startAt)) {
     errors.startAt = 'Giờ bắt đầu phải trong khoảng 00:00–23:59.';
   }
+  if (form.endAt && !isValidEndAt(form.endAt)) {
+    errors.endAt = 'Giờ kết thúc phải trong khoảng 00:00–23:59.';
+  }
   if (form.estimateMin != null && !isValidEstimateMin(form.estimateMin)) {
     errors.estimateMin = `Độ dài dự kiến phải từ ${MIN_ESTIMATE_MIN} tới ${MAX_ESTIMATE_MIN} phút.`;
   }
+  // R-25 — `endAt` là nguồn thật: khoảng dẫn xuất có thể >240′ (qua nửa đêm,
+  // kể cả 1440′ khi end == start). HỢP LỆ, không chặn ở form; chỉ kẹp chiều cao
+  // block khi vẽ (R-24). `estimateMin` nhập tay vẫn validate 15–240 ở trên.
   if (form.tags.length > MAX_TAGS) {
     errors.tags = `Chỉ giữ tối đa ${MAX_TAGS} thẻ.`;
   } else if (form.tags.some((tag) => tag.length < 1 || tag.length > MAX_TAG_LEN)) {
@@ -119,6 +131,7 @@ export function formError(form: TaskForm, requireFutureDue = true): string | nul
     errors.recurrence ??
     errors.dueAt ??
     errors.startAt ??
+    errors.endAt ??
     errors.estimateMin ??
     errors.tags ??
     errors.subtasks ??
@@ -144,7 +157,15 @@ export function formToDraft(form: TaskForm): TaskDraft {
     // R-24 — chuỗi rỗng trong form ↔ không lưu field. KHÔNG tự ghi 30: mặc định
     // `estimateMin` là luật hiển thị của timeBlock, không phải dữ liệu người dùng.
     startAt: form.startAt || undefined,
-    estimateMin: form.estimateMin ?? undefined,
+    // R-25 — `endAt` là nguồn thật: ghi kèm `estimateMin` suy ra trong cùng 1 draft.
+    // Không có `endAt` → giữ nguyên `estimateMin` đã nhập/đã lưu (legacy).
+    endAt: form.endAt || undefined,
+    estimateMin:
+      (form.startAt && form.endAt
+        ? durationMinutes(form.startAt, form.endAt)
+        : undefined) ??
+      form.estimateMin ??
+      undefined,
     done: false,
   };
 }

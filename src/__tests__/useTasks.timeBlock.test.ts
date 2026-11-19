@@ -16,7 +16,7 @@ interface UseTasksApi {
   loading: boolean;
   setTaskTime: (
     id: string,
-    patch: { startAt?: string | null; estimateMin?: number | null }
+    patch: { startAt?: string | null; estimateMin?: number | null; endAt?: string | null }
   ) => Promise<void>;
 }
 
@@ -158,6 +158,45 @@ describe('useTasks.setTaskTime — R-24 additive update', () => {
     const saved = stub.store.get('t:t1') as Task;
     expect(saved.startAt).toBe('10:00');
     expect(saved.estimateMin).toBe(90);
+  });
+
+  it('R-25: patch endAt → ghi endAt + estimateMin dẫn xuất trong 1 put, field khác giữ nguyên', async () => {
+    const before = fixture({
+      startAt: '09:00',
+      estimateMin: 30,
+      plannedFor: '2026-11-19',
+      habit: { startedAt: '2026-01-01T00:00:00.000Z', doneDays: ['2026-11-18'] },
+    });
+    stub.seed({ 't:t1': before });
+    const setSpy = vi.spyOn(chrome.storage.sync, 'set');
+    await mountHook();
+    setSpy.mockClear();
+
+    await act(() => api.setTaskTime('t1', { endAt: '10:30' }));
+
+    const saved = stub.store.get('t:t1') as Task;
+    expect(saved.endAt).toBe('10:30');
+    expect(saved.estimateMin).toBe(90);
+    expect(saved.startAt).toBe('09:00');
+    expect(saved.dueAt).toBe(before.dueAt);
+    expect(saved.plannedFor).toBe(before.plannedFor);
+    expect(saved.habit).toEqual(before.habit);
+    expect(setSpy).toHaveBeenCalledTimes(1);
+    expect(Object.keys(setSpy.mock.calls[0][0] as object)).toEqual(['t:t1']);
+    expect(stub.store.size).toBe(1);
+  });
+
+  it('R-25: endAt null → xoá field, không tạo key mới', async () => {
+    stub.seed({ 't:t1': fixture({ startAt: '09:00', endAt: '10:00', estimateMin: 60 }) });
+    await mountHook();
+
+    await act(() => api.setTaskTime('t1', { endAt: null }));
+
+    const saved = stub.store.get('t:t1') as Task;
+    expect(saved.endAt).toBeUndefined();
+    expect(saved.startAt).toBe('09:00');
+    expect(typeof saved.estimateMin).toBe('number');
+    expect(stub.store.size).toBe(1);
   });
 
   it('put fail (quota) → snapshot cũ giữ nguyên (R-16)', async () => {

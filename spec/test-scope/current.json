@@ -1,44 +1,75 @@
 {
-  "specVersion": "1.7.0",
-  "scopeVersion": 33,
-  "generatedAt": "2026-11-18T17:14:00+07:00",
-  "trigger": "bug-fix",
-  "workItem": "bug-e2e-progress-motion",
-  "specRefs": ["R-19"],
+  "specVersion": "1.8.0",
+  "scopeVersion": 34,
+  "generatedAt": "2026-11-19T10:42:41+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature-timeline-task-entry",
+  "specRefs": ["R-24", "R-25"],
   "changed": {
     "files": [
-      "styles/signature.css",
-      "components/SettingsPanel.tsx",
-      "components/TaskScroll.tsx",
-      "docs/E2E-CHECKLIST.md",
-      "spec/updates/2026-11-18-e2e-progress-motion.md"
+      "SPECIFICATIONS.md",
+      "lib/tasks/types.ts",
+      "lib/tasks/form.ts",
+      "lib/tasks/timeBlock.ts",
+      "components/Timeline.tsx",
+      "components/TaskFields.tsx",
+      "components/TaskParchment.tsx",
+      "components/TaskEntryPopup.tsx",
+      "entrypoints/newtab/App.tsx",
+      "styles/board.css",
+      "src/__tests__/timeline-entry.test.tsx",
+      "docs/ERD.md",
+      "docs/API_SPEC.md",
+      "docs/USER_FLOW.md",
+      "docs/DESIGN.md",
+      "spec/updates/2026-11-19-timeline-task-entry.md",
+      "spec/CHANGELOG.md",
+      "spec/test-scope/current.json"
     ],
     "modules": [
-      "ui-motion",
-      "progress-ink",
-      "e2e-release-check"
+      "task-domain",
+      "timeline-ui",
+      "task-entry-popup",
+      "newtab-composition",
+      "as-built-docs"
     ]
   },
   "impact": {
     "direct": [
-      "Progress fill animate width → transform scaleX() với transform-origin:left: vẫn fill đúng 0–100%, giờ tuân R-19 (transform-only motion)",
-      "E2E release checklist 30/31 mục có evidence; 1 mục toolbar icon cần eyeball trong Chrome có giao diện"
+      "R-25: right-click vùng trống → popup tạo (không tự điền giờ); kéo vùng trống start→end → popup tạo với khoảng điền sẵn",
+      "R-25: right-click hoặc left-click block → popup sửa; hold-left + move dời block; ngưỡng click ~4–5px",
+      "R-25: popup neo con trỏ, clamp/flip viewport; lưu xong hiện block ngay, đóng popup, không toast; Esc/click ngoài có dữ liệu → xác nhận",
+      "R-25: nút fullscreen-in-tab cho timeline (local state, snap 15′ không đổi), Esc ưu tiên popup rồi fullscreen",
+      "R-24/R-25: `endAt` wall-clock local là nguồn thật; `estimateMin` suy ra, qua nửa đêm +1440′; timeline vẽ 00:00–24:00",
+      "R-25: bỏ field nhập `dueAt` ở popup mới và TaskParchment; giữ dữ liệu/alarm/chip quá hạn của task cũ"
     ],
     "dependents": [
-      "R-19 motion contract — grep transition/animation width|height|top|left trong styles → 0 hit",
-      "TaskScroll subtask progress + SettingsPanel sync-usage bar — 2 caller duy nhất của .progress-ink, đều đã đổi"
+      "R-24 existing timeline drag/keyboard/overlap phải chạy lại trên canvas 00:00–24:00",
+      "R-09/R-11/R-15: task cũ có dueAt vẫn load, alarm và sort không đổi",
+      "R-19: motion chỉ transform/opacity, reduced-motion; popup 360×560 extension không thêm khối",
+      "R-20: focus mode phải chặn gesture tạo/sửa mới"
     ],
     "regression": [
-      "Không đổi data contract/API/auth/schema; spec_version giữ 1.7.0",
-      "Không caller .progress-ink nào còn inline width; parent w-14/flex-1 + overflow:hidden giữ nguyên layout",
-      "Full suite 45 files / 367 tests PASS; tsc/eslint/wxt build clean (680.56 kB)"
+      "Không thêm storage key/permission/network request; `endAt` nhúng trong key `t:<id>`",
+      "Không migration/xoá dữ liệu `dueAt` đã lưu",
+      "Chồng lấn vẫn chỉ cảnh báo, vẫn lưu, không tự sửa dữ liệu user",
+      "Verify đủ 4 lệnh: tsc / eslint / vitest / wxt build"
     ]
   },
   "acceptance": [
-    "scaleX(0) collapse, scaleX(1) đầy, ratio ∈ [0,1] ở cả 2 caller (used/total clamp, done/length có guard)",
-    "Grep transition/animation width|height|top|left trong styles → 0 hit",
-    "Reviewer NORMAL PASS — 0 MEDIUM/HIGH; 1 LOW (sai số đếm docs 29/30) đã sửa thành 30/31 trước commit",
-    "Verify 4 lệnh PASS + E2E evidence report .context/review-reports/e2e-release-2026-11-18.md"
+    "New Tab không còn Composer dưới timeline; popup extension giữ ô nhập cũ",
+    "2 luồng tạo/sửa tách rõ; kéo tạo điền sẵn start→end; right-click đơn thuần không tự điền giờ",
+    "Popup đủ field trừ dueAt, neo con trỏ, clamp/flip ở 360×560 / 1024×768 / 1280×800",
+    "Bỏ input[type=time]; click <4–5px mở popup sửa; hold+move dời block; có lối bàn phím",
+    "endAt là nguồn thật, estimateMin suy đúng kể cả qua nửa đêm; timeline 00:00–24:00",
+    "Nút fullscreen kiểu YouTube chiếm toàn bộ không gian tab, bấm lại thu về, snap 15′ không đổi",
+    "Lưu xong block hiện ngay, popup đóng, không toast; chồng lấn vẫn lưu + cảnh báo",
+    "Focus mode vô hiệu hoá gesture; context menu Chrome bị chặn trong vùng timeline",
+    "Task cũ giữ dueAt + alarm + chip quá hạn; không xoá dữ liệu",
+    "Recurrence/habit bị ẩn/disable trong popup timeline (R-10 cần dueAt); task cũ giữ dữ liệu",
+    "Kéo tạo clamp tại 24:00, overnight chỉ nhập tay endAt < startAt",
+    "Lỗi StorageQuotaError: popup giữ mở + inline error, không toast, không mutate snapshot",
+    "Reviewer STRICT PASS, verify 4 lệnh PASS, eyeball 3 breakpoint có evidence"
   ],
-  "risk": "low"
+  "risk": "high"
 }

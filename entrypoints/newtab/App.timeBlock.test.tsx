@@ -112,7 +112,7 @@ describe('R-24 — timeline New Tab: phạm vi, thứ tự, nhóm cuối', () =>
     expect(popup.querySelector('[data-section="time-block"]')).toBeNull();
   });
 
-  it('khung 06:00–24:00, giờ trong khung lên trước; không giờ/00–05:59 xuống cuối, giữ nhãn', async () => {
+  it('R-25: khung 00:00–24:00, mọi giờ hợp lệ lên trước; chỉ việc không giờ xuống cuối', async () => {
     stub.seed({
       [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '09:00' }),
       [`${TASK_KEY_PREFIX}b`]: taskFixture('b', { startAt: '07:30' }),
@@ -122,18 +122,18 @@ describe('R-24 — timeline New Tab: phạm vi, thứ tự, nhóm cuối', () =>
 
     const container = await mount();
     const section = container.querySelector('[data-section="time-block"]')!;
-    expect(section.textContent).toContain('06:00');
+    expect(section.textContent).toContain('00:00');
     expect(section.textContent).toContain('24:00');
 
     const ids = [...section.querySelectorAll('[data-task-id]')].map(
       (node) => (node as HTMLElement).dataset.taskId
     );
-    // nhóm cuối: giờ ngoài khung (03:15) trước, việc không giờ xuống cuối cùng.
-    expect(ids).toEqual(['b', 'a', 'd', 'c']);
+    // R-25: 03:15 là giờ trong khung; chỉ việc không giờ ("c") ở nhóm cuối.
+    expect(ids).toEqual(['d', 'b', 'a', 'c']);
 
     const tail = section.querySelector('.timeline-tail')!;
     expect(tail.textContent).toContain('Chưa xếp giờ');
-    expect(tail.textContent).toContain('03:15'); // giữ nhãn giờ thật
+    expect(tail.textContent).not.toContain('03:15');
   });
 
   it('mỗi block có nhãn, nút focusable và live region cho screen reader', async () => {
@@ -173,13 +173,13 @@ describe('R-24 — đổi giờ: bàn phím, ô nhập, kéo', () => {
     expect(Object.keys(setSpy.mock.calls[0][0] as object)).toEqual([`${TASK_KEY_PREFIX}a`]);
   });
 
-  it('Home/End clamp về 06:00 / 23:45', async () => {
+  it('Home/End clamp về 00:00 / 23:45', async () => {
     stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
     const container = await mount();
     const handle = blockFor(container, 'a').querySelector('button')!;
 
     await keyOn(handle, 'Home');
-    expect(saved('a').startAt).toBe('06:00');
+    expect(saved('a').startAt).toBe('00:00');
     await keyOn(handle, 'End');
     expect(saved('a').startAt).toBe('23:45');
   });
@@ -223,7 +223,7 @@ describe('R-24 — đổi giờ: bàn phím, ô nhập, kéo', () => {
   });
 });
 
-describe('R-24 — biên: vượt 24:00, estimate ngoài range, kéo từ nhóm cuối', () => {
+describe('R-24/R-25 — biên: vượt 24:00, estimate ngoài range, kéo giờ sớm', () => {
   it('23:00 + 240′: vẽ tới 24:00 rồi dừng, hiện nhãn "Vượt khung", không sửa dữ liệu', async () => {
     stub.seed({ [`${TASK_KEY_PREFIX}g`]: taskFixture('g', { startAt: '23:00', estimateMin: 240 }) });
     const container = await mount();
@@ -242,7 +242,7 @@ describe('R-24 — biên: vượt 24:00, estimate ngoài range, kéo từ nhóm 
     expect(saved('h').estimateMin).toBe(300);
   });
 
-  it('kéo việc 03:00 từ nhóm cuối vào khung: gán startAt snap 15′, chỉ đổi giờ', async () => {
+  it('kéo block 03:00 (đã nằm trong khung R-25) tới 11:00: snap 15′, chỉ đổi giờ', async () => {
     const before = taskFixture('c', {
       startAt: '03:00',
       plannedFor: '2026-11-19',
@@ -250,16 +250,14 @@ describe('R-24 — biên: vượt 24:00, estimate ngoài range, kéo từ nhóm 
     });
     stub.seed({ [`${TASK_KEY_PREFIX}c`]: before });
     const container = await mount();
-    const handle = container.querySelector(
-      '.timeline-tail-item[data-task-id="c"] .timeline-tail-handle'
-    )!;
+    const handle = blockFor(container, 'c').querySelector('button')!;
     const alarmBefore = stub.alarms.get('due:c');
     const setSpy = vi.spyOn(chrome.storage.sync, 'set');
     setSpy.mockClear();
 
     await pointer(handle, 'pointerdown', 100);
-    await pointer(handle, 'pointermove', 600); // 06:00 + 300/2′ = 11:00
-    await pointer(handle, 'pointerup', 600);
+    await pointer(handle, 'pointermove', 1060); // +960px / 2px mỗi phút = +480′ → 11:00
+    await pointer(handle, 'pointerup', 1060);
     await flush();
 
     expect(saved('c').startAt).toBe('11:00');

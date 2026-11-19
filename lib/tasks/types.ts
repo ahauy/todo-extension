@@ -100,8 +100,15 @@ export interface Task {
    * Task cũ thiếu field → coi như chưa xếp giờ.
    */
   startAt?: string;
-  /** R-24 — độ dài block dự kiến (phút), hợp lệ 15–240. Trống = 30 khi có `startAt`. */
+  /** R-24/R-25 — độ dài block dự kiến (phút), hợp lệ 15–240. Trống = 30 khi có `startAt`. */
   estimateMin?: number;
+  /**
+   * R-25 — giờ **kết thúc** wall-clock local `"HH:mm"` (00:00–23:59), nhúng trong
+   * cùng key `t:<id>`. Là NGUỒN THẬT của khoảng thời gian: khi có giá trị,
+   * `estimateMin` được suy ra (`end − start`, qua nửa đêm +1440′). Task cũ thiếu
+   * field vẫn load bình thường và tiếp tục dùng `estimateMin` đã lưu.
+   */
+  endAt?: string;
   createdAt: string;    // ISO 8601 UTC có `Z` (instant) — khác nhóm với dueAt
   updatedAt: string;    // ISO 8601 UTC có `Z` (instant)
 }

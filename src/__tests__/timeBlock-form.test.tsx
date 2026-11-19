@@ -61,14 +61,18 @@ afterEach(() => {
 });
 
 describe('R-24 — toForm / formToDraft giữ dữ liệu giờ', () => {
-  it('toForm copy startAt/estimateMin; task cũ thiếu field → null', () => {
-    expect(toForm(fixture({ startAt: '08:30', estimateMin: 45 }))).toMatchObject({
+  it('toForm copy startAt/estimateMin/endAt; task cũ thiếu field → null', () => {
+    expect(
+      toForm(fixture({ startAt: '08:30', estimateMin: 45, endAt: '09:15' }))
+    ).toMatchObject({
       startAt: '08:30',
       estimateMin: 45,
+      endAt: '09:15',
     });
     const old = toForm(fixture());
     expect(old.startAt).toBeNull();
     expect(old.estimateMin).toBeNull();
+    expect(old.endAt).toBeNull();
   });
 
   it('formToDraft giữ nguyên giá trị; trống → undefined, KHÔNG tự ghi 30', () => {

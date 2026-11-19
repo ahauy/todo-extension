@@ -45,6 +45,7 @@ import {
 import { nextFutureDue } from '../lib/tasks/recurrence';
 import { habitOccurrenceDay, withHabitDay } from '../lib/tasks/habit';
 import type { TaskTimePatch } from '../lib/tasks/timeBlock';
+import { durationMinutes } from '../lib/tasks/timeBlock';
 import { isRecurringDoneToday } from '../lib/tasks/query';
 import { DAY_PLAN_KEY, type DayPlan, type Task } from '../lib/tasks/types';
 
@@ -254,10 +255,12 @@ export function useTasks() {
   );
 
   /**
-   * R-24 — chỉ đổi giờ bắt đầu / độ dài block, đi qua MỘT `put(task)`.
-   * Không đụng `plannedFor`, `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` hay alarm
-   * `due:<id>` (chép nguyên task rồi sửa 2 field). `put` lỗi (quota) → throw TRƯỚC
-   * `setSnapshot` nên snapshot cũ giữ nguyên (R-16).
+   * R-24/R-25 — đổi giờ bắt đầu / kết thúc / độ dài block, đi qua MỘT `put(task)`.
+   * `endAt` là nguồn thật: khi có `startAt` + `endAt`, `estimateMin` được suy ra
+   * trong cùng lần ghi (không lưu 2 nguồn lệch nhau). Không đụng `plannedFor`,
+   * `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` hay alarm `due:<id>` (chép nguyên task
+   * rồi sửa field). `put` lỗi (quota) → throw TRƯỚC `setSnapshot` nên snapshot cũ giữ
+   * nguyên (R-16).
    */
   const setTaskTime = useCallback(
     async (id: string, patch: TaskTimePatch) => {
@@ -268,9 +271,18 @@ export function useTasks() {
         if (patch.startAt) next.startAt = patch.startAt;
         else delete next.startAt;
       }
+      if (patch.endAt !== undefined) {
+        if (patch.endAt) next.endAt = patch.endAt;
+        else delete next.endAt;
+      }
       if (patch.estimateMin !== undefined) {
         if (typeof patch.estimateMin === 'number') next.estimateMin = patch.estimateMin;
         else delete next.estimateMin;
+      }
+      // `endAt` wins: derive estimateMin vào CHÍNH task được put (1 put duy nhất).
+      if (next.startAt && next.endAt) {
+        const derived = durationMinutes(next.startAt, next.endAt);
+        if (derived !== undefined) next.estimateMin = derived;
       }
       await put(next);
       setSnapshot(snapshotStore.tasks.map((item) => (item.id === id ? next : item)));

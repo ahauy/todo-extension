@@ -1,6 +1,6 @@
 ---
-spec_version: 1.7.0
-updated_at: 2026-11-18
+spec_version: 1.8.0
+updated_at: 2026-11-19
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -43,8 +43,10 @@ Người dùng nhập title (bắt buộc, trim, 1–200 ký tự) và submit. H
 Title rỗng/toàn khoảng trắng → không tạo, hiện lỗi inline.
 
 **R-02 — Sửa task**
-Sửa được title, note (≤ 1000 ký tự), priority, tags, subtasks, due date + giờ, recurrence.
-Mỗi lần sửa cập nhật `updatedAt` và ghi lại đúng key `t:<id>`.
+Sửa được title, note (≤ 1000 ký tự), priority, tags, subtasks, recurrence, và (từ R-25) `startAt`/`endAt`.
+Từ R-25 **không còn field nhập "due date + giờ" ở bất kỳ màn hình nào** (xem R-25); `dueAt` đã lưu
+của task cũ vẫn đọc/hiển thị và vẫn được hệ thống dùng cho alarm/quá hạn (R-09/R-11) nhưng **không còn
+là field có thể sửa**. Mỗi lần sửa cập nhật `updatedAt` và ghi lại đúng key `t:<id>`.
 
 **R-03 — Xoá task**
 Xoá task khỏi storage và xoá alarm tương ứng (`chrome.alarms.clear('due:<id>')`).
@@ -266,50 +268,92 @@ chuỗi học chung (R-20); không thêm permission (R-17), không network reque
 
 ### Domain: Thời khoá biểu trong ngày (Time blocking — Gói E)
 
-**R-24 — Time blocking trên bảng Học Đường (Gói E)**
+**R-24 — Time blocking trên bảng Học Đường (Gói E; cập nhật bởi R-25)**
 `Task` có hai field additive tuỳ chọn, nhúng trong key `t:<id>` hiện có (**không** key storage mới,
 không permission/network mới — R-17):
 
 - `startAt?: string` — giờ bắt đầu dạng `"HH:mm"`, **wall-clock giờ địa phương** (00:00–23:59),
   cùng ngữ nghĩa múi giờ/DST với `dueAt` (R-09) — **không** phải instant UTC. Validate 00:00–23:59.
 - `estimateMin?: number` — độ dài block dự kiến tính bằng phút, **15–240**; mặc định **30** khi có
-  `startAt` mà `estimateMin` trống. Giá trị ngoài khoảng 15–240 là không hợp lệ theo acceptance.
-  Cách báo lỗi cụ thể trên form do builder chọn trong phạm vi hộp sửa việc đã có.
+  `startAt` mà không có `endAt` (R-25) lẫn `estimateMin`. Từ R-25, khi `endAt` có giá trị thì
+  `estimateMin` là **giá trị dẫn xuất** = `endAt − startAt` (khoảng qua nửa đêm cộng 1440 phút),
+  không lưu 2 nguồn độc lập. Task cũ chỉ có `estimateMin` vẫn load và dùng bình thường.
 
 Task cũ thiếu một hoặc cả hai field vẫn load bình thường. `plannedFor` (ngày dự định LÀM — R-22) và
 `dueAt` (hạn chót — R-09) **giữ nguyên nghĩa**: `startAt` chỉ là giờ trong ngày, **không** tự tạo/xoá
 alarm `due:<id>`, không đổi trạng thái quá hạn (R-09), không đổi sort deterministic (R-15), không đổi
 then chốt/ếch/archive (R-21), focus (R-20), kế hoạch tối (R-22) hay streak thói quen (R-23).
 
-Bảng Học Đường (**New Tab only**) có timeline dọc khung **06:00–24:00**: việc có `startAt` hợp lệ
-hiện đúng thứ tự giờ, chiều cao block suy từ `estimateMin`; việc **không** có `startAt` nằm ở nhóm
-cuối (không mất việc nào); việc có `startAt` ngoài khung (00:00–05:59) cũng nằm ở nhóm cuối nhưng
-**giữ nhãn giờ thật** để không làm mất thông tin.
+Bảng Học Đường (**New Tab only**) có timeline dọc phủ **00:00–24:00** (cập nhật từ 06:00–24:00 bởi
+R-25): việc có `startAt` hợp lệ hiện đúng thứ tự giờ, chiều cao block suy từ `endAt`/`estimateMin`;
+việc **không** có `startAt` nằm ở nhóm cuối (không mất việc nào). Không còn khái niệm "giờ ngoài
+khung 06:00–24:00" — mọi giờ hợp lệ 00:00–23:59 đều nằm trên canvas.
 
-Kéo block đổi **duy nhất** `startAt`, snap bước **15 phút**, giới hạn trong khung 06:00–24:00; không
-đổi `plannedFor`, `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` hay alarm. Phải có lối đổi giờ tương
-đương bằng **bàn phím/ô nhập** (dùng được không cần chuột) và có test cho lối này. Khi hai block
+Kéo block đổi **duy nhất** `startAt`, snap bước **15 phút**, giới hạn trong canvas **00:00–23:45**;
+không đổi `plannedFor`, `dueAt`, `lastDoneAt`/`prevDueAt`, `habit` hay alarm. Phải có lối đổi giờ
+tương đương bằng **bàn phím/popup** (dùng được không cần chuột) và có test cho lối này. Khi hai block
 chồng lấn thời gian: hiện **cảnh báo trực quan trên các block liên quan**, vẫn lưu bình thường,
 **không** tự sửa/dời/xoá dữ liệu người dùng (nguyên tắc "chỉ cảnh báo" như A1 của R-21).
 
-Popup 360×560 **không thêm khối UI mới** của gói này (R-19): chỉ hai ô trong hộp sửa việc đã có;
-mọi thao tác timeline/kéo-thả nằm ở New Tab. Motion của block chỉ phản hồi thao tác thật và tuân
-`prefers-reduced-motion: reduce` (không chạy animation kéo khi bật). Không thêm thư viện animation
-hay network request; không đụng đường render của popup để giữ nguyên ngân sách R-18.
+Popup 360×560 **không thêm khối UI mới** của gói này (R-19); mọi thao tác timeline/kéo-thả nằm ở
+New Tab. Motion của block chỉ phản hồi thao tác thật và tuân `prefers-reduced-motion: reduce`
+(không chạy animation kéo khi bật). Không thêm thư viện animation hay network request; không đụng
+đường render của popup để giữ nguyên ngân sách R-18.
 
 **Biên (edge case) — quy tắc bắt buộc:**
 
-- `estimateMin` chỉ có nghĩa khi `startAt` hợp lệ. Có `estimateMin` mà **không** có `startAt`: giữ
+- `estimateMin` chỉ có nghĩa khi có `startAt`. Có `estimateMin` mà **không** có `startAt`: giữ
   nguyên giá trị đã lưu (không xoá), không hiện block trên timeline, không cảnh báo — việc nằm ở nhóm
   "không giờ".
-- Block vượt mốc 24:00 (vd `startAt 23:00` + `estimateMin 240`): vẽ tới **24:00** rồi dừng, gắn nhãn
-  "vượt khung"; khi phát hiện chồng lấn chỉ tính phần giao trong khung 06:00–24:00; **không** tự cắt
+- Block vượt mốc 24:00 (vd `startAt 23:00` + 240 phút): vẽ tới **24:00** rồi dừng, gắn nhãn
+  "vượt khung"; khi phát hiện chồng lấn chỉ tính phần giao trong khung 00:00–24:00; **không** tự cắt
   `estimateMin` của người dùng.
-- Kéo một việc đang ở nhóm cuối (không giờ hoặc `startAt` 00:00–05:59) thả vào khung: gán `startAt`
-  theo vị trí thả đã snap 15′ và clamp 06:00–24:00; không đổi `plannedFor`.
-- Giá trị `estimateMin` ngoài 15–240 đã có trong dữ liệu cũ: hiển thị theo giá trị đã lưu nhưng kẹp
-  chiều cao block trong khoảng 15–240 phút để không phá layout; form mở ra báo lỗi cần sửa; **không**
-  tự ghi đè cho tới khi người dùng lưu.
+- Kéo việc đang ở nhóm "không giờ" thả vào canvas: gán `startAt` theo vị trí thả đã snap 15′
+  (trong 00:00–23:45); không đổi `plannedFor`.
+- `endAt` (R-25) sớm hơn hoặc bằng `startAt` được hiểu là khoảng **qua nửa đêm**: cộng 1440 phút để
+  tính độ dài; block vẫn vẽ từ `startAt` tới 24:00 rồi dừng, có nhãn "vượt khung".
+- Giá trị `estimateMin` **nhập tay** ngoài 15–240 đã có trong dữ liệu cũ: hiển thị theo giá trị đã lưu
+  nhưng kẹp chiều cao block trong khoảng 15–240 phút để không phá layout; form mở ra báo lỗi cần sửa;
+  **không** tự ghi đè cho tới khi người dùng lưu. Ngược lại, độ dài **dẫn xuất từ `endAt`** (kể cả
+  qua nửa đêm, tới 1440 phút) là hợp lệ — form không chặn, vẫn chỉ kẹp chiều cao block khi vẽ.
+
+**R-25 — Tạo/sửa việc trực tiếp trên timeline (New Tab only)**
+Bỏ `Composer` dưới timeline trên New Tab; popup extension 360×560 giữ nguyên ô nhập cũ (R-19).
+Mọi việc mới trên New Tab được tạo từ timeline, với 2 luồng tách rõ ràng:
+
+- **Tạo:** right-click vùng trống canvas → popup tạo, **không tự điền giờ** (user tự nhập); hoặc
+  **kéo trên vùng trống** từ giờ bắt đầu tới giờ kết thúc → popup tạo với `startAt`/`endAt` **điền
+  sẵn theo khoảng vừa kéo**, user vẫn chỉnh được. Right-click được cả cột nhãn giờ và vùng ngoài
+  canvas; context menu của Chrome bị chặn trong vùng timeline. Kéo không wrap qua 24:00: giờ kết thúc
+  từ kéo bị chặn tại **24:00** và mã hoá là `endAt = "00:00"` (quy tắc +1440′ ở R-24 áp dụng);
+  khoảng qua nửa đêm khác chỉ nhập **thủ công** trong popup (`endAt < startAt`).
+- **Sửa:** right-click **hoặc** left-click vào block → popup sửa (cùng bộ field với popup tạo).
+  Click thường (dưới ngưỡng ~4–5px) mở popup; **hold left + di chuột** dời block như R-24.
+- Bỏ ô nhập giờ `input[type=time]` trong block. Lối đổi giờ bằng bàn phím (R-24) vẫn có, và bổ sung
+  lối mở popup tạo/sửa bằng bàn phím để không phụ thuộc chuột.
+- Popup đặt **sát con trỏ**, tự clamp/flip theo kích thước màn hình. Chứa đủ field của `TaskFields`
+  **trừ hạn chót `dueAt`**, cộng 2 ô `startAt`/`endAt`. Vì R-10 yêu cầu `dueAt` cho lặp lại ≠ `none`,
+  popup timeline **ẩn/disable** nhóm "lặp lại" và "theo dõi thói quen" (phụ thuộc lặp lại) — task cũ đã
+  có lặp/thói quen vẫn giữ nguyên dữ liệu khi sửa. Lưu hợp lệ → block hiện ngay, popup đóng,
+  **không toast**; validation nằm trong popup. Lỗi `StorageQuotaError` (R-16): popup **giữ mở**, hiện
+  lỗi inline, **không toast**, không đóng, không mutate snapshot trong bộ nhớ. Esc/click ngoài khi đã
+  nhập liệu → **hỏi xác nhận**; khi trống → huỷ ngay. Thứ tự ưu tiên Esc: popup → fullscreen → search/menu
+  hiện có.
+- Nút **phóng to time sheet** kiểu fullscreen YouTube: timeline chiếm toàn bộ không gian hiện có của
+  tab, bấm lại để thu về. Là **local state**, không lưu storage, **không** phải scale `PX_PER_MIN`;
+  snap 15′ không đổi. Transition mở/đóng popup và fullscreen tuân `prefers-reduced-motion: reduce` (R-19).
+- Đang focus/single-handling (R-20) → các gesture **mới** (right-click tạo/sửa, kéo tạo, click mở popup)
+  bị **vô hiệu hoá** (bỏ qua im lặng, overlay focus vẫn hiển thị); kéo dời block R-24 hiện có giữ nguyên.
+- `endAt?: string` — giờ kết thúc `"HH:mm"`, wall-clock local, validate 00:00–23:59 như `startAt`, nhúng
+  trong key `t:<id>` hiện có; là **nguồn thật**, `estimateMin` suy ra (xem R-24). Ghi time patch mở rộng
+  `{startAt, endAt, estimateMin}` đi qua **đúng 1 `put`**, không `syncAlarms`; khi có `endAt` thì ghi cả
+  `estimateMin` suy ra trong cùng lần ghi để không lệch nguồn. Luôn **copy task đã lưu rồi patch** để
+  `dueAt`/`archived`/`habit`/`plannedFor` không bị rơi khi sửa. Không thêm key storage, permission hay
+  network (R-17).
+
+`dueAt` (R-09) **không còn field nhập** ở popup mới lẫn `TaskParchment`; nhưng giá trị `dueAt` đã lưu,
+alarm `due:<id>` và chip quá hạn của task cũ **vẫn giữ nguyên** — không migration, không xoá dữ liệu,
+không đổi R-11 hay sort R-15. Việc mới tạo từ timeline không có hạn chót.
 
 ## API Endpoints
 

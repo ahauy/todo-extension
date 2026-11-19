@@ -96,7 +96,7 @@ describe('normalizeEstimateMin / isValidEstimateMin', () => {
   });
 });
 
-describe('timelineOrder — selector thuần cho timeline 06:00–24:00', () => {
+describe('timelineOrder — selector thuần cho timeline 00:00–24:00 (R-25)', () => {
   it('giờ trong khung tăng dần, tie-breaker theo id', () => {
     const tasks = [
       fixture('b', { startAt: '09:00' }),
@@ -106,7 +106,7 @@ describe('timelineOrder — selector thuần cho timeline 06:00–24:00', () => 
     expect(timelineOrder(tasks).map((entry) => entry.task.id)).toEqual(['a', 'c', 'b']);
   });
 
-  it('giờ ngoài khung 00:00–05:59 và việc không giờ → nhóm cuối, giữ nhãn giờ', () => {
+  it('R-25: giờ 00:00–05:59 cũng nằm trong khung; chỉ việc không giờ vào nhóm cuối', () => {
     const tasks = [
       fixture('none'),
       fixture('night', { startAt: '03:15' }),
@@ -115,13 +115,13 @@ describe('timelineOrder — selector thuần cho timeline 06:00–24:00', () => 
     ];
     const entries = timelineOrder(tasks);
     expect(entries.map((entry) => entry.task.id)).toEqual([
-      'day',
       'night2',
       'night',
+      'day',
       'none',
     ]);
-    expect(entries[1].outsideWindow).toBe(true);
-    expect(entries[1].startMinutes).toBe(60);
+    expect(entries.every((entry) => !entry.outsideWindow)).toBe(true);
+    expect(entries[0].startMinutes).toBe(60);
     expect(entries[3].startMinutes).toBeNull();
     expect(entries[3].outsideWindow).toBe(false);
   });
@@ -178,14 +178,13 @@ describe('detectOverlaps — cảnh báo chồng lấn, nửa khoảng [start, e
     });
   });
 
-  it('block không giờ / ngoài khung / bị cắt rỗng không tạo chồng', () => {
+  it('block không giờ / bị cắt rỗng không tạo chồng (R-25: mọi giờ hợp lệ đều trong khung)', () => {
     const tasks = [
       fixture('none'),
       fixture('night', { startAt: '03:00', estimateMin: 30 }),
       fixture('edge', { startAt: '05:50', estimateMin: 30 }),
       fixture('day', { startAt: '10:00', estimateMin: 30 }),
     ];
-    // 05:50–06:20 cắt vào khung → 06:00–06:20, không chồng 10:00.
     expect(detectOverlaps(tasks)).toEqual({ ids: [], pairs: [] });
   });
 
@@ -203,22 +202,22 @@ describe('detectOverlaps — cảnh báo chồng lấn, nửa khoảng [start, e
   });
 });
 
-describe('snapStartAt — bước 15′ + clamp 06:00–23:45', () => {
+describe('snapStartAt — bước 15′ + clamp 00:00–23:45 (R-25)', () => {
   it('làm tròn tới bước 15 phút gần nhất', () => {
     expect(snapStartAt(7 * 60 + 7)).toBe('07:00');
     expect(snapStartAt(7 * 60 + 8)).toBe('07:15');
     expect(snapStartAt(7 * 60 + 53)).toBe('08:00');
   });
 
-  it('clamp dưới 06:00 và trên 23:45 (24:00 không phải giờ bắt đầu)', () => {
-    expect(TIMELINE_START_MIN).toBe(360);
-    expect(snapStartAt(0)).toBe('06:00');
+  it('clamp dưới 00:00 và trên 23:45 (24:00 không phải giờ bắt đầu)', () => {
+    expect(TIMELINE_START_MIN).toBe(0);
+    expect(snapStartAt(0)).toBe('00:00');
     expect(snapStartAt(23 * 60 + 59)).toBe('23:45');
     expect(snapStartAt(48 * 60)).toBe('23:45');
   });
 
-  it('input hỏng → 06:00, output luôn hợp lệ', () => {
-    expect(snapStartAt(Number.NaN)).toBe('06:00');
+  it('input hỏng → 00:00, output luôn hợp lệ', () => {
+    expect(snapStartAt(Number.NaN)).toBe('00:00');
     for (const value of [0, 435, 1425, 9999]) {
       expect(isValidStartAt(snapStartAt(value))).toBe(true);
     }
