@@ -320,6 +320,54 @@ describe('R-25 — New Tab: popup neo con trỏ, kéo tạo, fullscreen', () => 
     expect((dialog.querySelector('input[aria-label="Giờ kết thúc"]') as HTMLInputElement).value).toBe('02:00');
   });
 
+  it('kéo vùng trống hiện ghost chữ nhật mờ đúng vị trí + nhãn giờ, ẩn khi thả', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+
+    await fire(canvas, 'pointerdown', { clientY: 120 });
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+
+    await fire(canvas, 'pointermove', { clientY: 240 });
+    const ghost = container.querySelector('[data-testid="timeline-create-ghost"]') as HTMLElement;
+    expect(ghost).not.toBeNull();
+    expect(ghost.style.top).toBe('120px');
+    expect(ghost.style.height).toBe('120px');
+    expect(ghost.textContent).toContain('01:00–02:00');
+    expect(ghost.textContent).toContain('1h');
+    expect(ghost.getAttribute('aria-hidden')).toBe('true');
+    expect(ghost.className).toContain('timeline-create-ghost--label-bottom');
+
+    await fire(canvas, 'pointerup', { clientY: 240 });
+    expect(container.querySelector('[data-testid="timeline-create-ghost"]')).toBeNull();
+  });
+
+  it('kéo ngược lên: ghost vẫn tính từ mốc sớm hơn, nhãn ở cạnh trên', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+
+    await fire(canvas, 'pointerdown', { clientY: 240 });
+    await fire(canvas, 'pointermove', { clientY: 120 });
+
+    const ghost = container.querySelector('[data-testid="timeline-create-ghost"]') as HTMLElement;
+    expect(ghost.style.top).toBe('120px');
+    expect(ghost.style.height).toBe('120px');
+    expect(ghost.textContent).toContain('01:00–02:00');
+    expect(ghost.className).not.toContain('timeline-create-ghost--label-bottom');
+  });
+
+  it('kéo tới 24:00: ghost kết thúc 00:00 và cao tối thiểu 15′', async () => {
+    const container = await mount();
+    const canvas = container.querySelector('.timeline-canvas')!;
+
+    await fire(canvas, 'pointerdown', { clientY: 2860 }); // 23:45
+    await fire(canvas, 'pointermove', { clientY: 3000 });
+
+    const ghost = container.querySelector('[data-testid="timeline-create-ghost"]') as HTMLElement;
+    expect(ghost.style.top).toBe('2850px');
+    expect(ghost.style.height).toBe('30px');
+    expect(ghost.textContent).toContain('23:45–00:00');
+  });
+
   it('right-click TRÊN BLOCK mở popup SỬA (không phải tạo)', async () => {
     stub.seed({ [`${TASK_KEY_PREFIX}a`]: taskFixture('a', { startAt: '08:00' }) });
     const container = await mount();

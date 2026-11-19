@@ -83,6 +83,15 @@ function displayEstimateMin(estimateMin: number): number {
   return Math.min(Math.max(estimateMin, MIN_ESTIMATE_MIN), MAX_ESTIMATE_MIN);
 }
 
+/** Nhãn độ dài gọn cho ghost kéo tạo: 45′ · 1h · 1h30. */
+function durationLabel(minutes: number): string {
+  const safe = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(safe / 60);
+  const rest = safe % 60;
+  if (hours === 0) return `${rest}′`;
+  return rest === 0 ? `${hours}h` : `${hours}h${rest}`;
+}
+
 function hourTop(hour: number): number {
   return (hour * 60 - TIMELINE_START_MIN) * PX_PER_MIN;
 }
@@ -389,6 +398,34 @@ export default function Timeline({
     );
   };
 
+  /**
+   * R-25 — ghost chữ nhật mờ bám vùng đang kéo: top/cao suy từ start→end đã snap,
+   * nhãn giờ + độ dài đặt ở cạnh đang di chuyển để luôn nằm dưới con trỏ.
+   */
+  const createGhost = (() => {
+    if (!createDrag?.moved || !createDrag.startAt || !createDrag.endAt) return null;
+    const startMin = parseStartAtMinutes(createDrag.startAt);
+    const rawEndMin = parseStartAtMinutes(createDrag.endAt);
+    if (startMin === null || rawEndMin === null) return null;
+    const endMin = rawEndMin <= startMin ? TIMELINE_END_MIN : rawEndMin;
+    const height = Math.max(SNAP_STEP_MIN, endMin - startMin) * PX_PER_MIN;
+    const labelAtBottom = createDrag.lastY >= createDrag.startY;
+    return (
+      <div
+        className={`timeline-create-ghost${
+          labelAtBottom ? ' timeline-create-ghost--label-bottom' : ''
+        }`}
+        data-testid="timeline-create-ghost"
+        aria-hidden="true"
+        style={{ top: `${blockTop(startMin)}px`, height: `${height}px` }}
+      >
+        <span className="timeline-create-ghost-label">
+          {createDrag.startAt}–{createDrag.endAt} · {durationLabel(endMin - startMin)}
+        </span>
+      </div>
+    );
+  })();
+
   return (
     <section
       ref={sectionRef}
@@ -434,11 +471,6 @@ export default function Timeline({
           <div
             className="timeline-canvas"
             ref={canvasRef}
-            data-create-preview={
-              createDrag?.moved && createDrag.startAt
-                ? `${createDrag.startAt}–${createDrag.endAt}`
-                : ''
-            }
             onPointerDown={onCanvasPointerDown}
             onPointerMove={onCanvasPointerMove}
             onPointerUp={onCanvasPointerUp}
@@ -451,6 +483,7 @@ export default function Timeline({
                 style={{ top: `${hourTop(hour)}px` }}
               />
             ))}
+            {createGhost}
             {head.map(renderBlock)}
           </div>
         </div>

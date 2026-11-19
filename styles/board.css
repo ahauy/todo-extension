@@ -813,6 +813,34 @@ article[data-focus-active='true'] {
   height: 100%;
   min-width: 0;
 }
+/* R-25 — ghost kéo tạo: chữ nhật mờ bám vùng start→end, nhãn giờ ở cạnh đang kéo. */
+.timeline-create-ghost {
+  position: absolute;
+  inset-inline: 6px;
+  z-index: 2;
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius-xs);
+  background: var(--primary-wash);
+  background: color-mix(in srgb, var(--primary-wash) 68%, transparent);
+  pointer-events: none;
+}
+.timeline-create-ghost-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-xs);
+  background: var(--surface-paper);
+  color: var(--primary-deep);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.timeline-create-ghost--label-bottom .timeline-create-ghost-label {
+  top: auto;
+  bottom: 2px;
+}
 .timeline-hour-line {
   position: absolute;
   inset-inline: 0;
@@ -966,21 +994,6 @@ article[data-focus-active='true'] {
 }
 .timeline-head-actions {
   margin-left: auto;
-}
-.timeline-canvas[data-create-preview]:not([data-create-preview=''])::after {
-  position: absolute;
-  top: 4px;
-  left: 8px;
-  z-index: 3;
-  padding: 2px 6px;
-  border: 1px dashed var(--primary);
-  border-radius: var(--radius-xs);
-  background: var(--surface-paper);
-  color: var(--primary-deep);
-  content: attr(data-create-preview);
-  font-size: 11px;
-  font-weight: 700;
-  pointer-events: none;
 }
 /* R-25 — fullscreen kiểu YouTube: timeline chiếm toàn bộ không gian tab hiện tại. */
 .timeline--fullscreen {
