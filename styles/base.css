@@ -87,6 +87,16 @@ select {
   scroll-margin: var(--spacing-sm);
 }
 
+/* D-21 — nền mực đậm: quầng vàng sáng nằm ngay trên nền tối, kèm vệt mực
+   ngoài để tách khỏi giấy. --primary đỏ chỉ đạt ~2.85:1 trên --ink. */
+.segmented-option[aria-checked='true']:focus-visible,
+.btn-icon[aria-pressed='true']:focus-visible,
+.btn-icon[data-active='true']:focus-visible {
+  outline: 2px solid var(--gold-pale);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--ink);
+}
+
 h1,
 h2,
 h3,

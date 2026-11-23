@@ -85,8 +85,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   flex: none;
   border-radius: 9999px;
   background: var(--surface-lacquer);
@@ -153,7 +155,7 @@
   gap: var(--spacing-sm);
   width: 100%;
   min-width: 0;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 var(--spacing-md);
   border-radius: var(--radius-md);
   background: var(--surface-paper);
@@ -229,7 +231,8 @@
 .ribbon-tab {
   flex: none;
   padding: 8px 16px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 8px 8px 0 0;
   background: var(--surface-paper);
   color: var(--brown);
@@ -270,7 +273,8 @@
 }
 .segmented-option {
   padding: 8px 14px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--radius-md);
   background: var(--surface-paper);
   color: var(--brown);
@@ -326,7 +330,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  height: 40px;
+  min-height: 44px;
   padding: 0 var(--spacing-md);
   border-radius: var(--radius-md);
   background: var(--surface-paper);
@@ -518,7 +522,8 @@
   align-items: center;
   gap: var(--spacing-sm);
   width: 100%;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 8px 12px;
   border: 0;
   border-radius: var(--radius-md);

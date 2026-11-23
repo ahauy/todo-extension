@@ -60,8 +60,10 @@
 .timer-compact-button {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   flex: none;
   border-radius: 9999px;
   border: 1px solid var(--gold);
@@ -494,8 +496,8 @@ article[data-focus-active='true'] {
 }
 .keystone-chip {
   display: inline-grid;
-  min-width: 40px;
-  min-height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 var(--spacing-sm);
   border: 1px solid var(--hairline);
   background: var(--surface-paper);

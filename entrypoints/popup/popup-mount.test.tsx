@@ -133,7 +133,7 @@ describe('popup mount (regression bug/popup-blank-black)', () => {
 
     expect(document.querySelector('input[type="datetime-local"]')).not.toBeNull();
     expect(
-      document.querySelector('[role="group"][aria-label="Ưu tiên"]')
+      document.querySelector('[role="radiogroup"][aria-label="Ưu tiên"]')
     ).not.toBeNull();
     expect(
       document.querySelector('input[aria-label="Tên việc cần ghi"]')

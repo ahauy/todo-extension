@@ -1,7 +1,7 @@
 /**
  * Menu thả xuống kiểu giấy dó: nền sơn bóng, viền mảnh, bóng nổi.
- * Mở thì focus mục đầu, mũi tên lên/xuống di chuyển, Enter chọn, Escape đóng,
- * bấm ra ngoài đóng. Đặt absolute nên phần tử cha cần position: relative.
+ * Mở thì focus mục đầu, mũi tên lên/xuống di chuyển, Enter chọn, Escape/Tab đóng,
+ * bấm ra ngoài đóng (trừ nút kích hoạt). Đặt absolute nên phần tử cha cần position: relative.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CheckIcon } from '../art/Icons';
@@ -11,15 +11,22 @@ interface MenuItem {
   label: string;
 }
 
+/** Lý do đóng để chủ sở hữu quyết định có trả focus về nút kích hoạt hay không. */
+export type MenuCloseReason = 'escape' | 'select' | 'tab' | 'outside';
+
 interface MenuProps {
   items: MenuItem[];
   value: string;
   onSelect: (value: string) => void;
   open: boolean;
-  onClose: () => void;
+  onClose: (reason: MenuCloseReason) => void;
   'aria-label'?: string;
   align?: 'left' | 'right';
+  /** Nút kích hoạt — mousedown trên nút này bỏ qua để một click đóng menu gọn. */
+  triggerRef?: React.RefObject<HTMLElement | null>;
 }
+
+const itemSelector = '[role="menuitemradio"]';
 
 export default function Menu({
   items,
@@ -29,6 +36,7 @@ export default function Menu({
   onClose,
   'aria-label': ariaLabel = 'Tuỳ chọn',
   align = 'left',
+  triggerRef,
 }: MenuProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [transitionState, setTransitionState] = useState<'idle' | 'entering' | 'exiting'>('idle');
@@ -53,19 +61,21 @@ export default function Menu({
 
   useEffect(() => {
     if (!open) return;
-    const first = ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]');
+    const first = ref.current?.querySelector<HTMLButtonElement>(itemSelector);
     first?.focus();
     const onPointerDown = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) onClose();
+      const target = event.target as Node;
+      if (triggerRef?.current?.contains(target)) return;
+      if (ref.current && !ref.current.contains(target)) onClose('outside');
     };
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [open, onClose]);
+  }, [open, onClose, triggerRef]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       const nodes = Array.from(
-        ref.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []
+        ref.current?.querySelectorAll<HTMLButtonElement>(itemSelector) ?? []
       );
       const index = nodes.indexOf(document.activeElement as HTMLButtonElement);
       if (event.key === 'ArrowDown') {
@@ -76,7 +86,11 @@ export default function Menu({
         nodes[(index - 1 + nodes.length) % nodes.length]?.focus();
       } else if (event.key === 'Escape') {
         event.preventDefault();
-        onClose();
+        onClose('escape');
+      } else if (event.key === 'Tab') {
+        // Menu-button pattern: Tab đóng menu rồi đi tiếp, không chặn tab.
+        // Không preventDefault để trình duyệt tự chuyển focus tới control kế tiếp.
+        onClose('tab');
       }
     },
     [onClose]
@@ -99,13 +113,16 @@ export default function Menu({
       {items.map((item) => (
         <button
           key={item.value}
-          role="menuitem"
+          role="menuitemradio"
           type="button"
           aria-checked={item.value === value}
           onClick={() => {
             onSelect(item.value);
-            onClose();
+            onClose('select');
           }}
+          // Trong 180ms thoát, item vẫn còn trong DOM: bỏ khỏi tab order để Tab
+          // không quay lại menu đang đóng mà đi thẳng tới control kế tiếp.
+          tabIndex={transitionState === 'exiting' ? -1 : undefined}
           className="menu-item"
         >
           <span className="w-4 flex-none text-primary">

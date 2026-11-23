@@ -100,7 +100,7 @@ describe('Composer', () => {
     ).not.toBeNull();
     expect(container.querySelector('input[type="datetime-local"]')).toBeNull();
     expect(
-      container.querySelector('[role="group"][aria-label="Ưu tiên"]')
+      container.querySelector('[role="radiogroup"][aria-label="Ưu tiên"]')
     ).toBeNull();
   });
 
@@ -186,7 +186,7 @@ describe('Composer', () => {
       container.querySelector('input[type="datetime-local"]')
     ).not.toBeNull();
     const priority = container.querySelector(
-      '[role="group"][aria-label="Ưu tiên"]'
+      '[role="radiogroup"][aria-label="Ưu tiên"]'
     );
     expect(priority).not.toBeNull();
     const radios = [...priority!.querySelectorAll('[role="radio"]')];
@@ -290,10 +290,10 @@ describe('Composer — việc then chốt (R-21)', () => {
     ) as HTMLButtonElement;
   const selectedPriority = (container: HTMLElement) =>
     (container.querySelector(
-      '[role="group"][aria-label="Ưu tiên"] [role="radio"][aria-checked="true"]'
+      '[role="radiogroup"][aria-label="Ưu tiên"] [role="radio"][aria-checked="true"]'
     ) as HTMLElement).textContent;
   const priorityOption = (container: HTMLElement, label: string) =>
-    [...container.querySelectorAll('[role="group"][aria-label="Ưu tiên"] [role="radio"]')].find(
+    [...container.querySelectorAll('[role="radiogroup"][aria-label="Ưu tiên"] [role="radio"]')].find(
       (radio) => radio.textContent === label
     ) as HTMLButtonElement;
   const renderWith = (onSubmit: ReturnType<typeof vi.fn>, keystoneCount = 0) =>

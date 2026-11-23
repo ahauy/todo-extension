@@ -9,7 +9,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import RibbonTabs, { type RibbonTab } from './ui/RibbonTabs';
-import Menu from './ui/Menu';
+import Menu, { type MenuCloseReason } from './ui/Menu';
 import IconButton from './ui/IconButton';
 import { ChevronDownIcon, CloseIcon, SearchIcon, SortIcon } from './art/Icons';
 import { spineColor } from '../lib/subjects';
@@ -60,6 +60,9 @@ export default function FilterRow({
   const [subjectOpen, setSubjectOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
   const restoreTriggerFocus = useRef(false);
+  // Tab đóng menu thì KHÔNG trả focus về trigger — để Tab tự đi tới control kế tiếp.
+  const skipSortRestore = useRef(false);
+  const skipSubjectRestore = useRef(false);
   const subjectTriggerRef = useRef<HTMLButtonElement>(null);
   const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const prevSortOpen = useRef(sortOpen);
@@ -98,14 +101,17 @@ export default function FilterRow({
     rowRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Tìm việc"]')?.focus();
   }, [searchOpen]);
 
-  // Khi menu sắp xếp / chọn môn đóng (Escape hoặc chọn mục), trả focus về nút kích
-  // kích hoạt để người dùng không bị mất ngữ cảnh trong popup 360px.
+  // Khi menu sắp xếp / chọn môn đóng (Escape, chọn mục, outside-click), trả focus
+  // về nút kích hoạt để người dùng không bị mất ngữ cảnh trong popup 360px.
+  // Riêng Tab thì bỏ qua: autofocus về trigger sẽ nuốt Tab và kẹt focus order.
   useEffect(() => {
     if (prevSortOpen.current && !sortOpen) {
-      sortTriggerRef.current?.focus({ preventScroll: true });
+      if (skipSortRestore.current) skipSortRestore.current = false;
+      else sortTriggerRef.current?.focus({ preventScroll: true });
     }
     if (prevSubjectOpen.current && !subjectOpen) {
-      subjectTriggerRef.current?.focus({ preventScroll: true });
+      if (skipSubjectRestore.current) skipSubjectRestore.current = false;
+      else subjectTriggerRef.current?.focus({ preventScroll: true });
     }
     prevSortOpen.current = sortOpen;
     prevSubjectOpen.current = subjectOpen;
@@ -127,13 +133,17 @@ export default function FilterRow({
       <Menu
         aria-label="Sắp xếp"
         align="right"
+        triggerRef={sortTriggerRef}
         items={(Object.keys(SORT_LABEL) as SortKey[]).map((key) => ({
           value: key,
           label: SORT_LABEL[key],
         }))}
         value={sortKey}
         open={sortOpen}
-        onClose={() => setSortOpen(false)}
+        onClose={(reason: MenuCloseReason) => {
+          skipSortRestore.current = reason === 'tab';
+          setSortOpen(false);
+        }}
         onSelect={(value) => onSortChange(value as SortKey)}
       />
     </div>
@@ -192,6 +202,7 @@ export default function FilterRow({
         </button>
         <Menu
           aria-label="Lọc theo môn học"
+          triggerRef={subjectTriggerRef}
           items={[
             { value: 'all', label: 'Cả giá sách' },
             ...(subjects ?? []).map((subject) => ({ value: subject.id, label: subject.name })),
@@ -199,7 +210,10 @@ export default function FilterRow({
           ]}
           value={subjectId}
           open={subjectOpen}
-          onClose={() => setSubjectOpen(false)}
+          onClose={(reason: MenuCloseReason) => {
+            skipSubjectRestore.current = reason === 'tab';
+            setSubjectOpen(false);
+          }}
           onSelect={(value) => onSubjectChange?.(value)}
         />
       </div>

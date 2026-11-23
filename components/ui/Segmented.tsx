@@ -3,7 +3,7 @@
  * Điều hướng bằng mũi tên trái/phải, quấn vòng; onChange gọi ngoài updater
  * để StrictMode không gọi hai lần.
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 
 interface SegmentedProps {
   options: { value: string; label: string }[];
@@ -20,6 +20,7 @@ export default function Segmented({
   'aria-label': ariaLabel = 'Bộ chọn',
   className,
 }: SegmentedProps) {
+  const ref = useRef<HTMLDivElement>(null);
   const focusIndex = options.findIndex((option) => option.value === value);
 
   const handleKeyDown = useCallback(
@@ -29,14 +30,18 @@ export default function Segmented({
       const step = event.key === 'ArrowRight' ? 1 : -1;
       const next = (focusIndex + step + options.length) % options.length;
       onChange(options[next].value);
+      const nodes = ref.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+      nodes?.[next]?.focus();
     },
     [options, onChange, focusIndex]
   );
 
   return (
     <div
-      role="group"
+      ref={ref}
+      role="radiogroup"
       aria-label={ariaLabel}
+      onKeyDown={handleKeyDown}
       className={['segmented', className].filter(Boolean).join(' ')}
     >
       {options.map((option) => (
@@ -45,8 +50,8 @@ export default function Segmented({
           type="button"
           role="radio"
           aria-checked={option.value === value}
+          tabIndex={option.value === value ? 0 : -1}
           onClick={() => onChange(option.value)}
-          onKeyDown={handleKeyDown}
           className="segmented-option"
         >
           {option.label}

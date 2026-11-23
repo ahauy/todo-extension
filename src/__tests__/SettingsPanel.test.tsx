@@ -95,13 +95,13 @@ describe('SettingsPanel', () => {
   it('render đủ các nhóm điều khiển', async () => {
     const el = await renderPanel();
 
-    const mode = el.querySelector('[role="group"][aria-label="Chế độ hiển thị"]');
+    const mode = el.querySelector('[role="radiogroup"][aria-label="Chế độ hiển thị"]');
     expect(mode).not.toBeNull();
     expect(
       [...mode!.querySelectorAll('[role="radio"]')].map((radio) => radio.textContent)
     ).toEqual(['Popup', 'New Tab', 'Tự động']);
 
-    const quillStyle = el.querySelector('[role="group"][aria-label="Kiểu bút"]');
+    const quillStyle = el.querySelector('[role="radiogroup"][aria-label="Kiểu bút"]');
     expect(quillStyle).not.toBeNull();
     expect(
       [...quillStyle!.querySelectorAll('[role="radio"]')].map(
@@ -120,7 +120,7 @@ describe('SettingsPanel', () => {
     }
 
     const pomodoro = el.querySelector(
-      '[role="group"][aria-label="Độ dài giờ học"]'
+      '[role="radiogroup"][aria-label="Độ dài giờ học"]'
     );
     expect(pomodoro).not.toBeNull();
     expect(
@@ -159,7 +159,7 @@ describe('SettingsPanel', () => {
 
     const radios = [
       ...el.querySelectorAll(
-        '[role="group"][aria-label="Chế độ hiển thị"] [role="radio"]'
+        '[role="radiogroup"][aria-label="Chế độ hiển thị"] [role="radio"]'
       ),
     ] as HTMLButtonElement[];
     const auto = radios.find((radio) => radio.textContent === 'Tự động');

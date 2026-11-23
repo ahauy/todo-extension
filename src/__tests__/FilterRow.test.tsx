@@ -79,7 +79,7 @@ describe('FilterRow subject chooser', () => {
     const menu = container.querySelector('[role="menu"]');
     expect(menu).not.toBeNull();
 
-    const items = menu!.querySelectorAll('[role="menuitem"]');
+    const items = menu!.querySelectorAll('[role="menuitemradio"]');
     expect(items.length).toBeGreaterThan(0);
     expect(document.activeElement).toBe(items[0]);
 
@@ -99,7 +99,7 @@ describe('FilterRow subject chooser', () => {
     const { container, props } = renderFilterRow();
     const trigger = container.querySelector('button[aria-label="Lọc theo môn học: Cả giá sách"]')!;
     click(trigger);
-    const items = container.querySelectorAll('[role="menuitem"]');
+    const items = container.querySelectorAll('[role="menuitemradio"]');
     const second = items[1];
     click(second);
     expect(props.onSubjectChange).toHaveBeenCalledWith('s1');
@@ -108,6 +108,40 @@ describe('FilterRow subject chooser', () => {
     });
     expect(container.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it('Tab trên item đóng menu nhưng KHÔNG trả focus về trigger (Finding 1)', () => {
+    vi.useFakeTimers();
+    const { container } = renderFilterRow();
+    const trigger = container.querySelector(
+      'button[aria-label="Lọc theo môn học: Cả giá sách"]'
+    )!;
+    click(trigger);
+    const first = container.querySelector(
+      '[role="menu"][aria-label="Lọc theo môn học"] [role="menuitemradio"]'
+    ) as HTMLButtonElement;
+    expect(document.activeElement).toBe(first);
+
+    const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    act(() => {
+      first.dispatchEvent(event);
+    });
+
+    // jsdom không mô phỏng native Tab movement, nên assert điều cốt lõi: focus
+    // KHÔNG bị force-set về trigger và Tab không bị preventDefault.
+    expect(document.activeElement).not.toBe(trigger);
+    expect(event.defaultPrevented).toBe(false);
+    // Trong 180ms thoát, item bị bỏ khỏi tab order → Tab không quay lại menu đang đóng.
+    for (const item of container.querySelectorAll(
+      '[role="menu"][aria-label="Lọc theo môn học"] [role="menuitemradio"]'
+    )) {
+      expect((item as HTMLButtonElement).tabIndex).toBe(-1);
+    }
+
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    expect(container.querySelector('[role="menu"][aria-label="Lọc theo môn học"]')).toBeNull();
   });
 
   it('menu mở có data-entering, đóng có data-exiting rồi biến mất', () => {
@@ -191,5 +225,23 @@ describe('FilterRow sort menu', () => {
     });
     expect(container.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it('Tab đóng menu sắp xếp mà không trả focus về nút sắp xếp', () => {
+    vi.useFakeTimers();
+    const { container } = renderFilterRow();
+    const trigger = container.querySelector('button[aria-label="Sắp xếp theo: Hạn chót"]')!;
+    click(trigger);
+    const first = container.querySelector(
+      '[role="menu"][aria-label="Sắp xếp"] [role="menuitemradio"]'
+    ) as HTMLButtonElement;
+    act(() => {
+      first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    });
+    expect(document.activeElement).not.toBe(trigger);
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    expect(container.querySelector('[role="menu"][aria-label="Sắp xếp"]')).toBeNull();
   });
 });

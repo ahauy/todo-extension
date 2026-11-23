@@ -290,7 +290,7 @@ describe('App wiring — search / subject / sort (#6)', () => {
     expect(
       container.querySelector('[role="menu"][aria-label="Lọc theo môn học"]')
     ).not.toBeNull();
-    const toan = [...container.querySelectorAll('[role="menuitem"]')].find(
+    const toan = [...container.querySelectorAll('[role="menuitemradio"]')].find(
       (candidate) => candidate.textContent === 'Toán'
     ) as HTMLButtonElement | undefined;
     expect(toan).toBeDefined();
@@ -304,7 +304,7 @@ describe('App wiring — search / subject / sort (#6)', () => {
     await act(async () => {
       subjectButton().click();
     });
-    const none = [...container.querySelectorAll('[role="menuitem"]')].find(
+    const none = [...container.querySelectorAll('[role="menuitemradio"]')].find(
       (candidate) => candidate.textContent === 'Chưa xếp môn'
     ) as HTMLButtonElement | undefined;
     expect(none).toBeDefined();
@@ -347,7 +347,7 @@ describe('App wiring — search / subject / sort (#6)', () => {
       sortButton().click();
     });
     expect(container.querySelector('[role="menu"]')).not.toBeNull();
-    const menuItem = [...container.querySelectorAll('[role="menuitem"]')].find(
+    const menuItem = [...container.querySelectorAll('[role="menuitemradio"]')].find(
       (candidate) => candidate.textContent === 'Ưu tiên'
     );
     expect(menuItem).toBeDefined();
@@ -403,7 +403,7 @@ describe('App wiring — composer & keyboard (#5, #20)', () => {
     });
 
     const priorityGroup = container.querySelector(
-      '[role="group"][aria-label="Ưu tiên"]'
+      '[role="radiogroup"][aria-label="Ưu tiên"]'
     );
     expect(priorityGroup).not.toBeNull();
     const q1 = [...priorityGroup!.querySelectorAll('button')].find(
