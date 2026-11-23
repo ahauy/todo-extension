@@ -36,6 +36,30 @@ function isQuotaError(err: unknown): boolean {
   return msg.includes('QUOTA_BYTES') || msg.includes('quota');
 }
 
+/** Mọi ghi/đọc có thể vượt quota đều báo cùng một dạng lỗi rõ ràng (R-16). */
+async function withQuotaError<T>(label: string, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (err) {
+    if (isQuotaError(err)) {
+      throw new StorageQuotaError(`${label} quota: ${err}`);
+    }
+    throw err;
+  }
+}
+
+/** Giữ N key mới nhất sau khi sort từ điển (dayKey/ISO-date sort được như vậy). */
+export function keepLatest<T>(
+  record: Record<string, T>,
+  count: number
+): Record<string, T> {
+  const latest: Record<string, T> = {};
+  for (const key of Object.keys(record).sort().slice(-count)) {
+    latest[key] = record[key];
+  }
+  return latest;
+}
+
 async function storageGet<T>(
   keys: string | string[] | null
 ): Promise<T> {
@@ -93,7 +117,7 @@ function normalizeTaskTimes(task: Task): Task {
 
 /** Đọc toàn bộ task từ storage (các key `t:*`) */
 export async function loadAll(): Promise<Task[]> {
-  try {
+  return withQuotaError('loadAll', async () => {
     const all = await storageGet<Record<string, unknown>>(null);
     const tasks: Task[] = [];
     for (const [key, value] of Object.entries(all)) {
@@ -104,43 +128,23 @@ export async function loadAll(): Promise<Task[]> {
       }
     }
     return tasks;
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`loadAll quota: ${err}`);
-    }
-    throw err;
-  }
+  });
 }
 
 /** Ghi key `t:<id>` (atomic per task) */
 export async function put(task: Task): Promise<void> {
-  const key = taskKey(task.id);
-  try {
+  return withQuotaError(`put ${task.id}`, async () => {
     const size = new Blob([JSON.stringify(task)]).size;
     if (size > MAX_ITEM_BYTES) {
-      throw new StorageQuotaError(
-        `Task ${task.id} exceeds ${MAX_ITEM_BYTES} bytes`
-      );
+      throw new StorageQuotaError(`Task ${task.id} exceeds ${MAX_ITEM_BYTES} bytes`);
     }
-    await storageSet({ [key]: task });
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`put ${task.id} quota: ${err}`);
-    }
-    throw err;
-  }
+    await storageSet({ [taskKey(task.id)]: task });
+  });
 }
 
 /** Xoá key `t:<id>` */
 export async function remove(id: string): Promise<void> {
-  try {
-    await storageRemove(taskKey(id));
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`remove ${id} quota: ${err}`);
-    }
-    throw err;
-  }
+  return withQuotaError(`remove ${id}`, () => storageRemove(taskKey(id)));
 }
 
 /** Gộp settings đã lưu với mặc định. Bản cũ có `theme` (sáng/tối) — hệ màu
@@ -175,28 +179,18 @@ export function normalizeSettings(raw: unknown): Settings {
 
 /** Đọc settings */
 export async function loadSettings(): Promise<Settings | null> {
-  try {
+  return withQuotaError('loadSettings', async () => {
     const all = await storageGet<Record<string, unknown>>([SETTINGS_KEY]);
     const raw = all[SETTINGS_KEY];
     return raw === undefined ? null : normalizeSettings(raw);
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`loadSettings quota: ${err}`);
-    }
-    throw err;
-  }
+  });
 }
 
 /** Ghi settings */
 export async function putSettings(settings: Settings): Promise<void> {
-  try {
-    await storageSet({ [SETTINGS_KEY]: settings });
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`putSettings quota: ${err}`);
-    }
-    throw err;
-  }
+  return withQuotaError('putSettings', () =>
+    storageSet({ [SETTINGS_KEY]: settings })
+  );
 }
 
 /** Lắng nghe onChanged, callback với danh sách key đã thay đổi/bị xoá */
@@ -222,14 +216,9 @@ export async function loadSubjects(): Promise<Subject[]> {
 }
 
 export async function putSubjects(subjects: Subject[]): Promise<void> {
-  try {
-    await storageSet({ [SUBJECTS_KEY]: subjects });
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`putSubjects quota: ${err}`);
-    }
-    throw err;
-  }
+  return withQuotaError('putSubjects', () =>
+    storageSet({ [SUBJECTS_KEY]: subjects })
+  );
 }
 
 /** Nhật ký học — chỉ giữ 60 ngày gần nhất để không phình key */
@@ -242,18 +231,9 @@ export async function loadStudyLog(): Promise<StudyLog> {
 }
 
 export async function putStudyLog(log: StudyLog): Promise<void> {
-  const keys = Object.keys(log).sort();
-  const kept = keys.slice(-STUDY_LOG_DAYS);
-  const pruned: StudyLog = {};
-  for (const key of kept) pruned[key] = log[key];
-  try {
-    await storageSet({ [STUDY_LOG_KEY]: pruned });
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`putStudyLog quota: ${err}`);
-    }
-    throw err;
-  }
+  return withQuotaError('putStudyLog', () =>
+    storageSet({ [STUDY_LOG_KEY]: keepLatest(log, STUDY_LOG_DAYS) })
+  );
 }
 
 /** R-21 — Kế hoạch ngày (con ếch): 1 key `dayPlan`, prune 14 ngày gần nhất.
@@ -267,17 +247,8 @@ export async function loadDayPlan(): Promise<DayPlan> {
 }
 
 export async function putDayPlan(plan: DayPlan): Promise<void> {
-  const keys = Object.keys(plan).sort();
-  const kept = keys.slice(-DAY_PLAN_DAYS);
-  const pruned: DayPlan = {};
-  for (const key of kept) pruned[key] = plan[key];
-  try {
-    // Ghi ĐÚNG 1 key — không tạo key theo ngày (giới hạn 512 item sync).
-    await storageSet({ [DAY_PLAN_KEY]: pruned });
-  } catch (err) {
-    if (isQuotaError(err)) {
-      throw new StorageQuotaError(`putDayPlan quota: ${err}`);
-    }
-    throw err;
-  }
+  // Ghi ĐÚNG 1 key — không tạo key theo ngày (giới hạn 512 item sync).
+  return withQuotaError('putDayPlan', () =>
+    storageSet({ [DAY_PLAN_KEY]: keepLatest(plan, DAY_PLAN_DAYS) })
+  );
 }

@@ -10,8 +10,13 @@ import Modal from './ui/Modal';
 import Button from './ui/Button';
 import Field from './ui/Field';
 import TaskFields from './TaskFields';
-import { formErrors, type TaskForm, type TaskFormErrors } from '../lib/tasks/form';
-import { durationMinutes } from '../lib/tasks/timeBlock';
+import {
+  firstFormError,
+  formErrors,
+  timeFieldsFromForm,
+  type TaskForm,
+  type TaskFormErrors,
+} from '../lib/tasks/form';
 import { TrashIcon } from './art/Icons';
 import { loadAll } from '../lib/storage/adapter';
 import { longDate } from '../lib/datetime';
@@ -111,18 +116,16 @@ export default function TaskParchment({
     () => (form ? formErrors(form, form.recurrence.kind !== task?.recurrence.kind) : {}),
     [form, task]
   );
+  const problem = firstFormError(problems);
 
-  const problem =
-    problems.title ??
-    problems.recurrence ??
-    problems.dueAt ??
-    problems.startAt ??
-    problems.endAt ??
-    problems.estimateMin ??
-    problems.tags ??
-    problems.subtasks ??
-    problems.note ??
-    null;
+  const reportError = useCallback(
+    (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      setSaveError(message);
+      onQuotaError?.(message);
+    },
+    [onQuotaError]
+  );
 
   const save = useCallback(async () => {
     if (!task || !form || !dirty || problem) return;
@@ -134,26 +137,16 @@ export default function TaskParchment({
         ...form,
         title: form.title.trim(),
         note: form.note.trim(),
-        // R-24/R-25 — form dùng `null` cho "trống"; Task additive dùng undefined.
-        startAt: form.startAt || undefined,
-        endAt: form.endAt || undefined,
-        estimateMin:
-          (form.startAt && form.endAt
-            ? durationMinutes(form.startAt, form.endAt)
-            : undefined) ??
-          form.estimateMin ??
-          undefined,
+        ...timeFieldsFromForm(form),
       });
       setDirty(false);
       onSave();
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setSaveError(message);
-      onQuotaError?.(message);
+      reportError(error);
     } finally {
       setSaving(false);
     }
-  }, [task, form, dirty, problem, onUpdateTask, onSave, onQuotaError]);
+  }, [task, form, dirty, problem, onUpdateTask, onSave, reportError]);
 
   /** R-21 — cắt bỏ = archive, KHÔNG xoá vĩnh viễn; có phục hồi ở SettingsPanel. */
   const archive = useCallback(async () => {
@@ -164,13 +157,11 @@ export default function TaskParchment({
       await onUpdateTask({ ...task, archived: true });
       onSave();
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setSaveError(message);
-      onQuotaError?.(message);
+      reportError(error);
     } finally {
       setSaving(false);
     }
-  }, [task, onUpdateTask, onSave, onQuotaError]);
+  }, [task, onUpdateTask, onSave, reportError]);
 
   const toggleSubtask = useCallback(
     async (id: string) => {
@@ -182,12 +173,10 @@ export default function TaskParchment({
       try {
         await onUpdateTask({ ...task, subtasks });
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        setSaveError(message);
-        onQuotaError?.(message);
+        reportError(error);
       }
     },
-    [task, form, onUpdateTask, onQuotaError]
+    [task, form, onUpdateTask, reportError]
   );
 
   useEffect(() => {

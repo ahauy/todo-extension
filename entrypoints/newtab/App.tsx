@@ -16,7 +16,7 @@ import TaskParchment from '../../components/TaskParchment';
 import SettingsPanel from '../../components/SettingsPanel';
 import PlanTomorrowSheet from '../../components/PlanTomorrowSheet';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import FocusConfirms, { type FocusInterrupt } from '../../components/FocusConfirms';
+import FocusConfirms from '../../components/FocusConfirms';
 import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
@@ -31,6 +31,7 @@ import { CornerFlourish, CloudRule } from '../../components/art/Ornaments';
 import { GearIcon, SoundOffIcon, SoundOnIcon } from '../../components/art/Icons';
 import { StudyWindow } from '../../components/art/Scenes';
 import { useBoard } from '../../hooks/useBoard';
+import { useFocusInterrupt } from '../../hooks/useFocusInterrupt';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { greetingFor, longDate, dayKey } from '../../lib/datetime';
 import { rememberBoardTab, consumePlanSheet } from '../../lib/storage/local';
@@ -71,6 +72,7 @@ function QuietNewTab({ onOpenBoard }: { onOpenBoard: () => void }) {
 
 export default function App() {
   const board = useBoard();
+  const { interrupt, setInterrupt, handleFocusTask, handleInterrupt } = useFocusInterrupt(board);
   const wide = useMediaQuery('(min-width: 1024px)');
   const narrow = useMediaQuery('(max-width: 1199px)');
   const horizontal = !wide || narrow;
@@ -89,7 +91,6 @@ export default function App() {
   const [planOpen, setPlanOpen] = useState(false);
   const [createSignal, setCreateSignal] = useState(0);
   const [bannerHidden, setBannerHidden] = useState(false);
-  const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
   // R-26 — panel sắp xếp là state local, không lưu storage.
   const [priorityBoardOpen, setPriorityBoardOpen] = useState(false);
   // H-1 — stable identity so PriorityBoard's effects don't re-run on every render.
@@ -169,15 +170,6 @@ export default function App() {
     />
   );
 
-  const handleFocusTask = (id: string) => {
-    if (id === board.pomodoro.taskId) return;
-    if (board.pomodoro.running && board.pomodoro.phase === 'focus') {
-      setInterrupt({ kind: 'attach', id });
-      return;
-    }
-    board.startFocusOn(id);
-  };
-
   // R-21 — hero + dòng tổng kết suy thuần từ task/dayPlan đã hydrate, KHÔNG đọc
   // studyLog hay board.doneToday (aggregate đã lưu).
   const todayKey = dayKey(board.now);
@@ -233,19 +225,6 @@ export default function App() {
     },
     [board.tasks, board.now, board.updateTask]
   );
-
-  const handleInterrupt = (next: FocusInterrupt) => {
-    if (next.kind === 'detach') {
-      board.detachFocus();
-      return;
-    }
-    if (next.kind === 'attach') {
-      board.switchTaskMidSession(next.id);
-      return;
-    }
-    void board.toggleTask(next.id);
-    board.pomodoro.noteInterruption();
-  };
 
   return (
     <div className="board-page">

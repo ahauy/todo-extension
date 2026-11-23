@@ -12,19 +12,21 @@ import TaskScrollList from '../../components/TaskScrollList';
 import TaskParchment from '../../components/TaskParchment';
 import SettingsPanel from '../../components/SettingsPanel';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import FocusConfirms, { type FocusInterrupt } from '../../components/FocusConfirms';
+import FocusConfirms from '../../components/FocusConfirms';
 import Toast from '../../components/Toast';
 import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
 import Button from '../../components/ui/Button';
 import { ChevronLeftIcon } from '../../components/art/Icons';
 import { useBoard } from '../../hooks/useBoard';
+import { useFocusInterrupt } from '../../hooks/useFocusInterrupt';
 import type { BoardTab, SortKey } from '../../lib/tasks/query';
 import { openKeystoneCount, type TaskDraft } from '../../lib/tasks/form';
 import './style.css';
 
 export default function App() {
   const board = useBoard();
+  const { interrupt, setInterrupt, handleFocusTask, handleInterrupt } = useFocusInterrupt(board);
   const [view, setView] = useState<'list' | 'settings'>('list');
   const [tab, setTab] = useState<BoardTab>('all');
   const [subjectId, setSubjectId] = useState('all');
@@ -37,39 +39,10 @@ export default function App() {
   const [dirty, setDirty] = useState(false);
   const [dirtyConfirm, setDirtyConfirm] = useState(false);
   const [expandSignal, setExpandSignal] = useState(0);
-  const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
 
   const attached = board.tasks.find((task) => task.id === board.pomodoro.taskId) ?? null;
   const focusActive =
     board.pomodoro.running && board.pomodoro.phase === 'focus' && !!board.pomodoro.taskId;
-
-  const handleFocusTask = useCallback(
-    (id: string) => {
-      if (id === board.pomodoro.taskId) return;
-      if (board.pomodoro.running && board.pomodoro.phase === 'focus') {
-        setInterrupt({ kind: 'attach', id });
-        return;
-      }
-      board.startFocusOn(id);
-    },
-    [board]
-  );
-
-  const handleInterrupt = useCallback(
-    (next: FocusInterrupt) => {
-      if (next.kind === 'detach') {
-        board.detachFocus();
-        return;
-      }
-      if (next.kind === 'attach') {
-        board.switchTaskMidSession(next.id);
-      } else {
-        void board.toggleTask(next.id);
-        board.pomodoro.noteInterruption();
-      }
-    },
-    [board]
-  );
 
   const closeDetail = useCallback(() => {
     if (dirty) {

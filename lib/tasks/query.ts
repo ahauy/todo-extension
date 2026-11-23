@@ -10,7 +10,7 @@
  */
 
 import type { DayPlan, Task } from './types';
-import { startOfWeekLocal } from '../datetime';
+import { dayKey, startOfWeekLocal } from '../datetime';
 
 export type SortCriterion = 'default';
 
@@ -63,6 +63,13 @@ function priorityRank(p: Task['priority']): number {
   }
 }
 
+/** Tie-breaker cố định theo `id` — kết quả sort không phụ thuộc thứ tự key storage */
+function compareById(a: Task, b: Task): number {
+  if (a.id < b.id) return -1;
+  if (a.id > b.id) return 1;
+  return 0;
+}
+
 /**
  * Sắp xếp theo overdue → dueAt → priority → createdAt, tie-breaker id.
  * Task không dueAt xếp cuối.
@@ -99,9 +106,7 @@ export function sortTasks(
     if (ca !== cb) return cb - ca;
 
     // Tie-breaker cố định (id) để kết quả ổn định
-    if (a.id < b.id) return -1;
-    if (a.id > b.id) return 1;
-    return 0;
+    return compareById(a, b);
   });
 }
 
@@ -110,13 +115,9 @@ export function sortTasks(
 export type BoardTab = 'all' | 'today' | 'upcoming' | 'done';
 export type SortKey = 'deadline' | 'priority' | 'created';
 
+/** So ngày local qua `dayKey` dùng chung — tránh tự so từng thành phần Date. */
 function sameLocalDay(iso: string, now: Date): boolean {
-  const date = new Date(iso);
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  );
+  return dayKey(new Date(iso)) === dayKey(now);
 }
 
 /** Việc lặp đã đóng dấu HÔM NAY (lastDoneAt cùng ngày local) nhưng chưa sang
@@ -165,13 +166,6 @@ export function filterByKeystone(tasks: Task[]): Task[] {
   return tasks.filter((task) => !!task.keystone && !task.archived);
 }
 
-/** Tie-breaker cố định theo `id` (chuỗi) — kết quả sort không phụ thuộc thứ tự key storage */
-function compareById(a: Task, b: Task): number {
-  if (a.id < b.id) return -1;
-  if (a.id > b.id) return 1;
-  return 0;
-}
-
 export function sortBoard(tasks: Task[], key: SortKey, now: Date): Task[] {
   if (key === 'created') {
     return [...tasks].sort((a, b) => {
@@ -201,7 +195,7 @@ export function dueTodayCount(tasks: Task[], now: Date): number {
 }
 
 export function overdueCount(tasks: Task[], now: Date): number {
-  return tasks.filter(notArchived).filter((task) => isOverdue(task, now)).length;
+  return tasks.filter((task) => !task.archived && isOverdue(task, now)).length;
 }
 
 /** R-21 — việc đang chờ (chưa xong, chưa cắt) — bộ đếm dùng chung. */

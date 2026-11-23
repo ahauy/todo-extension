@@ -31,6 +31,21 @@ export interface BoardToast {
   onAction?: () => void;
 }
 
+/** Mọi mutation qua board đều báo lỗi lưu vào cùng một chỗ (R-16). */
+async function guardQuota<T>(
+  run: () => Promise<T>,
+  setQuotaError: (message: string | null) => void
+): Promise<T> {
+  try {
+    const result = await run();
+    setQuotaError(null);
+    return result;
+  } catch (error) {
+    setQuotaError(error instanceof Error ? error.message : String(error));
+    throw error;
+  }
+}
+
 export function useBoard() {
   const {
     tasks,
@@ -118,16 +133,10 @@ export function useBoard() {
 
   const createDraft = useCallback(
     async (draft: TaskDraft) => {
-      try {
-        const created = await create(draft);
-        setQuotaError(null);
-        if (created) {
-          setFreshId(created.id);
-          window.setTimeout(() => setFreshId(null), 600);
-        }
-      } catch (error) {
-        setQuotaError(error instanceof Error ? error.message : String(error));
-        throw error;
+      const created = await guardQuota(() => create(draft), setQuotaError);
+      if (created) {
+        setFreshId(created.id);
+        window.setTimeout(() => setFreshId(null), 600);
       }
     },
     [create]
@@ -231,14 +240,7 @@ export function useBoard() {
 
   const updateTask = useCallback(
     async (task: Task) => {
-      try {
-        await update(task);
-        setQuotaError(null);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        setQuotaError(message);
-        throw error;
-      }
+      await guardQuota(() => update(task), setQuotaError);
     },
     [update]
   );
@@ -246,14 +248,7 @@ export function useBoard() {
   /** R-24 — bọc setTaskTime của useTasks để báo lỗi lưu (quota) như các mutation khác. */
   const setTaskTime = useCallback(
     async (id: string, patch: TaskTimePatch) => {
-      try {
-        await setTaskTimeBase(id, patch);
-        setQuotaError(null);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        setQuotaError(message);
-        throw error;
-      }
+      await guardQuota(() => setTaskTimeBase(id, patch), setQuotaError);
     },
     [setTaskTimeBase]
   );

@@ -35,6 +35,7 @@ import {
 } from '../lib/alarms/scheduler';
 import {
   DAY_PLAN_DAYS,
+  keepLatest,
   loadAll,
   loadDayPlan,
   put,
@@ -124,6 +125,16 @@ export function useTasks() {
     snapshotStore.tasks = next;
     notify();
   }, [notify]);
+
+  /** Ghi task rồi cập nhật snapshot; `reschedule` chỉ bật khi alarm due đổi. */
+  const commitTask = useCallback(
+    async (next: Task, reschedule = false) => {
+      await put(next);
+      setSnapshot(snapshotStore.tasks.map((t) => (t.id === next.id ? next : t)));
+      if (reschedule) scheduleTask(next);
+    },
+    [setSnapshot]
+  );
 
   const handleStorageChanged = useCallback(
     async (changedKeys: string[]) => {
@@ -244,15 +255,11 @@ export function useTasks() {
 
   const remove = useCallback(
     async (id: string) => {
-      try {
-        await storageRemove(id);
-        clearTaskAlarm(id);
-        setSnapshot(snapshotStore.tasks.filter((t) => t.id !== id));
-      } catch (err) {
-        throw err;
-      }
+      await storageRemove(id);
+      clearTaskAlarm(id);
+      setSnapshot(snapshotStore.tasks.filter((t) => t.id !== id));
     },
-    []
+    [setSnapshot]
   );
 
   /**
@@ -301,10 +308,7 @@ export function useTasks() {
       };
       await putDayPlan(next);
       // putDayPlan chỉ ghi 14 ngày mới nhất — cache phải khớp shape đã lưu (F-02).
-      const kept = Object.keys(next).sort().slice(-DAY_PLAN_DAYS);
-      const pruned: DayPlan = {};
-      for (const key of kept) pruned[key] = next[key];
-      snapshotStore.dayPlan = pruned;
+      snapshotStore.dayPlan = keepLatest(next, DAY_PLAN_DAYS);
       notify();
     },
     [notify]
@@ -318,9 +322,11 @@ export function useTasks() {
       const now = new Date();
       const stamp = nowISO();
 
-      // Hoàn tác hôm nay: trả về occurrence vừa làm (prevDueAt), KHÔNG cuộn thêm; gán thẳng vì cùng wall-clock local.
-      // R-23 — gỡ ngày occurrence vừa xong khỏi sổ thói quen (cùng 1 put bên dưới).
-      if (isRecurringDoneToday(task, now)) {
+      // Hoàn tác hôm nay: trả về occurrence vừa làm (prevDueAt), KHÔNG cuộn
+      // thêm; gán thẳng vì cùng wall-clock local. R-23 — cả hai nhánh mở lại
+      // việc đều gỡ ngày khỏi sổ thói quen trong CÙNG một put bên dưới.
+      const undoingToday = isRecurringDoneToday(task, now);
+      if (undoingToday || task.done) {
         clearTaskAlarm(id);
         const worked = withHabitDay(
           task,
@@ -331,37 +337,13 @@ export function useTasks() {
         const next: Task = {
           ...worked,
           done: false,
-          dueAt: task.prevDueAt ?? task.dueAt,
+          // Un-toggle thường giữ dueAt cũ; done-today lùi về prevDueAt.
+          dueAt: undoingToday ? task.prevDueAt ?? task.dueAt : task.dueAt,
           prevDueAt: null,
           lastDoneAt: null,
           updatedAt: stamp,
         };
-        await put(next);
-        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
-        scheduleTask(next);
-        return;
-      }
-
-      if (task.done) {
-        // Un-toggle: done = false, giữ dueAt cũ, reschedule
-        // R-23 — gỡ ngày từ prevDueAt nếu có (no-op nếu đã gỡ / không có habit).
-        clearTaskAlarm(id);
-        const worked = withHabitDay(
-          task,
-          habitOccurrenceDay(task.prevDueAt),
-          'remove',
-          now
-        );
-        const next = {
-          ...worked,
-          done: false,
-          lastDoneAt: null,
-          prevDueAt: null,
-          updatedAt: stamp,
-        };
-        await put(next);
-        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
-        scheduleTask(next);
+        await commitTask(next, true);
         return;
       }
 
@@ -369,8 +351,7 @@ export function useTasks() {
         // Task thường: done = true, clear alarm
         clearTaskAlarm(id);
         const next = { ...task, done: true, lastDoneAt: stamp, prevDueAt: null, updatedAt: stamp };
-        await put(next);
-        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
+        await commitTask(next);
         return;
       }
 
@@ -393,8 +374,7 @@ export function useTasks() {
           prevDueAt: null,
           updatedAt: stamp,
         };
-        await put(next);
-        setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? next : t)));
+        await commitTask(next);
         return;
       }
       // R-23 — ngày ghi là ngày local của dueAt CŨ (trước khi R-11 ghi
@@ -409,11 +389,9 @@ export function useTasks() {
         lastDoneAt: stamp,
         updatedAt: stamp,
       };
-      await put(nextTask);
-      setSnapshot(snapshotStore.tasks.map((t) => (t.id === id ? nextTask : t)));
-      scheduleTask(nextTask);
+      await commitTask(nextTask, true);
     },
-    []
+    [commitTask]
   );
 
   // Sync lần đầu khi mount

@@ -131,9 +131,8 @@ export function formErrors(form: TaskForm, requireFutureDue = true): TaskFormErr
   return errors;
 }
 
-/** Trả về câu lỗi đầu tiên, hoặc null nếu tờ việc hợp lệ */
-export function formError(form: TaskForm, requireFutureDue = true): string | null {
-  const errors = formErrors(form, requireFutureDue);
+/** Câu lỗi đầu tiên theo thứ tự ưu tiên của form, hoặc null nếu hợp lệ. */
+export function firstFormError(errors: TaskFormErrors): string | null {
   return (
     errors.title ??
     errors.recurrence ??
@@ -146,6 +145,35 @@ export function formError(form: TaskForm, requireFutureDue = true): string | nul
     errors.note ??
     null
   );
+}
+
+/** Trả về câu lỗi đầu tiên, hoặc null nếu tờ việc hợp lệ */
+export function formError(form: TaskForm, requireFutureDue = true): string | null {
+  return firstFormError(formErrors(form, requireFutureDue));
+}
+
+/**
+ * Ba field thời khoá biểu suy từ form — dùng chung khi tạo draft và khi lưu
+ * tờ đang sửa. `endAt` là nguồn thật: có giờ bắt đầu + kết thúc thì
+ * `estimateMin` được suy ra trong cùng một lần ghi. Chuỗi rỗng trong form ↔
+ * không lưu field; KHÔNG tự ghi 30 (mặc định là luật hiển thị của timeBlock,
+ * không phải dữ liệu người dùng).
+ */
+export function timeFieldsFromForm(form: TaskForm): {
+  startAt: string | undefined;
+  endAt: string | undefined;
+  estimateMin: number | undefined;
+} {
+  return {
+    startAt: form.startAt || undefined,
+    endAt: form.endAt || undefined,
+    estimateMin:
+      (form.startAt && form.endAt
+        ? durationMinutes(form.startAt, form.endAt)
+        : undefined) ??
+      form.estimateMin ??
+      undefined,
+  };
 }
 
 export function formToDraft(form: TaskForm): TaskDraft {
@@ -162,18 +190,7 @@ export function formToDraft(form: TaskForm): TaskDraft {
     archived: form.archived ?? false,
     // R-23 — giữ nguyên field habit; tờ cũ thiếu field → undefined (additive).
     habit: form.habit,
-    // R-24 — chuỗi rỗng trong form ↔ không lưu field. KHÔNG tự ghi 30: mặc định
-    // `estimateMin` là luật hiển thị của timeBlock, không phải dữ liệu người dùng.
-    startAt: form.startAt || undefined,
-    // R-25 — `endAt` là nguồn thật: ghi kèm `estimateMin` suy ra trong cùng 1 draft.
-    // Không có `endAt` → giữ nguyên `estimateMin` đã nhập/đã lưu (legacy).
-    endAt: form.endAt || undefined,
-    estimateMin:
-      (form.startAt && form.endAt
-        ? durationMinutes(form.startAt, form.endAt)
-        : undefined) ??
-      form.estimateMin ??
-      undefined,
+    ...timeFieldsFromForm(form),
     done: false,
   };
 }
