@@ -312,8 +312,8 @@ article[data-focus-active='true'] {
   cursor: pointer;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   flex: none;
   border-radius: 9999px;
 }
@@ -482,6 +482,7 @@ article[data-focus-active='true'] {
   text-transform: uppercase;
 }
 .frog-toggle {
+  min-height: 44px;
   padding: 3px 10px;
   border: 1px solid var(--hairline);
   background: var(--surface-paper);
@@ -514,7 +515,7 @@ article[data-focus-active='true'] {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
-  min-height: 32px;
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: none;
@@ -585,7 +586,7 @@ article[data-focus-active='true'] {
 .habit-weekday {
   display: grid;
   place-items: center;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--spacing-xxs);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);

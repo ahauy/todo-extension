@@ -72,9 +72,7 @@ export default function SubjectShelf({
           type="button"
           className={horizontal ? 'ribbon-tab' : 'spine'}
           style={horizontal ? undefined : { ['--spine-color' as string]: 'var(--primary-deep)' }}
-          aria-pressed={horizontal ? undefined : value === 'all'}
-          aria-selected={horizontal ? value === 'all' : undefined}
-          role={horizontal ? 'tab' : undefined}
+          aria-pressed={value === 'all'}
           onClick={() => onChange('all')}
         >
           Cả giá sách
@@ -90,9 +88,7 @@ export default function SubjectShelf({
               className={horizontal ? 'ribbon-tab' : 'spine'}
               style={{ ['--spine-color' as string]: spineColor(subject.order) }}
               data-spine={horizontal ? '' : undefined}
-              aria-pressed={horizontal ? undefined : value === subject.id}
-              aria-selected={horizontal ? value === subject.id : undefined}
-              role={horizontal ? 'tab' : undefined}
+              aria-pressed={value === subject.id}
               onClick={() => onChange(subject.id)}
             >
               <span className="truncate">{subject.name}</span>
@@ -106,7 +102,7 @@ export default function SubjectShelf({
                 aria-label={`Bỏ môn ${subject.name}`}
                 title={`Bỏ môn ${subject.name}`}
                 onClick={() => onRemove(subject)}
-                className="absolute right-xxs top-1/2 hidden size-7 -translate-y-1/2 place-items-center rounded-full text-umber group-hover:grid group-focus-within:grid"
+                className="absolute right-xxs top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-umber"
               >
                 <CloseIcon size={13} />
               </button>
@@ -118,9 +114,7 @@ export default function SubjectShelf({
           type="button"
           className={horizontal ? 'ribbon-tab' : 'spine'}
           style={horizontal ? undefined : { ['--spine-color' as string]: 'var(--sepia)' }}
-          aria-pressed={horizontal ? undefined : value === 'none'}
-          aria-selected={horizontal ? value === 'none' : undefined}
-          role={horizontal ? 'tab' : undefined}
+          aria-pressed={value === 'none'}
           onClick={() => onChange('none')}
         >
           Chưa xếp môn

@@ -127,7 +127,9 @@ describe('G11 — Giá sách render đúng 1 bản theo breakpoint', () => {
     expect(strip).not.toBeNull();
     expect(strip?.querySelector('.shelf-strip')).not.toBeNull();
     expect(strip?.querySelectorAll('.spine')).toHaveLength(0);
-    expect(strip?.querySelector('button[role="tab"][aria-selected]')).not.toBeNull();
+    // Dải môn là bộ lọc (aria-pressed), không phải tab set — không có tabpanel/arrow-key.
+    expect(strip?.querySelector('button[role="tab"]')).toBeNull();
+    expect(strip?.querySelector('button[aria-pressed]')).not.toBeNull();
   });
 
   it('360px: vẫn có đúng 1 dải ngang thật', async () => {
