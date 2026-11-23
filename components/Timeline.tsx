@@ -23,6 +23,7 @@ import {
 } from '../lib/tasks/timeBlock';
 import type { TaskDraft } from '../lib/tasks/form';
 import type { Subject, Task } from '../lib/tasks/types';
+import { CollapseIcon, ExpandIcon, WarningIcon } from './art/Icons';
 import TaskEntryPopup, { type PopupAnchor } from './TaskEntryPopup';
 
 /** 2px/phút → 30′ = 60px, 15′ = 30px (block ngắn vẫn có hit area 44px). */
@@ -378,12 +379,12 @@ export default function Timeline({
           <span className="timeline-block-time">{preview ?? task.startAt}</span>
           {beyondWindow && (
             <span className="timeline-block-beyond" aria-label="Vượt khung 24:00">
-              ⚠ Vượt khung
+              <WarningIcon size={12} className="align-middle" /> Vượt khung
             </span>
           )}
           {warning && (
             <span className="timeline-block-warning" aria-label="Cảnh báo chồng lấn">
-              ⚠ Chồng lấn
+              <WarningIcon size={12} className="align-middle" /> Chồng lấn
             </span>
           )}
           <span className="timeline-block-title">{task.title}</span>
@@ -473,7 +474,7 @@ export default function Timeline({
             aria-pressed={fullscreen}
             onClick={() => setFullscreen((value) => !value)}
           >
-            {fullscreen ? '⤡' : '⤢'}
+            {fullscreen ? <CollapseIcon size={20} /> : <ExpandIcon size={20} />}
           </button>
         </div>
       </div>

@@ -177,3 +177,30 @@ export const LampIcon = make(
     <path d="M8.2 14.5c1-1.6 2.2-2.4 3.8-2.4s2.8.8 3.8 2.4" />
   </>
 );
+
+/** Bốn góc mở ra / khép lại — nút phóng to thu nhỏ timeline */
+export const ExpandIcon = make(
+  <>
+    <path d="M9 4H4v5" />
+    <path d="M15 4h5v5" />
+    <path d="M20 15v5h-5" />
+    <path d="M4 15v5h5" />
+  </>
+);
+export const CollapseIcon = make(
+  <>
+    <path d="M4 9h5V4" />
+    <path d="M20 9h-5V4" />
+    <path d="M15 20v-5h5" />
+    <path d="M9 20v-5H4" />
+  </>
+);
+
+/** Tam giác cảnh báo — thay glyph ⚠ bằng nét vẽ cùng hệ icon */
+export const WarningIcon = make(
+  <>
+    <path d="M12 4 2.8 20h18.4L12 4Z" />
+    <path d="M12 10v4.4" />
+    <path d="M12 17.4h.01" strokeWidth={2.2} />
+  </>
+);

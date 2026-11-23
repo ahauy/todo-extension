@@ -1,72 +1,57 @@
 {
   "specVersion": "2.0.0",
-  "scopeVersion": 42,
-  "generatedAt": "2026-11-23T11:36:44+07:00",
+  "scopeVersion": 43,
+  "generatedAt": "2026-11-23T11:47:53+07:00",
   "trigger": "bug-fix",
-  "workItem": "bug/newtab-board-ux",
+  "workItem": "bug/low-ui-details",
   "specRefs": [
-    "R-16",
-    "R-19",
-    "R-26"
+    "R-19"
   ],
   "changed": {
     "files": [
-      "components/TaskScrollList.tsx",
-      "src/__tests__/TaskScrollList.test.tsx",
-      "components/ui/Segmented.tsx",
-      "components/ui/Menu.tsx",
-      "components/FilterRow.tsx",
-      "styles/base.css",
-      "styles/board.css",
+      "components/Timeline.tsx",
+      "components/art/Icons.tsx",
+      "components/ui/Modal.tsx",
+      "components/ui/QuillInput.tsx",
       "styles/components.css",
-      "entrypoints/popup/App.wiring.test.tsx",
-      "entrypoints/popup/popup-mount.test.tsx",
-      "src/__tests__/Composer.test.tsx",
-      "src/__tests__/FilterRow.test.tsx",
-      "src/__tests__/Menu.test.tsx",
-      "src/__tests__/Segmented.test.tsx",
-      "src/__tests__/SettingsPanel.test.tsx",
-      "src/__tests__/a11y-controls.test.ts",
-      "components/PriorityBoard.tsx",
-      "entrypoints/newtab/App.tsx",
-      "entrypoints/newtab/style.css",
-      "entrypoints/newtab/App.priorityBoard.test.tsx",
-      "src/__tests__/board-ux-sweep.test.tsx",
+      "styles/tokens.css",
+      "src/__tests__/low-ui-details.test.tsx",
       "spec/updates/2026-11-23-bug-quota-retry.md",
       "spec/updates/2026-11-23-bug-shared-control-a11y.md",
       "spec/updates/2026-11-23-bug-newtab-board-ux.md",
+      "spec/updates/2026-11-23-bug-low-ui-details.md",
       "spec/test-scope/current.json",
       ".context/progress.json"
     ],
     "modules": [
-      "task-ui",
-      "shared-controls",
-      "newtab-priority-board",
+      "newtab-timeline",
+      "shared-ui-primitives",
+      "design-tokens",
       "spec-state"
     ]
   },
   "impact": {
     "direct": [
-      "R-16: banner quota không hứa retry; copy nêu rõ draft chưa lưu/nhập lại; board quota copy cùng pattern, rollback nguyên vẹn",
-      "R-19: radiogroup + roving tabindex, menu Tab đóng/outside-click/menuitemradio, hit target ≥44px, focus ring 12.2:1",
-      "R-26: nút board tên riêng 'Ma trận ưu tiên'; filter row không gãy 1024/1280; hint bàn phím rõ + focus vào ô; success feedback nhìn được; panel hairline, 1 scroll owner"
+      "R-19: Timeline dùng SVG stroke icons (expand/collapse/warning) thay glyph Unicode, giữ aria-label/title",
+      "R-19: Modal tôn trọng labelledBy truyền vào, fallback titleId cho 6 caller hiện tại",
+      "R-19: QuillInput re-render ngay khi prefers-reduced-motion đổi qua useMediaQuery + cleanup listener"
     ],
     "dependents": [
-      "FEAT-006: 1-put copy-then-patch, quota rollback, Esc precedence, focusActive gating, 4 nhãn Q1-Q4, focus trap/restore không đổi",
-      "Popup + New Tab dùng chung Segmented/Menu/CSS → retest wiring, sort, subject, Composer, SettingsPanel"
+      "tokens.css: --elev-seal-soft thay hard 0 2px 0 cho .btn-primary; hover thêm cho primary/secondary/ghost/icon nhưng không đụng :active/:disabled/pressed",
+      "Popup + New Tab dùng chung Icons/Modal/QuillInput/CSS → retest wiring, composer, settings, timeline"
     ],
     "regression": [
-      "Verify đủ 4 lệnh: tsc / eslint / vitest (53 files 458 tests) / wxt build",
-      "Reviewer STRICT PASS cho cả 3 bug; real-Chrome eyeball 360/1024/1280 chưa làm (residual)",
-      "Undo drag-assign chưa có (residual theo task choice)"
+      "Verify đủ 4 lệnh: tsc / eslint / vitest (54 files 465 tests) / wxt build",
+      "Không đụng 3 batch trước (2bae7d2/5329e4b/bf53e2a), không đụng D-12/D-20",
+      "D-08/D-09: scan coverage gán defect nhưng thiếu dòng expected/actual → chờ repro, không tự fix"
     ]
   },
   "acceptance": [
-    "Không còn 2 control cùng nghĩa 'Sắp xếp' cạnh nhau; filter row không gãy ở 1024/1280",
-    "Hint board nêu rõ Enter/mũi tên/Space; focus tới ô đầu sau khi chọn thẻ; có success feedback nhìn được",
-    "Error quota board không hứa retry; Shared controls đúng ARIA/keyboard/hit target/focus ring",
-    "Panel board hairline, 2px chỉ khi drop; frog-hero có margin-top; backdrop không phải scroll owner",
-    "tsc / eslint / vitest / wxt build PASS; reviewer STRICT PASS trước commit"
+    "Không còn glyph Unicode ⤡/⤢/⚠ trong Timeline; icon SVG khớp hệ make()",
+    "Modal labelledBy có effect thật; fallback tự sinh vẫn đúng cho caller cũ",
+    "QuillInput phản ứng ngay với matchMedia change và dọn listener khi unmount",
+    "Nút chính có :hover; shadow .btn-primary có blur mềm; focus/disabled giữ nguyên",
+    "tsc / eslint / vitest / wxt build PASS; reviewer NORMAL PASS trước commit"
   ],
-  "risk": "high"
+  "risk": "low-medium"
 }

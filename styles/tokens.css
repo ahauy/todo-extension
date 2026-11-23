@@ -50,6 +50,7 @@
   /* Chiều sâu: lớp sơn, không phải bóng mờ lớn */
   --elev-lacquer: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 0 #c8ae80;
   --elev-seal: inset 0 1px 0 rgba(255, 246, 227, 0.35), 0 2px 0 #8e2a14;
+  --elev-seal-soft: inset 0 1px 0 rgba(255, 246, 227, 0.35), 0 2px 4px rgba(142, 42, 20, 0.35);
   --elev-pressed: inset 0 2px 4px rgba(26, 15, 10, 0.35);
   --elev-raised: 0 8px 20px rgba(90, 58, 38, 0.18);
   --elev-modal: 0 12px 32px rgba(26, 15, 10, 0.28);

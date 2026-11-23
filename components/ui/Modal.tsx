@@ -27,6 +27,7 @@ export default function Modal({
   children,
   footer,
   sheet = false,
+  labelledBy,
 }: ModalProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -85,7 +86,7 @@ export default function Modal({
         ref={boxRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
+        aria-labelledby={labelledBy ?? titleId}
         data-sheet={sheet}
         data-centered={!sheet || undefined}
         onClick={stop}

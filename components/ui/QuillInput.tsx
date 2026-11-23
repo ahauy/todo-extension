@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { QuillHand, QuillPen } from '../art/QuillArt';
 import type { QuillStyle } from '../../lib/tasks/types';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 const MAX_LENGTH = 200;
 const IDLE_MS = 600;
@@ -40,14 +41,6 @@ interface QuillInputProps {
 interface InkRange {
   from: number;
   to: number;
-}
-
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
 }
 
 const QuillInput = React.forwardRef<HTMLInputElement, QuillInputProps>(function QuillInput(
@@ -82,7 +75,8 @@ const QuillInput = React.forwardRef<HTMLInputElement, QuillInputProps>(function 
   const [nibX, setNibX] = useState(16);
   const [resting, setResting] = useState(true);
 
-  const animate = effectEnabled && !prefersReducedMotion();
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const animate = effectEnabled && !reducedMotion;
 
   const setRefs = useCallback(
     (node: HTMLInputElement | null) => {

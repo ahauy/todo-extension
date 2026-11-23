@@ -33,8 +33,11 @@
   background: var(--primary);
   color: var(--on-primary);
   border: 1px solid var(--primary-deep);
-  box-shadow: var(--elev-seal);
+  box-shadow: var(--elev-seal-soft);
   text-transform: uppercase;
+}
+.btn-primary:not(:disabled):hover {
+  background: var(--primary-deep);
 }
 .btn-primary:not(:disabled):active {
   background: var(--primary-deep);
@@ -48,6 +51,9 @@
   color: var(--brown);
   border: 1.5px solid var(--brown);
 }
+.btn-secondary:not(:disabled):hover {
+  background: var(--surface-paper);
+}
 .btn-secondary:not(:disabled):active {
   background: var(--surface-sunk);
   box-shadow: var(--elev-pressed);
@@ -58,6 +64,9 @@
   background: transparent;
   color: var(--brown);
   border: 1px dashed var(--hairline);
+}
+.btn-ghost:not(:disabled):hover {
+  background: var(--surface-paper);
 }
 .btn-ghost:not(:disabled):active {
   background: var(--surface-paper);
@@ -97,6 +106,10 @@
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
+}
+.btn-icon:not(:disabled):not(:active):not([aria-pressed='true']):not([data-active='true']):hover {
+  background: var(--surface-paper);
+  border-color: var(--brown);
 }
 .btn-icon:active {
   background: var(--surface-sunk);
