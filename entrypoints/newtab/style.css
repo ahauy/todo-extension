@@ -359,6 +359,18 @@
   overflow-wrap: anywhere;
   color: var(--umber);
 }
+/* Hàng hint thứ hai sát hàng đầu; khi đang chọn thẻ thì banner vàng kim */
+.priority-board-hint + .priority-board-hint {
+  margin-top: var(--spacing-xxs);
+}
+.priority-board-hint--active {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-pale);
+  color: var(--on-gold);
+  font-weight: 700;
+}
 .priority-board-error,
 .priority-board-success {
   padding: var(--spacing-xs) var(--spacing-sm);
@@ -382,47 +394,73 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-/* D-11 — ô là vùng chứa trong suốt, không phải card lồng nhau. Giữ border
-   transparent 1px để khi vào drop state đổi sang 2px không làm nhảy layout. */
+/* Ô là "khay" thấy rõ: nền sunk + viền nét đứt — ô trống vẫn đọc là vùng thả,
+   bốn ô cao tối thiểu bằng nhau nên ma trận không bị lệch. Drop state đè đậm:
+   border 2px chỉ ở trạng thái drop, thêm outline cùng màu để 1px↔2px không dịch. */
 .priority-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
   min-width: 0;
-  padding: var(--spacing-sm);
-  border: 1px solid transparent;
+  min-height: 148px;
+  padding: var(--spacing-md);
+  border: 1px dashed var(--hairline);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: var(--surface-sunk);
   transition: border-color 120ms ease, background-color 120ms ease;
 }
 .priority-cell--drop[data-drop-target='true'] {
-  border: 2px solid var(--primary);
+  /* Vẫn border 1px + vệt inset 1px = nhìn như 2px mà không dịch nội dung khay */
+  border-color: var(--primary);
+  border-style: solid;
   background: var(--primary-wash);
+  box-shadow: inset 0 0 0 1px var(--primary);
 }
+/* Dấu ô dùng màu R-05 sẵn có (badge-q1..q4) — nhất quán với PriorityBadge */
 .priority-cell-title {
   display: flex;
-  align-items: baseline;
-  gap: var(--spacing-xxs);
+  align-items: center;
+  gap: var(--spacing-sm);
   min-width: 0;
-  overflow-wrap: anywhere;
-  color: var(--primary-deep);
+  margin: 0;
+  color: var(--ink);
   font-size: var(--text-body-sm);
   font-weight: 700;
+  line-height: 1.4;
 }
-.priority-cell-short {
+.priority-cell-title .badge {
   flex: none;
-  color: var(--primary);
 }
+.priority-cell-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Nút gán chỉ xuất hiện khi đang chọn thẻ — dashed như đường may, nổi khi hover */
 .priority-cell-assign {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 44px;
-  margin: var(--spacing-xxs) 0;
-  padding: 0 var(--spacing-sm);
-  border: 1px solid var(--sepia);
+  padding: var(--spacing-xs) var(--spacing-base);
+  border: 1px dashed var(--sepia);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--umber);
-  font-size: var(--text-caption);
+  color: var(--brown);
+  font-family: var(--font-body);
+  font-size: var(--text-body-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 .priority-cell-assign:not(:disabled):hover {
   border-color: var(--primary);
+  background: var(--surface-paper);
   color: var(--primary-deep);
+}
+.priority-cell-assign:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .priority-cell-assign:disabled {
   opacity: 0.5;
@@ -430,26 +468,58 @@
 }
 .priority-cell-list {
   display: grid;
-  gap: var(--spacing-xxs);
+  gap: var(--spacing-xs);
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
+.priority-cell-empty {
+  margin: auto 0;
+  color: var(--umber);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+}
+/* Thẻ = cuộn giấy nhỏ: nền sơn bóng, viền mảnh, chấm nắm kéo bên trái.
+   Khi chọn: nền wash đỏ son + viền đậm để vị trí gán đọc rõ. */
 .priority-card {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   width: 100%;
+  min-height: 44px;
   min-width: 0;
-  padding: var(--spacing-xxs) var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--umber);
+  background: var(--surface-lacquer);
+  box-shadow: var(--elev-lacquer);
+  color: var(--ink);
+  font: inherit;
   text-align: left;
   overflow-wrap: anywhere;
   cursor: grab;
   touch-action: none;
   user-select: none;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+/* Chấm nắm kéo (grip) — trang trí thuần, không phải nội dung */
+.priority-card::before {
+  content: '';
+  width: 7px;
+  height: 18px;
+  flex: none;
+  background-image: radial-gradient(circle, var(--hairline) 1.1px, transparent 1.4px);
+  background-size: 4px 5px;
+  background-position: center;
+}
+.priority-card:hover {
+  border-color: var(--sepia);
 }
 .priority-card[data-selected='true'] {
   border-color: var(--primary);
+  background: var(--primary-wash);
   color: var(--primary-deep);
 }
 .priority-card:active {

@@ -16,6 +16,14 @@ export const PRIORITY_CELLS: ReadonlyArray<{ value: Priority; label: string; sho
   { value: 'not-important-not-urgent', label: 'Không quan trọng, không cấp bách', short: 'Q4' },
 ];
 
+/** Class TĨNH cho dấu ô theo màu R-05 (badge-q1..q4 trong components.css). */
+const CELL_BADGE: Record<Priority, string> = {
+  'important-urgent': 'badge-q1',
+  'important-not-urgent': 'badge-q2',
+  'not-important-urgent': 'badge-q3',
+  'not-important-not-urgent': 'badge-q4',
+};
+
 const DRAG_THRESHOLD_PX = 5;
 
 export interface PriorityBoardProps {
@@ -302,10 +310,19 @@ export default function PriorityBoard({
             ×
           </button>
         </div>
-        <p className="priority-board-hint">
-          Kéo thẻ sang ô khác. Bằng bàn phím: Enter chọn thẻ → mũi tên di chuyển giữa các ô → Enter
-          hoặc Space gán vào ô.
-        </p>
+        {selectedId ? (
+          <p className="priority-board-hint priority-board-hint--active">
+            Đã chọn “{visible.find((task) => task.id === selectedId)?.title ?? ''}” — bấm ô đích để
+            gán (Enter hoặc Space khi dùng bàn phím).
+          </p>
+        ) : (
+          <>
+            <p className="priority-board-hint">Kéo thẻ sang ô khác, hoặc chọn thẻ rồi gán bằng bàn phím.</p>
+            <p className="priority-board-hint">
+              Bàn phím: Enter chọn thẻ → mũi tên di chuyển giữa các ô → Enter hoặc Space gán vào ô.
+            </p>
+          </>
+        )}
         {error && (
           <p className="priority-board-error" role="alert" data-priority-error>
             {error}
@@ -330,29 +347,34 @@ export default function PriorityBoard({
                 aria-label={`Ô ${cell.short}: ${cell.label}`}
               >
                 <h3 className="priority-cell-title">
-                  <span className="priority-cell-short">{cell.short}</span> {cell.label}
+                  <span className={`badge ${CELL_BADGE[cell.value]}`}>{cell.short}</span>
+                  <span className="priority-cell-label">{cell.label}</span>
                 </h3>
-                <button
-                  type="button"
-                  className="priority-cell-assign"
-                  data-cell-assign={cell.value}
-                  disabled={disabled || !selectedId}
-                  aria-label={`Chọn ô ${cell.short}: ${cell.label}`}
-                  onClick={() => {
-                    if (selectedId) void assign(selectedId, cell.value);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                      event.preventDefault();
-                      focusCell(index + 1);
-                    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                      event.preventDefault();
-                      focusCell(index - 1);
-                    }
-                  }}
-                >
-                  Chọn ô {cell.short}
-                </button>
+                {/* Nút gán chỉ xuất hiện khi đang có thẻ được chọn — 4 nút disabled
+                    luôn hiện là noise thị giác; khi chọn, D-03 tự focus nút ô đầu. */}
+                {selectedId && (
+                  <button
+                    type="button"
+                    className="priority-cell-assign"
+                    data-cell-assign={cell.value}
+                    disabled={disabled}
+                    aria-label={`Chọn ô ${cell.short}: ${cell.label}`}
+                    onClick={() => {
+                      if (selectedId) void assign(selectedId, cell.value);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        focusCell(index + 1);
+                      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        focusCell(index - 1);
+                      }
+                    }}
+                  >
+                    Gán vào đây
+                  </button>
+                )}
                 <ul className="priority-cell-list">
                   {items.map((task) => (
                     <li key={task.id}>
@@ -383,6 +405,9 @@ export default function PriorityBoard({
                     </li>
                   ))}
                 </ul>
+                {items.length === 0 && (
+                  <p className="priority-cell-empty">Chưa có việc — kéo thẻ vào đây</p>
+                )}
               </section>
             );
           })}

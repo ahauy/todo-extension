@@ -99,7 +99,10 @@ afterEach(() => {
 describe('D-03 — keyboard hint and post-selection focus', () => {
   it('explicit hint names Enter, arrow keys and Enter/Space', async () => {
     const container = await mount([fixture('t1')], vi.fn().mockResolvedValue(undefined));
-    const hint = container.querySelector('.priority-board-hint')?.textContent ?? '';
+    // Hint tách 2 hàng (kéo / bàn phím); gộp lại để chặn nội dung, không chặn bố cục
+    const hint = Array.from(container.querySelectorAll('.priority-board-hint'))
+      .map((node) => node.textContent ?? '')
+      .join(' ');
     expect(hint).toContain('Enter');
     expect(hint).toContain('mũi tên');
     expect(hint).toContain('Space');
@@ -164,14 +167,14 @@ describe('D-10 / D-11 / D-12 / D-20 — CSS guards', () => {
     expect(block(text, '.priority-board-launch-filter')).toContain('flex: 1 1 100%');
   });
 
-  it('D-11: panel uses a hairline, drop state owns the 2px border', () => {
+  it('D-11: panel uses a hairline, drop state owns the doubled edge (border + inset, no layout shift)', () => {
     const text = css();
     expect(block(text, '.priority-board-panel')).toContain('border: 1px solid');
     expect(block(text, '.priority-cell')).not.toContain('background: var(--surface-lacquer)');
     expect(block(text, '.priority-card')).not.toContain('background: var(--surface-paper)');
-    expect(block(text, '.priority-cell--drop[data-drop-target=\'true\']')).toContain(
-      'border: 2px solid'
-    );
+    const drop = block(text, '.priority-cell--drop[data-drop-target=\'true\']');
+    expect(drop).toContain('border-color: var(--primary)');
+    expect(drop).toContain('box-shadow: inset 0 0 0 1px var(--primary)');
   });
 
   it('D-12: frog-hero has clear top spacing after Greeting', () => {
