@@ -94,11 +94,13 @@ export default function TaskScrollList({
       <div className="scroll-task" data-state="overdue" role="alert">
         <p className="text-body-md font-bold text-primary-deep">{quotaError}</p>
         <p className="mt-xs text-body-sm text-brown">
-          Bộ nhớ đồng bộ của trình duyệt đã đầy. Xoá bớt việc cũ rồi thử lại.
+          Bộ nhớ đồng bộ của trình duyệt đã đầy. Việc mới hoặc bản sửa này chưa được lưu — hãy
+          nhập lại sau khi xoá bớt việc cũ.
         </p>
         <div className="mt-md flex gap-sm">
+          {/* D-01: acknowledgment, không phải retry — payload thất bại đã bị bỏ (R-16). */}
           <Button variant="secondary" size="sm" onClick={onQuotaRetry}>
-            Thử lại
+            Đã hiểu
           </Button>
         </div>
       </div>

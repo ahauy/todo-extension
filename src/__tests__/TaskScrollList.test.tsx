@@ -1,7 +1,8 @@
 /**
  * Test TaskScrollList (danh sách cuộn thư): role="list" một TaskScroll mỗi
  * việc, lọc theo tab / tìm kiếm / môn học, sắp xếp theo ưu tiên, skeleton khi
- * đang tải, alert quota + nút "Thử lại", và 4 trạng thái rỗng với đúng copy.
+ * đang tải, alert quota + nút "Đã hiểu" (chỉ đóng banner), và 4 trạng thái rỗng
+ * với đúng copy.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import React, { act } from 'react';
@@ -187,7 +188,7 @@ describe('TaskScrollList', () => {
     expect(container.querySelector('[role="list"]')).toBeNull();
   });
 
-  it('quotaError: role="alert" với thông điệp + nút "Thử lại" gọi onQuotaRetry', () => {
+  it('quotaError: role="alert" nói rõ chưa lưu, không còn nút "Thử lại"', () => {
     const onQuotaRetry = vi.fn();
     const container = renderNode(
       <TaskScrollList
@@ -203,14 +204,45 @@ describe('TaskScrollList', () => {
     expect(alert?.textContent).toContain(
       'Không lưu được việc. Bộ nhớ đồng bộ có thể đã đầy.'
     );
-    expect(alert?.textContent).toContain(
-      'Bộ nhớ đồng bộ của trình duyệt đã đầy.'
-    );
+    // D-01: banner phải nói thật là payload thất bại đã mất, không hứa retry.
+    expect(alert?.textContent).toContain('chưa được lưu');
+    expect(alert?.textContent).toContain('nhập lại');
+    expect(alert?.textContent).not.toContain('Thử lại');
+    expect([...container.querySelectorAll('button')].map((b) => b.textContent)).toEqual([
+      'Đã hiểu',
+    ]);
+  });
+
+  it('D-01: nhấn "Đã hiểu" chỉ đóng banner, không gọi lại write', () => {
+    const onDismiss = vi.fn();
+    function Harness() {
+      const [error, setError] = React.useState<string | null>(
+        'Không lưu được việc. Bộ nhớ đồng bộ có thể đã đầy.'
+      );
+      return (
+        <TaskScrollList
+          {...listProps({
+            quotaError: error,
+            // App.tsx chỉ setQuotaError(null): đóng banner, không retry payload.
+            onQuotaRetry: () => {
+              onDismiss();
+              setError(null);
+            },
+          })}
+        />
+      );
+    }
+    const container = renderNode(<Harness />);
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
 
     act(() => {
-      findButton(container, 'Thử lại').click();
+      findButton(container, 'Đã hiểu').click();
     });
-    expect(onQuotaRetry).toHaveBeenCalledTimes(1);
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    // Hành động duy nhất là xoá banner → list rỗng hiện lại như bình thường.
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(container.textContent).toContain('Chưa có điều gì cần ghi. Hãy cầm bút lên.');
   });
 
   it('sổ trống ở tab "all" → lời mời ghi việc đầu tiên', () => {
