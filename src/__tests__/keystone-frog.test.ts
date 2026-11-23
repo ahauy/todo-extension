@@ -39,7 +39,7 @@ function makeTask(overrides: Partial<Task> & Pick<Task, 'id'>): Task {
     id,
     title: id,
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],
@@ -98,9 +98,9 @@ describe('archived — không task ma ở filter/count', () => {
 /* ── sort giữ nguyên R-15 ─────────────────────────────────────────────────── */
 describe('filterByKeystone + sortBoard — deterministic 2 lần (R-15)', () => {
   const tied = [
-    makeTask({ id: 'b', keystone: true, priority: 'high', dueAt: '2035-01-20T09:00' }),
-    makeTask({ id: 'a', keystone: true, priority: 'high', dueAt: '2035-01-20T09:00' }),
-    makeTask({ id: 'c', archived: true, keystone: true, priority: 'high', dueAt: '2035-01-20T09:00' }),
+    makeTask({ id: 'b', keystone: true, priority: 'important-urgent', dueAt: '2035-01-20T09:00' }),
+    makeTask({ id: 'a', keystone: true, priority: 'important-urgent', dueAt: '2035-01-20T09:00' }),
+    makeTask({ id: 'c', archived: true, keystone: true, priority: 'important-urgent', dueAt: '2035-01-20T09:00' }),
     makeTask({ id: 'd', dueAt: null }),
   ];
 

@@ -20,7 +20,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 't1',
     title: 'Việc có giờ',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],

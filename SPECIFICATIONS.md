@@ -1,6 +1,6 @@
 ---
-spec_version: 1.9.0
-updated_at: 2026-11-19
+spec_version: 2.0.0
+updated_at: 2026-11-23
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
 ---
@@ -38,8 +38,8 @@ Người dùng: cá nhân cần todo nhanh khi đang lướt web.
 
 **R-01 — Tạo task**
 Người dùng nhập title (bắt buộc, trim, 1–200 ký tự) và submit. Hệ thống tạo `Task` với
-`id = crypto.randomUUID()`, `done = false`, `priority` mặc định `medium`, `tags = []`,
-`subtasks = []`, `recurrence = {kind:'none'}`, `createdAt = updatedAt = now`, lưu vào storage.
+`id = crypto.randomUUID()`, `done = false`, `priority` mặc định `important-not-urgent` (R-05),
+`tags = []`, `subtasks = []`, `recurrence = {kind:'none'}`, `createdAt = updatedAt = now`, lưu vào storage.
 Title rỗng/toàn khoảng trắng → không tạo, hiện lỗi inline.
 
 **R-02 — Sửa task**
@@ -55,9 +55,29 @@ Xoá task khỏi storage và xoá alarm tương ứng (`chrome.alarms.clear('due
 Toggle `done` cho task không lặp. Task `done` bị xoá alarm; task chưa done và có `dueAt` tương lai
 được tạo lại alarm.
 
-**R-05 — Ưu tiên**
-`priority ∈ {low, medium, high}`, mặc định `medium`. UI hiển thị dấu hiệu ưu tiên; sort theo priority
-được (high → low).
+**R-05 — Ưu tiên (ma trận Eisenhower, thay thế hệ 3 mức từ 2.0.0)**
+`priority` là một trong 4 giá trị (mã hoá trong `t:<id>` làm key chuỗi, **không** key storage mới):
+
+| Giá trị | Nhãn hiển thị | Gọi tắt |
+|---|---|---|
+| `important-urgent` | "Quan trọng, cấp bách" | Q1 |
+| `important-not-urgent` | "Quan trọng, không cấp bách" | Q2 |
+| `not-important-urgent` | "Không quan trọng, cấp bách" | Q3 |
+| `not-important-not-urgent` | "Không quan trọng, không cấp bách" | Q4 |
+
+Mặc định khi tạo mới: `important-not-urgent` (Q2). Mọi nơi hiển thị hoặc chọn ưu tiên (thẻ việc,
+popup, New Tab) dùng đúng 4 nhánh/nhãn này; không còn nhãn `low`/`medium`/`high`.
+Sort theo priority: **Q1 → Q2 → Q3 → Q4**; đây là tiêu chí phụ trong thứ tự R-15.
+
+**Ánh xạ dữ liệu cũ (đọc khi hydrate, không ghi lại/storage migration):**
+`high → important-urgent` (Q1), `medium → important-not-urgent` (Q2),
+`low → not-important-not-urgent` (Q4). Q3 (`not-important-urgent`) không có tương đương trong
+dữ liệu cũ, chỉ xuất hiện khi user chọn mới. Việc có giá trị priority lạ/không nhận diện được
+→ coi như Q2. Không xoá/ghi đè dữ liệu cũ; lần lưu tiếp theo của task mới ghi giá trị 4 mức.
+
+**Nhãn A/B/C (liên kết R-21):** A = Q1, B = Q2, C = Q4. Bật "Việc then chốt" tự gán
+`priority = important-urgent` (Q1); tắt không tự hạ. Không dùng Q3 cho nhãn A/B/C.
+Background notification (R-12) chỉ ưu tiên hoá `important-urgent` (tương đương `high` trước đây).
 
 **R-06 — Ghi chú**
 `note` tuỳ chọn, tối đa 1000 ký tự, hiển thị rút gọn trong task item và đầy đủ khi mở chi tiết.
@@ -72,10 +92,11 @@ Tick hết subtask KHÔNG tự tick task cha (tránh hành vi ngầm); tick task
 
 **R-21 — Việc then chốt, con ếch & cắt bỏ (Gói A)**
 `Task` có hai field additive tuỳ chọn: `keystone?: boolean` (mặc định `false`) và
-`archived?: boolean` (mặc định `false`). Bật then chốt tự gán `priority='high'`; tắt then chốt
-**không** tự hạ priority. Tối đa **3 việc then chốt đang mở** (`!done && !archived`); vượt 3 chỉ
-hiện cảnh báo, vẫn lưu bình thường (quyết định A1). Nhãn A/B/C vẫn ánh xạ vào 3 mức priority hiện có,
-không thêm enum 5 mức.
+`archived?: boolean` (mặc định `false`). Bật then chốt tự gán `priority = 'important-urgent'` (Q1,
+R-05); tắt then chốt **không** tự hạ priority. Tối đa **3 việc then chốt đang mở**
+(`!done && !archived`); vượt 3 chỉ hiện cảnh báo, vẫn lưu bình thường (quyết định A1).
+Nhãn A/B/C ánh xạ theo R-05: **A = `important-urgent` (Q1) · B = `important-not-urgent` (Q2) ·
+C = `not-important-not-urgent` (Q4)**; Q3 không dùng cho A/B/C. Không thêm enum 5 mức.
 
 Chip **"20%"** là bộ lọc bật/tắt trên nền tab hiện tại, **không** thêm tab thứ 5 (quyết định A2).
 Chip lọc `keystone && !archived`, xếp sau tab/subject/search và trước sort; không đổi thứ tự sort
@@ -161,7 +182,7 @@ Tab `all | today | upcoming | done`, lọc theo môn học, tìm kiếm theo tit
 Chip "20%" (R-21) bật/tắt như một bộ lọc xếp trên nền tab hiện tại; task `archived=true` luôn bị
 loại khỏi mọi tab, bộ lọc và bộ đếm. Việc bổ sung bộ lọc không được làm đổi thứ tự sort.
 
-Sort mặc định: **overdue trước → `dueAt` gần nhất → `priority` high→low → `createdAt` mới nhất**.
+Sort mặc định: **overdue trước → `dueAt` gần nhất → `priority` Q1→Q2→Q3→Q4 (R-05) → `createdAt` mới nhất**.
 Task không có `dueAt` xếp sau task có `dueAt`. User chọn được tiêu chí chính (`dueAt` | `priority` |
 `createdAt`); tie-breaker luôn theo thứ tự trên để kết quả ổn định (deterministic).
 
@@ -185,6 +206,27 @@ dài phải giữ ngữ cảnh thao tác, đóng rõ ràng và dùng được b�
 Motion chỉ được dùng để phản hồi thao tác hoặc đổi trạng thái thật: ghi việc, đóng/bỏ triện,
 chuyển bộ lọc/menu, và mốc chuỗi học. Không có autoplay, marquee, parallax hay hiệu ứng lặp vô cớ.
 Tất cả motion phải tuân `prefers-reduced-motion`; không được thêm thư viện animation hoặc quyền/network mới.
+
+**R-26 — Bảng sắp xếp công việc theo ma trận (New Tab only, từ 2.0.0)**
+New Tab ("Học Đường") có nút **"Sắp xếp công việc"** đặt cạnh `FilterRow` (**ngoài popup**, popup
+360×560 không thêm khối UI mới theo R-19). Bấm nút mở một bảng/panel gồm **4 ô** tương ứng đúng
+4 nhãn của R-05 (Q1→Q4), mỗi ô liệt kê các task có `priority` tương ứng, kể cả việc đã lưu từ hệ 3 mức
+được ánh xạ khi hydrate.
+
+- **Kéo-thả:** user kéo thẻ việc từ danh sách/ô này sang ô khác → gán `priority` = giá trị của ô đích
+  qua **đúng 1 `put(task)`** (copy-then-patch như R-25, không `syncAlarms`, không key storage/permission/
+  network mới — R-17). Không đổi `done`/`dueAt`/`startAt`/`endAt`/`plannedFor`/`archived`/`habit`/`dayPlan`.
+- **Phản hồi tức thời:** trong lúc kéo, ô đang trỏ vào phải nổi bật (drop-target highlight); khi thả,
+  thẻ chuyển ô ngay trong bộ nhớ (optimistic) rồi mới ghi storage. Nếu ghi lỗi (`StorageQuotaError`,
+  R-16) → hoàn tác thay đổi priority trong bộ nhớ, hiện lỗi inline, không toast. Không cần reload để
+  thấy kết quả.
+- **Lối bàn phím:** mỗi thẻ việc có thể chọn rồi dùng phím để chọn ô đích (tương đương kéo-thả),
+  có `aria-live` thông báo ô đã gán; focus trap khi panel mở, Esc đóng panel (thứ tự Esc theo R-25:
+  popup → panel → fullscreen → search/menu). Thao tác trong focus mode (R-20) bị vô hiệu hoá như các
+  gesture mới của R-25.
+- **Motion:** highlight/đổi ô chỉ phản hồi thao tác thật, tuân `prefers-reduced-motion: reduce` (R-19);
+  không thư viện animation/new permission. Panel là **local state**, không lưu storage, đóng/mở không
+  đụng snapshot. Ngân sách R-18 (mở popup <100ms) không đổi vì panel chỉ ở New Tab.
 
 ### Domain: Đơn nhiệm (Single-handling)
 

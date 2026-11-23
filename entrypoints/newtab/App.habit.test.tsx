@@ -29,7 +29,7 @@ function taskFixture(): Task {
     id: 'habit-ui',
     title: 'Ôn bài',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'daily' },
     tags: [],

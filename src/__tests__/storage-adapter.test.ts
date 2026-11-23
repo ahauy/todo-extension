@@ -17,7 +17,7 @@ function fixture(overrides: Partial<Task>): Task {
     id: 'task-1',
     title: 'Việc mẫu',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],
@@ -76,6 +76,30 @@ describe('loadAll — chuẩn hoá dueAt/prevDueAt khi đọc', () => {
 
     expect(second).toEqual(first);
     expect(second[0].dueAt).toBe(first[0].dueAt);
+    expect(setSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('loadAll — hydrate priority 3 mức cũ (R-05)', () => {
+  const legacy = (id: string, priority: string): Task =>
+    ({ ...fixture({ id }), priority }) as unknown as Task;
+
+  it('high→Q1, medium→Q2, low→Q4, lạ→Q2; không ghi lại storage', async () => {
+    stub.seed({
+      't:high': legacy('high', 'high'),
+      't:medium': legacy('medium', 'medium'),
+      't:low': legacy('low', 'low'),
+      't:unknown': legacy('unknown', 'urgent'),
+    });
+    const setSpy = vi.spyOn(chrome.storage.sync, 'set');
+
+    const tasks = await loadAll();
+    const byId = new Map(tasks.map((task) => [task.id, task]));
+
+    expect(byId.get('high')?.priority).toBe('important-urgent');
+    expect(byId.get('medium')?.priority).toBe('important-not-urgent');
+    expect(byId.get('low')?.priority).toBe('not-important-not-urgent');
+    expect(byId.get('unknown')?.priority).toBe('important-not-urgent');
     expect(setSpy).not.toHaveBeenCalled();
   });
 });

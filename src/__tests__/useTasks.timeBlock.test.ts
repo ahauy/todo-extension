@@ -27,7 +27,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 't1',
     title: 'Việc có giờ',
     note: 'ghi chú',
-    priority: 'high',
+    priority: 'important-urgent',
     dueAt: toLocalInput(new Date(Date.now() + 86_400_000).toISOString()),
     recurrence: { kind: 'none' },
     tags: ['a'],

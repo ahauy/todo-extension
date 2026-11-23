@@ -77,6 +77,14 @@ Kết luận: thứ tự triển khai phải theo **vòng lặp**, không theo �
 
 **Quyết định:** giữ enum 3 mức (`low|medium|high`), **không** thêm enum 5 mức A–E — lý do ở §5.
 
+> **Cập nhật bởi FEAT-006 / R-26 (2026-11-23, spec 2.0.0):** bảng và quyết định trên là **văn bản lịch sử**
+> (đúng tại ngày 2026-11-16), giữ nguyên để truy vết. Trạng thái hiện tại: `Task.priority` là enum **4 mức
+> Eisenhower** `important-urgent | important-not-urgent | not-important-urgent | not-important-not-urgent`
+> (Q1–Q4; `lib/tasks/types.ts:19-23`); ánh xạ nhãn **A = Q1 · B = Q2 · C = Q4**, Q3 không dùng cho A/B/C.
+> Dữ liệu 3 mức cũ đọc qua `normalizePriority` (`high→Q1 · medium→Q2 · low→Q4 · lạ→Q2`,
+> `lib/tasks/priority.ts:21-28`) — **không** migration/ghi lại. Bật then chốt tự gán Q1. R-26 thêm nút
+> "Sắp xếp công việc" + panel 4 ô trên New Tab. **Không** thêm enum 5 mức A–E.
+
 ## 2. Điểm bám trong code hiện tại
 
 | Năng lực | Vị trí | Dùng cho gói |
@@ -91,6 +99,10 @@ Kết luận: thứ tự triển khai phải theo **vòng lặp**, không theo �
 | Nhắc việc theo task | `lib/alarms/scheduler.ts` · `entrypoints/background.ts:33` | B, D |
 | Board 4 tab + 3 kiểu sort | `lib/tasks/query.ts:88-89` · `components/FilterRow.tsx:19-23,77-82` | A, B |
 | Chuẩn hoá settings (allowlist) | `lib/storage/adapter.ts:129` (`normalizeSettings`) | A, B, C, D |
+
+> **Cập nhật 2026-11-23 (FEAT-006/R-26):** hai dòng đầu là anchor lịch sử; code hiện dùng
+> `lib/tasks/types.ts:19-23` (4 giá trị Q1–Q4) + `lib/tasks/priority.ts:21-28` (normalize khi đọc) và
+> `lib/tasks/query.ts:53-61` (`priorityRank` Q1→Q4, thay cho sort 3 mức cũ).
 
 **Chưa có (phải thêm mới):**
 
@@ -180,6 +192,8 @@ dayPlan: {
 **Hành vi & UI:**
 - Trong form/sửa việc: toggle "Việc then chốt" (chỉ hiện với `priority='high'` hoặc tự bật priority Cao).
 - Vượt 3 việc then chốt đang mở → **chỉ cảnh báo** ("Đang giữ 4 việc then chốt"), vẫn lưu bình thường.
+- **Cập nhật 2026-11-23 (FEAT-006/R-26):** dòng trên mô tả bản 3 mức lịch sử. Hiện toggle bật tự gán
+  `priority='important-urgent'` (Q1); ánh xạ A=Q1 · B=Q2 · C=Q4, tắt không tự hạ, vẫn ≤3 việc mở chỉ cảnh báo.
 - Card việc: ribbon "THEN CHỐT"; con ếch có thêm dấu riêng (khác màu, không chỉ khác chữ).
 - Lọc: **chip "20%"** bật/tắt trên nền tab hiện tại — **không** thêm tab thứ 5 (4 tab đã kín 360px,
   xem `components/FilterRow.tsx:77-82`).
@@ -419,6 +433,12 @@ tế; user vẫn chọn làm ngay 2026-11-18. Không coi là lỗi, không chặ
 | 2026-11-16 | **B2:** review tuần = **một dòng trong New Tab**, không màn riêng ở v1 | Rẻ, không thêm view/navigation; đủ để thấy tỉ lệ then chốt |
 | 2026-11-16 | **C1:** focus overlay ở **cả popup (bản thu gọn) + New Tab** | Popup là nơi mở nhiều nhất — bỏ qua popup thì đơn nhiệm mất tác dụng |
 | 2026-11-16 | **D1:** `doneDays` giữ **31 ngày** rồi prune | ~350 B/task, an toàn 8 KB/item; đủ lưới 21 ô + streak gần |
+
+> **Cập nhật bởi FEAT-006 / R-26 (2026-11-23):** quyết định **2026-11-16** "giữ 3 mức ưu tiên + nhãn A/B/C"
+> ở bảng trên vẫn được giữ nguyên như **quyết định lịch sử**. Phạm vi của nó đã được thay đổi qua change
+> request được user duyệt ngày 2026-11-23: enum 4 mức Eisenhower, **A=Q1 · B=Q2 · C=Q4**, dữ liệu cũ chỉ
+> normalize khi đọc, R-26 bổ sung bảng "Sắp xếp công việc" (New Tab only). D/E vẫn là **hành động** như
+> lý do gốc; **không** thêm enum 5 mức A–E.
 
 ## 6. Thứ tự & ưu tiên đề xuất
 

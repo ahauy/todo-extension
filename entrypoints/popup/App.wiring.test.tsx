@@ -34,7 +34,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 'task-1',
     title: 'Việc mẫu',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],
@@ -321,13 +321,13 @@ describe('App wiring — search / subject / sort (#6)', () => {
       't:a': fixture({
         id: 'a',
         title: 'Việc ưu tiên thấp',
-        priority: 'low',
+        priority: 'not-important-not-urgent',
         dueAt: '2035-01-01T08:00:00.000Z',
       }),
       't:b': fixture({
         id: 'b',
         title: 'Việc ưu tiên cao',
-        priority: 'high',
+        priority: 'important-urgent',
         dueAt: '2036-01-01T08:00:00.000Z',
       }),
     });
@@ -383,7 +383,7 @@ describe('App wiring — composer & keyboard (#5, #20)', () => {
     expect(document.activeElement).toBe(quillInput());
   });
 
-  it('lưu composer giữ đủ field (ưu tiên Cao) qua nút "Ghi"', async () => {
+  it('lưu composer giữ đủ field (ưu tiên Q1) qua nút "Ghi"', async () => {
     const container = await renderApp();
 
     await act(async () => {
@@ -406,12 +406,12 @@ describe('App wiring — composer & keyboard (#5, #20)', () => {
       '[role="group"][aria-label="Ưu tiên"]'
     );
     expect(priorityGroup).not.toBeNull();
-    const cao = [...priorityGroup!.querySelectorAll('button')].find(
-      (candidate) => candidate.textContent === 'Cao'
+    const q1 = [...priorityGroup!.querySelectorAll('button')].find(
+      (candidate) => candidate.textContent === 'Quan trọng, cấp bách'
     );
-    expect(cao).toBeDefined();
+    expect(q1).toBeDefined();
     await act(async () => {
-      cao!.click();
+      q1!.click();
     });
 
     await act(async () => {
@@ -422,7 +422,7 @@ describe('App wiring — composer & keyboard (#5, #20)', () => {
     expect(keys).toHaveLength(1);
     const saved = stub.store.get(keys[0]) as Task;
     expect(saved.title).toBe('Việc đầy đủ');
-    expect(saved.priority).toBe('high');
+    expect(saved.priority).toBe('important-urgent');
   });
 });
 

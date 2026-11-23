@@ -44,14 +44,14 @@
 | `id` | `string` | uuid, khoá chính | `crypto.randomUUID()` |
 | `title` | `string` | bắt buộc, trim, **1–200** ký tự | R-01 |
 | `note` | `string` | **luôn có**, có thể chuỗi rỗng, **≤ 1000** ký tự | R-06; mặc định `''` (`lib/tasks/form.ts:19,129`) |
-| `priority` | `"low" \| "medium" \| "high"` | mặc định `medium` | R-05 |
+| `priority` | `Priority` = `"important-urgent" \| "important-not-urgent" \| "not-important-urgent" \| "not-important-not-urgent"` (Q1–Q4) | mặc định `important-not-urgent` (Q2) | R-05; `types.ts:19-23`, `lib/tasks/priority.ts:19` |
 | `dueAt` | `string \| null` | **wall-clock local** `YYYY-MM-DDTHH:mm`, KHÔNG hậu tố `Z`/offset | R-09; null = không hạn → không nhắc; Gói 0/G6 đã chuẩn hoá một dạng |
 | `recurrence` | `RecurrenceRule` | mặc định `{kind:"none"}` | R-10, xem 2.3 |
 | `tags` | `string[]` | **≤ 5** tag, mỗi tag 1–20 ký tự, trim + khử trùng | R-07 |
 | `subtasks` | `Subtask[]` | **≤ 50** | R-08, xem 2.2 |
 | `subjectId` | `string \| null` (optional) | trỏ tới `Subject.id`; task cũ thiếu field → coi như `null` | 2.4 |
 | `done` | `boolean` | mặc định `false` | R-04 |
-| `keystone` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; việc then chốt ("20%"). **Bật** → tự gán `priority='high'` (A); **tắt → KHÔNG tự hạ** priority. Chỉ là nhãn lọc, không đổi enum `Priority` (`types.ts:78`) |
+| `keystone` | `boolean` (optional) | mặc định `false` khi thiếu | R-21/R-05; việc then chốt ("20%"). **Bật** → tự gán `priority='important-urgent'` (Q1, tức nhãn **A**); **tắt → KHÔNG tự hạ** priority. Ánh xạ nhãn A/B/C: **A=Q1 · B=Q2 · C=Q4** (Q3 không dùng). Chỉ là nhãn lọc, không đổi enum `Priority` (`types.ts:86`, `components/TaskFields.tsx:240`) |
 | `archived` | `boolean` (optional) | mặc định `false` khi thiếu | R-21; "Cắt bỏ". Task **vẫn nằm trong storage** (giữ nguyên mọi field) nhưng bị loại khỏi mọi tab/filter/search/bộ đếm/danh sách môn; phục hồi qua `archived=false` ở SettingsPanel mục "Đã cắt" (`types.ts:81`) |
 | `plannedFor` | `string \| null` (optional) | `YYYY-MM-DD` **theo giờ local**; task cũ thiếu field = chưa hẹn | R-22; **ngày dự định LÀM**, tách khỏi `dueAt` (hạn chót). Không tự tạo alarm, không đổi overdue/sort R-15; ghi bởi sheet "Kế hoạch mai", đọc bởi `plannedForDay()` (`query.ts:24-26`) |
 | `lastDoneAt` | `string \| null` (optional) | **ISO 8601 UTC** (`toISOString`) lần đóng dấu gần nhất | additive, R-11 |
@@ -62,6 +62,8 @@
 | `endAt` | `string \| undefined` (optional) | **wall-clock local** `"HH:mm"` 00:00–23:59 | R-25; giờ **kết thúc**, nhúng trong key `t:<id>` hiện có — **không** key storage mới. Là **nguồn thật** của khoảng thời gian: `estimateMin = end − start`, `end <= start` (kể cả bằng nhau) cộng 1440′ (`durationMinutes`, `timeBlock.ts:100-119`). Task cũ thiếu field vẫn load (`lib/tasks/types.ts:106-111`) |
 | `createdAt` | `string` | ISO 8601 UTC (`nowISO`) | = now khi tạo |
 | `updatedAt` | `string` | ISO 8601 UTC (`nowISO`) | cập nhật mỗi lần sửa |
+
+> **R-05 — normalize `priority` khi đọc (hydrate):** `loadAll()` áp `normalizePriority` cho mọi task đọc từ storage (`lib/storage/adapter.ts:103`; helper `lib/tasks/priority.ts:21-28`): `high → important-urgent` (Q1), `medium → important-not-urgent` (Q2), `low → not-important-not-urgent` (Q4), 4 giá trị hiện tại giữ nguyên, **giá trị lạ → Q2** (`DEFAULT_PRIORITY`, `priority.ts:19`). Chỉ đổi **trong bộ nhớ — không ghi lại/backfill/migration** (quota 120 write/phút); lần lưu tiếp theo của chính task mới ghi bản canonical. Q3 (`not-important-urgent`) không có tương đương cũ, chỉ xuất hiện khi user chọn mới. Default tạo mới cũng là Q2 (`lib/tasks/form.ts:50`, `hooks/useTasks.ts:65`).
 
 > **R-21 — vòng đời `archived`:** cắt bỏ (`archived=true`, qua `TaskParchment`) **xoá alarm**
 > (`syncAlarms` trong `useTasks.update` — `hooks/useTasks.ts:223-239`); phục hồi

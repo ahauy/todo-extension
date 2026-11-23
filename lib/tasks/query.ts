@@ -4,7 +4,7 @@
  * Không side effect, dùng `useMemo` ở component (L4-T13).
  *
  * Sort precedence (deterministic, R-15):
- *   overdue (dueAt < now) đầu tiên → dueAt gần nhất → priority high→low
+ *   overdue (dueAt < now) đầu tiên → dueAt gần nhất → priority Q1→Q2→Q3→Q4 (R-05)
  *   → createdAt mới nhất → tie-breaker cố định (id).
  * Task không có dueAt xếp cuối. Tab "Đã xong" luôn sort updatedAt desc.
  */
@@ -49,14 +49,16 @@ function isOverdue(task: Task, now: Date): boolean {
   return new Date(task.dueAt) < now;
 }
 
-/** Số tiền độ ưu tiên (high=2, medium=1, low=0) */
+/** R-05 — Số tiền độ ưu tiên: Q1=3, Q2=2, Q3=1, Q4=0 (sort Q1→Q4). */
 function priorityRank(p: Task['priority']): number {
   switch (p) {
-    case 'high':
+    case 'important-urgent':
+      return 3;
+    case 'important-not-urgent':
       return 2;
-    case 'medium':
+    case 'not-important-urgent':
       return 1;
-    case 'low':
+    case 'not-important-not-urgent':
       return 0;
   }
 }
@@ -86,7 +88,7 @@ export function sortTasks(
       if (ad !== bd) return ad - bd;
     }
 
-    // Priority: high → low
+    // Priority: Q1 → Q4 (R-05)
     const pa = priorityRank(a.priority);
     const pb = priorityRank(b.priority);
     if (pa !== pb) return pb - pa;

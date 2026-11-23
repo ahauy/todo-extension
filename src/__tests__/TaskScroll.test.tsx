@@ -30,7 +30,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 'task-1',
     title: 'Học bài sử',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],
@@ -151,31 +151,50 @@ describe('TaskScroll', () => {
   });
 
   it('PriorityBadge: chữ luôn kèm theo lớp màu tương ứng', () => {
-    const { container, rerender } = renderScroll(fixture({ priority: 'low' }));
+    const { container, rerender } = renderScroll(fixture({ priority: 'not-important-not-urgent' }));
 
-    expect(container.querySelector('.badge-low')?.textContent).toBe('Thấp');
+    expect(container.querySelector('.badge-q4')?.textContent).toBe(
+      'Không quan trọng, không cấp bách'
+    );
 
     rerender(
       <TaskScroll
-        task={fixture({ priority: 'medium' })}
+        task={fixture({ priority: 'important-not-urgent' })}
         subject={null}
         now={NOW}
         onToggle={vi.fn()}
         onOpen={vi.fn()}
       />
     );
-    expect(container.querySelector('.badge-mid')?.textContent).toBe('Vừa');
+    expect(container.querySelector('.badge-q2')?.textContent).toBe(
+      'Quan trọng, không cấp bách'
+    );
 
     rerender(
       <TaskScroll
-        task={fixture({ priority: 'high' })}
+        task={fixture({ priority: 'important-urgent' })}
         subject={null}
         now={NOW}
         onToggle={vi.fn()}
         onOpen={vi.fn()}
       />
     );
-    expect(container.querySelector('.badge-high')?.textContent).toBe('Cao');
+    expect(container.querySelector('.badge-q1')?.textContent).toBe(
+      'Quan trọng, cấp bách'
+    );
+
+    rerender(
+      <TaskScroll
+        task={fixture({ priority: 'not-important-urgent' })}
+        subject={null}
+        now={NOW}
+        onToggle={vi.fn()}
+        onOpen={vi.fn()}
+      />
+    );
+    expect(container.querySelector('.badge-q3')?.textContent).toBe(
+      'Không quan trọng, cấp bách'
+    );
   });
 
   it('SubjectBadge: không có môn → "Chưa xếp môn"; có môn → tên môn', () => {
@@ -237,7 +256,7 @@ describe('TaskScroll', () => {
 
   describe('bố cục hàng chip (data-chip-row)', () => {
     const FULL_TASK = fixture({
-      priority: 'high',
+      priority: 'important-urgent',
       dueAt: '2026-01-15T18:00',
       tags: ['bài tập'],
       subtasks: [
@@ -253,7 +272,9 @@ describe('TaskScroll', () => {
       expect(rows).toHaveLength(1);
       const row = rows[0];
       expect(row.querySelector('time')).not.toBeNull(); // hạn chót
-      expect(row.querySelector('.badge-high')?.textContent).toBe('Cao'); // ưu tiên
+      expect(row.querySelector('.badge-q1')?.textContent).toBe(
+        'Quan trọng, cấp bách'
+      ); // ưu tiên
       expect(row.querySelector('.badge-subject')).not.toBeNull(); // môn
       expect(row.textContent).toContain('#bài tập'); // tag
       expect(row.querySelector('.progress-ink')).not.toBeNull(); // tiến độ
@@ -281,7 +302,7 @@ describe('TaskScroll', () => {
       const row1 = container.querySelector('[data-chip-row="1"]') as HTMLElement;
       const row2 = container.querySelector('[data-chip-row="2"]') as HTMLElement;
       expect(row1.querySelector('time')).not.toBeNull();
-      expect(row1.querySelector('.badge-high')).not.toBeNull();
+      expect(row1.querySelector('.badge-q1')).not.toBeNull();
       expect(row1.querySelector('.badge-subject')).toBeNull();
       expect(row2.querySelector('.badge-subject')).not.toBeNull();
       expect(row2.textContent).toContain('#bài tập');
@@ -291,7 +312,7 @@ describe('TaskScroll', () => {
 
     it('không mất chip: hàng compact gộp đủ từng chip của bản 2 hàng, đúng thứ tự (task đầy đủ)', () => {
       const full = fixture({
-        priority: 'high',
+        priority: 'important-urgent',
         dueAt: '2026-01-15T18:00',
         tags: ['bài tập', 'đồ án'],
         subtasks: [
@@ -314,8 +335,8 @@ describe('TaskScroll', () => {
       const boardTime = boardRows[0].querySelector('time') as HTMLTimeElement;
       const compactTime = rowOne.querySelector('time') as HTMLTimeElement;
       expect(compactTime.getAttribute('datetime')).toBe(boardTime.getAttribute('datetime'));
-      expect(rowOne.querySelector('.badge-high')?.textContent).toBe(
-        boardRows[0].querySelector('.badge-high')?.textContent
+      expect(rowOne.querySelector('.badge-q1')?.textContent).toBe(
+        boardRows[0].querySelector('.badge-q1')?.textContent
       );
       expect(rowOne.querySelector('.badge-subject')?.textContent).toBe(
         boardRows[1].querySelector('.badge-subject')?.textContent
@@ -328,7 +349,7 @@ describe('TaskScroll', () => {
       // Đúng thứ tự: hạn chót · ưu tiên · môn · tag · tiến độ.
       const positions = [
         compactText.indexOf(compactTime.textContent ?? ''),
-        compactText.indexOf('Cao'),
+        compactText.indexOf('Quan trọng, cấp bách'),
         compactText.indexOf('Toán'),
         compactText.indexOf('#bài tập'),
         compactText.indexOf('#đồ án'),
@@ -491,7 +512,7 @@ describe('TaskScroll — ribbon then chốt & dấu ếch (R-21)', () => {
   it('DOM parity compact/full giữ nguyên dù thẻ có ribbon + ếch', () => {
     const task = fixture({
       keystone: true,
-      priority: 'high',
+      priority: 'important-urgent',
       dueAt: '2026-01-15T18:00',
       tags: ['bài tập'],
       subtasks: [

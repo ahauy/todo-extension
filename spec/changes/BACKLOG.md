@@ -27,6 +27,7 @@
 | FEAT-004 | Timeline: bỏ Composer dưới bảng, tạo/sửa bằng right-click + kéo-thả, popup sát con trỏ, fullscreen tab | MODIFY | done | [2026-11-19-timeline-task-entry.md](archive/2026-11-19-timeline-task-entry.md) | 2026-11-19 | 2026-11-19 |
 | FEAT-005 | Timeline: giữ ghost chữ nhật vừa kéo khi popup tạo mở | MODIFY | done | [2026-11-19-timeline-drag-ghost-persist.md](archive/2026-11-19-timeline-drag-ghost-persist.md) | 2026-11-19 | 2026-11-19 |
 | BUG-003 | Timeline: ghost kéo tạo đi theo con trỏ khi popup đang mở | BUG | done | [2026-11-19-timeline-ghost-follows-pointer.md](archive/2026-11-19-timeline-ghost-follows-pointer.md) | 2026-11-19 | 2026-11-19 |
+| FEAT-006 | Thay 3 mức ưu tiên bằng ma trận Eisenhower 4 mức + bảng "Sắp xếp công việc" kéo-thả | MODIFY/ADDITIVE | done | [2026-11-23-eisenhower-priority-matrix.md](archive/2026-11-23-eisenhower-priority-matrix.md) | 2026-11-23 | 2026-11-23 |
 
 ## Quy tắc tracking
 

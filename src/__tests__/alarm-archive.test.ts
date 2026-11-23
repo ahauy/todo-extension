@@ -19,7 +19,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 'a',
     title: 'Việc có hạn',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: FUTURE_DUE,
     recurrence: { kind: 'none' },
     tags: [],

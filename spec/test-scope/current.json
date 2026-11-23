@@ -1,46 +1,116 @@
 {
-  "specVersion": "1.9.0",
-  "scopeVersion": 37,
-  "generatedAt": "2026-11-19T15:43:32+07:00",
-  "trigger": "bug-fix",
-  "workItem": "bug-timeline-ghost-follows-pointer",
+  "specVersion": "2.0.0",
+  "scopeVersion": 39,
+  "generatedAt": "2026-11-23T10:34:52+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature-eisenhower-priority-matrix",
   "specRefs": [
-    "R-25"
+    "R-01",
+    "R-05",
+    "R-12",
+    "R-15",
+    "R-19",
+    "R-20",
+    "R-21",
+    "R-26"
   ],
   "changed": {
     "files": [
-      "components/Timeline.tsx",
+      "SPECIFICATIONS.md",
+      "components/TaskFields.tsx",
+      "components/ui/Chips.tsx",
+      "docs/API_SPEC.md",
+      "docs/DESIGN.md",
+      "docs/ERD.md",
+      "docs/ROADMAP_TIME_MANAGEMENT.md",
+      "docs/USER_FLOW.md",
+      "entrypoints/background.ts",
+      "entrypoints/newtab/App.focus.test.tsx",
+      "entrypoints/newtab/App.habit.test.tsx",
+      "entrypoints/newtab/App.plan.test.tsx",
+      "entrypoints/newtab/App.shelf.test.tsx",
       "entrypoints/newtab/App.timeBlock.test.tsx",
+      "entrypoints/newtab/App.tsx",
+      "entrypoints/newtab/style.css",
+      "entrypoints/popup/App.wiring.test.tsx",
+      "hooks/useTasks.ts",
+      "lib/notifications.ts",
+      "lib/storage/adapter.ts",
+      "lib/tasks/form.ts",
+      "lib/tasks/query.ts",
+      "lib/tasks/types.ts",
+      "lib/tasks/priority.ts",
+      "components/PriorityBoard.tsx",
+      "entrypoints/newtab/App.priorityBoard.test.tsx",
+      "src/__tests__/priority.test.ts",
+      "spec/CHANGELOG.md",
       "spec/changes/BACKLOG.md",
-      "spec/changes/archive/2026-11-19-timeline-ghost-follows-pointer.md",
-      "spec/test-scope/current.json"
+      "spec/changes/archive/2026-11-23-eisenhower-priority-matrix.md",
+      "spec/test-scope/current.json",
+      ".context/progress.json",
+      "styles/components.css",
+      "src/__tests__/Composer.test.tsx",
+      "src/__tests__/SettingsPanel.test.tsx",
+      "src/__tests__/TaskScroll.test.tsx",
+      "src/__tests__/TaskScrollList.test.tsx",
+      "src/__tests__/alarm-archive.test.ts",
+      "src/__tests__/focusOverlay.test.tsx",
+      "src/__tests__/g10-board-integration.test.tsx",
+      "src/__tests__/habit-ui.test.tsx",
+      "src/__tests__/habit.test.ts",
+      "src/__tests__/keystone-frog.test.ts",
+      "src/__tests__/plan-background.test.ts",
+      "src/__tests__/plan-ui.test.tsx",
+      "src/__tests__/query.test.ts",
+      "src/__tests__/shouldNotify.test.ts",
+      "src/__tests__/storage-adapter.test.ts",
+      "src/__tests__/tailwind-classes.test.ts",
+      "src/__tests__/timeBlock-form.test.tsx",
+      "src/__tests__/timeBlock.test.ts",
+      "src/__tests__/timeline-endAt.test.ts",
+      "src/__tests__/useTasks.habit.test.tsx",
+      "src/__tests__/useTasks.test.tsx",
+      "src/__tests__/useTasks.timeBlock.test.ts"
     ],
     "modules": [
-      "timeline-ui"
+      "task-domain",
+      "task-ui",
+      "newtab-priority-board",
+      "notification",
+      "docs-as-built",
+      "spec-state"
     ]
   },
   "impact": {
     "direct": [
-      "BUG-003: ghost chữ nhật đứng yên tại khoảng đã kéo trong suốt thời gian popup tạo mở — pointermove/pointerdown trên canvas không làm ghost đổi vị trí hay sinh ghost mới",
-      "BUG-003: CreateDrag.frozen khoá state sau pointerup; onCanvasPointerDown bỏ qua khi popup đang mở"
+      "R-05: 4 giá trị priority Q1-Q4, nhãn đúng, default Q2, ánh xạ high/medium/low→Q1/Q2/Q4 khi hydrate (không ghi/migration)",
+      "R-01/R-02: create/edit form dùng 4 lựa chọn, Composer/popup/TaskParchment cùng danh sách",
+      "R-26: nút 'Sắp xếp công việc' cạnh FilterRow trên New Tab mở panel 4 ô; kéo thẻ giữa các ô gán priority đúng qua 1 put, highlight ô đích, cập nhật tức thời, rollback khi quota",
+      "R-26: lối bàn phím chọn ô thay kéo-thả, focus trap + Esc + aria-live; vô hiệu trong focus mode",
+      "R-15: sort priority Q1→Q2→Q3→Q4; default overdue→dueAt→priority→createdAt giữ nguyên"
     ],
     "dependents": [
-      "FEAT-005: ghost vẫn hiện ngay sau kéo và vẫn biến mất khi đóng popup (không hồi quy)",
-      "R-20: focus mode vẫn chặn gesture; R-24: kéo dời block không đổi",
-      "R-25: right-click/phím n/sửa việc không tạo ghost"
+      "R-21: bật then chốt → Q1; nhãn A=Q1 · B=Q2 · C=Q4; tắt không tự hạ; ≤3 việc mở chỉ cảnh báo",
+      "R-12: background notification ưu tiên important-urgent (thay high)",
+      "R-19/R-18: badge 4 mức dễ đọc ở 360/1280, không tràn ngang; popup không thêm khối UI; motion tuân prefers-reduced-motion",
+      "R-20: focus mode chặn gesture board mới"
     ],
     "regression": [
-      "Không đổi spec_version (bug thuần, requirement R-25 không đổi); không storage/permission/network",
-      "Repro test: FAIL trước fix (480px vs 120px) → PASS sau fix",
-      "Verify đủ 4 lệnh: tsc 0 / eslint 0 / vitest 48 files 403 tests / wxt build 692.71 kB",
-      "Reviewer NORMAL round 1 PASS (0 finding)"
+      "R-09/R-11: dueAt/alarm/overdue chip và việc lặp không đổi khi đổi priority",
+      "R-22/R-23/R-24/R-25: plannedFor/habit/timeline không đổi",
+      "Task cũ đọc được sau đổi enum (không mất dữ liệu, không bulk backfill)",
+      "Verify đủ 4 lệnh: tsc / eslint / vitest / wxt build",
+      "Reviewer STRICT (shared type + dữ liệu cũ + drag thao tác) + spec-validator PASS"
     ]
   },
   "acceptance": [
-    "Sau khi thả chuột mở popup, di chuột qua canvas → ghost giữ nguyên top/height/nhãn của khoảng đã kéo",
-    "Bấm lại trên canvas lúc popup đang mở → không tạo ghost thứ 2, không thay thế ghost đã freeze",
-    "Đóng popup → ghost biến mất; mở lại bằng right-click/phím n/sửa việc → không có ghost",
-    "Residual (INFO reviewer): chưa test pointercancel (không tới được trong luồng này); move-guard dựa trên invariant popup/freeze"
+    "Không còn lựa chọn/hiển thị low|medium|high ở bất kỳ màn hình nào",
+    "4 nhãn tiếng Việt đúng: 'Quan trọng, cấp bách' / 'Quan trọng, không cấp bách' / 'Không quan trọng, cấp bách' / 'Không quan trọng, không cấp bách'",
+    "Task cũ high/medium/low hiện đúng Q1/Q2/Q4 sau khi hydrate; giá trị lạ rơi về Q2",
+    "Nút 'Sắp xếp công việc' chỉ có trên New Tab, mở panel 4 ô; kéo thẻ sang ô khác đổi priority ngay, có highlight ô đích, không cần reload",
+    "Kéo thả ghi đúng 1 put(task), copy-then-patch giữ dueAt/archived/habit/plannedFor/startAt; quota lỗi → rollback + inline error, không toast",
+    "Có lối bàn phím tương đương kéo-thả; focus trap/Esc/aria-live; focus mode vô hiệu thao tác",
+    "tsc / eslint / vitest / wxt build PASS; spec-validator + reviewer PASS trước commit"
   ],
-  "risk": "low"
+  "risk": "high"
 }

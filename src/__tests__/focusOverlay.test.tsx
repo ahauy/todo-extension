@@ -21,7 +21,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 'task-1',
     title: 'Học bài sử',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: '2026-01-15T18:00',
     recurrence: { kind: 'none' },
     tags: ['bài tập'],

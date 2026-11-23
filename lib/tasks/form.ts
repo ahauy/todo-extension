@@ -3,6 +3,7 @@
  * ghi việc (bút lông) và hộp thoại sửa việc để hai nơi không lệch luật.
  */
 import type { Habit, Priority, RecurrenceRule, Subtask, Task } from './types';
+import { DEFAULT_PRIORITY } from './priority';
 import {
   MAX_ESTIMATE_MIN,
   MIN_ESTIMATE_MIN,
@@ -46,7 +47,7 @@ export function emptyForm(subjectId: string | null): TaskForm {
   return {
     title: '',
     note: '',
-    priority: 'medium',
+    priority: DEFAULT_PRIORITY,
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],

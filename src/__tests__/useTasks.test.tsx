@@ -38,7 +38,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 'task-1',
     title: 'Việc mẫu',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],
@@ -144,7 +144,7 @@ describe('useTasks — load & add', () => {
     expect(saved.id).toBe(keys[0].slice('t:'.length));
     expect(saved.title).toBe('Việc mới');
     expect(saved.done).toBe(false);
-    expect(saved.priority).toBe('medium');
+    expect(saved.priority).toBe('important-not-urgent');
     expect(saved.note).toBe('');
     expect(saved.tags).toEqual([]);
     expect(saved.subtasks).toEqual([]);
@@ -175,7 +175,7 @@ describe('useTasks — create & restore', () => {
       await api.create({
         title: '  Họp nhóm  ',
         note: 'chuẩn bị slide',
-        priority: 'high',
+        priority: 'important-urgent',
         dueAt: '2035-01-01T08:00',
         recurrence: { kind: 'daily' },
         tags: ['work', 'urgent'],
@@ -187,7 +187,7 @@ describe('useTasks — create & restore', () => {
     const saved = stub.store.get(taskKeys()[0]) as Task;
     expect(saved.title).toBe('Họp nhóm');
     expect(saved.note).toBe('chuẩn bị slide');
-    expect(saved.priority).toBe('high');
+    expect(saved.priority).toBe('important-urgent');
     expect(saved.dueAt).toBe('2035-01-01T08:00');
     expect(saved.recurrence).toEqual({ kind: 'daily' });
     expect(saved.tags).toEqual(['work', 'urgent']);

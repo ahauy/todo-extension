@@ -22,6 +22,7 @@ import FocusTimer from '../../components/FocusTimer';
 import StreakCard from '../../components/StreakCard';
 import HabitCard from '../../components/HabitCard';
 import Timeline from '../../components/Timeline';
+import PriorityBoard from '../../components/PriorityBoard';
 import { MaximCard, Proclamation } from '../../components/Proclamation';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -89,6 +90,10 @@ export default function App() {
   const [createSignal, setCreateSignal] = useState(0);
   const [bannerHidden, setBannerHidden] = useState(false);
   const [interrupt, setInterrupt] = useState<FocusInterrupt | null>(null);
+  // R-26 — panel sắp xếp là state local, không lưu storage.
+  const [priorityBoardOpen, setPriorityBoardOpen] = useState(false);
+  // H-1 — stable identity so PriorityBoard's effects don't re-run on every render.
+  const closePriorityBoard = useCallback(() => setPriorityBoardOpen(false), []);
 
   const attached = board.tasks.find((task) => task.id === board.pomodoro.taskId) ?? null;
   const focusActive =
@@ -338,20 +343,34 @@ export default function App() {
               onCreate={(draft) => board.createDraft(draft)}
               onUpdateTask={board.updateTask}
             />
-            <div className="mt-lg">
-              <FilterRow
-                tab={tab}
-                counts={board.counts}
-                onTabChange={setTab}
-                searchQuery={searchQuery}
-                searchOpen={searchOpen}
-                onSearchOpenChange={handleSearchOpen}
-                onSearchChange={setSearchQuery}
-                sortKey={sortKey}
-                onSortChange={setSortKey}
-                onlyKeystone={onlyKeystone}
-                onOnlyKeystoneChange={setOnlyKeystone}
-              />
+            {/* R-26 — nút board nằm cạnh FilterRow, chỉ ở New Tab (không popup).
+                Focus mode (R-20) vô hiệu gesture mới như R-25. */}
+            <div className="priority-board-launch mt-lg">
+              <div className="priority-board-launch-filter">
+                <FilterRow
+                  tab={tab}
+                  counts={board.counts}
+                  onTabChange={setTab}
+                  searchQuery={searchQuery}
+                  searchOpen={searchOpen}
+                  onSearchOpenChange={handleSearchOpen}
+                  onSearchChange={setSearchQuery}
+                  sortKey={sortKey}
+                  onSortChange={setSortKey}
+                  onlyKeystone={onlyKeystone}
+                  onOnlyKeystoneChange={setOnlyKeystone}
+                />
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="priority-board-launch-btn"
+                aria-label="Sắp xếp công việc theo ma trận"
+                disabled={focusActive}
+                onClick={() => setPriorityBoardOpen(true)}
+              >
+                Sắp xếp công việc
+              </Button>
             </div>
             {tab === 'today' && plannedToday.length > 0 && (
               <section
@@ -487,6 +506,16 @@ export default function App() {
       <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Cài đặt">
         <SettingsPanel />
       </Modal>
+
+      {/* R-26 — panel local, ghi qua đúng 1 put copy-then-patch của updateTask. */}
+      {priorityBoardOpen && (
+        <PriorityBoard
+          tasks={board.tasks}
+          disabled={focusActive}
+          onAssign={board.updateTask}
+          onClose={closePriorityBoard}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteId}

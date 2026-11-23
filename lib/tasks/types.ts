@@ -11,7 +11,16 @@
  *   - `pomodoro`  → PomodoroState (đồng hồ đang chạy, không đồng bộ giữa máy)
  */
 
-export type Priority = "low" | "medium" | "high";
+/**
+ * R-05 — Ma trận Eisenhower 4 mức. Giá trị cũ `low|medium|high` KHÔNG còn hợp lệ
+ * trong miền; chỉ được ánh xạ khi ĐỌC dữ liệu đã lưu (xem lib/tasks/priority.ts).
+ * Q3 (`not-important-urgent`) chỉ xuất hiện khi user chọn — không có tương đương cũ.
+ */
+export type Priority =
+  | "important-urgent"
+  | "important-not-urgent"
+  | "not-important-urgent"
+  | "not-important-not-urgent";
 
 export type RecurrenceKind = "none" | "daily" | "weekly" | "monthly";
 
@@ -73,8 +82,9 @@ export interface Task {
    *  "đã làm hôm nay · hẹn ngày kế tiếp" (done-today) cho tới khi sang ngày.
    *  Task cũ chưa có trường này → undefined (coi như chưa đóng dấu hôm nay). */
   lastDoneAt?: string | null;
-  /** R-21 — Việc then chốt ("20%"). Mặc định `false` khi thiếu. Bật tự gán
-   *  `priority='high'`; TẮT KHÔNG tự hạ priority. Chỉ là nhãn lọc, không đổi enum. */
+  /** R-21/R-05 — Việc then chốt ("20%"). Mặc định `false` khi thiếu. Bật tự gán
+   *  `priority='important-urgent'` (Q1, do UI gán); TẮT KHÔNG tự hạ priority.
+   *  Chỉ là nhãn lọc, không đổi enum. */
   keystone?: boolean;
   /** R-21 — Việc bị cắt bỏ. Mặc định `false` khi thiếu. Luôn bị loại khỏi mọi
    *  tab/filter/search/bộ đếm/danh sách môn nhưng VẪN nằm trong storage để phục hồi. */

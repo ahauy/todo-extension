@@ -216,16 +216,17 @@ export default function TaskFields({
         <Segmented
           aria-label="Ưu tiên"
           options={[
-            { value: 'low', label: 'Thấp' },
-            { value: 'medium', label: 'Vừa' },
-            { value: 'high', label: 'Cao' },
+            { value: 'important-urgent', label: 'Quan trọng, cấp bách' },
+            { value: 'important-not-urgent', label: 'Quan trọng, không cấp bách' },
+            { value: 'not-important-urgent', label: 'Không quan trọng, cấp bách' },
+            { value: 'not-important-not-urgent', label: 'Không quan trọng, không cấp bách' },
           ]}
           value={form.priority}
           onChange={(value) => onChange({ priority: value as Priority })}
         />
       </Field>
 
-      <Field label="Việc then chốt" helper="Bật tự đẩy ưu tiên Cao; tắt không hạ ưu tiên">
+      <Field label="Việc then chốt" helper="Bật tự đẩy ưu tiên Quan trọng, cấp bách; tắt không hạ ưu tiên">
         <button
           type="button"
           role="switch"
@@ -236,7 +237,7 @@ export default function TaskFields({
             onChange(
               form.keystone
                 ? { keystone: false }
-                : { keystone: true, priority: 'high' }
+                : { keystone: true, priority: 'important-urgent' }
             )
           }
         >

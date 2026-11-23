@@ -22,7 +22,7 @@ function focusFixture(): { task: Task; pomodoro: PomodoroState } {
       id: 'task-focus',
       title: 'Việc đang học',
       note: '',
-      priority: 'medium',
+      priority: 'important-not-urgent',
       dueAt: null,
       recurrence: { kind: 'none' },
       tags: [],

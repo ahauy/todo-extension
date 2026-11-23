@@ -16,7 +16,7 @@ function taskFixture(id: string, overrides: Partial<Task> = {}): Task {
     id,
     title: `Việc ${id}`,
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],

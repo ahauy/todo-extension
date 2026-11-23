@@ -36,11 +36,11 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 1. Gõ title vào ô "Hôm nay con cần làm gì?" → `Enter` hoặc bấm **"Ghi"**.
 2. `Enter` **IME-safe**: đang bộ gõ chọn chữ (tiếng Việt/CJK) thì không ghi việc.
 3. Title rỗng/toàn trắng → lỗi inline, không tạo. > 200 ký tự → lỗi + counter.
-4. Hợp lệ → tạo Task (`id` uuid, `priority=medium`, `done=false`) → ghi 1 key → input clear, task enter animation.
+4. Hợp lệ → tạo Task (`id` uuid, `priority=important-not-urgent` / **Q2**, `done=false`) → ghi 1 key → input clear, task enter animation (`lib/tasks/priority.ts:19`, `hooks/useTasks.ts:65`).
 
 **Đầy đủ (mở rộng tại chỗ, giữ draft):**
 1. Bấm nút mũi tên cạnh ô ghi → mở rộng; field gồm **Môn học** (`subjectId`, "Chưa xếp môn" nếu bỏ trống),
-   Hạn chót (date + time), Ưu tiên (Thấp/Vừa/Cao), Lặp lại, Ghi chú, Thẻ (≤5), Việc nhỏ (≤50 bước).
+   Hạn chót (date + time), Ưu tiên (**4 mức Eisenhower Q1–Q4**, `components/TaskFields.tsx:219-222`), Lặp lại, Ghi chú, Thẻ (≤5), Việc nhỏ (≤50 bước).
 2. Lặp ≠ none mà chưa có hạn → lỗi "Cần đặt hạn để tính lần lặp tiếp theo", submit disabled.
 3. Nút ghi đổi nhãn **"Ghi vào sổ"** → ghi storage; "Thu gọn chi tiết" giữ draft.
 
@@ -63,7 +63,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 
 1. Bấm title row → mở **tờ giấy detail** overlay (focus vào field đầu tiên).
 2. Sửa field; footer hiện "Có thay đổi chưa lưu" khi dirty. Công tắc **"Việc then chốt"** nằm cùng
-   tờ (bật tự đẩy ưu tiên Cao, tắt không hạ) — xem §12.1.
+   tờ (bật tự đẩy ưu tiên **Q1 / "Quan trọng, cấp bách"**, tắt không hạ) — xem §12.1.
 3. `Lưu` hoặc `Cmd/Ctrl+Enter` → ghi storage (1 write) → đóng panel, focus về row.
 4. Tick subtask ghi ngay, **không** đổi task cha.
 5. Back khi dirty → dialog "Bỏ thay đổi?" (nút an toàn "Giữ lại" focus mặc định).
@@ -85,7 +85,7 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 3. Menu **môn học** (popup không có cột Giá sách): `Cả giá sách` / từng môn / `Chưa xếp môn`.
 4. Menu sort: `Hạn chót` / `Ưu tiên` / `Mới nhất`; tie-breaker theo **từng lựa chọn**:
    - `Hạn chót` → quá hạn trước → `dueAt` gần nhất → priority → `createdAt`.
-   - `Ưu tiên` → priority (cao trước) → `dueAt` gần nhất → `createdAt`.
+   - `Ưu tiên` → priority **Q1→Q4** (`priorityRank`, `lib/tasks/query.ts:53-61`) → `dueAt` gần nhất → `createdAt` → `id`.
    - `Mới nhất` → `createdAt` giảm dần, **không** tie-breaker phụ (task trùng `createdAt` có thể đổi
      thứ tự — gap **G8**).
 5. `Escape` đóng lần lượt: menu → search → panel.
@@ -173,8 +173,8 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
 ### 12.1 Bật/tắt then chốt → chip "20%"
 
 1. Trong ô ghi mở rộng hoặc tờ giấy chi tiết, bật công tắc **"Việc then chốt"** (`role="switch"`,
-   nhãn "Đang giữ then chốt" / "Không then chốt"): **bật tự gán `priority='high'`** (nhãn A),
-   **tắt KHÔNG tự hạ** priority. Đây chỉ là nhãn lọc, không thêm mức ưu tiên.
+   nhãn "Đang giữ then chốt" / "Không then chốt"): **bật tự gán `priority='important-urgent'` (Q1, nhãn A)**,
+   **tắt KHÔNG tự hạ** priority. Ánh xạ A=Q1 · B=Q2 · C=Q4 (Q3 không dùng). Đây chỉ là nhãn lọc, không thêm mức ưu tiên.
 2. Tổng then chốt đang mở (`!done && !archived && keystone`) vượt **3** → hiện dòng cảnh báo inline
    "Đang giữ N việc then chốt" (`role="status"`). **Chỉ cảnh báo, vẫn lưu bình thường** — không chặn
    submit, không tự bớt việc (`lib/tasks/form.ts:71-74`).
@@ -368,11 +368,31 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    liệu → hỏi xác nhận; `Tab` được giữ trong popup (focus trap).
 5. **Khung giờ & fullscreen:** timeline phủ **00:00–24:00**; kéo/phím snap 15′, clamp 00:00–23:45;
    `Home` → 00:00, `End` → 23:45. Nút **phóng to** làm timeline chiếm toàn bộ không gian tab, bấm lại
-   thu về; `Esc` thoát fullscreen khi không có popup. Ưu tiên Esc: popup → fullscreen → tìm kiếm.
+   thu về; `Esc` thoát fullscreen khi không có popup. Ưu tiên Esc: popup → **panel "Sắp xếp công việc" (R-26, §17)** → fullscreen → tìm kiếm (`components/PriorityBoard.tsx:118-137`).
 6. **Dữ liệu:** `Task.endAt?` ("HH:mm" local) là nguồn thật; `estimateMin` suy ra trong cùng một `put`
    (`end − start`, `end <= start` cộng 1440′). Khoảng >240′ hợp lệ, chỉ kẹp chiều cao block khi vẽ.
    Không thêm storage key/permission/network. Task cũ có `dueAt` vẫn giữ alarm/chip quá hạn; hạn chót
    không còn nơi nào để nhập. Chế độ focus vô hiệu hoá gesture tạo/sửa mới nhưng giữ kéo dời R-24.
+
+## 17. R-26 — Bảng "Sắp xếp công việc" (as-built 2026-11-23, spec 2.0.0)
+
+> Mô tả hành vi hiện hành của FEAT-006; intent/business rule nằm ở `SPECIFICATIONS.md` R-26 — không sửa intent.
+
+1. Nút **"Sắp xếp công việc"** nằm cạnh `FilterRow` trên New Tab (`entrypoints/newtab/App.tsx:344-372`);
+   popup 360×560 **không** có nút/panel này (R-19). Bấm mở panel **local state** gồm 4 ô Q1→Q4
+   (`components/PriorityBoard.tsx:13-18`), mỗi ô liệt kê task có `priority` tương ứng — kể cả task hệ 3
+   mức cũ đã được normalize khi đọc (`lib/storage/adapter.ts:103`, `lib/tasks/priority.ts:21-28`).
+2. **Kéo-thả:** kéo thẻ bằng pointer (ngưỡng 5px) hoặc chọn thẻ rồi dùng mũi tên/Enter chọn ô đích.
+   Ô đang trỏ vào nổi bật; thả → thẻ đổi ô **ngay trong bộ nhớ** (optimistic), không cần reload. Ghi qua
+   **đúng 1 `put(task)`** copy-then-patch của `board.updateTask` (`App.tsx:515`), không `syncAlarms`,
+   không đổi `done`/`dueAt`/`startAt`/`endAt`/`plannedFor`/`archived`/`habit`/`dayPlan`. Lỗi quota →
+   hoàn tác priority trong bộ nhớ + lỗi inline, không toast (R-16).
+3. **Bàn phím/a11y:** focus nút đóng lúc mở, trap `Tab`, vùng `aria-live` báo ô đã gán; Esc đóng panel
+   theo thứ tự popup → panel → fullscreen → search/menu (§16.5, `PriorityBoard.tsx:118-137`); vô hiệu
+   khi đang focus mode R-20 (`disabled={focusActive}`, `App.tsx:514`).
+4. **Motion:** highlight/đổi ô chỉ phản hồi thao tác thật, tuân `prefers-reduced-motion: reduce`
+   (`entrypoints/newtab/style.css:444-448`). Không permission/network/storage key mới; panel là local
+   state, đóng/mở không đụng snapshot (R-17/R-18).
 
 ## Keyboard map
 

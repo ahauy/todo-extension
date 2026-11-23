@@ -126,7 +126,7 @@ describe('Composer', () => {
     expect(onSubmit).toHaveBeenCalledWith({
       title: 'Học bài sử',
       note: '',
-      priority: 'medium',
+      priority: 'important-not-urgent',
       dueAt: null,
       recurrence: { kind: 'none' },
       tags: [],
@@ -189,7 +189,14 @@ describe('Composer', () => {
       '[role="group"][aria-label="Ưu tiên"]'
     );
     expect(priority).not.toBeNull();
-    expect(priority!.querySelectorAll('[role="radio"]')).toHaveLength(3);
+    const radios = [...priority!.querySelectorAll('[role="radio"]')];
+    expect(radios).toHaveLength(4);
+    expect(radios.map((radio) => radio.textContent)).toEqual([
+      'Quan trọng, cấp bách',
+      'Quan trọng, không cấp bách',
+      'Không quan trọng, cấp bách',
+      'Không quan trọng, không cấp bách',
+    ]);
 
     act(() => {
       setInputValue(quillInput(container), 'Làm bài tập toán');
@@ -300,7 +307,7 @@ describe('Composer — việc then chốt (R-21)', () => {
       />
     );
 
-  it('bật then chốt → draft keystone=true và priority tự nhảy Cao', () => {
+  it('bật then chốt → draft keystone=true và priority tự nhảy Q1', () => {
     const onSubmit = vi.fn();
     const { container } = renderWith(onSubmit);
     act(() => {
@@ -310,20 +317,20 @@ describe('Composer — việc then chốt (R-21)', () => {
 
     const toggle = keystoneSwitch(container);
     expect(toggle.getAttribute('aria-checked')).toBe('false');
-    expect(selectedPriority(container)).toBe('Vừa');
+    expect(selectedPriority(container)).toBe('Quan trọng, không cấp bách');
     act(() => {
       toggle.click();
     });
 
     expect(toggle.getAttribute('aria-checked')).toBe('true');
-    expect(selectedPriority(container)).toBe('Cao');
+    expect(selectedPriority(container)).toBe('Quan trọng, cấp bách');
     act(() => {
       findButton(container, 'Ghi').click();
     });
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0][0]).toMatchObject({
       keystone: true,
-      priority: 'high',
+      priority: 'important-urgent',
     });
   });
 
@@ -338,22 +345,22 @@ describe('Composer — việc then chốt (R-21)', () => {
     const toggle = keystoneSwitch(container);
     act(() => {
       toggle.click();
-    }); // ON → high
+    }); // ON → Q1
     act(() => {
-      priorityOption(container, 'Thấp').click();
-    }); // user chọn Thấp trong lúc đang then chốt
+      priorityOption(container, 'Không quan trọng, không cấp bách').click();
+    }); // user chọn Q4 trong lúc đang then chốt
     act(() => {
       toggle.click();
     }); // OFF
 
     expect(toggle.getAttribute('aria-checked')).toBe('false');
-    expect(selectedPriority(container)).toBe('Thấp');
+    expect(selectedPriority(container)).toBe('Không quan trọng, không cấp bách');
     act(() => {
       findButton(container, 'Ghi').click();
     });
     expect(onSubmit.mock.calls[0][0]).toMatchObject({
       keystone: false,
-      priority: 'low',
+      priority: 'not-important-not-urgent',
     });
   });
 
@@ -379,6 +386,6 @@ describe('Composer — việc then chốt (R-21)', () => {
       submit.click();
     });
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    expect(onSubmit.mock.calls[0][0]).toMatchObject({ keystone: true, priority: 'high' });
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({ keystone: true, priority: 'important-urgent' });
   });
 });

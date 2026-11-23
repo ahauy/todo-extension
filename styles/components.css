@@ -470,15 +470,21 @@
   line-height: 1.4;
   white-space: nowrap;
 }
-.badge-high {
+/* R-05 — 4 mức Eisenhower: đỏ son / vàng kim / xanh chàm / xanh ngọc.
+   Mỗi màu đi kèm chữ đầy đủ trong PriorityBadge (R-19). */
+.badge-q1 {
   background: var(--primary);
   color: var(--on-primary);
 }
-.badge-mid {
+.badge-q2 {
   background: var(--gold-leaf);
   color: var(--on-gold);
 }
-.badge-low {
+.badge-q3 {
+  background: var(--indigo);
+  color: var(--on-primary);
+}
+.badge-q4 {
   background: var(--jade);
   color: var(--on-primary);
 }

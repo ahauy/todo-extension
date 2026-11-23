@@ -1,6 +1,6 @@
 /**
  * Chip hạn chót và huy hiệu ưu tiên / môn học. Mọi tín hiệu màu đều kèm chữ —
- * không bao giờ chỉ dựa vào màu để nói "cao", "quá hạn" hay "sắp đến hạn".
+ * không bao giờ chỉ dựa vào màu để nói mức ưu tiên, "quá hạn" hay "sắp đến hạn".
  */
 import React from 'react';
 import { HourglassIcon, RepeatIcon } from '../art/Icons';
@@ -29,16 +29,20 @@ export function DeadlineChip({
   );
 }
 
+/** R-05 — 4 mức Eisenhower; chữ đầy đủ là tín hiệu a11y, màu chỉ để phân biệt. */
 const PRIORITY_LABEL: Record<Priority, string> = {
-  high: 'Cao',
-  medium: 'Vừa',
-  low: 'Thấp',
+  'important-urgent': 'Quan trọng, cấp bách',
+  'important-not-urgent': 'Quan trọng, không cấp bách',
+  'not-important-urgent': 'Không quan trọng, cấp bách',
+  'not-important-not-urgent': 'Không quan trọng, không cấp bách',
 };
 
+/** Class TĨNH để CSS/scan không mất màu — không ghép tên class từ giá trị priority. */
 const PRIORITY_CLASS: Record<Priority, string> = {
-  high: 'badge-high',
-  medium: 'badge-mid',
-  low: 'badge-low',
+  'important-urgent': 'badge-q1',
+  'important-not-urgent': 'badge-q2',
+  'not-important-urgent': 'badge-q3',
+  'not-important-not-urgent': 'badge-q4',
 };
 
 export function PriorityBadge({ priority }: { priority: Priority }) {

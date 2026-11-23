@@ -329,19 +329,25 @@ components:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
     border: "2px solid {colors.primary-deep}"
-  badge-priority-high:
+  badge-q1:                         # R-05 "Quan trọng, cấp bách"
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
     typography: "{typography.caption-bold}"
     rounded: "{rounded.sm}"
     padding: "2px 8px"
-  badge-priority-mid:
+  badge-q2:                         # "Quan trọng, không cấp bách"
     backgroundColor: "{colors.gold-leaf}"
     textColor: "{colors.on-gold}"
     typography: "{typography.caption-bold}"
     rounded: "{rounded.sm}"
     padding: "2px 8px"
-  badge-priority-low:
+  badge-q3:                         # "Không quan trọng, cấp bách"
+    backgroundColor: "{colors.indigo}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.caption-bold}"
+    rounded: "{rounded.sm}"
+    padding: "2px 8px"
+  badge-q4:                         # "Không quan trọng, không cấp bách"
     backgroundColor: "{colors.jade}"
     textColor: "{colors.on-primary}"
     typography: "{typography.caption-bold}"
@@ -475,7 +481,7 @@ Extension có hai chế độ hiển thị, người dùng chọn trong Cài đ�
 - **Đỏ cánh gián** ({colors.primary-deep}): Trạng thái nhấn (pressed), viền nút, chữ trên nền {colors.primary-wash}.
 - **Đỏ son nhạt** ({colors.primary-wash}): Nền thẻ quá hạn, chip quá hạn.
 - **Vàng kim** ({colors.gold}): Viền khung đôi, đường kẻ trang trí, tab đang chọn. **Không dùng làm chữ** hoặc viền chức năng độc lập vì độ tương phản với nền chỉ khoảng 2.3:1.
-- **Vàng lá** ({colors.gold-leaf}): Nền huy hiệu ưu tiên vừa, ngày streak đã sáng, mức độ "sắp đến hạn".
+- **Vàng lá** ({colors.gold-leaf}): Nền huy hiệu ưu tiên **Q2** ("Quan trọng, không cấp bách"), ngày streak đã sáng, mức độ "sắp đến hạn".
 - **Vàng nhạt** ({colors.gold-pale}): Nền chip sắp đến hạn, chữ trên nền mực đậm (segmented active).
 
 ### Surface
@@ -494,9 +500,9 @@ Extension có hai chế độ hiển thị, người dùng chọn trong Cài đ�
 - **Nâu bạc** ({colors.disabled-text}): Chỉ cho trạng thái vô hiệu.
 
 ### Semantic
-- **Ngọc lục** ({colors.jade}): Ưu tiên thấp, "đã lưu", streak giữ được. Nền nhạt {colors.jade-wash}.
-- **Chàm** ({colors.indigo}): Thông tin, nhãn môn học mặc định. Nền nhạt {colors.indigo-wash}.
-- **Vàng lá** ({colors.gold-leaf}): Cảnh báo "sắp đến hạn", ưu tiên vừa.
+- **Ngọc lục** ({colors.jade}): Ưu tiên **Q4** ("Không quan trọng, không cấp bách"), "đã lưu", streak giữ được. Nền nhạt {colors.jade-wash}.
+- **Chàm** ({colors.indigo}): Thông tin, nhãn môn học mặc định, nền huy hiệu ưu tiên **Q3** ("Không quan trọng, cấp bách"). Nền nhạt {colors.indigo-wash}.
+- **Vàng lá** ({colors.gold-leaf}): Cảnh báo "sắp đến hạn", ưu tiên **Q2**.
 - **Đỏ thẫm** ({colors.critical}): Lỗi nhập liệu, xóa. Phân biệt với đỏ son bằng sắc tía hơn; nền nhạt {colors.critical-wash}.
 
 ### Màu nhãn môn học
@@ -655,7 +661,7 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 - Nền `{colors.surface-lacquer}`, rounded `{rounded.lg}`, padding `{spacing.base}`, viền `1px solid {colors.hairline}`, bóng level 1.
 - Hai đầu cuộn: thanh trục nhỏ 6px màu {colors.hairline} ở trên và dưới (trang trí).
 - Bố cục hàng: `button-seal-done` hoặc `checkbox-seal` (trái) · tên việc `{typography.subtitle-lg}` (giữa) · dấu "XONG" (phải, khi hoàn thành).
-- Hàng chip meta: **New Tab** = 2 hàng trong cột nội dung (hàng 1 `chip-deadline` / `badge-priority-*` / "Lặp lại", hàng 2 `badge-subject` / tag / tiến độ subtask). **Popup (compact)** = 1 hàng flex-wrap trải toàn bề rộng thẻ, đặt dưới hàng tiêu đề, gộp đủ mọi chip theo thứ tự trên — hết chỗ wrap xuống dòng, không ẩn dữ liệu (spec delta 2026-11-12).
+- Hàng chip meta: **New Tab** = 2 hàng trong cột nội dung (hàng 1 `chip-deadline` / `badge-q1..badge-q4` / "Lặp lại", hàng 2 `badge-subject` / tag / tiến độ subtask). **Popup (compact)** = 1 hàng flex-wrap trải toàn bề rộng thẻ, đặt dưới hàng tiêu đề, gộp đủ mọi chip theo thứ tự trên — hết chỗ wrap xuống dòng, không ẩn dữ liệu (spec delta 2026-11-12).
 - **Hoàn thành**: dấu "XONG" ép xuống 240ms (`scale 1.4 → 1`, nghiêng −6°, `mix-blend-mode: multiply`), thẻ chuyển sang `card-scroll-task-done`. Có nút "Hoàn tác" 5 giây.
 
 **`card-scroll-task-done`** — Nền {colors.surface-paper}, chữ {colors.umber}, dấu đỏ ở góc. Giữ nguyên chữ, không gạch ngang.
@@ -699,9 +705,9 @@ Hệ này **bóng loáng chứ không đổ bóng sâu**: chiều sâu đến t�
 
 ### Badges & Status
 
-**`badge-priority-high`** / **`-mid`** / **`-low`** — Mức ưu tiên Cao / Vừa / Thấp.
-- Cao: nền {colors.primary}, chữ {colors.on-primary}. Vừa: nền {colors.gold-leaf}, chữ {colors.on-gold}. Thấp: nền {colors.jade}, chữ {colors.on-primary}.
-- Luôn kèm **chữ** ("Cao/Vừa/Thấp"), không chỉ dựa vào màu.
+**`badge-q1`** / **`badge-q2`** / **`badge-q3`** / **`badge-q4`** (R-05) — 4 mức Eisenhower. Class **tĩnh**, không ghép từ giá trị `priority` (`components/ui/Chips.tsx:41-51`; CSS `styles/components.css:473-490`).
+- Q1 "Quan trọng, cấp bách": nền {colors.primary}, chữ {colors.on-primary}. Q2 "Quan trọng, không cấp bách": nền {colors.gold-leaf}, chữ {colors.on-gold}. Q3 "Không quan trọng, cấp bách": nền {colors.indigo}, chữ {colors.on-primary}. Q4 "Không quan trọng, không cấp bách": nền {colors.jade}, chữ {colors.on-primary}.
+- Luôn kèm **chữ đầy đủ**, không chỉ dựa vào màu (R-19). Task hệ 3 mức cũ được ánh xạ khi đọc (`high→Q1 · medium→Q2 · low→Q4 · lạ→Q2`, `lib/tasks/priority.ts:21-28`), không migration.
 
 **`badge-subject`** — Nhãn môn học: nền {colors.indigo-wash} (hoặc màu nhạt tương ứng môn), chữ {colors.ink}.
 
@@ -849,6 +855,19 @@ hiện khi `startAt + chiều cao đã kẹp > 24:00`. `SPECIFICATIONS.md` R-24 
 hai nhánh khác nhau cho case duration > 240′ → ghi residual, chờ change request làm rõ (không tự sửa
 intent doc). Chưa có eyeball Chrome thật cho bản R-25
 (không có binary trên máy build) — residual, cần bấm thủ công trước release.
+
+### R-26 — Bảng "Sắp xếp công việc" (New Tab only, as-built 2026-11-23)
+
+> FEAT-006 / spec 2.0.0. Nguồn: `components/PriorityBoard.tsx`, `entrypoints/newtab/App.tsx:344-372,511-516`,
+> `entrypoints/newtab/style.css:288-448`. Panel là **local state** New Tab; popup 360×560 không render (R-19).
+
+| Thành phần | As-built |
+|---|---|
+| Nút mở (`.priority-board-launch-btn`) | Nút **"Sắp xếp công việc"** cạnh `FilterRow`, `aria-label="Sắp xếp công việc theo ma trận"`, disabled khi `focusActive` (R-20). |
+| Panel 4 ô (`.priority-board-backdrop` / `.priority-board-panel` / `.priority-board-grid`) | Overlay `aria-modal="true"`, 4 ô Q1→Q4 với nhãn đầy đủ + short `Q1..Q4` (`PRIORITY_CELLS`, `PriorityBoard.tsx:13-18`), mỗi ô liệt kê thẻ việc theo `priority` đã hydrate. |
+| Thẻ & drop target (`.priority-cell--drop[data-drop-target='true']`, `.priority-card`) | Kéo bằng pointer events (ngưỡng 5px); ô dưới con trỏ nổi bật; thả → đổi priority **optimistic** rồi **1 `put(task)`** copy-then-patch qua `board.updateTask` (`App.tsx:515`). Quota → rollback + lỗi inline `.priority-board-error` `role="alert"`, **không toast** (R-16). |
+| Lối bàn phím | Chọn thẻ rồi mũi tên tới ô + Enter/Space gán; focus nút đóng lúc mở, trap `Tab`, restore focus lúc đóng; `role="status" aria-live="polite"` báo ô đã gán; Esc theo thứ tự popup → panel → fullscreen → search/menu (window capture, `PriorityBoard.tsx:118-137`). |
+| Motion (R-19) | Highlight/đổi ô chỉ phản hồi thao tác thật; `.priority-cell`/`.priority-card` → `transition: none !important` dưới `prefers-reduced-motion: reduce` (`style.css:444-448`). Không thư viện animation, không permission/network/storage key mới (R-17). |
 
 ### Signature Components
 

@@ -25,7 +25,7 @@ function taskFixture(): Task {
     id: 't1',
     title: 'Việc có hạn',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: '2035-01-01T18:00',
     recurrence: { kind: 'none' },
     tags: [],

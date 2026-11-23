@@ -17,7 +17,7 @@ function task(overrides: Partial<Task> & { id: string }): Task {
   return {
     title: 'Việc thử',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],

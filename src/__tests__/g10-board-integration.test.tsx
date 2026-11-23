@@ -29,7 +29,7 @@ function taskFixture(): Task {
     id: TASK_ID,
     title: 'Việc gắn focus',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],

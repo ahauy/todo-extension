@@ -131,7 +131,7 @@ lại, không nhân đôi; `onInstalled`/`onStartup`/đổi settings đều resy
 
 | Hàm | Chữ ký | Hành vi |
 |---|---|---|
-| `loadAll` | `() => Promise<Task[]>` | Đọc mọi key `t:*` → mảng Task; chuẩn hoá in-memory `dueAt`/`prevDueAt` về wall-clock local qua `normalizeDueAt` — **không ghi lại** (`adapter.ts:84-109`) |
+| `loadAll` | `() => Promise<Task[]>` | Đọc mọi key `t:*` → mảng Task; chuẩn hoá **in-memory** `dueAt`/`prevDueAt` về wall-clock local qua `normalizeDueAt` (`adapter.ts:84-110`) **và `priority` qua `normalizePriority`** (`adapter.ts:103`, `lib/tasks/priority.ts:21-28`: high→Q1 · medium→Q2 · low→Q4 · lạ→Q2) — **không ghi lại**, không migration (xem [`ERD.md`](ERD.md) §2.1) |
 | `put` | `(task: Task) => Promise<void>` | Ghi `t:<id>`; chặn item > 8192 bytes (`MAX_ITEM_BYTES`, dòng 23) |
 | `remove` | `(id: string) => Promise<void>` | Xoá `t:<id>` |
 | `normalizeSettings` | `(raw: unknown) => Settings` | Gộp bản đã lưu với `DEFAULT_SETTINGS`; chỉ nhận field có cùng `typeof` với mặc định, field lạ của schema cũ (vd `theme`) bị bỏ; **R-22: validate riêng `planReminder`** (`enabled:boolean`, `at` khớp `/^([01]\d\|2[0-3]):[0-5]\d$/`, sai → default) (`adapter.ts:145-171`) |
@@ -180,8 +180,8 @@ hiện tại; kiểu `weekdays: number[]` **không đổi**. Xem §5 và §3.7.
 |---|---|---|
 | `filterByBoard` | `(tasks, tab: BoardTab, now: Date) => Task[]` | `all` = mọi việc; `today` = chưa xong và (hạn cùng **ngày local** hôm nay **hoặc** đã quá hạn); `upcoming` = chưa xong, hạn > now và không phải hôm nay; `done` = `done === true` (`query.ts:127-147`). **R-21: mọi nhánh đều loại `archived`** (`notArchived`, `query.ts:17-21`) |
 | `filterBySubject` | `(tasks, subjectId: string) => Task[]` | `'all'` = mọi môn, `'none'` = việc chưa có `subjectId`, còn lại khớp `subjectId` (`query.ts:149-155`); R-21: cũng loại `archived` |
-| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = ưu tiên desc → dueAt asc (không hạn xếp cuối) → createdAt desc → **id** (tie-breaker); `created` = createdAt desc → **id** (`query.ts:168-190`) |
-| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority desc → createdAt desc → id (tie-breaker) (`query.ts:63-103`) |
+| `sortBoard` | `(tasks, key: SortKey, now: Date) => Task[]` | `deadline` = `sortTasks`; `priority` = **Q1→Q4** (`priorityRank`, `query.ts:53-61`) → dueAt asc (không hạn xếp cuối) → createdAt desc → **id** (tie-breaker); `created` = createdAt desc → **id** (`query.ts:168-190`) |
+| `sortTasks` | `(tasks, now?) => Task[]` | overdue → dueAt asc → priority **Q1→Q4** → createdAt desc → id (tie-breaker) (`query.ts:63-103`) |
 | `searchTasks` | `(tasks, query: string) => Task[]` | Khớp title/note/tag, case-insensitive (`query.ts:31-40`); R-21: bỏ qua `archived` |
 | `isRecurringDoneToday` | `(task, now) => boolean` | Việc lặp, chưa `done`, `lastDoneAt` cùng **ngày local** hôm nay → trạng thái "đã làm hôm nay" (`query.ts:117-125`) |
 | `dueTodayCount` | `(tasks, now) => number` | `filterByBoard(..., 'today')` length — dùng cho chiếu chỉ + lời chào (`query.ts:192-194`) |
@@ -197,7 +197,7 @@ hiện tại; kiểu `weekdays: number[]` **không đổi**. Xem §5 và §3.7.
 rồi `updatedAt` khi `done=true`. Khác với `isRecurringDoneToday` (so **ngày local**), summary tuần
 so **khoảng thời gian** `[thứ 2 00:00 local, now]` trên cùng mốc `lastDoneAt`/`updatedAt`.
 
-Sort precedence deterministic (R-15) — `sortTasks`, dòng 63-103. Task không `dueAt` xếp cuối.
+Sort precedence deterministic (R-15) — `sortTasks`, dòng 63-103. Task không `dueAt` xếp cuối. Tiêu chí phụ priority dùng `priorityRank`: **Q1=3 · Q2=2 · Q3=1 · Q4=0** (`query.ts:53-61`, thay cho `high→low` cũ).
 UI dùng `sortBoard` với tiêu chí người dùng chọn (`deadline` mặc định, `priority`, `created`) ở
 `components/FilterRow.tsx`; tab Đã xong cũng đi qua `sortBoard` nên **không** tự sort `updatedAt`.
 Cả 3 tiêu chí của `sortBoard` kết thúc bằng tie-breaker `id` (chuỗi) — `compareById`, dòng 162-166 —
@@ -234,7 +234,7 @@ selectFrog, loading }` qua `useSyncExternalStore` trên adapter (`hooks/useTasks
 `dayPlan` là snapshot thứ hai, hydrate cùng lúc với `tasks` để một lần render thấy cả hai.
 
 - `add`: quick-add chỉ title → `create(defaultDraft(title))`.
-- `create`: validate title 1–200 trim, `id = crypto.randomUUID()`, mặc định `priority=medium`,
+- `create`: validate title 1–200 trim, `id = crypto.randomUUID()`, mặc định `priority=important-not-urgent` (**Q2**, `DEFAULT_PRIORITY` ở `lib/tasks/priority.ts:19`; dùng bởi `lib/tasks/form.ts:50` và `hooks/useTasks.ts:65`),
   `done=false`, `tags=[]`, `subtasks=[]`, `subjectId=null`, `recurrence={kind:'none'}`,
   `createdAt=updatedAt=now`; ghi 1 key rồi `syncAlarms`.
 - `update`: `updatedAt = now` → `put` → thay bản ghi trong snapshot.
@@ -374,6 +374,20 @@ error. Không còn ô nhập `HH:mm` trong block. Popup extension 360×560 khôn
 (`entrypoints/popup/App.tsx:246`); `withTime` trên `TaskParchment` mặc định `false`, chỉ bật ở New Tab
 (`entrypoints/newtab/App.tsx:464`).
 
+### 3.9 Priority board — `components/PriorityBoard.tsx` (R-26, New Tab only)
+
+Nút **"Sắp xếp công việc"** nằm cạnh `FilterRow` trên New Tab (`entrypoints/newtab/App.tsx:344-372`),
+**không** có trong popup 360×560 (R-19/R-26). Bấm mở panel là **local state** (`App.tsx:94-96,511-516`):
+4 ô theo đúng thứ tự Q1→Q4 (`PRIORITY_CELLS`, `components/PriorityBoard.tsx:13-18`), mỗi ô liệt kê task
+đã hydrate (kể cả task 3 mức cũ đã normalize khi đọc — §3.1).
+
+| Khía cạnh | Hợp đồng as-built |
+|---|---|
+| Gán ô | Kéo thẻ bằng pointer events (`PriorityBoard.tsx:22-31,196`; ngưỡng 5px, `cellFromPoint`) **hoặc** chọn thẻ rồi mũi tên/Enter tới ô đích (`:268-300`) — cả hai gọi `onAssign(task)` **đúng 1 lần**. App nối thẳng `board.updateTask` (`App.tsx:515`) = chép task đã lưu rồi patch `priority` rồi **1 `put(task)`** (§3.5), **không** `syncAlarms`, không đụng `done`/`dueAt`/`startAt`/`endAt`/`plannedFor`/`archived`/`habit`/`dayPlan`. |
+| Phản hồi / quota | Kéo: ô đang trỏ vào nổi bật (`priority-cell--drop` / `data-drop-target`, `PriorityBoard.tsx:251-253`; CSS `entrypoints/newtab/style.css:381`). Thả: đổi priority **optimistic** trong snapshot ngay, không cần reload. `StorageQuotaError` (R-16) → hoàn tác thay đổi trong bộ nhớ + lỗi inline `role="alert"` (`:239`), **không toast**. |
+| A11y | Focus nút đóng lúc mở + restore focus lúc đóng (`PriorityBoard.tsx:111-117`), trap `Tab` trong panel (`:145-158`), `aria-modal=true` (`:216`), vùng `role="status" aria-live="polite"` báo ô đã gán (`:314`). Esc đóng panel (thứ tự R-25: popup → panel → fullscreen → search/menu); vô hiệu khi đang focus mode R-20 qua prop `disabled` (`App.tsx:514`, `PriorityBoard.tsx:122-137`). |
+| Motion | Highlight/đổi ô chỉ phản hồi thao tác thật; `.priority-cell`/`.priority-card` có `transition: none !important` dưới `prefers-reduced-motion: reduce` (`entrypoints/newtab/style.css:444-448`, R-19). Không thư viện animation, không permission/network/storage key mới (R-17). Đóng/mở panel không đụng snapshot. |
+
 ## 4. Sync & conflict resolution (R-13)
 
 | Sự kiện `storage.onChanged` (area `sync`) | Xử lý |
@@ -401,7 +415,7 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 | G5 | R-12 notification có icon | ~~`background.ts:33` tham chiếu `icons/icon-48.png` **không tồn tại**; manifest chưa khai `icons`~~ → đã fix: `chrome.runtime.getURL('icon/48.png')`, `public/icon/{16,32,48,128}.png`, manifest `icons` | ✅ Đã đóng 2026-11-11 (phase-2-task-03) |
 | G6 | R-09/R-10: `dueAt` là ISO 8601 **local** (một dạng duy nhất) | `lib/datetime.ts:92/109` `formatLocalInput` + `normalizeDueAt`; `recurrence.ts:75-111` trả wall-clock local không `Z`; `adapter.ts:84-91` normalize in-memory khi đọc | ✅ Đã đóng 2026-11-17 (Gói 0, spec 1.2.1) — một dạng chuỗi duy nhất; task cũ dạng `Z` được quy về local khi đọc, không ghi lại. Xem [`ERD.md`](ERD.md) §2.1 |
 | G7 | R-13: sync **last-write-wins theo `updatedAt`** từng bản ghi | `hooks/useTasks.ts:125-156`: `onChanged` → `loadAll()` reload toàn bộ rồi thay snapshot, không so `updatedAt`; background reschedule theo key | **Mở** — trên 2 thiết bị, thay đổi sau ghi đè trước ở tầng storage nên kết quả vẫn "bản mới nhất thắng" theo Chrome, nhưng UI không tự phân xử merge; intent merge vẫn giữ, code chưa implement |
-| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:168-190` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority → `createdAt` → id; `priority` → priority desc → `dueAt` asc → `createdAt` desc → id; `created` → `createdAt` desc → id | ✅ Đã đóng 2026-11-17 (Gói 0) — mọi tiêu chí đều có tie-breaker `id` (chuỗi) nên hai lần chạy / hai thứ tự key storage cho cùng kết quả. Test `src/__tests__/query.test.ts`. Ghi chú: `priority` vẫn dùng chuỗi riêng **có chủ đích** (người dùng chọn "Ưu tiên" thì ưu tiên đứng trước hạn), không phải chuỗi `deadline` |
+| G8 | R-15: tie-breaker "luôn theo thứ tự trên" để kết quả **deterministic** | `query.ts:168-190` `sortBoard`: `deadline` → `sortTasks` = overdue → `dueAt` → priority **Q1→Q4** (`priorityRank`, `query.ts:53-61`) → `createdAt` → id; `priority` → priority Q1→Q4 → `dueAt` asc → `createdAt` desc → id; `created` → `createdAt` desc → id | ✅ Đã đóng 2026-11-17 (Gói 0) — mọi tiêu chí đều có tie-breaker `id` (chuỗi) nên hai lần chạy / hai thứ tự key storage cho cùng kết quả. Test `src/__tests__/query.test.ts`. Ghi chú: `priority` vẫn dùng chuỗi riêng **có chủ đích** (người dùng chọn "Ưu tiên" thì ưu tiên đứng trước hạn), không phải chuỗi `deadline` |
 | G9 | R-19: trải nghiệm Sơn Mài có chủ đích — responsive 1024–1199, menu môn không che chân popup, affordance dải tab, motion | `docs/DESIGN.md` §Known Gaps ghi rõ các mục **chưa verify/chưa đạt**: 1024–1199px dùng **2 cột** (`entrypoints/newtab/style.css:112-120`) chứ không phải ba vùng; `.menu` không lật lên (`components/ui/Menu.tsx:95`, `styles/components.css:500-501`); chưa đo trên 360/390/1024 thật | **Mở (R-19)** — đang xử lý trong FEAT-002 (`son-mai-experience-polish`); chỉ đóng khi đo browser thật + menu không che chân popup. Xem `docs/ROADMAP_TIME_MANAGEMENT.md` §8 |
 
 > Gap còn **mở**: G7 (merge theo `updatedAt`) và G9 (responsive Sơn Mài). G3/G6/G8 đã đóng.
@@ -410,8 +424,7 @@ khi sync → ghi nhận là gap G7, không hạ cấp intent.
 
 ## 6. Versioning
 
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`1.8.0`** — khớp frontmatter
-`SPECIFICATIONS.md`; **scopeVersion 35**, đã regenerate ở close-out FEAT-004). R-20 chỉ thêm field local `PomodoroState.taskId` /
+Lịch sử contract dữ liệu (gắn với `spec_version` trong `SPECIFICATIONS.md`); bản hiện tại nêu ở cuối mục. R-20 chỉ thêm field local `PomodoroState.taskId` /
 `interruptions`, **không** đổi schema sync. R-21 (spec 1.4.0) thêm `Task.keystone?` / `Task.archived?`
 (flag client-side, mặc định `false`) và **một** key sync `dayPlan` (`DayPlan`, prune 14 ngày,
 `DAY_PLAN_DAYS = 14`, 8192 B/item). R-22 (spec 1.5.0) thêm `Task.plannedFor?` (ngày dự định LÀM,
@@ -425,6 +438,12 @@ permission (R-17), không network, không aggregate mới; module thuần `lib/t
 mới (R-17); timeline 06:00–24:00 ở New Tab. R-25 (spec 1.8.0, commit `a62485d` + `6dbe8a0`) thêm
 `Task.endAt?` (nguồn thật, `estimateMin` dẫn xuất trong cùng 1 `put`), timeline **00:00–24:00**, bỏ
 composer dưới bảng, tạo/sửa bằng right-click/kéo-thả + popup neo con trỏ, fullscreen-in-tab — vẫn
-**không** key storage/permission/network mới. Đổi schema
+**không** key storage/permission/network mới. **FEAT-006 (spec 2.0.0, 2026-11-23)** đổi **ngữ nghĩa**
+`Task.priority` từ `low|medium|high` sang 4 giá trị Eisenhower Q1–Q4 (cùng key `t:<id>`, **không**
+key storage/permission/network mới); task cũ được normalize **khi đọc** (`lib/tasks/priority.ts:21-28`,
+xem §3.1) — **không** migration/ghi lại. R-26 thêm panel "Sắp xếp công việc" (§3.9), panel là **local
+state** New Tab, không snapshot/storage key mới.
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`2.0.0`** — khớp frontmatter;
+**scopeVersion 39**, regenerate ở close-out FEAT-006). Đổi schema
 `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

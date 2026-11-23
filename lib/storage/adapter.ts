@@ -19,6 +19,7 @@ import {
   taskKey,
 } from '../tasks/types';
 import { normalizeDueAt } from '../datetime';
+import { normalizePriority } from '../tasks/priority';
 
 const MAX_ITEM_BYTES = 8192;
 
@@ -97,7 +98,9 @@ export async function loadAll(): Promise<Task[]> {
     const tasks: Task[] = [];
     for (const [key, value] of Object.entries(all)) {
       if (typeof key === 'string' && key.startsWith(TASK_KEY_PREFIX)) {
-        tasks.push(normalizeTaskTimes(value as Task));
+        const task = normalizeTaskTimes(value as Task);
+        // R-05 — ánh xạ priority 3 mức cũ khi đọc; CHỈ in-memory, không ghi storage.
+        tasks.push({ ...task, priority: normalizePriority(task.priority) });
       }
     }
     return tasks;

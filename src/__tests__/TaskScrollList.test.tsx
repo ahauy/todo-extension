@@ -24,7 +24,7 @@ function fixture(overrides: Partial<Task> = {}): Task {
     id: 'task-1',
     title: 'Học bài sử',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],
@@ -162,14 +162,14 @@ describe('TaskScrollList', () => {
     expect(container.querySelector('.badge-subject')?.textContent).toBe('Toán');
   });
 
-  it('sortKey "priority" xếp Cao → Vừa → Thấp', () => {
+  it('sortKey "priority" xếp Q1 → Q2 → Q4', () => {
     const container = renderNode(
       <TaskScrollList
         {...listProps({
           tasks: [
-            fixture({ id: 'a', title: 'Việc thấp', priority: 'low' }),
-            fixture({ id: 'b', title: 'Việc cao', priority: 'high' }),
-            fixture({ id: 'c', title: 'Việc vừa', priority: 'medium' }),
+            fixture({ id: 'a', title: 'Việc thấp', priority: 'not-important-not-urgent' }),
+            fixture({ id: 'b', title: 'Việc cao', priority: 'important-urgent' }),
+            fixture({ id: 'c', title: 'Việc vừa', priority: 'important-not-urgent' }),
           ],
           sortKey: 'priority',
         })}
@@ -274,14 +274,14 @@ describe('TaskScrollList — chip 20% & archived (R-21)', () => {
         id: 'late',
         title: 'Keyst muộn',
         keystone: true,
-        priority: 'low',
+        priority: 'not-important-not-urgent',
         dueAt: '2026-01-20T08:00',
       }),
       fixture({
         id: 'early',
         title: 'Keyst sớm',
         keystone: true,
-        priority: 'high',
+        priority: 'important-urgent',
         dueAt: '2026-01-18T08:00',
       }),
       fixture({ id: 'plain', title: 'Việc thường', dueAt: '2026-01-16T08:00' }),

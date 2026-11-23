@@ -1,11 +1,11 @@
 /**
  * Guard test sau cải tạo "Sơn mài Học Đường" (thay guard cũ thời PriorityGlyph):
- * - PriorityBadge (components/ui/Chips.tsx) dùng class TĨNH cho cả 3 mức ưu
- *   tiên (badge-high/badge-mid/badge-low), không ghép class động `badge-${...}`
+ * - PriorityBadge (components/ui/Chips.tsx) dùng class TĨNH cho cả 4 mức ưu
+ *   tiên (badge-q1..badge-q4), không ghép class động `badge-${...}`
  *   — class động khiến Tailwind không scan ra và badge mất màu.
  * - Không còn utility không tồn tại `z-sticky` trong components/ lẫn entrypoints/.
  * - Token/class thật phải được khai trong styles/components.css
- *   (.badge-high/.badge-mid/.badge-low) — style giờ nằm ở styles/*.css chứ
+ *   (.badge-q1..badge-q4) — style giờ nằm ở styles/*.css chứ
  *   không còn trong entrypoints/popup/style.css.
  */
 import { describe, expect, it } from 'vitest';
@@ -25,14 +25,14 @@ function listTsx(dir: string): string[] {
 }
 
 describe('class ưu tiên tĩnh + token thật (sau cải tạo sơn mài)', () => {
-  it('Chips.tsx dùng class tĩnh badge-high/badge-mid/badge-low, không ghép template động', () => {
+  it('Chips.tsx dùng class tĩnh badge-q1..badge-q4, không ghép template động', () => {
     const source = readFileSync(
       resolve(root, 'components/ui/Chips.tsx'),
       'utf8'
     );
-    expect(source).toContain('badge-high');
-    expect(source).toContain('badge-mid');
-    expect(source).toContain('badge-low');
+    for (const cls of ['badge-q1', 'badge-q2', 'badge-q3', 'badge-q4']) {
+      expect(source, `Chips.tsx thiếu class ${cls}`).toContain(cls);
+    }
     expect(source).not.toContain('badge-${');
   });
 
@@ -44,9 +44,9 @@ describe('class ưu tiên tĩnh + token thật (sau cải tạo sơn mài)', () 
     }
   });
 
-  it('styles/components.css khai thật .badge-high/.badge-mid/.badge-low', () => {
+  it('styles/components.css khai thật .badge-q1..badge-q4', () => {
     const css = readFileSync(resolve(root, 'styles/components.css'), 'utf8');
-    for (const selector of ['.badge-high', '.badge-mid', '.badge-low']) {
+    for (const selector of ['.badge-q1', '.badge-q2', '.badge-q3', '.badge-q4']) {
       expect(css, `styles/components.css thiếu selector ${selector}`).toContain(
         selector
       );

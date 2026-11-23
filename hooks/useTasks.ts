@@ -43,6 +43,7 @@ import {
   subscribe,
 } from '../lib/storage/adapter';
 import { nextFutureDue } from '../lib/tasks/recurrence';
+import { DEFAULT_PRIORITY } from '../lib/tasks/priority';
 import { habitOccurrenceDay, withHabitDay } from '../lib/tasks/habit';
 import type { TaskTimePatch } from '../lib/tasks/timeBlock';
 import { durationMinutes } from '../lib/tasks/timeBlock';
@@ -61,7 +62,7 @@ function defaultDraft(title: string): TaskDraft {
   return {
     title,
     note: '',
-    priority: 'medium',
+    priority: DEFAULT_PRIORITY,
     dueAt: null,
     recurrence: { kind: 'none' },
     tags: [],

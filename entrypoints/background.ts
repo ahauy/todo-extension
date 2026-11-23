@@ -16,7 +16,7 @@ import {
 } from '../lib/alarms/scheduler';
 import { loadAll, loadSettings } from '../lib/storage/adapter';
 import { recallBoardTab, requestPlanSheet } from '../lib/storage/local';
-import { shouldNotify } from '../lib/notifications';
+import { notificationPriority, shouldNotify } from '../lib/notifications';
 import { DEFAULT_SETTINGS, PLAN_ALARM_NAME, type DisplayMode, type Task } from '../lib/tasks/types';
 
 const MAX_NOTE_PREVIEW = 60;
@@ -41,7 +41,8 @@ function notifyTask(task: Task): void {
     iconUrl: chrome.runtime.getURL('icon/48.png'),
     title: taskTitle(task),
     message: notePreview(task) || `Đến hạn rồi con ơi: ${task.dueAt || 'không có hạn'}`,
-    priority: task.priority === 'high' ? 2 : 0,
+    // R-05/R-12 — chỉ ưu tiên hoá thông báo cho Q1 (`important-urgent`).
+    priority: notificationPriority(task.priority),
   });
 }
 

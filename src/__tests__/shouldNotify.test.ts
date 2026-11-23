@@ -1,6 +1,6 @@
 /** Test gate thông báo (defect #16). */
 import { describe, expect, it } from 'vitest';
-import { shouldNotify } from '../../lib/notifications';
+import { notificationPriority, shouldNotify } from '../../lib/notifications';
 import { DEFAULT_SETTINGS, type Settings, type Task } from '../../lib/tasks/types';
 
 function task(overrides: Partial<Task> = {}): Task {
@@ -8,7 +8,7 @@ function task(overrides: Partial<Task> = {}): Task {
     id: 't1',
     title: 'Việc',
     note: '',
-    priority: 'medium',
+    priority: 'important-not-urgent',
     dueAt: '2035-01-01T09:00:00.000Z',
     recurrence: { kind: 'none' },
     tags: [],
@@ -41,5 +41,14 @@ describe('shouldNotify (#16)', () => {
   it('task done hoặc không có hạn → false', () => {
     expect(shouldNotify(task({ done: true }), settings(true))).toBe(false);
     expect(shouldNotify(task({ dueAt: null }), settings(true))).toBe(false);
+  });
+});
+
+describe('notificationPriority (R-05/R-12)', () => {
+  it('chỉ important-urgent (Q1) → 2; các mức khác → 0', () => {
+    expect(notificationPriority('important-urgent')).toBe(2);
+    expect(notificationPriority('important-not-urgent')).toBe(0);
+    expect(notificationPriority('not-important-urgent')).toBe(0);
+    expect(notificationPriority('not-important-not-urgent')).toBe(0);
   });
 });
