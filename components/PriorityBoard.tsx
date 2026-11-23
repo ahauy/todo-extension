@@ -6,6 +6,7 @@
  * + 1 put). Quota → hoàn tác optimistic + lỗi inline (R-16), không toast.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PRIORITY_BADGE } from '../lib/tasks/priority';
 import type { Priority, Task } from '../lib/tasks/types';
 
 /** Nhãn đúng R-05 (Q1→Q4) — không rút gõ, không thêm nhãn 3 mức cũ. */
@@ -15,14 +16,6 @@ export const PRIORITY_CELLS: ReadonlyArray<{ value: Priority; label: string; sho
   { value: 'not-important-urgent', label: 'Không quan trọng, cấp bách', short: 'Q3' },
   { value: 'not-important-not-urgent', label: 'Không quan trọng, không cấp bách', short: 'Q4' },
 ];
-
-/** Class TĨNH cho dấu ô theo màu R-05 (badge-q1..q4 trong components.css). */
-const CELL_BADGE: Record<Priority, string> = {
-  'important-urgent': 'badge-q1',
-  'important-not-urgent': 'badge-q2',
-  'not-important-urgent': 'badge-q3',
-  'not-important-not-urgent': 'badge-q4',
-};
 
 const DRAG_THRESHOLD_PX = 5;
 
@@ -347,7 +340,7 @@ export default function PriorityBoard({
                 aria-label={`Ô ${cell.short}: ${cell.label}`}
               >
                 <h3 className="priority-cell-title">
-                  <span className={`badge ${CELL_BADGE[cell.value]}`}>{cell.short}</span>
+                  <span className={`badge ${PRIORITY_BADGE[cell.value]}`}>{cell.short}</span>
                   <span className="priority-cell-label">{cell.label}</span>
                 </h3>
                 {/* Nút gán chỉ xuất hiện khi đang có thẻ được chọn — 4 nút disabled

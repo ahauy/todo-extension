@@ -27,3 +27,27 @@ export function normalizePriority(raw: unknown): Priority {
   }
   return DEFAULT_PRIORITY;
 }
+
+/** Nhãn đầy đủ R-05 — nguồn chung cho chip, huy hiệu, aria-label. */
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  'important-urgent': 'Quan trọng, cấp bách',
+  'important-not-urgent': 'Quan trọng, không cấp bách',
+  'not-important-urgent': 'Không quan trọng, cấp bách',
+  'not-important-not-urgent': 'Không quan trọng, không cấp bách',
+};
+
+/** Tên ngắn cho không gian hẹp (timeline block, dấu ô ma trận). */
+export const PRIORITY_SHORT: Record<Priority, string> = {
+  'important-urgent': 'Q1',
+  'important-not-urgent': 'Q2',
+  'not-important-urgent': 'Q3',
+  'not-important-not-urgent': 'Q4',
+};
+
+/** Class TĨNH màu R-05 (components.css .badge-q1..q4) — không ghép tên class. */
+export const PRIORITY_BADGE: Record<Priority, string> = {
+  'important-urgent': 'badge-q1',
+  'important-not-urgent': 'badge-q2',
+  'not-important-urgent': 'badge-q3',
+  'not-important-not-urgent': 'badge-q4',
+};

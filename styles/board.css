@@ -856,9 +856,17 @@ article[data-focus-active='true'] {
   min-height: 44px;
   overflow: hidden;
   border: 1px solid var(--primary);
+  /* Gáy sách: mép trái 6px màu môn (--spine-color đặt inline từ Timeline) */
+  border-left: 6px solid var(--spine-color, var(--primary));
   border-radius: var(--radius-xs);
   background: var(--surface-paper);
   transition: transform 120ms ease;
+}
+/* Việc đã xong: giấy cũ, viền hairline, chữ umber — vẫn đọc được title */
+.timeline-block--done {
+  border-color: var(--hairline);
+  border-left-color: var(--spine-color, var(--hairline));
+  background: var(--surface-sunk);
 }
 .timeline-block--overlap {
   border-color: var(--critical);
@@ -873,7 +881,8 @@ article[data-focus-active='true'] {
   align-content: center;
   width: 100%;
   min-height: 44px;
-  padding: 4px 96px 4px 8px;
+  /* 6px trái = viền gáy sách; phải 8px — không còn chỗ dựa cho input giờ đã bỏ */
+  padding: 4px 8px 4px 10px;
   border: 0;
   background: transparent;
   color: var(--ink-deep);
@@ -885,8 +894,7 @@ article[data-focus-active='true'] {
 .timeline-block-handle:active {
   cursor: grabbing;
 }
-.timeline-block-handle:focus-visible,
-.timeline-time-input:focus-visible {
+.timeline-block-handle:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
@@ -894,12 +902,45 @@ article[data-focus-active='true'] {
   font-size: 11px;
   font-weight: 700;
 }
+/* Giờ kết thúc + độ dài: phụ trợ, nhạt hơn giờ bắt đầu */
+.timeline-block-end,
+.timeline-block-dur {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--umber);
+}
+.timeline-block-subject {
+  font-size: 11px;
+  color: var(--brown);
+  white-space: nowrap;
+}
+/* Ribbon then chốt gọn lại cho vừa hàng meta của khối */
+.timeline-block .keystone-ribbon {
+  padding: 1px 8px;
+  font-size: 11px;
+}
+.timeline-block--done .timeline-block-time,
+.timeline-block--done .timeline-block-title {
+  color: var(--umber);
+}
 .timeline-block-title {
   flex: 1 1 100%;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* Tiến độ việc nhỏ: thanh mực mini + n/m */
+.timeline-block-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--umber);
+}
+.timeline-block-progress .progress-ink {
+  height: 6px;
+  border: 0;
 }
 .timeline-block-warning {
   flex: 0 0 auto;
@@ -935,23 +976,6 @@ article[data-focus-active='true'] {
 .timeline-tail-handle:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
-}
-.timeline-time-input {
-  width: 84px;
-  min-height: 44px;
-  margin: 0;
-  padding: 0 4px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-xs);
-  background: var(--surface-paper);
-  color: var(--ink-deep);
-  font: inherit;
-  font-size: 11px;
-}
-.timeline-block .timeline-time-input {
-  position: absolute;
-  top: 6px;
-  right: 6px;
 }
 .timeline-tail {
   margin-top: var(--spacing-sm);

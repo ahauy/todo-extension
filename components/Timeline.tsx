@@ -21,6 +21,8 @@ import {
   timelineOrder,
   type TaskTimePatch,
 } from '../lib/tasks/timeBlock';
+import { PRIORITY_BADGE, PRIORITY_LABEL, PRIORITY_SHORT } from '../lib/tasks/priority';
+import { spineColor } from '../lib/subjects';
 import type { TaskDraft } from '../lib/tasks/form';
 import type { Subject, Task } from '../lib/tasks/types';
 import { CollapseIcon, ExpandIcon, WarningIcon } from './art/Icons';
@@ -354,29 +356,61 @@ export default function Timeline({
     const endMinutes = Math.min(startMinutes + displayMin, TIMELINE_END_MIN);
     const warning = overlapIds.has(task.id);
     const preview = drag?.id === task.id ? drag.preview : null;
+    const dragging = preview !== null;
+    const subject = subjects.find((item) => item.id === task.subjectId) ?? null;
+    const doneSubtasks = task.subtasks.filter((item) => item.done).length;
     return (
       <div
         key={task.id}
-        className={`timeline-block${warning ? ' timeline-block--overlap' : ''}`}
+        className={`timeline-block${warning ? ' timeline-block--overlap' : ''}${
+          task.done ? ' timeline-block--done' : ''
+        }`}
         data-task-id={task.id}
         data-start-at={task.startAt ?? ''}
         data-end-at={task.endAt ?? ''}
+        data-done={task.done ? 'true' : undefined}
         style={{
           top: `${blockTop(startMinutes)}px`,
           height: `${Math.max(MIN_BLOCK_PX, (endMinutes - startMinutes) * PX_PER_MIN)}px`,
+          // Gáy sách: màu trái khối theo môn (fallback đỏ son khi chưa xếp môn)
+          ['--spine-color' as string]: subject ? spineColor(subject.order) : undefined,
         }}
       >
         <button
           type="button"
           className="timeline-block-handle"
-          aria-label={`${task.title}, bắt đầu ${task.startAt}, ${storedMin} phút${storedMin !== displayMin ? ' (chiều cao hiển thị đã kẹp 15–240 phút)' : ''}${beyondWindow ? ', vượt khung 24:00' : ''}${warning ? ', chồng lấn với việc khác' : ''}. Dùng mũi tên để dời 15 phút, Enter để sửa.`}
+          aria-label={`${task.title}, bắt đầu ${task.startAt}, ${storedMin} phút, ưu tiên ${
+            PRIORITY_LABEL[task.priority]
+          }${subject ? `, môn ${subject.name}` : ''}${
+            task.done ? ', đã xong' : ''
+          }${storedMin !== displayMin ? ' (chiều cao hiển thị đã kẹp 15–240 phút)' : ''}${
+            beyondWindow ? ', vượt khung 24:00' : ''
+          }${warning ? ', chồng lấn với việc khác' : ''}. Dùng mũi tên để dời 15 phút, Enter để sửa.`}
           onKeyDown={onBlockKeyDown(task)}
           onPointerDown={onPointerDown(task, startMinutes)}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={() => setDrag(null)}
         >
-          <span className="timeline-block-time">{preview ?? task.startAt}</span>
+          {dragging ? (
+            <span className="timeline-block-time">{preview}</span>
+          ) : (
+            <>
+              <span className="timeline-block-time tnum">{task.startAt}</span>
+              <span className="timeline-block-end tnum">
+                –{formatStartAtMinutes(endMinutes)}
+              </span>
+              <span className="timeline-block-dur tnum">{durationLabel(displayMin)}</span>
+            </>
+          )}
+          <span
+            className={`badge ${PRIORITY_BADGE[task.priority]}`}
+            title={`Ưu tiên: ${PRIORITY_LABEL[task.priority]}`}
+          >
+            {PRIORITY_SHORT[task.priority]}
+          </span>
+          {task.keystone && <span className="keystone-ribbon">Then chốt</span>}
+          {subject && <span className="timeline-block-subject">{subject.name}</span>}
           {beyondWindow && (
             <span className="timeline-block-beyond" aria-label="Vượt khung 24:00">
               <WarningIcon size={12} className="align-middle" /> Vượt khung
@@ -388,6 +422,14 @@ export default function Timeline({
             </span>
           )}
           <span className="timeline-block-title">{task.title}</span>
+          {task.subtasks.length > 0 && (
+            <span className="timeline-block-progress tnum">
+              <span className="progress-ink" style={{ width: 48 }}>
+                <span style={{ transform: `scaleX(${doneSubtasks / task.subtasks.length})` }} />
+              </span>
+              {doneSubtasks}/{task.subtasks.length}
+            </span>
+          )}
         </button>
       </div>
     );
