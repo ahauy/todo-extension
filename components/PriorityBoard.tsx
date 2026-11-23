@@ -69,6 +69,8 @@ export default function PriorityBoard({
   const [drag, setDrag] = useState<DragState | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
+  // D-04 — sighted users need the same confirmation the live region announces.
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -94,14 +96,20 @@ export default function PriorityBoard({
       setSelectedId(null);
       try {
         await onAssign(patched);
-        setAnnouncement(`Đã chuyển "${task.title}" sang ô ${labelOf(priority)}.`);
+        const message = `Đã chuyển "${task.title}" sang ô ${labelOf(priority)}.`;
+        setAnnouncement(message);
+        setSuccessMessage(message);
       } catch {
         setOverrides((prev) => {
           const next = { ...prev };
           delete next[id];
           return next;
         });
-        setError('Không lưu được thay đổi. Bộ nhớ đồng bộ có thể đã đầy — thử lại.');
+        // D-05 — no retry button exists; copy must not promise one (D-01 pattern).
+        setError(
+          'Không lưu được thay đổi. Bộ nhớ đồng bộ có thể đã đầy — thay đổi này chưa được lưu, hãy làm lại sau khi xoá bớt việc cũ.'
+        );
+        setSuccessMessage(null);
         setAnnouncement('Không lưu được thay đổi, đã hoàn tác.');
       }
     },
@@ -116,6 +124,14 @@ export default function PriorityBoard({
     panelRef.current?.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
     return () => returnFocus?.focus({ preventScroll: true });
   }, []);
+
+  // D-03 — selecting a card enables the assign buttons; move focus to the
+  // first one in the same commit so the keyboard path is self-discoverable.
+  useEffect(() => {
+    if (!selectedId) return;
+    const firstCell = panelRef.current?.querySelector<HTMLElement>('[data-cell-assign]');
+    firstCell?.focus({ preventScroll: true });
+  }, [selectedId]);
 
   // Esc: ưu tiên popup R-25 → panel này → fullscreen/search (App bỏ qua phím
   // khi có [role="dialog"]). Đăng ký ở window capture để thắng listener capture
@@ -233,11 +249,17 @@ export default function PriorityBoard({
           </button>
         </div>
         <p className="priority-board-hint">
-          Kéo thẻ sang ô khác, hoặc chọn thẻ rồi chọn ô bằng bàn phím.
+          Kéo thẻ sang ô khác. Bằng bàn phím: Enter chọn thẻ → mũi tên di chuyển giữa các ô → Enter
+          hoặc Space gán vào ô.
         </p>
         {error && (
           <p className="priority-board-error" role="alert" data-priority-error>
             {error}
+          </p>
+        )}
+        {successMessage && (
+          <p className="priority-board-success" data-priority-success>
+            {successMessage}
           </p>
         )}
 

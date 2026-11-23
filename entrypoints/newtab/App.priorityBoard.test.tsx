@@ -200,7 +200,7 @@ describe('R-26 — nút và 4 ô ma trận', () => {
   it('nút nằm cạnh FilterRow trên New Tab, mở panel đúng 4 nhãn R-05', async () => {
     const container = await mountApp();
     const button = launch(container);
-    expect(button.textContent).toContain('Sắp xếp công việc');
+    expect(button.textContent).toContain('Ma trận ưu tiên');
     expect(container.querySelector('.priority-board-launch .filter-line')).not.toBeNull();
     expect(container.querySelector('[data-priority-board]')).toBeNull();
 

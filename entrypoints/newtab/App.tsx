@@ -365,11 +365,11 @@ export default function App() {
                 variant="secondary"
                 size="sm"
                 className="priority-board-launch-btn"
-                aria-label="Sắp xếp công việc theo ma trận"
+                aria-label="Ma trận ưu tiên"
                 disabled={focusActive}
                 onClick={() => setPriorityBoardOpen(true)}
               >
-                Sắp xếp công việc
+                Ma trận ưu tiên
               </Button>
             </div>
             {tab === 'today' && plannedToday.length > 0 && (
