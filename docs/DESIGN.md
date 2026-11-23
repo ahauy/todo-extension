@@ -856,14 +856,14 @@ hai nhánh khác nhau cho case duration > 240′ → ghi residual, chờ change 
 intent doc). Chưa có eyeball Chrome thật cho bản R-25
 (không có binary trên máy build) — residual, cần bấm thủ công trước release.
 
-### R-26 — Bảng "Sắp xếp công việc" (New Tab only, as-built 2026-11-23)
+### R-26 — Bảng "Ma trận ưu tiên" (New Tab only, as-built 2026-11-23)
 
 > FEAT-006 / spec 2.0.0. Nguồn: `components/PriorityBoard.tsx`, `entrypoints/newtab/App.tsx:344-372,511-516`,
 > `entrypoints/newtab/style.css:288-448`. Panel là **local state** New Tab; popup 360×560 không render (R-19).
 
 | Thành phần | As-built |
 |---|---|
-| Nút mở (`.priority-board-launch-btn`) | Nút **"Sắp xếp công việc"** cạnh `FilterRow`, `aria-label="Sắp xếp công việc theo ma trận"`, disabled khi `focusActive` (R-20). |
+| Nút mở (`.priority-board-launch-btn`) | Nút **"Ma trận ưu tiên"** cạnh `FilterRow`, `aria-label="Ma trận ưu tiên"`, disabled khi `focusActive` (R-20). |
 | Panel 4 ô (`.priority-board-backdrop` / `.priority-board-panel` / `.priority-board-grid`) | Overlay `aria-modal="true"`, 4 ô Q1→Q4 với nhãn đầy đủ + short `Q1..Q4` (`PRIORITY_CELLS`, `PriorityBoard.tsx:13-18`), mỗi ô liệt kê thẻ việc theo `priority` đã hydrate. |
 | Thẻ & drop target (`.priority-cell--drop[data-drop-target='true']`, `.priority-card`) | Kéo bằng pointer events (ngưỡng 5px); ô dưới con trỏ nổi bật; thả → đổi priority **optimistic** rồi **1 `put(task)`** copy-then-patch qua `board.updateTask` (`App.tsx:515`). Quota → rollback + lỗi inline `.priority-board-error` `role="alert"`, **không toast** (R-16). |
 | Lối bàn phím | Chọn thẻ rồi mũi tên tới ô + Enter/Space gán; focus nút đóng lúc mở, trap `Tab`, restore focus lúc đóng; `role="status" aria-live="polite"` báo ô đã gán; Esc theo thứ tự popup → panel → fullscreen → search/menu (window capture, `PriorityBoard.tsx:118-137`). |

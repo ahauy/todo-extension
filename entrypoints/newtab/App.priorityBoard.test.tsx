@@ -156,7 +156,7 @@ async function key(element: Element, value: string): Promise<void> {
 
 function launch(container: HTMLElement): HTMLButtonElement {
   const button = container.querySelector<HTMLButtonElement>('.priority-board-launch-btn');
-  if (!button) throw new Error('Không tìm thấy nút Sắp xếp công việc');
+  if (!button) throw new Error('Không tìm thấy nút Ma trận ưu tiên');
   return button;
 }
 

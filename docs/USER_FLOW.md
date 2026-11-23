@@ -368,17 +368,17 @@ New Tab là **mặt thứ hai của cùng board** (cùng token/component, chỉ 
    liệu → hỏi xác nhận; `Tab` được giữ trong popup (focus trap).
 5. **Khung giờ & fullscreen:** timeline phủ **00:00–24:00**; kéo/phím snap 15′, clamp 00:00–23:45;
    `Home` → 00:00, `End` → 23:45. Nút **phóng to** làm timeline chiếm toàn bộ không gian tab, bấm lại
-   thu về; `Esc` thoát fullscreen khi không có popup. Ưu tiên Esc: popup → **panel "Sắp xếp công việc" (R-26, §17)** → fullscreen → tìm kiếm (`components/PriorityBoard.tsx:118-137`).
+   thu về; `Esc` thoát fullscreen khi không có popup. Ưu tiên Esc: popup → **panel "Ma trận ưu tiên" (R-26, §17)** → fullscreen → tìm kiếm (`components/PriorityBoard.tsx:118-137`).
 6. **Dữ liệu:** `Task.endAt?` ("HH:mm" local) là nguồn thật; `estimateMin` suy ra trong cùng một `put`
    (`end − start`, `end <= start` cộng 1440′). Khoảng >240′ hợp lệ, chỉ kẹp chiều cao block khi vẽ.
    Không thêm storage key/permission/network. Task cũ có `dueAt` vẫn giữ alarm/chip quá hạn; hạn chót
    không còn nơi nào để nhập. Chế độ focus vô hiệu hoá gesture tạo/sửa mới nhưng giữ kéo dời R-24.
 
-## 17. R-26 — Bảng "Sắp xếp công việc" (as-built 2026-11-23, spec 2.0.0)
+## 17. R-26 — Bảng "Ma trận ưu tiên" (as-built 2026-11-23, spec 2.1.0)
 
 > Mô tả hành vi hiện hành của FEAT-006; intent/business rule nằm ở `SPECIFICATIONS.md` R-26 — không sửa intent.
 
-1. Nút **"Sắp xếp công việc"** nằm cạnh `FilterRow` trên New Tab (`entrypoints/newtab/App.tsx:344-372`);
+1. Nút **"Ma trận ưu tiên"** nằm cạnh `FilterRow` trên New Tab (`entrypoints/newtab/App.tsx:344-372`);
    popup 360×560 **không** có nút/panel này (R-19). Bấm mở panel **local state** gồm 4 ô Q1→Q4
    (`components/PriorityBoard.tsx:13-18`), mỗi ô liệt kê task có `priority` tương ứng — kể cả task hệ 3
    mức cũ đã được normalize khi đọc (`lib/storage/adapter.ts:103`, `lib/tasks/priority.ts:21-28`).

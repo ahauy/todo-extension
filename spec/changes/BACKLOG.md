@@ -29,6 +29,7 @@
 | BUG-003 | Timeline: ghost kéo tạo đi theo con trỏ khi popup đang mở | BUG | done | [2026-11-19-timeline-ghost-follows-pointer.md](archive/2026-11-19-timeline-ghost-follows-pointer.md) | 2026-11-19 | 2026-11-19 |
 | FEAT-006 | Thay 3 mức ưu tiên bằng ma trận Eisenhower 4 mức + bảng "Sắp xếp công việc" kéo-thả | MODIFY/ADDITIVE | done | [2026-11-23-eisenhower-priority-matrix.md](archive/2026-11-23-eisenhower-priority-matrix.md) | 2026-11-23 | 2026-11-23 |
 | UI-SWEEP-1123 | `/bug-check` UI/UX sau FEAT-006 — 21 defect đã duyệt, fix theo 4 nhóm root cause | BUG | done | [scan.md](../../tasks/bug-ui-ux-sweep-2026-11-23/scan.md) | 2026-11-23 | 2026-11-23 |
+| FEAT-007 | Bảng sắp xếp: thẻ đi theo con trỏ realtime, ô dưới con trỏ sáng lên, thả vào ô đang highlight | MODIFY | done | [2026-11-23-priority-board-drag-ux.md](archive/2026-11-23-priority-board-drag-ux.md) | 2026-11-23 | 2026-11-23 |
 
 ## Quy tắc tracking
 

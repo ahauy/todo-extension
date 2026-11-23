@@ -455,9 +455,31 @@
 .priority-card:active {
   cursor: grabbing;
 }
+/* FEAT-007 — ghost của thẻ đang kéo. Vị trí được set inline bằng translate3d
+   mỗi pointermove; chỉ dùng transform/opacity nên không gây layout shift.
+   pointer-events:none để elementFromPoint vẫn thấy ô bên dưới (R-26). */
+.priority-drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 200;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: var(--spacing-xxs) var(--spacing-sm);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-paper);
+  box-shadow: var(--elev-modal);
+  color: var(--umber);
+  font-size: var(--text-body-sm);
+  opacity: 0.92;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  user-select: none;
+}
 @media (prefers-reduced-motion: reduce) {
   .priority-cell,
-  .priority-card {
+  .priority-card,
+  .priority-drag-ghost {
     transition: none !important;
   }
 }

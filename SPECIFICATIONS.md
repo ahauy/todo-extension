@@ -1,5 +1,5 @@
 ---
-spec_version: 2.0.0
+spec_version: 2.1.0
 updated_at: 2026-11-23
 source: BRIEF.md + brainstorm (2026-11-10)
 status: draft
@@ -208,7 +208,7 @@ chuyển bộ lọc/menu, và mốc chuỗi học. Không có autoplay, marquee,
 Tất cả motion phải tuân `prefers-reduced-motion`; không được thêm thư viện animation hoặc quyền/network mới.
 
 **R-26 — Bảng sắp xếp công việc theo ma trận (New Tab only, từ 2.0.0)**
-New Tab ("Học Đường") có nút **"Sắp xếp công việc"** đặt cạnh `FilterRow` (**ngoài popup**, popup
+New Tab ("Học Đường") có nút **"Ma trận ưu tiên"** đặt cạnh `FilterRow` (**ngoài popup**, popup
 360×560 không thêm khối UI mới theo R-19). Bấm nút mở một bảng/panel gồm **4 ô** tương ứng đúng
 4 nhãn của R-05 (Q1→Q4), mỗi ô liệt kê các task có `priority` tương ứng, kể cả việc đã lưu từ hệ 3 mức
 được ánh xạ khi hydrate.
@@ -216,16 +216,23 @@ New Tab ("Học Đường") có nút **"Sắp xếp công việc"** đặt cạn
 - **Kéo-thả:** user kéo thẻ việc từ danh sách/ô này sang ô khác → gán `priority` = giá trị của ô đích
   qua **đúng 1 `put(task)`** (copy-then-patch như R-25, không `syncAlarms`, không key storage/permission/
   network mới — R-17). Không đổi `done`/`dueAt`/`startAt`/`endAt`/`plannedFor`/`archived`/`habit`/`dayPlan`.
-- **Phản hồi tức thời:** trong lúc kéo, ô đang trỏ vào phải nổi bật (drop-target highlight); khi thả,
-  thẻ chuyển ô ngay trong bộ nhớ (optimistic) rồi mới ghi storage. Nếu ghi lỗi (`StorageQuotaError`,
-  R-16) → hoàn tác thay đổi priority trong bộ nhớ, hiện lỗi inline, không toast. Không cần reload để
-  thấy kết quả.
+- **Ghost đi theo con trỏ (từ 2.1.0):** ngay khi vượt ngưỡng kéo, một bản hiển thị của chính thẻ việc
+  đó bám theo toạ độ con trỏ trên mỗi lần di chuyển (cập nhật vị trí realtime). Ghost **không được
+  chặn hit-test** (`pointer-events: none` hoặc tương đương) để `elementFromPoint` vẫn trả về ô bên dưới.
+  Con trỏ rời khỏi thẻ gốc vẫn tiếp tục kéo nhờ pointer capture; ghost và highlight phải được dọn khi
+  kết thúc gesture — thả thành công, huỷ, `pointercancel` hoặc `lostpointercapture`.
+- **Phản hồi tức thời:** trong lúc kéo, **chỉ ô đang trỏ vào** nổi bật (drop-target highlight); rời ô
+  thì tắt ngay. Khi thả, thẻ được gán vào **ô đang highlight** (duy nhất ô dưới con trỏ; **không fallback**
+  về ô đã highlight trước đó. Nếu con trỏ nằm ngoài mọi ô thì không gán và giữ nguyên priority). Thẻ chuyển ô ngay trong bộ nhớ (optimistic) rồi mới ghi
+  storage. Nếu ghi lỗi (`StorageQuotaError`, R-16) → hoàn tác thay đổi priority trong bộ nhớ, hiện lỗi
+  inline, không toast. Không cần reload để thấy kết quả.
 - **Lối bàn phím:** mỗi thẻ việc có thể chọn rồi dùng phím để chọn ô đích (tương đương kéo-thả),
   có `aria-live` thông báo ô đã gán; focus trap khi panel mở, Esc đóng panel (thứ tự Esc theo R-25:
   popup → panel → fullscreen → search/menu). Thao tác trong focus mode (R-20) bị vô hiệu hoá như các
   gesture mới của R-25.
-- **Motion:** highlight/đổi ô chỉ phản hồi thao tác thật, tuân `prefers-reduced-motion: reduce` (R-19);
-  không thư viện animation/new permission. Panel là **local state**, không lưu storage, đóng/mở không
+- **Motion:** ghost và highlight/đổi ô chỉ phản hồi thao tác thật, di chuyển ghost bằng `transform`
+  (không đổi layout), tuân `prefers-reduced-motion: reduce` (R-19); không thư viện animation/new permission.
+  Panel là **local state**, không lưu storage, đóng/mở không
   đụng snapshot. Ngân sách R-18 (mở popup <100ms) không đổi vì panel chỉ ở New Tab.
 
 ### Domain: Đơn nhiệm (Single-handling)

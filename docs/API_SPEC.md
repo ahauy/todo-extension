@@ -376,7 +376,7 @@ error. Không còn ô nhập `HH:mm` trong block. Popup extension 360×560 khôn
 
 ### 3.9 Priority board — `components/PriorityBoard.tsx` (R-26, New Tab only)
 
-Nút **"Sắp xếp công việc"** nằm cạnh `FilterRow` trên New Tab (`entrypoints/newtab/App.tsx:344-372`),
+Nút **"Ma trận ưu tiên"** nằm cạnh `FilterRow` trên New Tab (`entrypoints/newtab/App.tsx:344-372`),
 **không** có trong popup 360×560 (R-19/R-26). Bấm mở panel là **local state** (`App.tsx:94-96,511-516`):
 4 ô theo đúng thứ tự Q1→Q4 (`PRIORITY_CELLS`, `components/PriorityBoard.tsx:13-18`), mỗi ô liệt kê task
 đã hydrate (kể cả task 3 mức cũ đã normalize khi đọc — §3.1).
@@ -441,9 +441,9 @@ composer dưới bảng, tạo/sửa bằng right-click/kéo-thả + popup neo c
 **không** key storage/permission/network mới. **FEAT-006 (spec 2.0.0, 2026-11-23)** đổi **ngữ nghĩa**
 `Task.priority` từ `low|medium|high` sang 4 giá trị Eisenhower Q1–Q4 (cùng key `t:<id>`, **không**
 key storage/permission/network mới); task cũ được normalize **khi đọc** (`lib/tasks/priority.ts:21-28`,
-xem §3.1) — **không** migration/ghi lại. R-26 thêm panel "Sắp xếp công việc" (§3.9), panel là **local
+xem §3.1) — **không** migration/ghi lại. R-26 thêm panel "Ma trận ưu tiên" (§3.9), panel là **local
 state** New Tab, không snapshot/storage key mới.
-Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`2.0.0`** — khớp frontmatter;
-**scopeVersion 39**, regenerate ở close-out FEAT-006). Đổi schema
+Contract dữ liệu gắn với `spec_version` trong `SPECIFICATIONS.md` (hiện **`2.1.0`** — khớp frontmatter;
+**scopeVersion 45**, regenerate ở publish FEAT-007). Đổi schema
 `Task`/`Settings` → bump version + migration dữ liệu cũ qua `/change` + `/spec-publish`.
 Xem [`SPEC_VERSIONING.md`](SPEC_VERSIONING.md).

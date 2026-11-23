@@ -32,6 +32,9 @@ interface DragState {
   id: string;
   startX: number;
   startY: number;
+  /** Vị trí con trỏ hiện tại — ghost bám theo hai toạ độ này mỗi pointermove. */
+  clientX: number;
+  clientY: number;
   moved: boolean;
   target: Priority | null;
 }
@@ -41,7 +44,9 @@ function labelOf(priority: Priority): string {
 }
 
 /** Ô đang nằm dưới con trỏ. elementFromPoint là nguồn thật trong browser;
- *  test stub lại hàm này để mô phỏng vị trí thả mà không cần layout jsdom. */
+ *  test stub lại hàm này để mô phỏng vị trí thả mà không cần layout jsdom.
+ *  Ghost được render có `pointer-events: none` nên browser bỏ qua nó ở đây —
+ *  không cần lọc ghost thủ công trong hit-test. */
 function cellFromPoint(clientX: number, clientY: number): Priority | null {
   const element = document.elementFromPoint?.(clientX, clientY);
   const cell = element?.closest?.('[data-priority-cell]');
@@ -183,6 +188,8 @@ export default function PriorityBoard({
         id,
         startX: event.clientX,
         startY: event.clientY,
+        clientX: event.clientX,
+        clientY: event.clientY,
         moved: false,
         target: null,
       });
@@ -195,16 +202,22 @@ export default function PriorityBoard({
         drag.moved ||
         Math.abs(event.clientX - drag.startX) >= DRAG_THRESHOLD_PX ||
         Math.abs(event.clientY - drag.startY) >= DRAG_THRESHOLD_PX;
-      setDrag({ ...drag, moved, target: moved ? cellFromPoint(event.clientX, event.clientY) : null });
+      setDrag({
+        ...drag,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        moved,
+        target: moved ? cellFromPoint(event.clientX, event.clientY) : null,
+      });
     };
 
   const onCardPointerUp =
     (id: string) => (event: React.PointerEvent<HTMLButtonElement>) => {
       releaseCapture(event.currentTarget, event.pointerId);
       if (!drag || drag.id !== id) return;
-      const target = drag.moved
-        ? cellFromPoint(event.clientX, event.clientY) ?? drag.target
-        : null;
+      // FEAT-007 — chỉ gán ô đang nằm dưới con trỏ lúc thả; thả ngoài mọi ô
+      // thì KHÔNG fallback về ô highlight trước đó.
+      const target = drag.moved ? cellFromPoint(event.clientX, event.clientY) : null;
       setDrag(null);
       if (target) void assign(id, target);
     };
@@ -217,6 +230,33 @@ export default function PriorityBoard({
       if (!drag || drag.id !== id) return;
       setDrag(null);
     };
+
+  // FEAT-007 — ghost là bản hiển thị của chính thẻ đang kéo, chỉ tồn tại sau
+  // khi vượt ngưỡng. fixed + translate3d nên ghost nằm ngoài flow của grid và
+  // không bị overflow:hidden của backdrop cắt (không có ancestor transform).
+  const activeDrag = drag?.moved ? drag : null;
+  const draggedTask = activeDrag
+    ? visible.find((task) => task.id === activeDrag.id)
+    : undefined;
+  const ghost =
+    activeDrag && draggedTask ? (
+      <div
+        className="priority-drag-ghost"
+        data-drag-ghost
+        data-ghost-task-id={draggedTask.id}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          zIndex: 200,
+          pointerEvents: 'none',
+          transform: `translate3d(${activeDrag.clientX}px, ${activeDrag.clientY}px, 0)`,
+        }}
+      >
+        {draggedTask.title}
+      </div>
+    ) : null;
 
   return (
     <div
@@ -337,6 +377,7 @@ export default function PriorityBoard({
           {announcement}
         </div>
       </div>
+      {ghost}
     </div>
   );
 }

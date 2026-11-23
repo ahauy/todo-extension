@@ -1,57 +1,61 @@
 {
-  "specVersion": "2.0.0",
-  "scopeVersion": 43,
-  "generatedAt": "2026-11-23T11:47:53+07:00",
-  "trigger": "bug-fix",
-  "workItem": "bug/low-ui-details",
+  "specVersion": "2.1.0",
+  "scopeVersion": 46,
+  "generatedAt": "2026-11-23T13:58:55+07:00",
+  "trigger": "feature-update",
+  "workItem": "feature-priority-board-drag-ux",
   "specRefs": [
-    "R-19"
+    "R-26",
+    "R-19",
+    "R-16",
+    "R-05",
+    "R-20",
+    "R-25"
   ],
   "changed": {
     "files": [
-      "components/Timeline.tsx",
-      "components/art/Icons.tsx",
-      "components/ui/Modal.tsx",
-      "components/ui/QuillInput.tsx",
-      "styles/components.css",
-      "styles/tokens.css",
-      "src/__tests__/low-ui-details.test.tsx",
-      "spec/updates/2026-11-23-bug-quota-retry.md",
-      "spec/updates/2026-11-23-bug-shared-control-a11y.md",
-      "spec/updates/2026-11-23-bug-newtab-board-ux.md",
-      "spec/updates/2026-11-23-bug-low-ui-details.md",
+      "SPECIFICATIONS.md",
+      "components/PriorityBoard.tsx",
+      "entrypoints/newtab/style.css",
+      "src/__tests__/priority-board-drag-ghost.test.tsx",
+      "entrypoints/newtab/App.priorityBoard.test.tsx",
+      "docs/DESIGN.md",
+      "docs/API_SPEC.md",
+      "docs/USER_FLOW.md",
+      "spec/CHANGELOG.md",
+      "spec/updates/2026-11-23-priority-board-drag-ux.md",
+      "spec/changes/BACKLOG.md",
       "spec/test-scope/current.json",
       ".context/progress.json"
     ],
     "modules": [
-      "newtab-timeline",
-      "shared-ui-primitives",
-      "design-tokens",
+      "newtab-priority-board",
+      "design-tokens-motion",
       "spec-state"
     ]
   },
   "impact": {
     "direct": [
-      "R-19: Timeline dùng SVG stroke icons (expand/collapse/warning) thay glyph Unicode, giữ aria-label/title",
-      "R-19: Modal tôn trọng labelledBy truyền vào, fallback titleId cho 6 caller hiện tại",
-      "R-19: QuillInput re-render ngay khi prefers-reduced-motion đổi qua useMediaQuery + cleanup listener"
+      "R-26: ghost của thẻ đi theo con trỏ trên mỗi pointermove; chỉ 1 drop-target highlight; thả vào ô đang highlight, thả ngoài ô → không gán",
+      "R-26: 4 ô Q1-Q4 hiển thị rõ, nhãn/màu phân biệt, panel không tràn 1024/1280, dùng được 360",
+      "R-19: ghost dùng transform/opacity, không animate width/height, tuân prefers-reduced-motion"
     ],
     "dependents": [
-      "tokens.css: --elev-seal-soft thay hard 0 2px 0 cho .btn-primary; hover thêm cho primary/secondary/ghost/icon nhưng không đụng :active/:disabled/pressed",
-      "Popup + New Tab dùng chung Icons/Modal/QuillInput/CSS → retest wiring, composer, settings, timeline"
+      "FEAT-006/UI-SWEEP-1123 board: giữ 1-put copy-then-patch, quota rollback, lối bàn phím Enter→mũi tên→Enter/Space, focus trap/Esc, aria-live, focusActive gating, 4 nhãn R-05",
+      "Timeline ghost pattern (FEAT-005/BUG-003) chỉ làm reference, không sửa Timeline"
     ],
     "regression": [
-      "Verify đủ 4 lệnh: tsc / eslint / vitest (54 files 465 tests) / wxt build",
-      "Không đụng 3 batch trước (2bae7d2/5329e4b/bf53e2a), không đụng D-12/D-20",
-      "D-08/D-09: scan coverage gán defect nhưng thiếu dòng expected/actual → chờ repro, không tự fix"
+      "Verify đủ 4 lệnh: tsc / eslint / vitest / wxt build",
+      "Regression tests phải fail-before-fix cho ghost-follow + highlight switching + drop-into-highlight",
+      "Không đổi storage schema/permission/network/dependency; reviewer PASS trước commit"
     ]
   },
   "acceptance": [
-    "Không còn glyph Unicode ⤡/⤢/⚠ trong Timeline; icon SVG khớp hệ make()",
-    "Modal labelledBy có effect thật; fallback tự sinh vẫn đúng cho caller cũ",
-    "QuillInput phản ứng ngay với matchMedia change và dọn listener khi unmount",
-    "Nút chính có :hover; shadow .btn-primary có blur mềm; focus/disabled giữ nguyên",
-    "tsc / eslint / vitest / wxt build PASS; reviewer NORMAL PASS trước commit"
+    "4 ô Q1-Q4 hiển thị rõ: 4 nhãn R-05 đầy đủ, phân biệt bằng màu/chữ, không chồng lấn/tràn ngang ở 1024/1280 và dùng được ở 360",
+    "Ghost của đúng thẻ cập nhật vị trí theo con trỏ realtime (transform, không đổi layout), pointer-events: none để elementFromPoint vẫn thấy ô bên dưới",
+    "Chỉ ô dưới con trỏ có data-drop-target='true' + highlight sáng; rời ô thì tắt; ghost + highlight được dọn khi thả thành công lẫn khi huỷ/pointercancel/lostpointercapture",
+    "pointerup gán duy nhất vào ô đang highlight; KHÔNG fallback về ô cũ; thả ngoài mọi ô → không gán; quota lỗi → rollback inline, không toast, vẫn đúng 1 put",
+    "Không hỏng keyboard path Enter→mũi tên→Enter/Space, focus trap/Esc (R-25), aria-live, focusActive gating (R-20); motion mượt, tuân prefers-reduced-motion"
   ],
-  "risk": "low-medium"
+  "risk": "high"
 }
