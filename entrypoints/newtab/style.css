@@ -344,8 +344,8 @@
 }
 .priority-board-close {
   flex: none;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--sepia);
   border-radius: var(--radius-sm);
   background: transparent;
@@ -411,7 +411,7 @@
   color: var(--primary);
 }
 .priority-cell-assign {
-  min-height: 36px;
+  min-height: 44px;
   margin: var(--spacing-xxs) 0;
   padding: 0 var(--spacing-sm);
   border: 1px solid var(--sepia);

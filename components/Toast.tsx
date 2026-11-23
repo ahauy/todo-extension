@@ -59,7 +59,7 @@ export default function Toast({
             onClose?.();
           }}
           aria-label="Đóng thông báo"
-          className="btn-icon size-8 flex-none"
+          className="btn-icon size-11 flex-none"
         >
           <CloseIcon size={14} />
         </button>

@@ -468,7 +468,7 @@ export default function Timeline({
         <div className="timeline-head-actions flex items-center gap-xs">
           <button
             type="button"
-            className="btn-icon size-9"
+            className="btn-icon"
             aria-label={fullscreen ? 'Thu nhỏ thời khoá biểu' : 'Phóng to thời khoá biểu'}
             title={fullscreen ? 'Thu về bảng' : 'Phóng to toàn tab'}
             aria-pressed={fullscreen}

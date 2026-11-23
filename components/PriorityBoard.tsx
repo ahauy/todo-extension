@@ -32,11 +32,11 @@ interface DragState {
   id: string;
   startX: number;
   startY: number;
-  /** Vị trí con trỏ hiện tại — ghost bám theo hai toạ độ này mỗi pointermove. */
-  clientX: number;
-  clientY: number;
   moved: boolean;
   target: Priority | null;
+  /* FEAT-007 — toạ độ con trỏ KHÔNG nằm trong state: ghost bám con trỏ bằng
+     transform trực tiếp qua ref, mỗi pointermove không re-render toàn panel
+     (tới 100+ thẻ). State chỉ đổi khi `moved` lật hoặc ô đích đổi. */
 }
 
 function labelOf(priority: Priority): string {
@@ -78,6 +78,8 @@ export default function PriorityBoard({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const ghostRef = useRef<HTMLDivElement | null>(null);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
 
   const visible = useMemo(() => tasks.filter((task) => !task.archived), [tasks]);
   const priorityOf = useCallback(
@@ -184,12 +186,11 @@ export default function PriorityBoard({
     (id: string) => (event: React.PointerEvent<HTMLButtonElement>) => {
       if (disabled) return;
       event.currentTarget.setPointerCapture?.(event.pointerId);
+      lastPoint.current = { x: event.clientX, y: event.clientY };
       setDrag({
         id,
         startX: event.clientX,
         startY: event.clientY,
-        clientX: event.clientX,
-        clientY: event.clientY,
         moved: false,
         target: null,
       });
@@ -198,17 +199,21 @@ export default function PriorityBoard({
   const onCardPointerMove =
     (id: string) => (event: React.PointerEvent<HTMLButtonElement>) => {
       if (!drag || drag.id !== id) return;
+      lastPoint.current = { x: event.clientX, y: event.clientY };
+      // Ghost bám con trỏ ngoài React: transform ghi thẳng vào node, không
+      // đưa toạ độ vào state nên pointermove không re-render danh sách thẻ.
+      const ghost = ghostRef.current;
+      if (ghost) {
+        ghost.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
+      }
       const moved =
         drag.moved ||
         Math.abs(event.clientX - drag.startX) >= DRAG_THRESHOLD_PX ||
         Math.abs(event.clientY - drag.startY) >= DRAG_THRESHOLD_PX;
-      setDrag({
-        ...drag,
-        clientX: event.clientX,
-        clientY: event.clientY,
-        moved,
-        target: moved ? cellFromPoint(event.clientX, event.clientY) : null,
-      });
+      const target = moved ? cellFromPoint(event.clientX, event.clientY) : null;
+      // Chỉ render lại khi trạng thái người dùng nhìn thấy thật sự đổi.
+      if (moved === drag.moved && target === drag.target) return;
+      setDrag({ ...drag, moved, target });
     };
 
   const onCardPointerUp =
@@ -234,6 +239,15 @@ export default function PriorityBoard({
   // FEAT-007 — ghost là bản hiển thị của chính thẻ đang kéo, chỉ tồn tại sau
   // khi vượt ngưỡng. fixed + translate3d nên ghost nằm ngoài flow của grid và
   // không bị overflow:hidden của backdrop cắt (không có ancestor transform).
+  // Vị trí do pointermove ghi thẳng qua ghostRef; callback ref đặt vị trí ngay
+  // lúc mount để không nháy ở góc (0,0) trong frame đầu.
+  const mountGhost = useCallback((node: HTMLDivElement | null) => {
+    ghostRef.current = node;
+    if (node && lastPoint.current) {
+      node.style.transform = `translate3d(${lastPoint.current.x}px, ${lastPoint.current.y}px, 0)`;
+    }
+  }, []);
+
   const activeDrag = drag?.moved ? drag : null;
   const draggedTask = activeDrag
     ? visible.find((task) => task.id === activeDrag.id)
@@ -241,6 +255,7 @@ export default function PriorityBoard({
   const ghost =
     activeDrag && draggedTask ? (
       <div
+        ref={mountGhost}
         className="priority-drag-ghost"
         data-drag-ghost
         data-ghost-task-id={draggedTask.id}
@@ -251,7 +266,6 @@ export default function PriorityBoard({
           top: 0,
           zIndex: 200,
           pointerEvents: 'none',
-          transform: `translate3d(${activeDrag.clientX}px, ${activeDrag.clientY}px, 0)`,
         }}
       >
         {draggedTask.title}

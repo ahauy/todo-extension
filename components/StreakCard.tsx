@@ -38,7 +38,8 @@ export default function StreakCard({
 
   if (compact) {
     return (
-      <div className="stack items-end gap-xxs" aria-label={`Chuỗi ${streak} ngày học`}>
+      // aria-label chỉ được đọc trên element có role — div trống bị bỏ qua
+      <div role="group" className="stack items-end gap-xxs" aria-label={`Chuỗi ${streak} ngày học`}>
         <span className="text-caption text-umber">
           {phaseLabel ? `${phaseLabel} · chuỗi ${streak} ngày` : `Chuỗi ${streak} ngày`}
         </span>

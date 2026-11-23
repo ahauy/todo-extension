@@ -176,7 +176,7 @@ export default function FilterRow({
         type="button"
         aria-label="Đóng tìm kiếm"
         onClick={closeSearch}
-        className="grid size-6 place-items-center text-umber"
+        className="grid size-11 place-items-center text-umber"
       >
         <CloseIcon size={14} />
       </button>

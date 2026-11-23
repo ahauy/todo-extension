@@ -176,7 +176,7 @@ export default function TaskEntryPopup({
         </h3>
         <button
           type="button"
-          className="btn-icon size-8"
+          className="btn-icon size-11"
           aria-label="Đóng hộp việc"
           onClick={requestClose}
         >
@@ -217,10 +217,15 @@ export default function TaskEntryPopup({
       )}
 
       {confirming && (
-        <div className="task-entry-popup-confirm" role="alertdialog" aria-label="Bỏ thay đổi?">
+        <div
+          className="task-entry-popup-confirm"
+          role="alertdialog"
+          aria-modal="true"
+          aria-label="Bỏ thay đổi?"
+        >
           <p className="text-body-sm text-ink">Bỏ những gì vừa nhập?</p>
           <div className="flex gap-xs">
-            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+            <Button variant="ghost" size="sm" autoFocus onClick={() => setConfirming(false)}>
               Ở lại
             </Button>
             <Button variant="danger" size="sm" onClick={onClose}>

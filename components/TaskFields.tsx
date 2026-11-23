@@ -354,7 +354,8 @@ export default function TaskFields({
               <button
                 type="button"
                 aria-label={`Bỏ thẻ ${tag}`}
-                className="ml-xxs grid size-6 place-items-center text-umber"
+                /* Vùng bấm thật 44px qua ::after — giữ chip nhỏ, không phình hàng chip */
+                className="relative ml-xxs grid size-6 place-items-center text-umber after:absolute after:-inset-2.5 after:rounded-full after:content-['']"
                 onClick={() => onChange({ tags: form.tags.filter((item) => item !== tag) })}
               >
                 <CloseIcon size={12} />
@@ -364,7 +365,7 @@ export default function TaskFields({
           {form.tags.length < MAX_TAGS && (
             <input
               type="text"
-              className="text-input h-9 w-32 py-xs text-body-sm"
+              className="text-input min-h-11 w-32 py-xs text-body-sm"
               value={tagDraft}
               placeholder="+ thẻ"
               aria-label="Thêm thẻ"
@@ -402,7 +403,7 @@ export default function TaskFields({
               <button
                 type="button"
                 aria-label={`Bỏ bước ${subtask.title}`}
-                className="btn-icon size-8"
+                className="btn-icon size-11"
                 onClick={() =>
                   onChange({ subtasks: form.subtasks.filter((item) => item.id !== subtask.id) })
                 }

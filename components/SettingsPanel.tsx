@@ -189,6 +189,7 @@ export default function SettingsPanel() {
           <input
             type="time"
             aria-label="Giờ nhắc kế hoạch"
+            className="text-input"
             value={settings.planReminder.at}
             onChange={(event) => {
               const at = event.target.value;

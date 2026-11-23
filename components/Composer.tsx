@@ -98,7 +98,7 @@ export default function Composer({
                 aria-expanded={expanded}
                 aria-label={expanded ? 'Thu gọn chi tiết việc' : 'Mở chi tiết việc'}
                 title={expanded ? 'Thu gọn' : 'Chi tiết: môn, hạn, ưu tiên, lặp lại'}
-                className="btn-icon size-9"
+                className="btn-icon"
                 data-active={expanded}
               >
                 <ChevronDownIcon

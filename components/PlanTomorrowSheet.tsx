@@ -6,6 +6,7 @@
 import React, { useCallback, useState } from 'react';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
+import Checkbox from './ui/Checkbox';
 import type { Task } from '../lib/tasks/types';
 
 const MAX_PLANNED = 5;
@@ -71,22 +72,23 @@ export default function PlanTomorrowSheet({
           const checked = selected.includes(task.id);
           return (
             <div key={task.id} className="stack gap-xs">
-              <label className="flex items-center gap-sm text-body-sm text-brown">
-                <input
-                  type="checkbox"
+              {/* Dùng seal-check của hệ — checkbox native trần ~13px là gãy cả touch lẫn tông sơn mài */}
+              <div className="flex min-h-11 items-center gap-sm text-body-sm text-brown">
+                <Checkbox
                   checked={checked}
-                  onChange={(event) => toggle(task.id, event.target.checked)}
                   aria-label={`Chọn ${task.title} cho ngày mai`}
+                  onChange={(value) => toggle(task.id, value)}
                 />
-                {task.title}
-              </label>
+                <span className="min-w-0">{task.title}</span>
+              </div>
               {checked && (
-                <label className="flex items-center gap-sm text-caption text-umber">
+                <label className="flex min-h-11 items-center gap-sm text-caption text-umber">
                   <input
                     type="radio"
                     name="frog-tomorrow"
                     checked={frogId === task.id}
                     onChange={() => setFrogId(task.id)}
+                    className="size-5 shrink-0 accent-primary"
                   />
                   Làm đầu tiên (ếch cho mai)
                 </label>
